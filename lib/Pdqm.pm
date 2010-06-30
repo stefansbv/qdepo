@@ -3,24 +3,33 @@ package Pdqm;
 use strict;
 use warnings;
 
+use Pdqm::Config;
 use Pdqm::Wx::App;
 
 sub new {
-    my $class = shift;
+    my ($class, $opts) = @_;
 
     my $self = {};
 
     bless $self, $class;
 
-    $self->_init;
+    $self->_init($opts);
 
     return $self;
 }
 
 sub _init {
-    my $self = shift;
+    my ( $self, $opts ) = @_;
 
-    Pdqm::Wx::App->new()->MainLoop;
+    # Config
+    $self->{cnf} = Pdqm::Config->new($opts);
+
+    $self->{gui} = Pdqm::Wx::App->create($self);
+}
+
+sub run {
+    my $self = shift;
+    $self->{gui}->MainLoop;
 }
 
 1;

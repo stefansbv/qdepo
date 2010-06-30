@@ -6,7 +6,7 @@ use warnings;
 use DBI;
 use SQL::Abstract;
 
-#use Pdqm::Config;
+use Pdqm::Config;
 use Pdqm::FileIO;
 use Pdqm::Observable;
 

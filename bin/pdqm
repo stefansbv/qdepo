@@ -1,14 +1,426 @@
 #!/usr/bin/perl
 
+# Author: Stefan Suciu
+
 use strict;
 use warnings;
 
-use lib qw(../lib);
+use Getopt::Long;
+use Pod::Usage;
+
+use File::Basename;
+use File::HomeDir;
+use File::Find::Rule;
+use File::Spec::Functions;
 
 use Pdqm;
 
-my $recipe = Pdqm->new();
+# Home and data directory
+my $home_path = File::HomeDir->my_home;
 
-print "Normal termination\n";
+# User configuration path
+my $user_conf_path = catdir( $home_path, '.reports' );
+
+# Parse options and print usage if there is a syntax error,
+# or if usage was explicitly requested.
+my $help    = '';
+my $man     = '';
+my $verbose = 1;     # default option
+my $cfg_name;
+my $app;
+my $list;
+my $user;
+my $pass;
+
+# Process options.
+if ( @ARGV > 0 ) {
+    GetOptions(
+        'help|?'    => \$help,
+        'man'       => \$man,
+        'verbose+'  => \$verbose,
+        'quiet'     => sub { $verbose = 0 },
+        'config=s'  => \$cfg_name,
+        'user=s'    => \$user,
+        'password=s'=> \$pass,
+        'app=s'     => \$app,
+        'list:s'    => \$list,
+        ),
+        or pod2usage(2);
+}
+if ( $man or $help or $#ARGV >= 0 ) {
+    pod2usage(1) if $help;
+    pod2usage( VERBOSE => 2 ) if $man;
+    if ( $#ARGV >= 0 ) {
+        pod2usage("$0: too many arguments.");
+    }
+}
+
+# Debug
+if ($verbose > 1) {
+    print "\n";
+    print "OS                = $^O\n";
+    print "Home path         = $home_path\n";
+    print "User configs path = $user_conf_path\n";
+    print "Verbosity level   = $verbose\n";
+    # print "\n";
+}
+
+my $opts = {};
+
+# Pass on verbose setting
+$opts->{run_ref}{verbose} = $verbose;
+
+# User and password option
+if (! defined $user && defined $pass) {
+    pod2usage("$0: user option required if password option provided");
+}
+
+# List option
+if (defined $list) {
+    if ($list) {
+
+        # Get list of configured applications
+        my $cfg_ref = locate_configs($user_conf_path);
+
+        if (ref $cfg_ref) {
+            print "\nApplication:\n\n ID            : $list";
+            app_config_details($list, $cfg_ref);
+        } else {
+            print "Application not defined: $list\n";
+        }
+        print "\n";
+        exit;
+    }
+    else {
+
+        # Get list of configured applications
+        my $cfg_ref = locate_configs($user_conf_path);
+
+        if (ref $cfg_ref) {
+            list_configd_apps($user_conf_path, $cfg_ref);
+        } else {
+            print "No applications defined!\n";
+        }
+        exit;
+    }
+}
+
+# App option
+if (defined $app) {
+    if ($app) {
+
+        $opts->{run_ref}{app_id} = $app;
+
+        # Get configs for $app
+        my $cfg_ref = locate_config_name($user_conf_path, $app);
+
+        if (ref $cfg_ref) {
+
+            # $opts->{cfg_ref} = $cfg_ref;
+
+            if (! defined $cfg_name) {
+                # Count number of configs
+                my $no = scalar keys %{ $cfg_ref->{$app}{conf} };
+                if ($no == 1) {
+                    # Default to existing config
+                    my @configs = keys %{ $cfg_ref->{$app}{conf} };
+                    $cfg_name = $configs[0];
+                }
+                else {
+                    # More than one config, need option!
+                    print "\nApplication: $app\n";
+                    print "  has more than one config name,\n";
+                    print "  choose one with option: -c[onfig]\n";
+                    app_config_details($app, $cfg_ref);
+                    print "\n";
+                    exit;
+                }
+            }
+            # Check config name
+            if ( exists $cfg_ref->{$app}{conf}{$cfg_name} ) {
+
+                $opts->{run_ref}{cfg_para} = $cfg_name;
+                $opts->{cfg_ref}{conf_file} = $cfg_ref->{$app}{conf}{$cfg_name};
+                $opts->{cfg_ref}{conf_dir} = $cfg_ref->{$app}{dir};
+                $opts->{cfg_ref}{tmpl_dir} = $user_conf_path;
+
+                # Option user and pass
+                $opts->{run_ref}{user} = $user;
+                $opts->{run_ref}{pass} = $pass;
+
+                # Go and run the app
+                my $app = Pdqm->new( $opts );
+
+                print "Normal exit.\n";
+                exit 0;
+            }
+            else {
+                # Wrong config name!
+                print "\n $app: wrong config name!\n";
+                app_config_details($app, $cfg_ref);
+                exit;
+            }
+        } else {
+            print "Application not defined: $app\n";
+            exit;
+        }
+    }
+}
+
+# If no other option, usage
+pod2usage(1);
+
+
+#--- subs
+
+sub list_configd_apps {
+
+    my ($user_conf_path, $cfg_ref) = @_;
+
+    print "\nApplications:\n";
+    print "\n Configs path:\n  $user_conf_path\n";
+    print "\n List:\n";
+    foreach my $app_name (keys %{$cfg_ref} ) {
+        print '  id: ', $app_name, "\n";
+    }
+    print "\n";
+
+    return;
+}
+
+sub app_config_details {
+
+    my ($app_id, $cfg_ref) = @_;
+
+    if ( exists $cfg_ref->{$app_id} ) {
+        print "\n";
+        print ' Config path   : ', $cfg_ref->{$app_id}{dir}, "\n";
+        print "\n Config file(s):\n";
+        while (my ($name, $file) = each ( %{$cfg_ref->{$app_id}{conf}} ) ) {
+            print "   $name -> $file\n";
+        }
+    }
+    else {
+        print " NOT Found!\n";
+    }
+
+    return;
+}
+
+sub locate_configs {
+
+    my $user_conf_path = shift;
+
+    my %configs;
+
+    my $dirs = find_app_config_paths($user_conf_path);
+    foreach my $app_id ( @{$dirs} ) {
+
+        my $app_path   = catdir($user_conf_path, $app_id);
+        my $files_aref = find_config_files($app_path);
+
+        my $no = scalar  @{$files_aref};
+
+        next if $no == 0;   # Skip if no config files in path
+
+        my @files;
+        # Get config name from file name
+        foreach my $cfg_file ( @{$files_aref} ) {
+            ( my $cfg_name = $cfg_file ) =~ s{\.xml}{};
+            $configs{$app_id}{conf}{$cfg_name} = $cfg_file;
+        }
+
+        # Add the app path
+        $configs{$app_id}{dir} = $app_path;
+    }
+
+    return \%configs;
+}
+
+sub locate_config_name {
+
+    my ($user_conf_path, $app_id) = @_;
+
+    my %configs;
+
+    my $app_path = catdir($user_conf_path, $app_id);
+    my $files_aref = find_config_files($app_path);
+
+    my $no = scalar  @{$files_aref};
+
+    return if $no == 0;   # Skip if no config files in path
+
+    my @files;
+    # Get config name from file name
+    foreach my $cfg_file ( @{$files_aref} ) {
+        ( my $cfg_name = $cfg_file ) =~ s{\.xml}{};
+        $configs{$app_id}{conf}{$cfg_name} = $cfg_file;
+    }
+
+    # Add the app path
+    $configs{$app_id}{dir}  = $app_path;
+
+    return \%configs;
+}
+
+sub find_config_files {
+
+    my $dir = shift;
+
+    my @files = File::Find::Rule
+        ->relative
+        ->file->name( '*.xml' )
+        ->in( $dir );
+
+    return \@files;
+}
+
+sub find_app_config_paths {
+
+    my $dir = shift;
+
+    # Find all the subdirectories of a given directory
+    my $rule = File::Find::Rule->new
+        ->mindepth(1)
+        ->maxdepth(1);
+    # Ignore .svn
+    $rule->or(
+        $rule->new
+            ->directory
+            ->name('.svn')
+            ->prune
+            ->discard,
+        $rule->new);
+    # Ignore CVS
+    $rule->or(
+        $rule->new
+            ->directory
+            ->name('CVS')
+            ->prune
+            ->discard,
+        $rule->new);
+    # Ignore git
+    $rule->or(
+        $rule->new
+            ->directory
+            ->name('.git')
+            ->prune
+            ->discard,
+        $rule->new);
+
+    my @subdirs = $rule->directory->in( $dir );
+
+    my @apps = map { basename($_); } @subdirs;
+
+    return \@apps;
+}
+
 
 __END__
+
+=head1 NAME
+
+Pdqm (Perl Database Query Manager)
+
+=head1 SYNOPSIS
+
+pdqm.pl [-list [<app-id>]]
+
+pdqm.pl -a [-user <user> [-pass <pass>]] <app-Id> [-c <config-name>]
+
+Options:
+
+ -list     [app]   List installed apps or detailed config info
+ -app      [app]   Run application
+ -config           Application configuration name
+ -user             User name
+ -password         Password
+ -help             Brief help message
+ -man              Full documentation
+ -verbose          Increase the verbosity of the output
+
+=head1 DESCRIPTION
+
+B<Pdqm> A graphical user interface for your SQL queries ...
+
+=head1 OPTIONS DETAILS
+
+=over
+
+=item B<-list> [application Id]
+
+List installed (configured) applications
+
+Example:
+
+ % pdqm.pl -l
+
+will return something like this:
+
+Applications list:
+ id: [ classicmodels  ] classicmodels
+
+and if an application Id is provided, list the configuration details
+for that application.
+
+ % pdqm.pl -l classicmodels
+
+ Application [id]: classicmodels
+  Name           : classicmodels
+  Description    : ClassicModels demo application
+  Full path      : /home/user/tpda/apps/classicmodels
+  Config file(s) :
+    classicmodels-pg -> conf\classicmodels-pg.xml
+    classicmodels-my -> conf\classicmodels-my.xml
+    classicmodels-fb -> conf\classicmodels-fb.xml
+
+Where 'classicmodels-xx' is the configuration name corresponding to
+each configuration file located in the conf sub directory of the
+applications sub directory.
+
+=item B<-app>
+
+The name (identifier) of the application.  Has to be the same as the
+name of the sub directory where the application files are located.
+
+=item B<-config> <config-name>
+
+Set configuration name to use. Any application can have one or more
+configuration files with different names in the conf directory. Each
+file has a configuration name assigned to it in a main config file. If
+the main configuration file is build using the install-apps.pl tool,
+then the config name will be set equal to the file name without the
+extension.
+
+=item B<-user>
+
+Sets the user name.  If the user is specified but not the password than
+the login dialog will ask only for the password.  If both the password
+and user are provided then the login dialog will be skipped.
+
+=item B<-password>
+
+Sets the password.  If the user option is not specified than show
+usage and exit.  If the user is specified skip the login dialog.
+
+=item B<-man>
+
+Prints the manual page and exits.
+
+=item B<-verbose>
+
+Increase the verbosity of the output. This option is incremental.
+
+=back
+
+=head1 LICENSE
+
+Copyright (C) 2004-2010  Stefan Suciu
+This program is free software, you can redistribute it and/or
+modify it under the terms of GNU General Public License.
+
+=head1 AUTHOR
+
+Stefan Suciu <stefansbv 'at' users . sourceforge . net>
+
+=cut
