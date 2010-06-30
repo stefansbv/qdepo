@@ -15,10 +15,8 @@ sub new {
 
     my ($class, $opts) = @_;
 
-    # $self is an anonymous hash.
     my $self = {};
 
-    # Initialize data hash ref
     $self->{config} = {};
 
     bless( $self, $class );
