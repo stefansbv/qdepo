@@ -5,7 +5,7 @@ use warnings;
 
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_TOOL EVT_BUTTON
-                 EVT_AUINOTEBOOK_PAGE_CHANGED);
+                 EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
 use Pdqm::Model;
 use Pdqm::Wx::View;
@@ -35,6 +35,7 @@ sub new {
         _exit_btn => $view->get_exit_btn,
         # _titl_txt => $view->get_titl_txt,
         _nbook    => $view->get_notebook,
+        _list     => $view->get_listcontrol,
     };
 
     bless $self, $class;
@@ -100,6 +101,11 @@ sub _set_event_handlers {
          my $old_pg = $event->GetOldSelection;
          $self->_model->on_page_change($new_pg, $old_pg);
          $event->Skip;
+    };
+
+    EVT_LIST_ITEM_SELECTED $self->_view, $self->{_list}, sub {
+        # $self->{list}->GetId,
+        $self->_model->on_item_selected(@_);
     };
 
     # EVT_BUTTON $self->_view, $self->{_refr_btn}, sub {

@@ -122,7 +122,12 @@ sub _print {
 sub on_page_change {
     my ($self, $new_pg, $old_pg) = @_;
     print " page changed, current is $new_pg and old $old_pg\n";
-    $self->get_stdout_observable->set( $new_pg );
+    # $self->get_stdout_observable->set( $new_pg );
+}
+
+sub on_item_selected {
+    my ($self, ) = @_;
+    print "other list item selected \n";
 }
 
 1;

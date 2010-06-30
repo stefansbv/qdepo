@@ -121,15 +121,15 @@ sub create_report_page {
 
     my $self = shift;
 
-    $self->{list} = Wx::Perl::ListCtrl->new(
+    $self->{_list} = Wx::Perl::ListCtrl->new(
         $self->{_nb}{p1}, -1,
         [ -1, -1 ],
         [ -1, -1 ],
         Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
     );
 
-    $self->{list}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
-    $self->{list}->InsertColumn( 1, 'Report name', wxLIST_FORMAT_LEFT, 337 );
+    $self->{_list}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
+    $self->{_list}->InsertColumn( 1, 'Report name', wxLIST_FORMAT_LEFT, 337 );
 
     #-- Controls
 
@@ -164,7 +164,7 @@ sub create_report_page {
         Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Report list ', ), wxVERTICAL,
       );
 
-    $repo_top_sz->Add( $self->{list}, 1, wxEXPAND, 3 );
+    $repo_top_sz->Add( $self->{_list}, 1, wxEXPAND, 3 );
 
     #-- Middle
 
@@ -211,14 +211,6 @@ sub create_report_page {
     $self->{_nb}{p1}->SetSizer($repo_main_sz);
 
     # #- Events
-
-    # Wx::Event::EVT_LIST_ITEM_SELECTED(
-    #     $self,
-    #     $self->{list}->GetId,
-    #     sub {
-    #         $self->on_item_selected(@_);
-    #     },
-    # );
 
     return;
 }
@@ -534,6 +526,12 @@ sub get_toolbar {
     my ($self) = @_;
 
     return $self->{tb};
+}
+
+sub get_listcontrol {
+    my ($self) = @_;
+
+    return $self->{_list};
 }
 
 1;
