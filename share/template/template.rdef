@@ -1,0 +1,19 @@
+<report>
+  <header>
+    <filename></filename>
+    <sheet>Edit this [sheet name]</sheet>
+    <title>Edit this [title]</title>
+    <description>Edit this detailed [description] of the report</description>
+    <output>Edit this [output filename]</output>
+  </header>
+  <parameters>
+    <parameter descr="Parameter1" id="1" value="default1"/>
+    <parameter descr="Parameter2" id="2" value="default2"/>
+  </parameters>
+  <body>
+    <sql><![CDATA[SELECT *
+FROM table
+WHERE something = value1
+  AND somethingelse = value2]]></sql>
+  </body>
+</report>

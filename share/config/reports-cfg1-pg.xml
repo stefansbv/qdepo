@@ -1,0 +1,18 @@
+<!DOCTYPE application SYSTEM "">
+<application id="Reports">
+  <!-- Server login and authentication -->
+  <conninfo>
+    <RDBMS>Postgresql</RDBMS>
+    <Server>localhost</Server>
+    <Protocol>TCP/IP</Protocol>
+    <Port>5432</Port>
+    <Database>contractedb</Database>
+  </conninfo>
+  <!-- Report definition files config options -->
+  <rex>
+    <rdfext>rex</rdfext>
+    <rdfpath>rex</rdfpath>
+    <rdftempl>template.xml</rdftempl>
+    <fileoutpath>reports</fileoutpath>
+  </rex>
+</application>
