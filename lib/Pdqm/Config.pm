@@ -2,8 +2,6 @@ package Pdqm::Config;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use File::Spec::Functions;
@@ -41,8 +39,6 @@ sub _init {
 
     # Setup full path for query definition files
     $self->{cfg}{qdf} = $self->get_rdef_path($opts);
-
-    print Dumper( $self->{cfg} );
 
     return;
 }

@@ -3,15 +3,16 @@ package Pdqm::Model;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use DBI;
 use SQL::Abstract;
 
-use Pdqm::Config;
 use Pdqm::FileIO;
 use Pdqm::Observable;
 
 sub new {
-    my $class = shift;
+    my ($class, $app) = @_;
 
     my $self = {
         _connected => Pdqm::Observable->new(),
@@ -20,14 +21,16 @@ sub new {
 
     bless $self, $class;
 
+    $self->db_connect($app);
+
     return $self;
 }
 
 sub db_connect {
-    my $self = shift;
+    my ($self, $app) = @_;
 
     if ( not $self->is_connected ) {
-        $self->_connect();
+        $self->_connect($app);
     }
     if ( $self->is_connected ) {
         $self->get_connection_observable->set( 1 );
@@ -54,14 +57,12 @@ sub db_disconnect {
 sub _connect {
 
     # Connect to the database
-
-    my $self = shift;
+    my ($self, $app) = @_;
 
     # Get config info
-    my $rc = Pdqm::Config->new();
-    my $conf = $rc->get_config('conninfo');
+    my $conf = $app->{ide}{cnf}{cfg}{conninfo};
 
-    my $dbms   = $conf->{DBMS};
+    my $dbms   = $conf->{RDBMS};
     my $server = $conf->{Server};
     my $user   = $conf->{User};
     my $pass   = $conf->{Pass};

@@ -17,9 +17,8 @@ sub create {
     # Save a link back to the parent ide
     $self->{ide} = $ide;
 
-    Pdqm::Wx::Controller->new();
+    Pdqm::Wx::Controller->new($self);
 
-    print Dumper( $self);
     return $self;
 }
 
