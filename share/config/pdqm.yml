@@ -1,0 +1,13 @@
+# Fisier configurare pentru Pdqm
+---
+conninfo:
+    DBMS:     PostgreSQL
+    Server:   localhost
+    Database: apollo
+    User:     stefan
+    Pass:     tba790k
+rex:
+    rdfext:   xml
+    rdfpath:  rdef
+    rdftempl: template.xml
+    fileoutpath: reports

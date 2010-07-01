@@ -3,6 +3,8 @@ package Pdqm::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
@@ -31,9 +33,9 @@ sub new {
     $self->create_menu();
 
     #-- ToolBar
-    $self->SetToolBar( Pdqm::Wx::ToolBar->new( $self ) );
-    $self->{tb} = $self->GetToolBar;
-    $self->{tb}->Realize;
+    $self->SetToolBar( Pdqm::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
+    $self->{_tb} = $self->GetToolBar;
+    $self->{_tb}->Realize;
 
     #-- Statusbar
     $self->create_statusbar();
@@ -66,16 +68,15 @@ sub _model {
 sub _set_model_callbacks {
     my $self = shift;
 
-    # my $tb = $self->get_toolbar(); # tb_ed = 1005
-    # my $co = $self->_model->get_connection_observable;
-    # $co->add_callback( sub { $tb->ToggleTool( 1005, $_[0] ) } );
+    my $tb = $self->get_toolbar(); # tb_ed = 1005
+    my $co = $self->_model->get_connection_observable;
+    $co->add_callback( sub { $tb->ToggleTool( 1005, $_[0] ) } );
     #--
     # my $so = $self->_model->get_stdout_observable;
     # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
     #--
-    # my $ro = $self->_model->get_updated_observable;
-    # $ro->add_callback(
-    #     sub { $self->refresh( $self->_model->get_record_by_id(1) ) } );
+    my $ro = $self->_model->get_updated_observable;
+    $ro->add_callback( sub { print "updated observable\n"; } );
 }
 
 sub create_menu {
@@ -505,19 +506,16 @@ sub get_save_btn {
 
 sub get_refr_btn {
     my $self = shift;
-
     return 1002;
 }
 
 sub get_edit_btn {
     my $self = shift;
-
     return 1005;
 }
 
 sub get_exit_btn {
     my $self = shift;
-
     return 1008;
 }
 
@@ -525,7 +523,7 @@ sub get_toolbar {
 
     my ($self) = @_;
 
-    return $self->{tb};
+    return $self->{_tb};
 }
 
 sub get_listcontrol {

@@ -11,13 +11,14 @@ use base qw(Wx::App);
 sub create {
     my $self = shift->new;
 
-    # Check IDE param
-    my $ide = shift;
+    # # Check IDE param
+    # my $app = shift;
 
-    # Save a link back to the parent ide
-    $self->{ide} = $ide;
+    # # Save a link back to the parent ide ???
+    # $self->{app} = $app;
 
-    Pdqm::Wx::Controller->new($self);
+    # Pdqm::Wx::Controller->new($self);
+    Pdqm::Wx::Controller->new();
 
     return $self;
 }

@@ -2,24 +2,67 @@ package Pdqm::FileIO;
 
 use strict;
 use warnings;
-
 use Carp;
+
+use Data::Dumper;
+use File::HomeDir;
 use File::Find::Rule;
 use File::Spec::Functions;
-
 use XML::Twig;
 
-our $VERSION = 0.10;         # Version number
+our $VERSION = 0.02;         # Version number
 
 sub new {
 
-    my ($class) = @_;
+    my ($class, $args) = @_;
 
-    my $self = {};
+    my $self = $args;
 
     bless( $self, $class );
 
     return $self;
+}
+
+sub process_all_files {
+
+    my ($self) = @_;
+
+    my $files = $self->get_file_list();
+
+    if (! defined $files) {
+        print "No report definition files.\n";
+        return;
+    }
+
+    print "\nReading XML files...\n";
+    print scalar @$files, " report definition files.\n";
+
+    my $indice = 0;
+    my $titles = {};
+    # rdf : report definition file ;)
+    foreach my $rdf_file ( @$files ) {
+
+        # print " File : $rdf_file\n";
+        my $nrcrt = $indice + 1;
+        my $title;
+        eval {
+            $title = $self->xml_read_simple($rdf_file, 'title');
+        };
+        if ($@) {
+            print "$rdf_file: Not valid XML!\n";
+        } else {
+            # print "Fisier: $rdf_file\n";
+            if (ref $title) {
+                $titles->{$indice} = [ $nrcrt, $title->{title}, $rdf_file ];
+                $indice++;
+            }
+            else {
+                print "$rdf_file: Not valid RdeF!\n";
+            }
+        }
+    }
+
+    return $titles;
 }
 
 sub xml_read_simple {
@@ -49,48 +92,6 @@ sub xml_read_simple {
     return $xml_data;
 }
 
-sub process_all_files {
-
-    my ($self) = @_;
-
-    my $files = $self->get_file_list();
-
-    if (! defined $files) {
-        print "No report definition files.\n";
-        return;
-    }
-
-    print "\nReading XML files...\n";
-    print scalar @$files, " report definition files.\n";
-
-    my $indice = 0;
-    my $titles = {};
-    # rdf : report definition file ;)
-    foreach my $rdf_file ( @$files ) {
-
-        # print " File : $rdf_file\n";
-        my $nrcrt = $indice + 1;
-        my $title;
-        eval {
-            $title = $self->read_simple($rdf_file, 'title');
-        };
-        if ($@) {
-            print "$rdf_file: Not valid XML!\n";
-        } else {
-            print "Fisier: $rdf_file\n";
-            if (ref $title) {
-                $titles->{$indice} = [ $nrcrt, $title->{title}, $rdf_file ];
-                $indice++;
-            }
-            else {
-                print "$rdf_file: Not valid RdeF!\n";
-            }
-        }
-    }
-
-    return $titles;
-}
-
 sub process_file {
 
     my ($self, $rdf_file) = @_;
@@ -115,8 +116,9 @@ sub get_file_list {
 
     my $self = shift;
 
-    my $rdfpath_qn = $self->{repo}{conf}->get_rdef_path();
-    my $rdfext     = $self->{repo}{conf}->get_config_rdef('rdfext');
+    my $home_path = File::HomeDir->my_home;
+    my $rdfpath_qn = catdir($home_path, '.reports/Contracte' ,$self->{rdfpath}); # ???
+    my $rdfext     = $self->{rdfext};
 
     if ( ! -d $rdfpath_qn ) {
         print "Wrong path for rdef files:\n$rdfpath_qn !\n";

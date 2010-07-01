@@ -15,7 +15,7 @@ use Pdqm::Wx::View;
 sub new {
     my ( $class, $app ) = @_;
 
-    my $model = Pdqm::Model->new($app);
+    my $model = Pdqm::Model->new( { conf_file => 'share/config/pdqm.yml'} );
 
     my $view = Pdqm::Wx::View->new(
         $model,
@@ -76,11 +76,23 @@ my $exit = sub {
 sub _set_event_handlers {
     my $self = shift;
 
-    # EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
-    #     $self->_model->is_connected
-    #       ? $self->_model->db_disconnect
-    #       : $self->_model->db_connect;
-    # };
+    EVT_TOOL $self->_view, $self->{_save_btn}, sub {
+        $self->_model->is_connected
+            ? $self->_model->db_disconnect
+            : $self->_model->db_connect;
+    };
+    EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
+        $self->_model->is_connected
+            ? $self->_model->db_disconnect
+            : $self->_model->db_connect;
+    };
+    EVT_TOOL $self->_view, $self->{_refr_btn}, sub {
+        $self->_model->is_connected
+            ? $self->_model->db_disconnect
+            : $self->_model->db_connect;
+    };
+    EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
+
     # EVT_TOOL $self->_view, $ID{REFRESH}, sub {
     #     $self->_model->is_connected
     #       ? $self->_model->refresh
@@ -110,17 +122,11 @@ sub _set_event_handlers {
         $self->_model->on_item_selected(@_);
     };
 
-    # EVT_BUTTON $self->_view, $self->{_refr_btn}, sub {
-    #     $self->_model->is_connected
-    #       ? $self->_model->refresh
-    #       : $self->_view->popup( 'Error', 'Not connected' );
-    # };
-
     # EVT_BUTTON $self->_view, $self->{_exit_btn}, $exit;
 
     EVT_CLOSE $self->_view, $closeWin;
 
-    EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
+    # EVT_SIZE ( BasicFrame::OnSize )
 }
 
 sub _model {
