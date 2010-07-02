@@ -101,8 +101,8 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
         $self->_model->set_editmode;
         $self->_model->is_editmode
-            ? $self->set_tool_buttons(0)
-            : $self->set_tool_buttons(1);
+            ? $self->toggle_controls(0)
+            : $self->toggle_controls(1);
     };
 
     EVT_TOOL $self->_view, $self->{_run_btn}, sub {
@@ -144,15 +144,19 @@ sub _view {
     return $self->{_view};
 }
 
-sub set_tool_buttons {
+sub toggle_controls {
     my ($self, $status) = @_;
 
+    # Tool buttons
     $self->{_toolbar}->EnableTool( 1002, $status );
     $self->{_toolbar}->EnableTool( 1003, $status );
     $self->{_toolbar}->EnableTool( 1004, $status );
     $self->{_toolbar}->EnableTool( 1005, $status );
     $self->{_toolbar}->EnableTool( 1007, $status );
     $self->{_toolbar}->EnableTool( 1008, $status );
+    $self->{_toolbar}->EnableTool( 1009, $status );
+    # List control
+    $self->{_list}->Enable($status);
 }
 
 1;
