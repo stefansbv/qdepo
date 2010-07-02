@@ -3,6 +3,8 @@ package Pdqm::Config;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use base ('Class::Accessor');
 use YAML::Tiny;
 
@@ -28,6 +30,7 @@ sub _make_accessors {
 
     my $config = YAML::Tiny::LoadFile( $args->{conf_file} );
 
+    print Dumper(     $config );
     Pdqm::Config->mk_accessors( keys %{$config} );
     foreach ( keys %{$config} ) {
         $self->$_( $config->{$_} );

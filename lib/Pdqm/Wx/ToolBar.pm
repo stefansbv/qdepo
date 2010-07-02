@@ -30,13 +30,24 @@ sub new {
     # Get ToolBar button atributes defined in Control.pm
     my $attribs = $self->get_tb_attr();
 
+    #-- Sort by id
+
+    #- Keep only key and id for sorting
+    my %temp = map { $_ => $attribs->{$_}{id} } keys %$attribs;
+
+    #- Sort with  ST
+    my @attribs = map  { $_->[0] }
+        sort { $a->[1] <=> $b->[1] }
+        map  { [ $_ => $temp{$_} ] }
+        keys %temp;
+
     # Get options from Control.pm for Wx::Choice
     $self->{options} = $self->get_choice_options();
 
     # Create buttons in ID order; use sub defined by 'type'
-    foreach my $id ( sort keys %{$attribs} ) {
-        my $type = $attribs->{$id}{type};
-        $self->$type($id, $attribs->{$id} );
+    foreach my $name (@attribs) {
+        my $type = $attribs->{$name}{type};
+        $self->$type( $name, $attribs->{$name} );
     }
 
     return $self;
@@ -49,13 +60,13 @@ sub get_toolbar {
 
 sub item_normal {
 
-    my ($self, $id, $attribs) = @_;
+    my ($self, $name, $attribs) = @_;
 
     $self->AddSeparator if $attribs->{sep} =~ m{before};
 
     # Add the button
-    $self->{ $attribs->{name} } = $self->AddTool(
-        $id,
+    $self->{$name} = $self->AddTool(
+        $attribs->{id},
         $self->make_bitmap( $attribs->{icon} ),
         wxNullBitmap,
         wxITEM_NORMAL,
@@ -74,14 +85,14 @@ sub item_check {
     # I know, another copy of a sub with only one diff is
     #  at least unusual :)
 
-    my ($self, $id, $attribs) = @_;
+    my ($self, $name, $attribs) = @_;
 
     $self->AddSeparator if $attribs->{sep} =~ m{before};
 
     # Add the button
-    $self->{ $attribs->{name} } = $self->AddCheckTool(
-        $id,
-        $attribs->{name},
+    $self->{name} = $self->AddCheckTool(
+        $attribs->{id},
+        $name,
         $self->make_bitmap( $attribs->{icon} ),
         wxNullBitmap, # bmpDisabled=wxNullBitmap other doesn't work
         $attribs->{tooltip},
@@ -108,14 +119,14 @@ sub make_bitmap {
 
 sub item_list {
 
-    my ($self, $id, $attribs) = @_;
+    my ($self, $name, $attribs) = @_;
 
     # 'sep' must be at least empty string in config;
     $self->AddSeparator if $attribs->{sep} =~ m{before};
 
     my $output =  Wx::Choice->new(
         $self,
-        $id,
+        $attribs->{id},
         [-1,  -1],
         [100, -1],
         $self->{options},
@@ -136,8 +147,8 @@ sub get_tb_attr {
     my ($self) = @_;
 
     return {
-        1001 => {
-            name    => 'tb_cn',
+        tb_cn => {
+            id      =>  1001,
             type    => 'item_check',
             icon    => 'connectyes16',
             action  => 'toggle connect',
@@ -145,8 +156,8 @@ sub get_tb_attr {
             help    => 'Connect/disconnect from the database',
             sep     => 'after',
         },
-        1002 => {
-            name    => 'tb_sv',
+        tb_sv => {
+            id      =>  1002,
             type    => 'item_normal',
             icon    => 'filesave16',
             action  => 'report_save',
@@ -154,8 +165,8 @@ sub get_tb_attr {
             help    => 'Save query definition file',
             sep     => '',
         },
-        1003 => {
-            name    => 'tb_rf',
+        tb_rf => {
+            id      =>  1003,
             type    => 'item_normal',
             icon    => 'actreload16',
             action  => 'report_data_refresh',
@@ -163,8 +174,8 @@ sub get_tb_attr {
             help    => 'Refresh data',
             sep     => 'after',
         },
-        1004 => {
-            name    => 'tb_ad',
+        tb_ad => {
+            id      =>  1004,
             type    => 'item_normal',
             icon    => 'actitemadd16',
             action  => 'report_add',
@@ -172,8 +183,8 @@ sub get_tb_attr {
             help    => 'Create new query definition file',
             sep     => '',
         },
-        1005 => {
-            name    => 'tb_rm',
+        tb_rm => {
+            id      =>  1005,
             type    => 'item_normal',
             icon    => 'actitemdelete16',
             action  => 'report_remove',
@@ -181,8 +192,8 @@ sub get_tb_attr {
             help    => 'Remove query definition file',
             sep     => '',
         },
-        1006 => {
-            name    => 'tb_ed',
+        tb_ed => {
+            id      =>  1006,
             type    => 'item_check',
             icon    => 'edit16',
             action  => 'report_edit',
@@ -190,15 +201,14 @@ sub get_tb_attr {
             help    => 'Edit mode on/off',
             sep     => 'after',
         },
-        1007 => {
-            name   => 'tb_ls',
-            type   => 'item_list',
-            action => 'choice_change',
-            # help   => 'Select output type',
-            sep    => 'after',
+        tb_ls => {
+            id      =>  1007,
+            type    => 'item_list',
+            action  => 'choice_change',
+            sep     => 'after',
         },
-        1008 => {
-            name    => 'tb_go',
+        tb_go => {
+            id    =>  1008,
             type    => 'item_normal',
             icon    => 'navforward16',
             action  => 'report_run',
@@ -206,8 +216,8 @@ sub get_tb_attr {
             help    => 'Run export',
             sep     => 'after',
         },
-        1009 => {
-            name    => 'tb_qt',
+        tb_qt => {
+            id    =>  1009,
             type    => 'item_normal',
             icon    => 'actexit16',
             action  => 'button_exit',

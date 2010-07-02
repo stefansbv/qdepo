@@ -32,8 +32,10 @@ sub new {
         _view     => $view,
         _conn_btn => $view->get_conn_btn,
         _save_btn => $view->get_save_btn,
-        _edit_btn => $view->get_edit_btn,
         _refr_btn => $view->get_refr_btn,
+        _add_btn  => $view->get_add_btn,
+        _del_btn  => $view->get_del_btn,
+        _edit_btn => $view->get_edit_btn,
         _run_btn  => $view->get_run_btn,
         _exit_btn => $view->get_exit_btn,
         _nbook    => $view->get_notebook,
@@ -53,7 +55,7 @@ sub new {
 sub start {
     my ($self, ) = @_;
 
-    # Populate list
+    # Populate list with titles
     $self->_view->list_populate_all();
 
     # Connect to database

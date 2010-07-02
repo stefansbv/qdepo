@@ -438,34 +438,9 @@ sub popup {
     }
 }
 
-sub get_conn_btn {
-    my $self = shift;
-    return 1001;
-}
+sub get_toolbar_btn {
+    my ($self, $name) = @_;
 
-sub get_save_btn {
-    my $self = shift;
-    return 1002; # _save_btn how to get save tb button id ?
-}
-
-sub get_refr_btn {
-    my $self = shift;
-    return 1003;
-}
-
-sub get_edit_btn {
-    my $self = shift;
-    return 1006;
-}
-
-sub get_run_btn {
-    my $self = shift;
-    return 1008;
-}
-
-sub get_exit_btn {
-    my $self = shift;
-    return 1009;
 }
 
 sub get_toolbar {
