@@ -121,11 +121,8 @@ sub _set_event_handlers {
         $self->_model->on_item_selected(@_);
     };
 
-    # EVT_BUTTON $self->_view, $self->{_exit_btn}, $exit;
-
     EVT_CLOSE $self->_view, $closeWin;
-
-    # EVT_SIZE ( BasicFrame::OnSize )
+    # EVT_SIZE ( BasicFrame::OnSize ) # Experiment with this ???
 }
 
 sub _model {

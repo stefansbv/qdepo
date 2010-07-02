@@ -62,6 +62,7 @@ sub new {
 
 sub _model {
     my $self = shift;
+
     $self->{_model};
 }
 
@@ -82,7 +83,6 @@ sub _set_model_callbacks {
 }
 
 sub create_menu {
-
     my $self = shift;
 
     my $menu = Wx::MenuBar->new;
@@ -99,8 +99,6 @@ sub create_menu {
     $menu->Append( $menu_help, "&Help" );
 
     $self->SetMenuBar($menu);
-
-    return;
 }
 
 sub get_menubar {
@@ -109,24 +107,21 @@ sub get_menubar {
 }
 
 sub create_statusbar {
-
     my $self = shift;
 
     my $sb = $self->CreateStatusBar( 3 );
     $self->{_stbar} = $sb;
 
     $self->SetStatusWidths( 260, -1, -2 );
-
-    return;
 }
 
 sub get_notebook {
     my $self = shift;
+
     return $self->{_nb};
 }
 
 sub create_report_page {
-
     my $self = shift;
 
     $self->{_list} = Wx::Perl::ListCtrl->new(
@@ -217,10 +212,6 @@ sub create_report_page {
     $repo_main_sz->AddGrowableCol(0);
 
     $self->{_nb}{p1}->SetSizer($repo_main_sz);
-
-    # #- Events
-
-    return;
 }
 
 sub create_para_page {
@@ -307,12 +298,9 @@ sub create_para_page {
     $para_main_sz->Add( $para_sbs, 1, wxALL | wxGROW, 5 );
 
     $self->{_nb}{p2}->SetSizer( $para_main_sz );
-
-    return;
 }
 
 sub create_sql_page {
-
     my $self = shift;
 
     #--- SQL Tab (page)
@@ -337,12 +325,9 @@ sub create_sql_page {
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
 
     $self->{_nb}{p3}->SetSizer( $sql_main_sz );
-
-    return;
 }
 
 sub create_config_page {
-
     my $self = shift;
 
     #-- Controls
@@ -426,8 +411,6 @@ sub create_config_page {
     $cnf_main_sz->Add( $top_sz_p4, 1, wxALL | wxGROW, 5 );
 
     $self->{_nb}{p4}->SetSizer( $cnf_main_sz );
-
-    return;
 }
 
 sub popup {
@@ -574,8 +557,6 @@ sub list_populate_all {
 
     # Set item 0 selected on start
     $self->list_item_select_first();
-
-    return;
 }
 
 #-- End Perl ListCtrl subs
