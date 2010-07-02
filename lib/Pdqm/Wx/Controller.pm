@@ -96,8 +96,9 @@ sub _set_event_handlers {
     };
     EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
 
-    # EVT_MENU $self->_view, $ID{ABOUT}, $about;
-    # EVT_MENU $self->_view, $ID{EXIT},  $exit;
+    EVT_MENU $self->_view, wxID_ABOUT, $about; # Change icons !!!
+    EVT_MENU $self->_view, wxID_HELP, $about;
+    EVT_MENU $self->_view, wxID_EXIT,  $exit;
 
     EVT_CLOSE $self->_view, $closeWin;
 

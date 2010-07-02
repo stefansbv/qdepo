@@ -89,9 +89,14 @@ sub create_menu {
 
     $self->{_menu} = $menu;
 
-    my $mapp = Wx::Menu->new;
-    $mapp->Append( wxID_EXIT, "E&xit\tAlt+X" );
-    $menu->Append( $self->{menu_app}, "&App" );
+    my $menu_app = Wx::Menu->new;
+    $menu_app->Append( wxID_EXIT, "E&xit\tAlt+X" );
+    $menu->Append( $menu_app, "&App" );
+
+    my $menu_help = Wx::Menu->new();
+    $menu_help->AppendString( wxID_HELP, "&Contents...", "" );
+    $menu_help->AppendString( wxID_ABOUT, "&About", "" );
+    $menu->Append( $menu_help, "&Help" );
 
     $self->SetMenuBar($menu);
 
