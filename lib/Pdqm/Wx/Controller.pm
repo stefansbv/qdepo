@@ -44,6 +44,9 @@ sub new {
     bless $self, $class;
 
     $self->_set_event_handlers;
+
+    $self->_init();
+
     $self->_view->Show( 1 );
 
     return $self;
@@ -51,7 +54,11 @@ sub new {
 
 sub _init {
     my ($self) = @_;
-    return;
+
+    # Initial status for controls
+    $self->_model->is_editmode
+        ? $self->toggle_controls(0)
+        : $self->toggle_controls(1);
 }
 
 my $closeWin = sub {
@@ -148,15 +155,32 @@ sub toggle_controls {
     my ($self, $status) = @_;
 
     # Tool buttons
-    $self->{_toolbar}->EnableTool( 1002, $status );
+    $self->{_toolbar}->EnableTool( 1002, !$status );
     $self->{_toolbar}->EnableTool( 1003, $status );
     $self->{_toolbar}->EnableTool( 1004, $status );
     $self->{_toolbar}->EnableTool( 1005, $status );
     $self->{_toolbar}->EnableTool( 1007, $status );
     $self->{_toolbar}->EnableTool( 1008, $status );
     $self->{_toolbar}->EnableTool( 1009, $status );
+
     # List control
     $self->{_list}->Enable($status);
+
+    # Controls by page Enabled in edit mode
+    $self->toggle_controls_page('para', !$status);
+    $self->toggle_controls_page('list', !$status);
+    $self->toggle_controls_page('sql' , !$status);
+}
+
+sub toggle_controls_page {
+    my ($self, $page, $status) = @_;
+
+    my $get = 'get_controls_'.$page;
+    my $controls = $self->_view->$get();
+
+    foreach my $control ( @{$controls} ) {
+        $control->Enable($status);
+    }
 }
 
 1;

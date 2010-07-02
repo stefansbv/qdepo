@@ -152,9 +152,11 @@ sub create_report_page {
     $self->{sheet} =
       Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
 
-    $self->{description} =
+    $self->{descr} =
       Wx::TextCtrl->new( $self->{_nb}{p1}, -1, '', [ -1, -1 ], [ -1, 40 ],
         wxTE_MULTILINE, );
+
+    $self->{filename}->Enable(0);    # This is disabled
 
     #--- Layout
 
@@ -164,8 +166,8 @@ sub create_report_page {
 
     my $repo_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Report list ', ), wxVERTICAL,
-      );
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Report list ', ),
+        wxVERTICAL, );
 
     $repo_top_sz->Add( $self->{_list}, 1, wxEXPAND, 3 );
 
@@ -196,11 +198,12 @@ sub create_report_page {
 
     #-- Bottom
 
-    my $repo_bot_sz = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Description ', ), wxVERTICAL,
-    );
+    my $repo_bot_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Description ', ),
+        wxVERTICAL, );
 
-    $repo_bot_sz->Add( $self->{description}, 1, wxEXPAND );
+    $repo_bot_sz->Add( $self->{descr}, 1, wxEXPAND );
 
     #--
 
@@ -384,6 +387,12 @@ sub create_config_page {
         [ 170, -1 ],
     );
 
+    # This are disabled by default
+    $self->{cnf_tc0}->Enable(0);
+    $self->{cnf_tc1}->Enable(0);
+    $self->{cnf_tc2}->Enable(0);
+    $self->{cnf_tc3}->Enable(0);
+
     my $cnf_fgs = Wx::FlexGridSizer->new( 8, 1, 5, 10 );
 
     $cnf_fgs->Add( $cnf_lbl0, 0, wxTOP | wxLEFT, 5 );
@@ -457,13 +466,49 @@ sub get_exit_btn {
 }
 
 sub get_toolbar {
-    my ($self) = @_;
+    my $self = shift;
     return $self->{_tb};
 }
 
 sub get_listcontrol {
-    my ($self) = @_;
+    my $self = shift;
     return $self->{_list};
+}
+
+sub get_controls_list {
+    my $self = shift;
+
+    return [
+        $self->{title},
+        $self->{output},
+        $self->{sheet},
+        $self->{descr},
+    ];
+}
+
+sub get_controls_para {
+    my $self = shift;
+
+    return [
+        $self->{descr1},
+        $self->{value1},
+        $self->{descr2},
+        $self->{value2},
+        $self->{descr3},
+        $self->{value3},
+        $self->{descr4},
+        $self->{value4},
+        $self->{descr5},
+        $self->{value5},
+    ];
+}
+
+sub get_controls_sql {
+    my $self = shift;
+
+    return [
+        $self->{sql},
+    ];
 }
 
 #- next ListCtrl
