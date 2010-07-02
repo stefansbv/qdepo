@@ -34,6 +34,7 @@ sub new {
         _save_btn => $view->get_save_btn,
         _edit_btn => $view->get_edit_btn,
         _refr_btn => $view->get_refr_btn,
+        _run_btn  => $view->get_run_btn,
         _exit_btn => $view->get_exit_btn,
         # _titl_txt => $view->get_titl_txt,
         _nbook    => $view->get_notebook,
@@ -83,9 +84,6 @@ sub start {
 sub _set_event_handlers {
     my $self = shift;
 
-    # EVT_TOOL $self->_view, $self->{_save_btn}, sub {
-    #     $self->_view->list_populate_all; # ???
-    # };
     EVT_TOOL $self->_view, $self->{_conn_btn}, sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
@@ -98,21 +96,16 @@ sub _set_event_handlers {
     };
     EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
 
-    # EVT_TOOL $self->_view, $ID{REFRESH}, sub {
-    #     $self->_model->is_connected
-    #       ? $self->_model->refresh
-    #       : $self->_view->popup( 'Error', 'Not connected' );
-    # };
     # EVT_MENU $self->_view, $ID{ABOUT}, $about;
     # EVT_MENU $self->_view, $ID{EXIT},  $exit;
 
-    # EVT_CLOSE $self->_view, $closeWin;
+    EVT_CLOSE $self->_view, $closeWin;
 
-    # EVT_BUTTON $self->_view, $self->{_conn_btn}, sub {
-    #     $self->_model->is_connected
-    #       ? $self->_model->db_disconnect()
-    #       : $self->_view->popup( 'Error', 'Not connected' );
-    # };
+    EVT_TOOL $self->_view, $self->{_run_btn}, sub {
+        $self->_model->is_connected
+          ? $self->_model->run_export()
+          : $self->_view->popup( 'Error', 'Not connected' );
+    };
 
     EVT_AUINOTEBOOK_PAGE_CHANGED $self->_view, $self->{_nbook}, sub {
          my ( $nb, $event ) = @_;

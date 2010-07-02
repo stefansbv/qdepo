@@ -171,4 +171,9 @@ sub get_updated_observable {
     return $self->{_updated};
 }
 
+sub run_export {
+    my ($self) = @_;
+    $self->_print("Running export :-)");
+}
+
 1;

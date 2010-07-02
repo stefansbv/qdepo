@@ -425,6 +425,19 @@ sub create_config_page {
     return;
 }
 
+sub popup {
+    my ( $self, $msgtype, $msg ) = @_;
+    if ( $msgtype eq 'Error' ) {
+        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_ERROR, $self )
+    }
+    elsif ( $msgtype eq 'Warning' ) {
+        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_WARNING, $self )
+    }
+    else {
+        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_INFORMATION, $self )
+    }
+}
+
 sub get_conn_btn {
     my $self = shift;
     return 1001;
@@ -443,6 +456,11 @@ sub get_refr_btn {
 sub get_edit_btn {
     my $self = shift;
     return 1006;
+}
+
+sub get_run_btn {
+    my $self = shift;
+    return 1008;
 }
 
 sub get_exit_btn {
