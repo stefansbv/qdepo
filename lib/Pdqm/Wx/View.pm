@@ -68,9 +68,9 @@ sub _model {
 sub _set_model_callbacks {
     my $self = shift;
 
-    my $tb = $self->get_toolbar(); # tb_ed = 1005
+    my $tb = $self->get_toolbar();
     my $co = $self->_model->get_connection_observable;
-    $co->add_callback( sub { $tb->ToggleTool( 1005, $_[0] ) } );
+    $co->add_callback( sub { $tb->ToggleTool( 1001, $_[0] ) } );
     #--
     # my $so = $self->_model->get_stdout_observable;
     # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
@@ -425,24 +425,29 @@ sub create_config_page {
     return;
 }
 
+sub get_conn_btn {
+    my $self = shift;
+    return 1001;
+}
+
 sub get_save_btn {
     my $self = shift;
-    return 1001; # _save_btn how to get save tb button id ?
+    return 1002; # _save_btn how to get save tb button id ?
 }
 
 sub get_refr_btn {
     my $self = shift;
-    return 1002;
+    return 1003;
 }
 
 sub get_edit_btn {
     my $self = shift;
-    return 1005;
+    return 1006;
 }
 
 sub get_exit_btn {
     my $self = shift;
-    return 1008;
+    return 1009;
 }
 
 sub get_toolbar {

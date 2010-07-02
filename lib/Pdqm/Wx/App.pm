@@ -17,6 +17,8 @@ sub create {
     # # Save a link back to the parent ide ???
     # $self->{app} = $app;
 
+    # wxSingleInstanceChecker ?
+
     # Pdqm::Wx::Controller->new($self);
     my $controller = Pdqm::Wx::Controller->new();
 

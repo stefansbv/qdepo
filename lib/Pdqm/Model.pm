@@ -25,9 +25,6 @@ sub new {
 
     $self->{cfg}  = Pdqm::Config->new( $args );
 
-    $self->db_connect();
-    # $self->get_list_data();
-
     return $self;
 }
 

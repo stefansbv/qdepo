@@ -30,7 +30,7 @@ sub new {
     my $self = {
         _model    => $model,
         _view     => $view,
-        # _conn_btn => $view->get_conn_btn,
+        _conn_btn => $view->get_conn_btn,
         _save_btn => $view->get_save_btn,
         _edit_btn => $view->get_edit_btn,
         _refr_btn => $view->get_refr_btn,
@@ -76,6 +76,8 @@ my $exit = sub {
 sub start {
     my ($self, ) = @_;
     $self->_view->list_populate_all();
+
+    $self->_model->db_connect();
 }
 
 sub _set_event_handlers {
@@ -84,7 +86,7 @@ sub _set_event_handlers {
     # EVT_TOOL $self->_view, $self->{_save_btn}, sub {
     #     $self->_view->list_populate_all; # ???
     # };
-    EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
+    EVT_TOOL $self->_view, $self->{_conn_btn}, sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
             : $self->_model->db_connect;
