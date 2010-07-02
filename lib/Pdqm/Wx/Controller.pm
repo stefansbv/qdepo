@@ -45,20 +45,23 @@ sub new {
 
     $self->_set_event_handlers;
 
-    $self->_init();
-
     $self->_view->Show( 1 );
 
     return $self;
 }
 
-sub _init {
-    my ($self) = @_;
+sub start {
+    my ($self, ) = @_;
 
-    # Initial status for controls
-    $self->_model->is_editmode
-        ? $self->toggle_controls(0)
-        : $self->toggle_controls(1);
+    # Populate list
+    $self->_view->list_populate_all();
+
+    # Connect to database
+    $self->_model->db_connect();
+
+    # Initial mode
+    $self->_model->set_idlemode();
+    $self->toggle_controls;
 }
 
 my $closeWin = sub {
@@ -81,13 +84,6 @@ my $exit = sub {
     $self->Close( 1 );
 };
 
-sub start {
-    my ($self, ) = @_;
-    $self->_view->list_populate_all();
-
-    $self->_model->db_connect();
-}
-
 sub _set_event_handlers {
     my $self = shift;
 
@@ -105,11 +101,19 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->{_refr_btn}, sub {
     };
 
+    # Disable editmode when save
+    EVT_TOOL $self->_view, $self->{_save_btn}, sub {
+        if ($self->_model->is_editmode) {
+            $self->_model->save_query_def;
+            $self->_model->set_idlemode;
+        }
+    };
+
     EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
-        $self->_model->set_editmode;
         $self->_model->is_editmode
-            ? $self->toggle_controls(0)
-            : $self->toggle_controls(1);
+            ? $self->_model->set_idlemode
+            : $self->_model->set_editmode;
+        $self->toggle_controls;
     };
 
     EVT_TOOL $self->_view, $self->{_run_btn}, sub {
@@ -152,7 +156,9 @@ sub _view {
 }
 
 sub toggle_controls {
-    my ($self, $status) = @_;
+    my $self = shift;
+
+    my $status = $self->_model->is_editmode ? 0 : 1;
 
     # Tool buttons
     $self->{_toolbar}->EnableTool( 1002, !$status );

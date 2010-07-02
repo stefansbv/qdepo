@@ -165,13 +165,28 @@ sub run_export {
 sub set_editmode {
     my $self = shift;
 
-    if ($self->is_editmode) {
-        $self->get_editmode_observable->set( 0 );
-        $self->_print("Not edit mode");
+    if ( !$self->is_editmode ) {
+        $self->get_editmode_observable->set(1);
+    }
+    if ( $self->is_editmode ) {
+        $self->_print("Edit mode.");
     }
     else {
-        $self->get_editmode_observable->set( 1 );
-        $self->_print("Edit mode");
+        $self->_print("Idle mode.");
+    }
+}
+
+sub set_idlemode {
+    my $self = shift;
+
+    if ( $self->is_editmode ) {
+        $self->get_editmode_observable->set(0);
+    }
+    if ( $self->is_editmode ) {
+        $self->_print("Edit mode.");
+    }
+    else {
+        $self->_print("Idle mode.");
     }
 }
 
@@ -185,6 +200,12 @@ sub get_editmode_observable {
     my $self = shift;
 
     return $self->{_editmode};
+}
+
+sub save_query_def {
+    my $self = shift;
+
+    $self->_print("Edit mode");
 }
 
 # prev: Edit mode
