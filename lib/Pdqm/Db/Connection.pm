@@ -11,13 +11,13 @@ our $VERSION = 0.01;         # Version number
 
 sub new {
 
-    my ($class, $repo) = @_;
+    my ($class, $args) = @_;
 
     my $self = {};
 
     bless($self, $class);
 
-    $self->{repo} = $repo;
+    $self->{args} = $args;
 
     return $self;
 }
@@ -31,9 +31,9 @@ sub db_connect {
 
     my ($self, $user, $pass) = @_;
 
-    # Connection information from config
-    my $config = $self->{repo}{conf}->get_config_conninfo();
-    my $rdbms  = $config->{RDBMS};
+    # Connection information from config ??? needs rewrite !!!
+    my $config = $self->{args};
+    my $rdbms  = $config->{DBMS};
 
     # Select RDBMS; tryed with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary

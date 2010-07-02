@@ -4,6 +4,7 @@ conninfo:
     DBMS:     PostgreSQL
     Server:   localhost
     Database: apollo
+    Port:     5432
     User:     stefan
     Pass:     tba790k
 rex:

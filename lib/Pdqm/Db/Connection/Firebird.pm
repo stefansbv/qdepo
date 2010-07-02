@@ -37,11 +37,10 @@ sub conectare {
     my $dbname  = $conf->{Database};
     my $server  = $conf->{Server};
     my $fbport  = $conf->{Port};
-    my $rdbms   = $conf->{RDBMS};
+    my $rdbms   = $conf->{DBMS};
     my $dialect = 3;
 
-
-    print "Connect to $rdbms ...\n";
+    print "Connect to the $rdbms server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";

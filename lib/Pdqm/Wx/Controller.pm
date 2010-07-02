@@ -62,8 +62,8 @@ my $closeWin = sub {
 my $about = sub {
     my ( $self, $event ) = @_;
     Wx::MessageBox(
-"CIPRES Registry Manager 1.0\n(C) 2006 Rutger A. Vos\nhttp://www.phylo.org",
-        "About CIPRES Registry Manager",
+        "PDQM v0.10\n(C) 2010 Stefan Suciu",
+        "About Perl Database Query Manager",
         wxOK | wxICON_INFORMATION,
         $self
     );

@@ -3,14 +3,10 @@ package Pdqm::Model;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
-use DBI;
-use SQL::Abstract;
-
 use Pdqm::Config;
 use Pdqm::FileIO;
 use Pdqm::Observable;
+use Pdqm::Db;
 
 sub new {
     my ($class, $args) = @_;
@@ -31,10 +27,10 @@ sub new {
 #- next: DB
 
 sub db_connect {
-    my ($self, $args) = @_;
+    my $self = shift;
 
     if ( not $self->is_connected ) {
-        $self->_connect($args);
+        $self->_connect();
     }
     if ( $self->is_connected ) {
         $self->get_connection_observable->set( 1 );
@@ -48,8 +44,24 @@ sub db_connect {
     return $self;
 }
 
+sub _connect {
+    my $self = shift;
+
+    # Connect to database
+    my $db = Pdqm::Db->new($self->{cfg}{conninfo});
+
+    # Is connected ?
+    if ( ref( $db->dbh() ) =~ m{DBI} ) {
+        $self->get_connection_observable->set( 1 );
+    }
+    else {
+        $self->get_connection_observable->set( 0 );
+    }
+}
+
 sub db_disconnect {
     my $self = shift;
+
     if ( $self->is_connected ) {
         $self->_disconnect;
         $self->get_connection_observable->set( 0 );
@@ -58,60 +70,23 @@ sub db_disconnect {
     return $self;
 }
 
-sub _connect {
-
-    # Connect to the database
-    my ($self, $args) = @_;
-
-    $args = $self->{cfg}->conninfo;
-
-    # Get config info
-    my $dbms   = $args->{DBMS};
-    my $server = $args->{Server};
-    my $user   = $args->{User};
-    my $pass   = $args->{Pass};
-    my $dbname = $args->{Database};
-
-    $self->_print("Connect to $dbms ...");
-
-    eval {
-        $self->{dbh} = DBI->connect(
-            "DBI:Pg:" .
-            "dbname=" . $dbname .
-            ";host=" . $server,
-            $user,
-            $pass,
-            { RaiseError => 1, FetchHashKeyName => 'NAME_lc' }
-        );
-    };
-    if ($@) {
-        $self->_print("Transaction aborted: $@");
-        $self->get_connection_observable->set( 0 );
-    }
-    else {
-        $self->get_connection_observable->set( 1 );
-    }
-
-    return;
-}
-
 sub _disconnect {
-    my ($self) = @_;
-    $self->_dbh->disconnect;
-}
+    my $self = shift;
 
-sub _dbh {
-    my ($self) = @_;
-    return $self->{dbh};
+    my $db = Pdqm::Db->new();
+    $db->dbh->disconnect;
 }
 
 sub is_connected {
     my $self = shift;
+
     return $self->get_connection_observable->get;
+    # What if the connection is lost ???
 }
 
 sub get_connection_observable {
     my $self = shift;
+
     return $self->{_connected};
 }
 
@@ -120,11 +95,13 @@ sub get_connection_observable {
 
 sub get_stdout_observable {
     my $self = shift;
+
     return $self->{_stdout};
 }
 
 sub _print {
     my ( $self, $line ) = @_;
+
     print "$line\n";
     # $self->get_stdout_observable->set( $line );
 }
@@ -134,12 +111,14 @@ sub _print {
 
 sub on_page_change {
     my ($self, $new_pg, $old_pg) = @_;
+
     print " page changed, current is $new_pg and old $old_pg\n";
     # $self->get_stdout_observable->set( $new_pg );
 }
 
 sub on_item_selected {
     my ($self, ) = @_;
+
     print "other list item selected \n";
 }
 
@@ -147,7 +126,6 @@ sub on_item_selected {
 #- next: List
 
 sub get_list_data {
-
     my ($self) = @_;
 
     # XML read - write module
@@ -168,11 +146,13 @@ sub get_list_data {
 
 sub get_updated_observable {
     my $self = shift;
+
     return $self->{_updated};
 }
 
 sub run_export {
     my ($self) = @_;
+
     $self->_print("Running export :-)");
 }
 

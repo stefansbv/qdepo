@@ -11,16 +11,7 @@ use DBI;
 use vars qw($VERSION);
 $VERSION = 0.30;
 
-my $DBI; # Change this ???
-
-# Preloaded methods go here.
-
 sub new {
-
-# +---------------------------------------------------------------------------+
-# | Descriere: Rutina de instantiere                                          |
-# | Parametri: class, alias                                                   |
-# +---------------------------------------------------------------------------+
 
     my $class = shift;
 
@@ -46,9 +37,9 @@ sub conectare {
     my $dbname = $conf->{Database};
     my $server = $conf->{Server};
     my $port   = $conf->{Port};
-    my $rdbms  = $conf->{RDBMS};
+    my $rdbms  = $conf->{DBMS};
 
-    print "Connect to $rdbms ...\n";
+    print "Connect to the $rdbms server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";
@@ -56,7 +47,7 @@ sub conectare {
     print "  => User     = $user\n";
 
     eval {
-        $self->{DBH} = DBI->connect(
+        $self->{_dbh} = DBI->connect(
             "dbi:Pg:"
                 . "dbname="
                 . $dbname
@@ -74,14 +65,13 @@ sub conectare {
     ##
 
     if ($@) {
-        warn "Transaction aborted because $@";
-        print "Not connected!\n";
+        warn "$@";
+        return undef;
     }
     else {
         print "\nConnected to database \'$dbname\'.\n";
+        return $self->{_dbh};
     }
-
-    return $self->{DBH};
 }
 
 sub table_exists {
@@ -108,7 +98,7 @@ sub table_exists {
 
     eval {
         ##Assuming a valid $dbh exists...
-        ($val_ret) = $self->{DBH}->selectrow_array($sql);
+        ($val_ret) = $self->{_dbh}->selectrow_array($sql);
     };
     if ($@) {
         warn "Transaction aborted because $@";
@@ -144,12 +134,12 @@ sub table_primary_key {
 
     # print "sql=",$sql,"\n";
 
-    $self->{DBH}->{AutoCommit} = 1;    # disable transactions
-    $self->{DBH}->{RaiseError} = 0;
+    $self->{_dbh}->{AutoCommit} = 1;    # disable transactions
+    $self->{_dbh}->{RaiseError} = 0;
 
     eval {
         # List of lists
-        $pkf = $self->{DBH}->selectcol_arrayref( $sql, { MaxRows => 1 } );
+        $pkf = $self->{_dbh}->selectcol_arrayref( $sql, { MaxRows => 1 } );
     };
     if ($@) {
         warn "Transaction aborted because $@";
@@ -180,13 +170,13 @@ sub generator_value {
 
     # print "sql=",$sql,"\n";
 
-    $self->{DBH}->{AutoCommit} = 1;    # disable transactions
-    $self->{DBH}->{RaiseError} = 0;
+    $self->{_dbh}->{AutoCommit} = 1;    # disable transactions
+    $self->{_dbh}->{RaiseError} = 0;
 
     eval {
 
         # Fetch max 1 rows
-        $genval = $self->{DBH}->selectcol_arrayref( $sql, { MaxRows => 1 } );
+        $genval = $self->{_dbh}->selectcol_arrayref( $sql, { MaxRows => 1 } );
     };
 
     if ($@) {
@@ -219,7 +209,7 @@ sub generator_value_next {
     eval {
 
         # Fetch max 1 rows
-        $genval = $self->{DBH}->selectcol_arrayref( $sql, { MaxRows => 1 } );
+        $genval = $self->{_dbh}->selectcol_arrayref( $sql, { MaxRows => 1 } );
     };
 
     if ($@) {
@@ -290,15 +280,15 @@ sub table_info_short {
                ORDER BY ordinal_position;
     );
 
-    $self->{DBH}->{AutoCommit}       = 1; # disable transactions
-    $self->{DBH}->{RaiseError}       = 1;
-    $self->{DBH}->{ChopBlanks}       = 1; # trim CHAR fields
-    $self->{DBH}->{FetchHashKeyName} = 'NAME_lc';
+    $self->{_dbh}->{AutoCommit}       = 1; # disable transactions
+    $self->{_dbh}->{RaiseError}       = 1;
+    $self->{_dbh}->{ChopBlanks}       = 1; # trim CHAR fields
+    $self->{_dbh}->{FetchHashKeyName} = 'NAME_lc';
 
     eval {
 
         # List of lists
-        $self->{STH} = $self->{DBH}->prepare($sql);
+        $self->{STH} = $self->{_dbh}->prepare($sql);
         $self->{STH}->execute;
         $hash_ref = $self->{STH}->fetchall_hashref('fld_pos');
     };

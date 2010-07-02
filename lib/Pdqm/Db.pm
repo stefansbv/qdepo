@@ -8,37 +8,30 @@ use Pdqm::Db::Instance;
 
 sub new {
 
-    my ( $class, $repo ) = @_;
+    my ( $class, $args ) = @_;
 
     my $self = {};
 
-    $self->{repo} = $repo;
-
     bless( $self, $class );
 
-    $self->set_dbh();
+    $self->set_dbh($args);
 
     return $self;
 }
 
 sub DESTROY {
-
     my $self = shift;
 
     $self->{db} = undef;
 }
 
 sub set_dbh {
+    my ($self, $args) = @_;
 
-    my ($self) = @_;
-
-    $self->{db} = Pdqm::Db::Instance->instance( $self->{repo} );
-
-    return;
+    $self->{db} = Pdqm::Db::Instance->instance( $args );
 }
 
 sub dbh {
-
     my $self = shift;
 
     my $db = $self->{db};
