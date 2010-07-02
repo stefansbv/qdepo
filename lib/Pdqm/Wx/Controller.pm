@@ -36,8 +36,8 @@ sub new {
         _refr_btn => $view->get_refr_btn,
         _run_btn  => $view->get_run_btn,
         _exit_btn => $view->get_exit_btn,
-        # _titl_txt => $view->get_titl_txt,
         _nbook    => $view->get_notebook,
+        _toolbar  => $view->get_toolbar,
         _list     => $view->get_listcontrol,
     };
 
@@ -84,30 +84,36 @@ sub start {
 sub _set_event_handlers {
     my $self = shift;
 
+    #- Menu
+    EVT_MENU $self->_view, wxID_ABOUT, $about; # Change icons !!!
+    EVT_MENU $self->_view, wxID_HELP, $about;
+    EVT_MENU $self->_view, wxID_EXIT,  $exit;
+
+    #- Toolbar
     EVT_TOOL $self->_view, $self->{_conn_btn}, sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
             : $self->_model->db_connect;
     };
     EVT_TOOL $self->_view, $self->{_refr_btn}, sub {
-        $self->_model->is_connected
-            ? $self->_model->db_disconnect
-            : $self->_model->db_connect;
     };
-    EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
 
-    EVT_MENU $self->_view, wxID_ABOUT, $about; # Change icons !!!
-    EVT_MENU $self->_view, wxID_HELP, $about;
-    EVT_MENU $self->_view, wxID_EXIT,  $exit;
-
-    EVT_CLOSE $self->_view, $closeWin;
+    EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
+        $self->_model->set_editmode;
+        $self->_model->is_editmode
+            ? $self->set_tool_buttons(0)
+            : $self->set_tool_buttons(1);
+    };
 
     EVT_TOOL $self->_view, $self->{_run_btn}, sub {
         $self->_model->is_connected
-          ? $self->_model->run_export()
+          ? $self->_model->run_export
           : $self->_view->popup( 'Error', 'Not connected' );
     };
 
+    EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
+
+    #- NoteBook
     EVT_AUINOTEBOOK_PAGE_CHANGED $self->_view, $self->{_nbook}, sub {
          my ( $nb, $event ) = @_;
          my $new_pg = $event->GetSelection;
@@ -116,23 +122,37 @@ sub _set_event_handlers {
          $event->Skip;
     };
 
+    #- List controll
     EVT_LIST_ITEM_SELECTED $self->_view, $self->{_list}, sub {
-        # $self->{list}->GetId,
         $self->_model->on_item_selected(@_);
     };
 
+    #- Frame
     EVT_CLOSE $self->_view, $closeWin;
     # EVT_SIZE ( BasicFrame::OnSize ) # Experiment with this ???
 }
 
 sub _model {
     my $self = shift;
+
     return $self->{_model};
 }
 
 sub _view {
     my $self = shift;
+
     return $self->{_view};
+}
+
+sub set_tool_buttons {
+    my ($self, $status) = @_;
+
+    $self->{_toolbar}->EnableTool( 1002, $status );
+    $self->{_toolbar}->EnableTool( 1003, $status );
+    $self->{_toolbar}->EnableTool( 1004, $status );
+    $self->{_toolbar}->EnableTool( 1005, $status );
+    $self->{_toolbar}->EnableTool( 1007, $status );
+    $self->{_toolbar}->EnableTool( 1008, $status );
 }
 
 1;

@@ -15,11 +15,14 @@ sub new {
         _connected => Pdqm::Observable->new(),
         _stdout    => Pdqm::Observable->new(),
         _updated   => Pdqm::Observable->new(),
+        _editmode  => Pdqm::Observable->new(),
     };
 
     bless $self, $class;
 
-    $self->{cfg}  = Pdqm::Config->new( $args );
+    # Initializations
+
+    $self->{cfg} = Pdqm::Config->new( $args );
 
     return $self;
 }
@@ -155,5 +158,35 @@ sub run_export {
 
     $self->_print("Running export :-)");
 }
+
+# prev: List
+# next: Edit mode
+
+sub set_editmode {
+    my $self = shift;
+
+    if ($self->is_editmode) {
+        $self->get_editmode_observable->set( 0 );
+        $self->_print("Not edit mode");
+    }
+    else {
+        $self->get_editmode_observable->set( 1 );
+        $self->_print("Edit mode");
+    }
+}
+
+sub is_editmode {
+    my $self = shift;
+
+    return $self->get_editmode_observable->get;
+}
+
+sub get_editmode_observable {
+    my $self = shift;
+
+    return $self->{_editmode};
+}
+
+# prev: Edit mode
 
 1;

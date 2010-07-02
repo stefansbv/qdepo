@@ -164,7 +164,7 @@ sub get_tb_attr {
             sep     => 'after',
         },
         1004 => {
-            name    => 'tb_rm',
+            name    => 'tb_ad',
             type    => 'item_normal',
             icon    => 'actitemadd16',
             action  => 'report_add',
