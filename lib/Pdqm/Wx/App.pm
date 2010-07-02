@@ -18,7 +18,10 @@ sub create {
     # $self->{app} = $app;
 
     # Pdqm::Wx::Controller->new($self);
-    Pdqm::Wx::Controller->new();
+    my $controller = Pdqm::Wx::Controller->new();
+
+    # Populate list and connect to database ???
+    $controller->start();
 
     return $self;
 }

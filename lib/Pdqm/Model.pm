@@ -23,10 +23,10 @@ sub new {
 
     bless $self, $class;
 
-    $self->{cfg} = Pdqm::Config->new( $args );
+    $self->{cfg}  = Pdqm::Config->new( $args );
 
-    $self->data_load_list( $self->{cfg}->rex );
-    # $self->db_connect(  );
+    $self->db_connect();
+    # $self->get_list_data();
 
     return $self;
 }
@@ -149,46 +149,29 @@ sub on_item_selected {
 #- prev: Event
 #- next: List
 
-sub data_load_list {
+sub get_list_data {
 
-    my ($self, $args) = @_;
+    my ($self) = @_;
 
     # XML read - write module
-    $self->{xmldata} = Pdqm::FileIO->new($args);
+    $self->{xmldata} = Pdqm::FileIO->new($self->{cfg}{rex} );
     my $titles = $self->{xmldata}->get_titles();
 
-    # $self->list_populate_all($titles);
+    if (ref $titles) {
+        $self->get_updated_observable->set( 1 );
+        $self->_print("Got the titles");
+    }
+    else {
+        $self->get_updated_observable->set( 0 );
+        $self->_print("No titles1");
+    }
 
-    $self->get_updated_observable->set( 1 );
-
-    return;
+    return $titles;
 }
 
 sub get_updated_observable {
     my $self = shift;
     return $self->{_updated};
 }
-
-# sub list_populate_all {
-
-#     my ($self, $titles) = @_;
-
-#     # Clear list
-#     $self->{control}->list_item_clear_all();
-
-#     # Populate list in sorted order
-#     my @titles = sort { $a <=> $b } keys %{$titles};
-#     foreach my $indice ( @titles ) {
-#         my $nrcrt = $titles->{$indice}[0];
-#         my $title = $titles->{$indice}[1];
-#         my $file  = $titles->{$indice}[2];
-#         $self->{control}->list_item_insert($indice, $nrcrt, $title, $file);
-#     }
-
-#     # Set item 0 selected on start
-#     $self->{control}->list_item_select_first();
-
-#     return;
-# }
 
 1;

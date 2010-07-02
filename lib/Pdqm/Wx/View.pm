@@ -75,8 +75,10 @@ sub _set_model_callbacks {
     # my $so = $self->_model->get_stdout_observable;
     # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
     #--
-    my $ro = $self->_model->get_updated_observable;
-    $ro->add_callback( sub { print "updated observable\n"; } );
+    #  my $ro = $self->_model->get_updated_observable;
+    # $ro->add_callback( sub { $self->list_populate_all;
+    #                          $self->get_updated_observable->set( 0 );
+    #                      } );
 }
 
 sub create_menu {
@@ -423,84 +425,8 @@ sub create_config_page {
     return;
 }
 
-# #-- ListCtrl subs
-
-# sub on_item_selected {
-
-#     my ($self, $list, $event) = @_;
-
-#     return $self->{repo}->on_item_change( $event->GetIndex );
-# }
-
-# #-- ToolBar actions
-
-# sub report_save         { shift->{repo}->on_tb_save();        }
-
-# sub report_data_refresh { shift->{repo}->on_tb_refresh();     }
-
-# sub report_add          { shift->{repo}->on_tb_add();         }
-
-# sub report_remove       { shift->{repo}->on_tb_remove();      }
-
-# sub report_edit         { shift->{repo}->on_tb_toggle_edit(); }
-
-# sub choice_change {
-
-#     my ( $self, $event ) = @_;
-
-#     my $choice = $event->GetSelection;
-#     my $text   = $event->GetString;
-
-#     $self->{repo}->on_tb_choice($choice, $text);
-
-#     return;
-# }
-
-# sub report_run          { shift->{repo}->on_tb_run();         }
-
-# sub button_exit {
-
-#     my ( $self, $event ) = @_;
-
-#     # Wx::MessageBox(
-#     #     "Leaving so soon?",
-#     #     "xx",
-#     #     wxYES_NO | wxCANCEL,
-#     # );
-
-#     print " exit buton pressed ...\n";
-
-#     $self->Close;
-# }
-
-# sub window_on_close {
-
-#     my ( $self, $event ) = @_;
-
-#     print " on close window ...\n";
-
-#     $event->Skip;
-# }
-
-#- Accessors?
-
-# sub get_control_by_name {
-
-#     my ($self, $name) = @_;
-
-#     return $self->{$name};
-# }
-
-# sub get_tb_button_by_name {
-
-#     my ($self, $name) = @_;
-
-#     return $self->{$name};
-# }
-
 sub get_save_btn {
     my $self = shift;
-
     return 1001; # _save_btn how to get save tb button id ?
 }
 
@@ -520,16 +446,110 @@ sub get_exit_btn {
 }
 
 sub get_toolbar {
-
     my ($self) = @_;
-
     return $self->{_tb};
 }
 
 sub get_listcontrol {
     my ($self) = @_;
-
     return $self->{_list};
 }
+
+#- next ListCtrl
+
+sub get_list_text {
+    my ($self, $row, $col) = @_;
+    return $self->get_listcontrol->GetItemText( $row, $col );
+}
+
+sub set_list_text {
+    my ($self, $row, $col, $text) = @_;
+    $self->get_listcontrol->SetItemText( $row, $col, $text );
+}
+
+sub set_list_data {
+    my ($self, $item, $data_href) = @_;
+    $self->get_listcontrol->SetItemData( $item, $data_href );
+}
+
+sub get_list_data {
+    my ($self, $item) = @_;
+    return $self->get_listcontrol->GetItemData( $item );
+}
+
+sub list_item_select_first {
+    my ($self) = @_;
+
+    my $items_no = $self->get_listcontrol->GetItemCount;
+
+    if ( $items_no > 0 ) {
+        $self->get_listcontrol->Select(0, 1);
+    }
+}
+
+sub list_item_select_last {
+    my ($self, $indice) = @_;
+
+    $self->get_listcontrol->Select($indice, 1);
+    $self->get_listcontrol->EnsureVisible($indice);
+}
+
+sub get_list_max_index {
+    my ($self) = @_;
+    return $self->get_listcontrol->GetItemCount();
+}
+
+sub list_item_insert {
+    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
+
+    # Remember, always sort by index before insert!
+    $self->list_string_item_insert($indice);
+    $self->set_list_text($indice, 0, $nrcrt);
+    $self->set_list_text($indice, 1, $title);
+    # Set data
+    $self->set_list_data($indice, $file );
+}
+
+sub list_string_item_insert {
+    my ($self, $indice) = @_;
+    $self->get_listcontrol->InsertStringItem( $indice, 'dummy' );
+}
+
+sub list_item_clear {
+    my ($self, $item) = @_;
+    $self->get_listcontrol->DeleteItem($item);
+}
+
+sub list_item_clear_all {
+    my ($self) = @_;
+    $self->get_listcontrol->DeleteAllItems;
+}
+
+sub list_populate_all {
+
+    my ($self) = @_;
+
+    my $titles = $self->_model->get_list_data();
+
+    # Clear list
+    $self->list_item_clear_all();
+
+    # Populate list in sorted order
+    my @titles = sort { $a <=> $b } keys %{$titles};
+    foreach my $indice ( @titles ) {
+        my $nrcrt = $titles->{$indice}[0];
+        my $title = $titles->{$indice}[1];
+        my $file  = $titles->{$indice}[2];
+        print "$nrcrt -> $title\n";
+        $self->list_item_insert($indice, $nrcrt, $title, $file);
+    }
+
+    # Set item 0 selected on start
+    $self->list_item_select_first();
+
+    return;
+}
+
+#-- End Perl ListCtrl subs
 
 1;

@@ -73,14 +73,17 @@ my $exit = sub {
     $self->Close( 1 );
 };
 
+sub start {
+    my ($self, ) = @_;
+    $self->_view->list_populate_all();
+}
+
 sub _set_event_handlers {
     my $self = shift;
 
-    EVT_TOOL $self->_view, $self->{_save_btn}, sub {
-        $self->_model->is_connected
-            ? $self->_model->db_disconnect
-            : $self->_model->db_connect;
-    };
+    # EVT_TOOL $self->_view, $self->{_save_btn}, sub {
+    #     $self->_view->list_populate_all; # ???
+    # };
     EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
