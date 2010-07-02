@@ -106,6 +106,7 @@ sub _set_event_handlers {
         if ($self->_model->is_editmode) {
             $self->_model->save_query_def;
             $self->_model->set_idlemode;
+            $self->toggle_controls;
         }
     };
 
@@ -173,9 +174,9 @@ sub toggle_controls {
     $self->{_list}->Enable($status);
 
     # Controls by page Enabled in edit mode
-    $self->toggle_controls_page('para', !$status);
-    $self->toggle_controls_page('list', !$status);
-    $self->toggle_controls_page('sql' , !$status);
+    foreach my $page (qw(para list sql)) {
+        $self->toggle_controls_page($page, !$status);
+    }
 }
 
 sub toggle_controls_page {
