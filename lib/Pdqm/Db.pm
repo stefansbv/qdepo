@@ -10,25 +10,23 @@ sub new {
 
     my ( $class, $args ) = @_;
 
-    my $self = {};
+    my $self = bless {}, $class;
 
-    bless( $self, $class );
-
-    $self->set_dbh($args);
+    $self->_init($args);
 
     return $self;
+}
+
+sub _init {
+    my ($self, $args) = @_;
+
+    $self->{db} = Pdqm::Db::Instance->instance( $args );
 }
 
 sub DESTROY {
     my $self = shift;
 
     $self->{db} = undef;
-}
-
-sub set_dbh {
-    my ($self, $args) = @_;
-
-    $self->{db} = Pdqm::Db::Instance->instance( $args );
 }
 
 sub dbh {

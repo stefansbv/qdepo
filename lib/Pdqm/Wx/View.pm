@@ -441,6 +441,7 @@ sub popup {
 sub get_toolbar_btn {
     my ($self, $name) = @_;
 
+    return $self->{_tb}{_tb_btn}{$name};
 }
 
 sub get_toolbar {

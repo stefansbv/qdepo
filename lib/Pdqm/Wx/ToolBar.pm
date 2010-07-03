@@ -5,8 +5,9 @@ use warnings;
 
 use Data::Dumper;
 
-use Wx qw(:everything);
+use Pdqm::Config::Instance;
 
+use Wx qw(:everything);
 use base qw{Wx::ToolBar};
 
 sub new {
@@ -27,13 +28,17 @@ sub new {
     $self->SetToolBitmapSize( Wx::Size->new( 16, 16 ) );
     $self->SetMargins( 4, 4 );
 
-    # Get ToolBar button atributes defined in Control.pm
-    my $attribs = $self->get_tb_attr();
+    # Get ToolBar button atributes
+    my $cnf = Pdqm::Config->new();
+    my $attribs = $cnf->cfg->{toolbar}; # Make accessors ???
 
     #-- Sort by id
 
     #- Keep only key and id for sorting
     my %temp = map { $_ => $attribs->{$_}{id} } keys %$attribs;
+
+    # Save for later use ???
+    $self->{_tb_btn} = \%temp;
 
     #- Sort with  ST
     my @attribs = map  { $_->[0] }
@@ -139,96 +144,6 @@ sub item_list {
 
     return;
 }
-
-### - where to put this?
-#-- Define atributes for ToolBar buttons
-
-sub get_tb_attr {
-    my ($self) = @_;
-
-    return {
-        tb_cn => {
-            id      =>  1001,
-            type    => 'item_check',
-            icon    => 'connectyes16',
-            action  => 'toggle connect',
-            tooltip => 'Connect/disconnect',
-            help    => 'Connect/disconnect from the database',
-            sep     => 'after',
-        },
-        tb_sv => {
-            id      =>  1002,
-            type    => 'item_normal',
-            icon    => 'filesave16',
-            action  => 'report_save',
-            tooltip => 'Save',
-            help    => 'Save query definition file',
-            sep     => '',
-        },
-        tb_rf => {
-            id      =>  1003,
-            type    => 'item_normal',
-            icon    => 'actreload16',
-            action  => 'report_data_refresh',
-            tooltip => 'Refresh',
-            help    => 'Refresh data',
-            sep     => 'after',
-        },
-        tb_ad => {
-            id      =>  1004,
-            type    => 'item_normal',
-            icon    => 'actitemadd16',
-            action  => 'report_add',
-            tooltip => 'Add report',
-            help    => 'Create new query definition file',
-            sep     => '',
-        },
-        tb_rm => {
-            id      =>  1005,
-            type    => 'item_normal',
-            icon    => 'actitemdelete16',
-            action  => 'report_remove',
-            tooltip => 'Remove',
-            help    => 'Remove query definition file',
-            sep     => '',
-        },
-        tb_ed => {
-            id      =>  1006,
-            type    => 'item_check',
-            icon    => 'edit16',
-            action  => 'report_edit',
-            tooltip => 'Edit',
-            help    => 'Edit mode on/off',
-            sep     => 'after',
-        },
-        tb_ls => {
-            id      =>  1007,
-            type    => 'item_list',
-            action  => 'choice_change',
-            sep     => 'after',
-        },
-        tb_go => {
-            id    =>  1008,
-            type    => 'item_normal',
-            icon    => 'navforward16',
-            action  => 'report_run',
-            tooltip => 'Run',
-            help    => 'Run export',
-            sep     => 'after',
-        },
-        tb_qt => {
-            id    =>  1009,
-            type    => 'item_normal',
-            icon    => 'actexit16',
-            action  => 'button_exit',
-            tooltip => 'Quit',
-            help    => 'Quit the application',
-            sep     => '',
-        },
-    };
-}
-
-### or this? !!!
 
 sub get_choice_options {
 

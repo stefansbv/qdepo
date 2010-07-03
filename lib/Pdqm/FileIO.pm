@@ -16,9 +16,9 @@ sub new {
 
     my ($class, $args) = @_;
 
-    my $self = $args;
+    my $self = bless( {}, $class );
 
-    bless( $self, $class );
+    $self->{args} = $args;
 
     return $self;
 }

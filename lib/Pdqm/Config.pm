@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-
-use base ('Class::Accessor');
-use YAML::Tiny;
+# use base qw(Class::Accessor);
+# use YAML::Tiny;
+use Pdqm::Config::Instance;
 
 our $VERSION = 0.01;
 
@@ -18,24 +18,35 @@ sub new {
 
     bless $self, $class;
 
-    if ( $args->{conf_file} ) {
-        $self->_make_accessors( $args );
-    }
+    $self->{cf} = Pdqm::Config::Instance->instance( $args );
+    # if ( $args->{cfg_ref} ) {
+    #     $self->_make_accessors( $args );
+    # }
 
     return $self;
 }
 
-sub _make_accessors {
-    my ( $self, $args ) = @_;
+sub cfg {
+    my $self = shift;
 
-    my $config = YAML::Tiny::LoadFile( $args->{conf_file} );
+    my $cf = $self->{cf};
 
-    print Dumper(     $config );
-    Pdqm::Config->mk_accessors( keys %{$config} );
-    foreach ( keys %{$config} ) {
-        $self->$_( $config->{$_} );
-    }
+    die ref($self) . " requires a config handle to complete an action"
+        unless defined $cf and $cf->isa('Pdqm::Config::Instance');
+
+    return $cf->{cfg};
 }
+
+# sub _make_accessors {
+#     my ( $self, $args ) = @_;
+
+#     my $config = YAML::Tiny::LoadFile( $args->{cfg_ref}{conf_file} );
+
+#     Pdqm::Config->mk_accessors( keys %{$config} );
+#     foreach ( keys %{$config} ) {
+#         $self->$_( $config->{$_} );
+#     }
+# }
 
 sub save_config {
 

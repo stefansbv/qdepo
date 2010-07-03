@@ -10,15 +10,12 @@ use vars qw($VERSION);
 $VERSION = 0.01;
 
 sub _new_instance {
-
-    my ($type, $args) = @_;
-
-    my $class = ref $type || $type;
+    my ($class, $args) = @_;
 
     my $conn = Pdqm::Db::Connection->new( $args );
     my $dbh = $conn->db_connect(
-        'stefan',
-        'tba790k',
+        'stefan',   # ??? from cli params !!!
+        'tba790k',  # ??? from cli params !!!
     );
 
     # Some defaults

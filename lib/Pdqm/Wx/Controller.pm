@@ -30,14 +30,14 @@ sub new {
     my $self = {
         _model    => $model,
         _view     => $view,
-        _conn_btn => $view->get_conn_btn,
-        _save_btn => $view->get_save_btn,
-        _refr_btn => $view->get_refr_btn,
-        _add_btn  => $view->get_add_btn,
-        _del_btn  => $view->get_del_btn,
-        _edit_btn => $view->get_edit_btn,
-        _run_btn  => $view->get_run_btn,
-        _exit_btn => $view->get_exit_btn,
+        _conn_btn => $view->get_toolbar_btn('tb_cn'),
+        _save_btn => $view->get_toolbar_btn('tb_sv'),
+        _refr_btn => $view->get_toolbar_btn('tb_rf'),
+        _add_btn  => $view->get_toolbar_btn('tb_ad'),
+        _del_btn  => $view->get_toolbar_btn('tb_rm'),
+        _edit_btn => $view->get_toolbar_btn('tb_ed'),
+        _run_btn  => $view->get_toolbar_btn('tb_go'),
+        _exit_btn => $view->get_toolbar_btn('tb_qt'),
         _nbook    => $view->get_notebook,
         _toolbar  => $view->get_toolbar,
         _list     => $view->get_listcontrol,
@@ -56,10 +56,10 @@ sub start {
     my ($self, ) = @_;
 
     # Populate list with titles
-    $self->_view->list_populate_all();
+    # $self->_view->list_populate_all();
 
     # Connect to database
-    $self->_model->db_connect();
+    # $self->_model->db_connect();
 
     # Initial mode
     $self->_model->set_idlemode();
@@ -68,11 +68,13 @@ sub start {
 
 my $closeWin = sub {
     my ( $self, $event ) = @_;
+
     $self->Destroy();
 };
 
 my $about = sub {
     my ( $self, $event ) = @_;
+
     Wx::MessageBox(
         "PDQM v0.10\n(C) 2010 Stefan Suciu",
         "About Perl Database Query Manager",
@@ -83,6 +85,7 @@ my $about = sub {
 
 my $exit = sub {
     my ( $self, $event ) = @_;
+
     $self->Close( 1 );
 };
 
@@ -143,7 +146,6 @@ sub _set_event_handlers {
 
     #- Frame
     EVT_CLOSE $self->_view, $closeWin;
-    # EVT_SIZE ( BasicFrame::OnSize ) # Experiment with this ???
 }
 
 sub _model {

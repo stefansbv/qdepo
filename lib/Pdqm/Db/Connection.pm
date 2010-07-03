@@ -33,7 +33,7 @@ sub db_connect {
 
     # Connection information from config ??? needs rewrite !!!
     my $config = $self->{args};
-    my $rdbms  = $config->{DBMS};
+    my $rdbms  = '';#$config->{DBMS};
 
     # Select RDBMS; tryed with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary
@@ -47,7 +47,7 @@ sub db_connect {
         require Pdqm::Db::Connection::MySql;
     }
     else {
-        die "Database $rdbms not supported!\n";
+        # die "Database $rdbms not supported!\n";
     }
 
     # Connect to Database, Select RDBMS
@@ -62,14 +62,14 @@ sub db_connect {
         $self->{conn} = Pdqm::Db::Connection::MySql->new();
     }
     else {
-        die "Database $rdbms not supported!\n";
+        # die "Database $rdbms not supported!\n";
     }
 
-    $self->{dbh} = $self->{conn}->conectare(
-        $config,
-        $user,
-        $pass,
-    );
+    # $self->{dbh} = $self->{conn}->conectare(
+    #     $config,
+    #     $user,
+    #     $pass,
+    # );
 
     return $self->{dbh};
 }

@@ -16,7 +16,7 @@ my $opts = {
         'cfg_para' => 'contracte-pg'
     },
     'cfg_ref' => {
-        'conf_file' => 'contracte-pg.xml',
+        'conf_file' => '/home/fane/.reports/Contracte/contracte-pg.yml',
         'tmpl_dir'  => '/home/fane/.reports',
         'conf_dir'  => '/home/fane/.reports/Contracte'
     }
