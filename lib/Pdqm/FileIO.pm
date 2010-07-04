@@ -38,25 +38,25 @@ sub process_all_files {
 
     my $indice = 0;
     my $titles = {};
-    # rdf : report definition file ;)
-    foreach my $rdf_file ( @{$qdf_ref} ) {
+    # qdf : report definition file ;)
+    foreach my $qdf_file ( @{$qdf_ref} ) {
 
-        # print " File : $rdf_file\n";
+        # print " File : $qdf_file\n";
         my $nrcrt = $indice + 1;
         my $title;
         eval {
-            $title = $self->xml_read_simple($rdf_file, 'title');
+            $title = $self->xml_read_simple($qdf_file, 'title');
         };
         if ($@) {
-            print "$rdf_file: Not valid XML!\n";
+            print "$qdf_file: Not valid XML!\n";
         } else {
-            # print "Fisier: $rdf_file\n";
+            # print "Fisier: $qdf_file\n";
             if (ref $title) {
-                $titles->{$indice} = [ $nrcrt, $title->{title}, $rdf_file ];
+                $titles->{$indice} = [ $nrcrt, $title->{title}, $qdf_file ];
                 $indice++;
             }
             else {
-                print "$rdf_file: Not valid RdeF!\n";
+                print "$qdf_file: Not valid RdeF!\n";
             }
         }
     }
@@ -93,10 +93,10 @@ sub xml_read_simple {
 
 sub process_file {
 
-    my ($self, $rdf_file) = @_;
+    my ($self, $qdf_file) = @_;
 
-    # rdf : report definition file ;)
-    if (! defined $rdf_file) {
+    # qdf : report definition file ;)
+    if (! defined $qdf_file) {
         print "No report definition file?.\n";
         return;
     }
@@ -105,8 +105,8 @@ sub process_file {
     my $titles = {};
 
     my $nrcrt = $indice + 1;
-    my $title = $self->read_simple($rdf_file, 'title');
-    $titles->{$indice} = [ $nrcrt, $title->{title}, $rdf_file ];
+    my $title = $self->read_simple($qdf_file, 'title');
+    $titles->{$indice} = [ $nrcrt, $title->{title}, $qdf_file ];
 
     return ($titles, $indice);
 }
@@ -116,25 +116,23 @@ sub get_file_list {
     my $self = shift;
 
     my $cnf = Pdqm::Config->new();
-    my $qdf = $cnf->cfg->rex; # query definition files
+    my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    # my $home_path = File::HomeDir->my_home;
-    my $rdfpath_qn;# = catdir($home_path, '.reports/Contracte' ,$qdf->{rdfpath});
-     my $rdfext;#     = $qdf->{rdfext};
+    my $qdfext     = $cnf->cfg->qdf->{extension};
+    my $qdfpath_qn = $cnf->cfg->qdf->{path};
 
-    print $cnf->function_name,"\n";
-
-    if ( ! -d $rdfpath_qn ) {
-        print "Wrong path for rdef files:\n$rdfpath_qn !\n";
+    print "qdfpath_qn is $qdfpath_qn\n";
+    if ( ! -d $qdfpath_qn ) {
+        print "Wrong path for rdef files:\n$qdfpath_qn !\n";
         return;
     }
 
     # Report definition files can be arranged in subdirs; recursive find
     my @rapoarte = File::Find::Rule
-        ->name( "*.$rdfext" )
+        ->name( "*.$qdfext" )
         ->file
         ->nonempty
-        ->in($rdfpath_qn);
+        ->in($qdfpath_qn);
 
     my $nrfisiere = scalar @rapoarte;    # Numãr total de fiºiere
 

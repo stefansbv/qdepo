@@ -50,7 +50,7 @@ sub _unify_configs {
     $config_hr->{run_args} = $args;
 
     # Add toolbar atributes to config
-    my $tb_attrs_hr = $self->_get_tb_settings();
+    my $tb_attrs_hr = $self->_get_tb_settings($args);
     $config_hr->{toolbar} = $tb_attrs_hr->{toolbar};
 
     return $config_hr;
@@ -87,7 +87,7 @@ sub _configs_make_fqn {
     my ( $self, $args, $config ) = @_;
 
     my $home_path   = $self->_home_path();          # Home
-    my $app_path_qn = $self->_app_config_path();    # App config path
+    my $app_path_qn = $self->_app_config_path($args);    # App config path
 
     #- Template
     my $templ_dir_qn = $self->_prg_config_path();
@@ -121,7 +121,7 @@ sub _get_usr_config_file {
 sub _get_tb_settings {
     my $self = shift;
 
-    my $app_path_qn = $self->_app_config_path();
+    my $app_path_qn = $self->_prg_config_path();
 
     # Application interface config path
     my $interface_path_qn = catdir( $app_path_qn, 'config/interfaces' );
