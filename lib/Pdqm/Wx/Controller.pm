@@ -3,8 +3,6 @@ package Pdqm::Wx::Controller;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
@@ -30,14 +28,6 @@ sub new {
     my $self = {
         _model    => $model,
         _view     => $view,
-        _conn_btn => $view->get_toolbar_btn('tb_cn'),
-        _save_btn => $view->get_toolbar_btn('tb_sv'),
-        _refr_btn => $view->get_toolbar_btn('tb_rf'),
-        _add_btn  => $view->get_toolbar_btn('tb_ad'),
-        _del_btn  => $view->get_toolbar_btn('tb_rm'),
-        _edit_btn => $view->get_toolbar_btn('tb_ed'),
-        _run_btn  => $view->get_toolbar_btn('tb_go'),
-        _exit_btn => $view->get_toolbar_btn('tb_qt'),
         _nbook    => $view->get_notebook,
         _toolbar  => $view->get_toolbar,
         _list     => $view->get_listcontrol,
@@ -98,16 +88,17 @@ sub _set_event_handlers {
     EVT_MENU $self->_view, wxID_EXIT,  $exit;
 
     #- Toolbar
-    EVT_TOOL $self->_view, $self->{_conn_btn}, sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_cn'), sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
             : $self->_model->db_connect;
     };
-    EVT_TOOL $self->_view, $self->{_refr_btn}, sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf'), sub {
+        print " refreshing :)\n";
     };
 
     # Disable editmode when save
-    EVT_TOOL $self->_view, $self->{_save_btn}, sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv'), sub {
         if ($self->_model->is_editmode) {
             $self->_model->save_query_def;
             $self->_model->set_idlemode;
@@ -115,20 +106,20 @@ sub _set_event_handlers {
         }
     };
 
-    EVT_TOOL $self->_view, $self->{_edit_btn}, sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed'), sub {
         $self->_model->is_editmode
             ? $self->_model->set_idlemode
             : $self->_model->set_editmode;
         $self->toggle_controls;
     };
 
-    EVT_TOOL $self->_view, $self->{_run_btn}, sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_go'), sub {
         $self->_model->is_connected
           ? $self->_model->run_export
           : $self->_view->popup( 'Error', 'Not connected' );
     };
 
-    EVT_TOOL $self->_view, $self->{_exit_btn}, $exit;
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_qt'), $exit;
 
     #- NoteBook
     EVT_AUINOTEBOOK_PAGE_CHANGED $self->_view, $self->{_nbook}, sub {

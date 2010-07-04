@@ -3,9 +3,7 @@ package Pdqm::Wx::ToolBar;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
-use Pdqm::Config::Instance;
+use Pdqm::Config;
 
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
@@ -30,14 +28,14 @@ sub new {
 
     # Get ToolBar button atributes
     my $cnf = Pdqm::Config->new();
-    my $attribs = $cnf->cfg->{toolbar}; # Make accessors ???
+    my $attribs = $cnf->cfg->toolbar;
 
     #-- Sort by id
 
     #- Keep only key and id for sorting
     my %temp = map { $_ => $attribs->{$_}{id} } keys %$attribs;
 
-    # Save for later use ???
+    # Save for later use :) Access from View.pm
     $self->{_tb_btn} = \%temp;
 
     #- Sort with  ST

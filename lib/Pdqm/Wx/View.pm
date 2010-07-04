@@ -3,8 +3,6 @@ package Pdqm::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
@@ -71,18 +69,15 @@ sub _set_model_callbacks {
 
     my $tb = $self->get_toolbar();
     my $co = $self->_model->get_connection_observable;
-    $co->add_callback( sub { $tb->ToggleTool( 1001, $_[0] ) } );
+    $co->add_callback(
+        sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_cn'), $_[0] ) } );
     #--
     my $em = $self->_model->get_editmode_observable;
-    $em->add_callback( sub { $tb->ToggleTool( 1006, $_[0] ) } );
+    $em->add_callback(
+        sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_ed'), $_[0] ) } );
     #--
     # my $so = $self->_model->get_stdout_observable;
     # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
-    #--
-    #  my $ro = $self->_model->get_updated_observable;
-    # $ro->add_callback( sub { $self->list_populate_all;
-    #                          $self->get_updated_observable->set( 0 );
-    #                      } );
 }
 
 sub create_menu {

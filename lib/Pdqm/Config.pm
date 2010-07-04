@@ -3,12 +3,9 @@ package Pdqm::Config;
 use strict;
 use warnings;
 
-use Data::Dumper;
-# use base qw(Class::Accessor);
-# use YAML::Tiny;
 use Pdqm::Config::Instance;
 
-our $VERSION = 0.01;
+our $VERSION = 0.03;
 
 sub new {
 
@@ -18,10 +15,7 @@ sub new {
 
     bless $self, $class;
 
-    $self->{cf} = Pdqm::Config::Instance->instance( $args );
-    # if ( $args->{cfg_ref} ) {
-    #     $self->_make_accessors( $args );
-    # }
+    $self->{cfi} = Pdqm::Config::Instance->instance( $args );
 
     return $self;
 }
@@ -29,24 +23,13 @@ sub new {
 sub cfg {
     my $self = shift;
 
-    my $cf = $self->{cf};
+    my $cf = $self->{cfi};
 
-    die ref($self) . " requires a config handle to complete an action"
+    die ref($self) . " requires a config handle!"
         unless defined $cf and $cf->isa('Pdqm::Config::Instance');
 
-    return $cf->{cfg};
+    return $cf;
 }
-
-# sub _make_accessors {
-#     my ( $self, $args ) = @_;
-
-#     my $config = YAML::Tiny::LoadFile( $args->{cfg_ref}{conf_file} );
-
-#     Pdqm::Config->mk_accessors( keys %{$config} );
-#     foreach ( keys %{$config} ) {
-#         $self->$_( $config->{$_} );
-#     }
-# }
 
 sub save_config {
 

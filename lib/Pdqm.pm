@@ -26,8 +26,8 @@ sub _init {
     my ( $self, $opts ) = @_;
     # my ($self) = @_;
 
-    # Config
-    $self->{cnf} = Pdqm::Config->new($opts);
+    # Initialize config
+    my $cnf = Pdqm::Config->new($opts);
 
     # $self->{gui} = Pdqm::Wx::App->create($self);
     $self->{gui} = Pdqm::Wx::App->create();
