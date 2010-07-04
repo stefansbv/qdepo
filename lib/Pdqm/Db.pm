@@ -12,15 +12,9 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $self->_init($args);
+    $self->{db} = Pdqm::Db::Instance->instance( $args );
 
     return $self;
-}
-
-sub _init {
-    my ($self, $args) = @_;
-
-    $self->{db} = Pdqm::Db::Instance->instance( $args );
 }
 
 sub DESTROY {
@@ -34,7 +28,7 @@ sub dbh {
 
     my $db = $self->{db};
 
-    die ref($self) . " requires a database handle to complete an action"
+    die ref($self) . " not properly initialized"
         unless defined $db and $db->isa('Pdqm::Db::Instance');
 
     return $db->{dbh};

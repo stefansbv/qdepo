@@ -46,7 +46,7 @@ sub start {
     my ($self, ) = @_;
 
     # Populate list with titles
-    # $self->_view->list_populate_all();
+    $self->_view->list_populate_all();
 
     # Connect to database
     # $self->_model->db_connect();

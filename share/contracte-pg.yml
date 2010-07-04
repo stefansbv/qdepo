@@ -1,0 +1,13 @@
+# Perl Database Query Manager
+# User configurations
+---
+conninfo:
+  DBMS:      PostgreSQL
+  Server:    localhost
+  Database:  apollo
+  Port:      5432
+qdf:
+  extension: qdf
+  path:      qdf_repo
+  template:  qdf-template.xml
+  output:    reports

@@ -3,33 +3,28 @@ package Pdqm;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Pdqm::Config;
 use Pdqm::Wx::App;
 
 sub new {
-    my ($class, $opts) = @_;
-    #my ($class) = @_;
+    my ($class, $args) = @_;
 
     my $self = {};
 
     bless $self, $class;
 
-    $self->_init($opts);
-    #$self->_init();
+    $self->_init($args);
 
     return $self;
 }
 
 sub _init {
-    my ( $self, $opts ) = @_;
-    # my ($self) = @_;
+    my ( $self, $args ) = @_;
 
-    # Initialize config
-    my $cnf = Pdqm::Config->new($opts);
+    # Initialize config for the first time
+    my $cnf = Pdqm::Config->new($args);
 
-    # $self->{gui} = Pdqm::Wx::App->create($self);
+    # Create Wx application
     $self->{gui} = Pdqm::Wx::App->create();
 }
 

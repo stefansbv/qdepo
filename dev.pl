@@ -8,18 +8,11 @@ BEGIN {
 }
 
 my $opts = {
-    'run_ref' => {
-        'verbose'  => 1,
-        'pass'     => undef,
-        'user'     => undef,
-        'app_id'   => 'Contracte',
-        'cfg_para' => 'contracte-pg'
-    },
-    'cfg_ref' => {
-        'conf_file' => '/home/fane/.reports/Contracte/contracte-pg.yml',
-        'tmpl_dir'  => '/home/fane/.reports',
-        'conf_dir'  => '/home/fane/.reports/Contracte'
-    }
+    'verbose'  => 1,
+    'pass'     => 'stefan',
+    'user'     => 'tba790k',
+    'app_id'   => 'Contracte',
+    'cfg_name' => 'contracte-pg',
 };
 
 use Pdqm;

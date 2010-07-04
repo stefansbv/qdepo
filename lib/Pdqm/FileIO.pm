@@ -4,13 +4,12 @@ use strict;
 use warnings;
 use Carp;
 
-use Data::Dumper;
-use File::HomeDir;
 use File::Find::Rule;
-use File::Spec::Functions;
 use XML::Twig;
 
-our $VERSION = 0.02;         # Version number
+use Pdqm::Config;
+
+our $VERSION = 0.03;         # Version number
 
 sub new {
 
@@ -27,20 +26,20 @@ sub process_all_files {
 
     my ($self) = @_;
 
-    my $files = $self->get_file_list();
+    my $qdf_ref = $self->get_file_list();
 
-    if (! defined $files) {
-        print "No report definition files.\n";
+    if (! defined $qdf_ref) {
+        print "No query definition files.\n";
         return;
     }
 
     print "\nReading XML files...\n";
-    print scalar @$files, " report definition files.\n";
+    print scalar @{$qdf_ref}, " query definition files found.\n";
 
     my $indice = 0;
     my $titles = {};
     # rdf : report definition file ;)
-    foreach my $rdf_file ( @$files ) {
+    foreach my $rdf_file ( @{$qdf_ref} ) {
 
         # print " File : $rdf_file\n";
         my $nrcrt = $indice + 1;
@@ -116,9 +115,14 @@ sub get_file_list {
 
     my $self = shift;
 
-    my $home_path = File::HomeDir->my_home;
-    my $rdfpath_qn = catdir($home_path, '.reports/Contracte' ,$self->{rdfpath}); # ???
-    my $rdfext     = $self->{rdfext};
+    my $cnf = Pdqm::Config->new();
+    my $qdf = $cnf->cfg->rex; # query definition files
+
+    # my $home_path = File::HomeDir->my_home;
+    my $rdfpath_qn;# = catdir($home_path, '.reports/Contracte' ,$qdf->{rdfpath});
+     my $rdfext;#     = $qdf->{rdfext};
+
+    print $cnf->function_name,"\n";
 
     if ( ! -d $rdfpath_qn ) {
         print "Wrong path for rdef files:\n$rdfpath_qn !\n";

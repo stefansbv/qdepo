@@ -6,8 +6,7 @@ use warnings;
 use Pdqm::Db::Connection;
 use base qw(Class::Singleton);
 
-use vars qw($VERSION);
-$VERSION = 0.01;
+our $VERSION = 0.03;
 
 sub _new_instance {
     my ($class, $args) = @_;

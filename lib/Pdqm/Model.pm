@@ -3,7 +3,6 @@ package Pdqm::Model;
 use strict;
 use warnings;
 
-use Pdqm::Config;
 use Pdqm::FileIO;
 use Pdqm::Observable;
 use Pdqm::Db;
@@ -19,10 +18,6 @@ sub new {
     };
 
     bless $self, $class;
-
-    # Initializations
-
-    $self->{cfg} = Pdqm::Config->new( $args );
 
     return $self;
 }
@@ -51,7 +46,7 @@ sub _connect {
     my $self = shift;
 
     # Connect to database
-    my $db = Pdqm::Db->new($self->{cfg}{conninfo});
+    my $db = Pdqm::Db->new(); # user, pass ?
 
     # Is connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
@@ -132,16 +127,17 @@ sub get_list_data {
     my ($self) = @_;
 
     # XML read - write module
-    $self->{xmldata} = Pdqm::FileIO->new($self->{cfg}{rex} );
+    $self->{xmldata} = Pdqm::FileIO->new();
     my $titles = $self->{xmldata}->get_titles();
+    my $titles_no = scalar keys %{$titles};
 
-    if (ref $titles) {
+    if ($titles_no > 0) {
         $self->get_updated_observable->set( 1 );
-        $self->_print("Got the titles");
+        $self->_print("Got the titles.");
     }
     else {
         $self->get_updated_observable->set( 0 );
-        $self->_print("No titles1");
+        $self->_print("No titles!");
     }
 
     return $titles;

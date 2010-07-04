@@ -4,18 +4,15 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use Pdqm::Config;
 
-our $VERSION = 0.01;         # Version number
-
-### Include your variables and functions here
+our $VERSION = 0.03;
 
 sub new {
 
     my ($class, $args) = @_;
 
-    my $self = {};
-
-    bless($self, $class);
+    my $self = bless( {}, $class);
 
     $self->{args} = $args;
 
@@ -32,8 +29,10 @@ sub db_connect {
     my ($self, $user, $pass) = @_;
 
     # Connection information from config ??? needs rewrite !!!
-    my $config = $self->{args};
-    my $rdbms  = '';#$config->{DBMS};
+    my $cnf = Pdqm::Config->new();
+    my $conninfo = $cnf->cfg->conninfo;
+
+    my $rdbms = $conninfo->{DBMS};
 
     # Select RDBMS; tryed with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary
@@ -47,7 +46,7 @@ sub db_connect {
         require Pdqm::Db::Connection::MySql;
     }
     else {
-        # die "Database $rdbms not supported!\n";
+        die "Database $rdbms not supported!\n";
     }
 
     # Connect to Database, Select RDBMS
@@ -62,17 +61,16 @@ sub db_connect {
         $self->{conn} = Pdqm::Db::Connection::MySql->new();
     }
     else {
-        # die "Database $rdbms not supported!\n";
+        die "Database $rdbms not supported!\n";
     }
 
-    # $self->{dbh} = $self->{conn}->conectare(
-    #     $config,
-    #     $user,
-    #     $pass,
-    # );
+    $self->{dbh} = $self->{conn}->conectare(
+        $conninfo,
+        $user,
+        $pass,
+    );
 
     return $self->{dbh};
 }
-
 
 1;
