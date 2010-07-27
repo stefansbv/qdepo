@@ -51,11 +51,11 @@ sub new {
     );
 
     my $self = {
-        _model    => $model,
-        _view     => $view,
-        _nbook    => $view->get_notebook,
-        _toolbar  => $view->get_toolbar,
-        _list     => $view->get_listcontrol,
+        _model   => $model,
+        _view    => $view,
+        _nbook   => $view->get_notebook,
+        _toolbar => $view->get_toolbar,
+        _list    => $view->get_listcontrol,
     };
 
     bless $self, $class;
@@ -182,13 +182,28 @@ sub toggle_controls {
     my $status = $self->_model->is_editmode ? 0 : 1;
 
     # Tool buttons
-    $self->{_toolbar}->EnableTool( 1002, !$status );
-    $self->{_toolbar}->EnableTool( 1003, $status );
-    $self->{_toolbar}->EnableTool( 1004, $status );
-    $self->{_toolbar}->EnableTool( 1005, $status );
-    $self->{_toolbar}->EnableTool( 1007, $status );
-    $self->{_toolbar}->EnableTool( 1008, $status );
-    $self->{_toolbar}->EnableTool( 1009, $status );
+    my $tb_btn;
+
+    $tb_btn = $self->_view->get_toolbar_btn('tb_sv');
+    $self->{_toolbar}->EnableTool( $tb_btn, !$status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_rf');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_ad');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_rm');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_ls');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_go');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    #
+    $tb_btn = $self->_view->get_toolbar_btn('tb_qt');
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
 
     # List control
     $self->{_list}->Enable($status);
