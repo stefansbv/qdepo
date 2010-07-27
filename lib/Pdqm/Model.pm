@@ -36,10 +36,10 @@ sub new {
     my ($class, $args) = @_;
 
     my $self = {
-        _connected => Pdqm::Observable->new(),
-        _stdout    => Pdqm::Observable->new(),
-        _updated   => Pdqm::Observable->new(),
-        _editmode  => Pdqm::Observable->new(),
+        _connected   => Pdqm::Observable->new(),
+        _stdout      => Pdqm::Observable->new(),
+        _itemchanged => Pdqm::Observable->new(),
+        _editmode    => Pdqm::Observable->new(),
     };
 
     bless $self, $class;
@@ -139,14 +139,15 @@ sub on_page_change {
     # $self->get_stdout_observable->set( $new_pg );
 }
 
-sub on_item_selected {
-    my ($self, ) = @_;
-
-    print "other list item selected \n";
-}
-
 #- prev: Event
 #- next: List
+
+sub on_item_selected {
+    my ($self) = @_;
+
+    $self->get_itemchanged_observable->set( 1 );
+    $self->_print('Item changed');
+}
 
 sub get_list_data {
     my ($self) = @_;
@@ -156,28 +157,30 @@ sub get_list_data {
     my $titles = $self->{xmldata}->get_titles();
     my $titles_no = scalar keys %{$titles};
 
-    if ($titles_no > 0) {
-        $self->get_updated_observable->set( 1 );
-        $self->_print("Got the titles.");
-    }
-    else {
-        $self->get_updated_observable->set( 0 );
-        $self->_print("No titles!");
-    }
-
     return $titles;
-}
-
-sub get_updated_observable {
-    my $self = shift;
-
-    return $self->{_updated};
 }
 
 sub run_export {
     my ($self) = @_;
 
     $self->_print("Running export :-)");
+}
+
+# prev:
+# next:
+
+sub get_detail_data {
+    my ($self, $file) = @_;
+
+    my $ddata_ref = $self->{xmldata}->get_details($file);
+
+    return $ddata_ref;
+}
+
+sub get_itemchanged_observable {
+    my $self = shift;
+
+    return $self->{_itemchanged};
 }
 
 # prev: List

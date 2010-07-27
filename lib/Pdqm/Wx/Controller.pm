@@ -28,6 +28,8 @@ package Pdqm::Wx::Controller;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
@@ -38,6 +40,7 @@ use Pdqm::Wx::View;
 sub new {
     my ( $class, $app ) = @_;
 
+    # Hardcoded config file name and path
     my $model = Pdqm::Model->new( { conf_file => 'share/config/pdqm.yml'} );
 
     my $view = Pdqm::Wx::View->new(
@@ -73,7 +76,7 @@ sub start {
     # Populate list with titles
     $self->_view->list_populate_all();
 
-    # Connect to database
+    # Connect to database at start
     # $self->_model->db_connect();
 
     # Initial mode
@@ -220,8 +223,8 @@ sub toggle_controls_page {
     my $get = 'get_controls_'.$page;
     my $controls = $self->_view->$get();
 
-    foreach my $control ( @{$controls} ) {
-        $control->Enable($status);
+    foreach my $name ( keys %{$controls} ) {
+        $controls->{$name}->Enable($status);
     }
 }
 

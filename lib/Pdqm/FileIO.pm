@@ -27,6 +27,8 @@ package Pdqm::FileIO;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
@@ -126,14 +128,9 @@ sub process_file {
         return;
     }
 
-    my $indice = $self->{repo}->get_titles_max_index();
-    my $titles = {};
+    my $data = $self->xml_read_simple($qdf_file, 'report');
 
-    my $nrcrt = $indice + 1;
-    my $title = $self->read_simple($qdf_file, 'title');
-    $titles->{$indice} = [ $nrcrt, $title->{title}, $qdf_file ];
-
-    return ($titles, $indice);
+    return $data;
 }
 
 sub get_file_list {
@@ -168,7 +165,7 @@ sub get_details {
 
     my ($self, $file) = @_;
 
-    return $self->read_simple($file, 'report');
+    return $self->process_file($file);
 }
 
 sub get_titles {

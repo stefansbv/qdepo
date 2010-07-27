@@ -28,6 +28,8 @@ package Pdqm::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
@@ -93,6 +95,7 @@ sub _set_model_callbacks {
     my $self = shift;
 
     my $tb = $self->get_toolbar();
+    #-
     my $co = $self->_model->get_connection_observable;
     $co->add_callback(
         sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_cn'), $_[0] ) } );
@@ -100,6 +103,10 @@ sub _set_model_callbacks {
     my $em = $self->_model->get_editmode_observable;
     $em->add_callback(
         sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_ed'), $_[0] ) } );
+    #--
+    my $upd = $self->_model->get_itemchanged_observable;
+    $upd->add_callback(
+        sub { $self->controls_populate(); } );
     #--
     # my $so = $self->_model->get_stdout_observable;
     # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
@@ -477,37 +484,37 @@ sub get_listcontrol {
 sub get_controls_list {
     my $self = shift;
 
-    return [
-        $self->{title},
-        $self->{output},
-        $self->{sheet},
-        $self->{descr},
-    ];
+    return {
+        title  => $self->{title},
+        output => $self->{output},
+        sheet  => $self->{sheet},
+        descr  => $self->{descr},
+    };
 }
 
 sub get_controls_para {
     my $self = shift;
 
-    return [
-        $self->{descr1},
-        $self->{value1},
-        $self->{descr2},
-        $self->{value2},
-        $self->{descr3},
-        $self->{value3},
-        $self->{descr4},
-        $self->{value4},
-        $self->{descr5},
-        $self->{value5},
-    ];
+    return {
+        descr1 => $self->{descr1},
+        value1 => $self->{value1},
+        descr2 => $self->{descr2},
+        value2 => $self->{value2},
+        descr3 => $self->{descr3},
+        value3 => $self->{value3},
+        descr4 => $self->{descr4},
+        value4 => $self->{value4},
+        descr5 => $self->{descr5},
+        value5 => $self->{value5},
+    };
 }
 
 sub get_controls_sql {
     my $self = shift;
 
-    return [
-        $self->{sql},
-    ];
+    return {
+        sql => $self->{sql},
+    };
 }
 
 #- next ListCtrl
@@ -552,6 +559,12 @@ sub list_item_select_last {
 sub get_list_max_index {
     my ($self) = @_;
     return $self->get_listcontrol->GetItemCount();
+}
+
+sub get_list_selected_index {
+    my ($self) = @_;
+
+    return $self->get_listcontrol->GetSelection();
 }
 
 sub list_item_insert {
@@ -601,6 +614,47 @@ sub list_populate_all {
 
     # Set item 0 selected on start
     $self->list_item_select_first();
+}
+
+sub controls_populate {
+    my ($self) = @_;
+
+    my $item = $self->get_list_selected_index();
+    my $file = $self->get_list_data($item);
+
+    my $ddata_ref = $self->_model->get_detail_data($file);
+
+    #-- Header
+    # Write in the control the actual path and filename
+    $ddata_ref->{header}{filename} = $file;
+    $self->controls_write_page('list', $ddata_ref->{header} );
+
+    #-- Parameters
+    # Transform data in simple hash reference format
+    my $parameters;
+    foreach my $parameter ( @{ $ddata_ref->{parameters} } ) {
+        my $id = $parameter->{id};
+        $parameters->{"value$id"} = $parameter->{value};
+        $parameters->{"descr$id"} = $parameter->{descr};
+    }
+    $self->controls_write_page('para', $parameters );
+
+    #-- SQL
+    $self->controls_write_page('sql', $ddata_ref->{body} );
+}
+
+sub controls_write_page {
+    my ($self, $page, $data) = @_;
+
+    my $get = 'get_controls_'.$page;
+    my $controls = $self->$get();
+
+    foreach my $name ( keys %{$controls} ) {
+        my $value = $data->{$name};
+        if ($value) {
+            $controls->{$name}->SetValue($value);
+        }
+    }
 }
 
 #-- End Perl ListCtrl subs
