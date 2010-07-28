@@ -134,13 +134,7 @@ sub _print {
 
 sub on_page_change {
     my ($self, $new_pg, $old_pg) = @_;
-
-    print " page changed, current is $new_pg and old $old_pg\n";
-    # $self->get_stdout_observable->set( $new_pg );
 }
-
-#- prev: Event
-#- next: List
 
 sub on_item_selected {
     my ($self) = @_;
@@ -148,6 +142,9 @@ sub on_item_selected {
     $self->get_itemchanged_observable->set( 1 );
     $self->_print('Item selected');
 }
+
+#- prev: Event
+#- next: List
 
 sub get_list_data {
     my ($self) = @_;
@@ -170,9 +167,9 @@ sub run_export {
 # next:
 
 sub get_detail_data {
-    my ($self, $file) = @_;
+    my ($self, $file_fqn) = @_;
 
-    my $ddata_ref = $self->{xmldata}->get_details($file);
+    my $ddata_ref = $self->{xmldata}->get_details($file_fqn);
 
     return $ddata_ref;
 }

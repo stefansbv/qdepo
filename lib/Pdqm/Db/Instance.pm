@@ -45,7 +45,7 @@ sub _new_instance {
     # Some defaults
     $dbh->{AutoCommit}  = 1;            # disable transactions
     $dbh->{RaiseError}  = 1;
-    $dbh->{LongReadLen} = 512 * 1024;
+    $dbh->{LongReadLen} = 512 * 1024;   # Firebird need this with BLOBs
 
     return bless {dbh => $dbh}, $class;
 }

@@ -28,7 +28,6 @@ package Pdqm::Db::Connection;
 use strict;
 use warnings;
 
-use Data::Dumper;
 use Pdqm::Config;
 
 our $VERSION = 0.03;

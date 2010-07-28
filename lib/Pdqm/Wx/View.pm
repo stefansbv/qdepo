@@ -103,7 +103,11 @@ sub _set_model_callbacks {
     #--
     my $em = $self->_model->get_editmode_observable;
     $em->add_callback(
-        sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_ed'), $_[0] ) } );
+        sub {
+            $tb->ToggleTool( $self->get_toolbar_btn('tb_ed'), $_[0] );
+            $self->toggle_sql_highlight();
+        }
+    );
     #--
     my $upd = $self->_model->get_itemchanged_observable;
     $upd->add_callback(
@@ -453,7 +457,7 @@ sub create_config_page {
     $self->{_nb}{p4}->SetSizer( $cnf_main_sz );
 }
 
-sub popup {
+sub dialog_popup {
     my ( $self, $msgtype, $msg ) = @_;
     if ( $msgtype eq 'Error' ) {
         Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_ERROR, $self )
@@ -528,6 +532,12 @@ sub get_controls_conf {
         path      => $self->{path},
         outdir    => $self->{outdir},
     };
+}
+
+sub get_control_by_name {
+    my ($self, $name) = @_;
+
+    return $self->{$name},
 }
 
 #- next ListCtrl
@@ -639,18 +649,23 @@ sub list_populate_all {
     $self->list_item_select_first();
 }
 
+sub get_detail_data {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->get_list_data($sel_item);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+
+    return ( $ddata_ref, $file_fqn );
+}
+
 sub controls_populate {
     my ($self) = @_;
 
-    my $item = $self->get_list_selected_index();
-    my $file_fqn = $self->get_list_data($item);
-
-    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+    my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
     #-- Header
     # Write in the control the actual path and filename
-    use File::Spec::Functions qw(abs2rel);
-
     # Remove path until and including .pdqm
     ( my $file_qn = $file_fqn ) =~ s{.*.pdqm/}{};
     # Add real path to control
@@ -658,22 +673,171 @@ sub controls_populate {
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
+    my $params = $self->params_data_to_hash( $ddata_ref->{parameters} );
+    $self->controls_write_page('para', $params );
+
+    #-- SQL
+    $self->controls_write_page( 'sql', $ddata_ref->{body} );
+
+    #--- Highlight SQL parameters
+    $self->toggle_sql_highlight();
+}
+
+sub toggle_sql_highlight {
+    my $self = shift;
+
+    #- Detail data
+    my ($ddata, $file_fqn) = $self->get_detail_data();
+
+    #-- Parameters
+    my $params = $self->params_data_to_hash( $ddata->{parameters} );
+
+    if ( $self->_model->is_editmode ) {
+        $self->control_highlight_text($ddata->{body}{sql}, $params );
+    }
+    else {
+        $self->control_replace_highlight_text($ddata->{body}{sql}, $params );
+    }
+}
+
+sub control_replace_highlight_text {
+    my ($self, $sqltext, $params) = @_;
+
+    my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
+
+    # Write new text to control
+    $self->control_set_value('sql', $newtext);
+
+    foreach my $position ( @{$positions} ) {
+
+        my ($beg, $var, $str) = @{$position};
+        my $end = $beg + length($str);
+
+        if ( $beg > 0 and $end > 0 ) {
+            $self->control_set_attr( $beg, $end, 'orange', 'lightgrey' );
+        }
+        else {
+            warn "Not in range!\n";
+        }
+    }
+}
+
+sub control_highlight_text {
+    my ($self, $sqltext, $para_ref) = @_;
+
+    # Write text to control ???
+    $self->control_set_value('sql', $sqltext);
+
+    while (my ($key, $value) = each ( %{$para_ref} ) ) {
+
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Find the positions of the string 'value[0-9]' in SQL text
+        my ( $beg, $end ) = $self->string_match_pos( $sqltext, $key );
+        if ( $beg >= 0 and $end > 0 ) {
+            $self->control_set_attr( $beg, $end, 'red', 'white' );
+        }
+    }
+}
+
+#-- utils
+
+sub params_data_to_hash {
+    my ($self, $params) = @_;
+
     # Transform data in simple hash reference format
+    # Move this to model ???
     my $parameters;
-    foreach my $parameter ( @{ $ddata_ref->{parameters} } ) {
+    foreach my $parameter ( @{ $params } ) {
         my $id = $parameter->{id};
         $parameters->{"value$id"} = $parameter->{value};
         $parameters->{"descr$id"} = $parameter->{descr};
     }
-    $self->controls_write_page('para', $parameters );
 
-    #-- SQL
-    $self->controls_write_page('sql', $ddata_ref->{body} );
+    return $parameters;
+}
+
+sub string_match_pos {
+
+    my ($self, $text, $value) = @_;
+
+    $text =~ m/($value)/pm;
+    my $beg = $-[0];
+    my $end = $+[0];
+
+    return ($beg, $end);
+}
+
+sub string_replace_pos {
+
+    my ($self, $text, $params) = @_;
+
+    my @strpos;
+
+    while (my ($key, $value) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Replace  text and return the strpos
+        $text =~ s/($key)/$value/pm;
+        my $pos = $-[0];
+        push(@strpos, [ $pos, $key, $value ]);
+    }
+
+    # Sorted by $pos
+    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
+
+    return ($text, \@sortedpos);
+}
+
+sub string_replace_for_run {
+
+    my ($self, $text, $params) = @_;
+
+    my @bind;
+
+    foreach my $param ( @{$params} ) {
+        while ( my ( $key, $value ) = each( %{$param} ) ) {
+            next unless $key =~ m{value([0-9])}xmg; # Skip 'descr'
+            my $p_num = $1;    # Parameter number for bind_param
+                               # Only 9 parameters allowed here!
+            $text =~ s/($key)/\?/pm;
+            push( @bind, [ $p_num, $value ] );
+        }
+    }
+
+    return (\@bind, $text);
+}
+
+# end utils
+#
+
+sub control_set_attr {
+    my ($self, $beg, $end, $fgcolor, $bgcolor) = @_;
+
+    my $ctrl = $self->get_control_by_name('sql');
+
+    $ctrl->SetStyle(
+        $beg,
+        $end,
+        Wx::TextAttr->new(
+            Wx::Colour->new($fgcolor),
+            Wx::Colour->new($bgcolor),
+        )
+      );
+}
+
+sub control_set_value {
+    my ($self, $name, $value) = @_;
+
+    my $ctrl = $self->get_control_by_name($name);
+
+    $ctrl->SetValue($value);
 }
 
 sub controls_write_page {
     my ($self, $page, $data) = @_;
 
+    # Get controls name and object from $page
     my $get = 'get_controls_'.$page;
     my $controls = $self->$get();
 

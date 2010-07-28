@@ -147,7 +147,7 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_go'), sub {
         $self->_model->is_connected
           ? $self->_model->run_export
-          : $self->_view->popup( 'Error', 'Not connected' );
+          : $self->_view->dialog_popup( 'Error', 'Not connected!' );
     };
 
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_qt'), $exit;
