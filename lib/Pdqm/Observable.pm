@@ -25,8 +25,6 @@
 # +---------------------------------------------------------------------------+
 package Pdqm::Observable;
 
-# Very small layout changes.
-#
 # Original code from:
 # Cipres::Registry::Observable
 # Author:

@@ -395,7 +395,7 @@ sub create_config_page {
     my $cnf_lbl2 = Wx::StaticText->new(
         $self->{_nb}{p4},
         -1,
-        q{Output files path (relative to user's home directory)},
+        q{Output files path},
     );
     $self->{outdir} = Wx::TextCtrl->new(
         $self->{_nb}{p4},

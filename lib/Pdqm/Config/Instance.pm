@@ -123,9 +123,9 @@ sub _configs_make_fqn {
     my $qdf_path = catdir( $app_path_qn, $config->{qdf}{path} );
     $config->{qdf}{path} = $qdf_path;
 
-    #- Output
-    my $out_dir_qn = catdir( $home_path, $config->{qdf}{output} );
-    $config->{qdf}{output} = $out_dir_qn;
+    #- Outdir
+    my $out_dir_qn = catdir( $home_path, $config->{qdf}{outdir} );
+    $config->{qdf}{outdir} = $out_dir_qn;
 
     return $config;
 }

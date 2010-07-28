@@ -146,7 +146,7 @@ sub on_item_selected {
     my ($self) = @_;
 
     $self->get_itemchanged_observable->set( 1 );
-    $self->_print('Item changed');
+    $self->_print('Item selected');
 }
 
 sub get_list_data {
