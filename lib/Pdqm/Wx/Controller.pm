@@ -76,6 +76,9 @@ sub start {
     # Populate list with titles
     $self->_view->list_populate_all();
 
+    # Populate configurations tab
+    $self->_view->populate_config_page();
+
     # Connect to database at start
     # $self->_model->db_connect();
 

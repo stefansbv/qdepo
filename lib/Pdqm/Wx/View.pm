@@ -34,6 +34,7 @@ use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
 
+use Pdqm::Config;
 use Pdqm::Wx::Notebook;
 use Pdqm::Wx::ToolBar;
 
@@ -162,29 +163,29 @@ sub create_report_page {
     );
 
     $self->{_list}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
-    $self->{_list}->InsertColumn( 1, 'Report name', wxLIST_FORMAT_LEFT, 337 );
+    $self->{_list}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 337 );
 
     #-- Controls
 
     my $repo_lbl1 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Title', );
     $self->{title} =
-      Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Report file', );
+    my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Query file', );
     $self->{filename} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
 
     my $repo_lbl3 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Output file', );
     $self->{output} =
-      Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
 
     my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Sheet name', );
     $self->{sheet} =
-      Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
 
-    $self->{descr} =
-      Wx::TextCtrl->new( $self->{_nb}{p1}, -1, '', [ -1, -1 ], [ -1, 40 ],
-        wxTE_MULTILINE, );
+    $self->{description} =
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, '', [ -1, -1 ], [ -1, 40 ],
+                           wxTE_MULTILINE, );
 
     $self->{filename}->Enable(0);    # This is disabled
 
@@ -196,7 +197,7 @@ sub create_report_page {
 
     my $repo_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Report list ', ),
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Query list ', ),
         wxVERTICAL, );
 
     $repo_top_sz->Add( $self->{_list}, 1, wxEXPAND, 3 );
@@ -233,7 +234,7 @@ sub create_report_page {
         Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Description ', ),
         wxVERTICAL, );
 
-    $repo_bot_sz->Add( $self->{descr}, 1, wxEXPAND );
+    $repo_bot_sz->Add( $self->{description}, 1, wxEXPAND );
 
     #--
 
@@ -368,9 +369,9 @@ sub create_config_page {
     my $cnf_lbl0 = Wx::StaticText->new(
         $self->{_nb}{p4},
         -1,
-        'Report definition files extension',
+        'Query definition files extension',
     );
-    $self->{cnf_tc0} = Wx::TextCtrl->new(
+    $self->{extension} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -381,9 +382,9 @@ sub create_config_page {
     my $cnf_lbl1 = Wx::StaticText->new(
         $self->{_nb}{p4},
         -1,
-        'Report definition files directory',
+        'Query definition files directory',
     );
-    $self->{cnf_tc1} = Wx::TextCtrl->new(
+    $self->{path} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -396,7 +397,7 @@ sub create_config_page {
         -1,
         q{Output files path (relative to user's home directory)},
     );
-    $self->{cnf_tc2} = Wx::TextCtrl->new(
+    $self->{outdir} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -409,7 +410,7 @@ sub create_config_page {
         -1,
         'Template file name',
     );
-    $self->{cnf_tc3} = Wx::TextCtrl->new(
+    $self->{template} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -417,25 +418,25 @@ sub create_config_page {
         [ 170, -1 ],
     );
 
-    # This are disabled by default
-    $self->{cnf_tc0}->Enable(0);
-    $self->{cnf_tc1}->Enable(0);
-    $self->{cnf_tc2}->Enable(0);
-    $self->{cnf_tc3}->Enable(0);
+    # This are disabled by default (ro)
+    $self->{extension}->Enable(0);
+    $self->{path}->Enable(0);
+    $self->{outdir}->Enable(0);
+    $self->{template}->Enable(0);
 
     my $cnf_fgs = Wx::FlexGridSizer->new( 8, 1, 5, 10 );
 
     $cnf_fgs->Add( $cnf_lbl0, 0, wxTOP | wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{cnf_tc0}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $self->{extension}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->Add( $cnf_lbl1, 0, wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{cnf_tc1}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $self->{path}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->Add( $cnf_lbl2, 0, wxLEFT,   5 );
-    $cnf_fgs->Add( $self->{cnf_tc2}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $self->{outdir}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->Add( $cnf_lbl3, 0, wxLEFT,   5 );
-    $cnf_fgs->Add( $self->{cnf_tc3}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $self->{template}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->AddGrowableCol(0);
 
@@ -485,10 +486,11 @@ sub get_controls_list {
     my $self = shift;
 
     return {
-        title  => $self->{title},
-        output => $self->{output},
-        sheet  => $self->{sheet},
-        descr  => $self->{descr},
+        title       => $self->{title},
+        output      => $self->{output},
+        sheet       => $self->{sheet},
+        filename    => $self->{filename},
+        description => $self->{description},
     };
 }
 
@@ -514,6 +516,17 @@ sub get_controls_sql {
 
     return {
         sql => $self->{sql},
+    };
+}
+
+sub get_controls_conf {
+    my $self = shift;
+
+    return {
+        extension => $self->{extension},
+        template  => $self->{template},
+        path      => $self->{path},
+        outdir    => $self->{outdir},
     };
 }
 
@@ -593,6 +606,16 @@ sub list_item_clear_all {
     $self->get_listcontrol->DeleteAllItems;
 }
 
+sub populate_config_page {
+    my $self = shift;
+
+    my $cnf = Pdqm::Config->new();
+    my $qdf = $cnf->cfg->qdf;    # query definition files
+
+    print Dumper( $qdf );
+    $self->controls_write_page('conf', $qdf );
+}
+
 sub list_populate_all {
 
     my ($self) = @_;
@@ -626,7 +649,9 @@ sub controls_populate {
 
     #-- Header
     # Write in the control the actual path and filename
-    $ddata_ref->{header}{filename} = $file;
+    use File::Spec::Functions qw(abs2rel);
+
+    $ddata_ref->{header}{filename} = abs2rel($file);
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters

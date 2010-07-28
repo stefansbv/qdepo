@@ -62,7 +62,7 @@ sub new {
 
     #--- Pages
 
-    $self->AddPage( $self->{p1}, 'Query' );
+    $self->AddPage( $self->{p1}, 'Query list' );
     $self->AddPage( $self->{p2}, 'Parameters' );
     $self->AddPage( $self->{p3}, 'SQL' );
     $self->AddPage( $self->{p4}, 'Configs' );

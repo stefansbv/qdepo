@@ -10,4 +10,4 @@ qdf:
   extension: qdf
   path:      qdf_repo
   template:  qdf-template.xml
-  output:    reports
+  outdir:    reports
