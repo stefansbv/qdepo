@@ -125,8 +125,8 @@ sub create_menu {
     $menu->Append( $menu_app, "&App" );
 
     my $menu_help = Wx::Menu->new();
-    $menu_help->AppendString( wxID_HELP, "&Contents...", "" );
-    $menu_help->AppendString( wxID_ABOUT, "&About", "" );
+    $menu_help->AppendString( wxID_HELP, "&Contents...", q{} );
+    $menu_help->AppendString( wxID_ABOUT, "&About", q{} );
     $menu->Append( $menu_help, "&Help" );
 
     $self->SetMenuBar($menu);
@@ -169,22 +169,22 @@ sub create_report_page {
 
     my $repo_lbl1 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Title', );
     $self->{title} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Query file', );
     $self->{filename} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $repo_lbl3 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Output file', );
     $self->{output} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Sheet name', );
     $self->{sheet} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     $self->{description} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, '', [ -1, -1 ], [ -1, 40 ],
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 40 ],
                            wxTE_MULTILINE, );
 
     $self->{filename}->Enable(0);    # This is disabled
@@ -263,33 +263,33 @@ sub create_para_page {
 
     my $para_lbl1 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value1', );
     $self->{descr1} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ 170, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
     $self->{value1} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl2 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value2', );
     $self->{descr2} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ 170, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
     $self->{value2} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl3 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value3', );
     $self->{descr3} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ 170, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
     $self->{value3} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl4 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value4', );
     $self->{descr4} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ 170, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
     $self->{value4} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl5 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value5', );
     $self->{descr5} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ 170, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
     $self->{value5} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, "", [ -1, -1 ], [ -1, -1 ], );
+      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     #-- Layout
 
@@ -344,7 +344,7 @@ sub create_sql_page {
     my $sql_sb = Wx::StaticBox->new( $self->{_nb}{p3}, -1, ' SQL ', );
 
     $self->{sql} = Wx::TextCtrl->new(
-        $self->{_nb}{p3}, -1, '',
+        $self->{_nb}{p3}, -1, q{},
         [ -1, -1 ],
         [ -1, -1 ],
         wxTE_MULTILINE,
@@ -643,15 +643,18 @@ sub controls_populate {
     my ($self) = @_;
 
     my $item = $self->get_list_selected_index();
-    my $file = $self->get_list_data($item);
+    my $file_fqn = $self->get_list_data($item);
 
-    my $ddata_ref = $self->_model->get_detail_data($file);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
 
     #-- Header
     # Write in the control the actual path and filename
     use File::Spec::Functions qw(abs2rel);
 
-    $ddata_ref->{header}{filename} = abs2rel($file);
+    # Remove path until and including .pdqm
+    ( my $file_qn = $file_fqn ) =~ s{.*.pdqm/}{};
+    # Add real path to control
+    $ddata_ref->{header}{filename} = $file_qn;
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
