@@ -131,7 +131,7 @@ sub _set_event_handlers {
     # Disable editmode when save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv'), sub {
         if ($self->_model->is_editmode) {
-            $self->_model->save_query_def;
+            $self->_view->save_query_def();
             $self->_model->set_idlemode;
             $self->toggle_controls;
         }

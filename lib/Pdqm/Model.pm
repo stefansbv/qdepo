@@ -28,6 +28,8 @@ package Pdqm::Model;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Pdqm::FileIO;
 use Pdqm::Observable;
 use Pdqm::Db;
@@ -224,9 +226,67 @@ sub get_editmode_observable {
 }
 
 sub save_query_def {
-    my $self = shift;
+    my ($self, $file_fqn, $head, $para, $body) = @_;
 
-    $self->_print("Edit mode");
+    print Dumper( $head, $para, $body );
+    # Transform records to match data in xml format
+    $head = $self->transform_data($head);
+    $para = $self->transform_para($para);
+    $body = $self->transform_data($body);
+
+    # Add file name ???
+    # $head->{filename} = $file_fqn;
+
+    # Asemble data
+    my $record = {
+        header     => $head,
+        parameters => $para,
+        body       => $body,
+    };
+
+    $self->{xmldata}->xml_update($file_fqn, $record);
+
+    $self->_print("Saved.");
+}
+
+sub transform_data {
+
+    my ($self, $record) = @_;
+
+    my $rec;
+
+    foreach my $item ( @{$record} ) {
+        while (my ($key, $value) = each ( %{$item} ) ) {
+            $rec->{$key} = $value;
+        }
+    }
+
+    return $rec;
+}
+
+sub transform_para {
+
+    my ($self, $record) = @_;
+
+    my (@aoh, $rec);
+
+    foreach my $item ( @{$record} ) {
+        while (my ($key, $value) = each ( %{$item} ) ) {
+            if ($key =~ m{descr([0-9])} ) {
+                # print " found descr no $1\n";
+                $rec = {};      # new record
+                $rec->{descr} = $value;
+            }
+            if ($key =~ m{value([0-9])} ) {
+                # print " found value no $1\n";
+                $rec->{id} = $1;
+                $rec->{value} = $value;
+                push(@aoh, $rec);
+            }
+        }
+    }
+
+    return \@aoh;
 }
 
 # prev: Edit mode

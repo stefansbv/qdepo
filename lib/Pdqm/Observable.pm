@@ -25,15 +25,15 @@
 # +---------------------------------------------------------------------------+
 package Pdqm::Observable;
 
-# Original code from:
 # Cipres::Registry::Observable
 # Author:
 #   -- Rutger Vos, 17/Aug/2006 13:57
+# Taken from http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen
+# /cipres/framework/perl/cipres/lib/Cipres/
+# Rutger Vos, thank you!
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 
 sub new {
     my ( $class, $value ) = @_;

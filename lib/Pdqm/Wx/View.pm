@@ -849,6 +849,37 @@ sub controls_write_page {
     }
 }
 
+sub controls_read_page {
+    my ( $self, $page ) = @_;
+
+    # Get controls name and object from $page
+    my $get      = 'get_controls_' . $page;
+    my $controls = $self->$get();
+    my @records;
+
+    foreach my $name ( keys %{$controls} ) {
+        my $value = $controls->{$name}->GetValue();
+        push(@records, { $name => $value } );
+    }
+
+    return \@records;
+}
+
+sub save_query_def {
+    my $self = shift;
+
+    my (undef, $file_fqn) = $self->get_detail_data();
+
+    my $head = $self->controls_read_page('list');
+    my $para = $self->controls_read_page('para');
+    my $body = $self->controls_read_page('sql');
+
+    # Update title in list ???
+    # $self->{control}->set_list_text( $item, 1, $head->{title} );
+
+    $self->_model->save_query_def($file_fqn, $head, $para, $body);
+}
+
 #-- End Perl ListCtrl subs
 
 1;

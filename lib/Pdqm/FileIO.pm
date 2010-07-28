@@ -27,8 +27,6 @@ package Pdqm::FileIO;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
