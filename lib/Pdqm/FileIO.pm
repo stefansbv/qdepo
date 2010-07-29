@@ -27,6 +27,8 @@ package Pdqm::FileIO;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
@@ -256,9 +258,11 @@ sub _xml_proc_para {
 
     my ( $self, $t, $elt, $rec ) = @_;
 
-    # print "Working on ", $elt->tag, "\n";
+    print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
+
+    print Dumper( $rec );
 
     foreach my $item ( @{$rec} ) {
         my $ef = XML::Twig::Elt->new('parameter');

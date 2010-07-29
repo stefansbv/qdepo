@@ -855,7 +855,7 @@ sub controls_read_page {
 
     foreach my $name ( keys %{$controls} ) {
         my $value = $controls->{$name}->GetValue();
-        push(@records, { $name => $value } );
+        push(@records, { $name => $value } ) if ($name and $value);
     }
 
     return \@records;

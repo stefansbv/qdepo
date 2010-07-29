@@ -274,12 +274,10 @@ sub transform_para {
     foreach my $item ( @{$record} ) {
         while (my ($key, $value) = each ( %{$item} ) ) {
             if ($key =~ m{descr([0-9])} ) {
-                # print " found descr no $1\n";
                 $rec = {};      # new record
                 $rec->{descr} = $value;
             }
             if ($key =~ m{value([0-9])} ) {
-                # print " found value no $1\n";
                 $rec->{id} = $1;
                 $rec->{value} = $value;
                 push(@aoh, $rec);
