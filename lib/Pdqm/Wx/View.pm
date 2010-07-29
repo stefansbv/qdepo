@@ -622,7 +622,6 @@ sub populate_config_page {
     my $cnf = Pdqm::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    print Dumper( $qdf );
     $self->controls_write_page('conf', $qdf );
 }
 
@@ -656,7 +655,7 @@ sub get_detail_data {
     my $file_fqn  = $self->get_list_data($sel_item);
     my $ddata_ref = $self->_model->get_detail_data($file_fqn);
 
-    return ( $ddata_ref, $file_fqn );
+    return ( $ddata_ref, $file_fqn, $sel_item );
 }
 
 sub controls_populate {
@@ -715,9 +714,6 @@ sub control_replace_highlight_text {
 
         if ( $beg > 0 and $end > 0 ) {
             $self->control_set_attr( $beg, $end, 'orange', 'lightgrey' );
-        }
-        else {
-            warn "Not in range!\n";
         }
     }
 }
@@ -868,16 +864,17 @@ sub controls_read_page {
 sub save_query_def {
     my $self = shift;
 
-    my (undef, $file_fqn) = $self->get_detail_data();
+    my (undef, $file_fqn, $item) = $self->get_detail_data();
 
     my $head = $self->controls_read_page('list');
     my $para = $self->controls_read_page('para');
     my $body = $self->controls_read_page('sql');
 
-    # Update title in list ???
-    # $self->{control}->set_list_text( $item, 1, $head->{title} );
+    my $new_title =
+      $self->_model->save_query_def( $file_fqn, $head, $para, $body );
 
-    $self->_model->save_query_def($file_fqn, $head, $para, $body);
+    # Update title in list
+    $self->set_list_text( $item, 1, $new_title );
 }
 
 #-- End Perl ListCtrl subs

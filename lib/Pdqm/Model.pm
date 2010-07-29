@@ -228,7 +228,6 @@ sub get_editmode_observable {
 sub save_query_def {
     my ($self, $file_fqn, $head, $para, $body) = @_;
 
-    print Dumper( $head, $para, $body );
     # Transform records to match data in xml format
     $head = $self->transform_data($head);
     $para = $self->transform_para($para);
@@ -247,6 +246,8 @@ sub save_query_def {
     $self->{xmldata}->xml_update($file_fqn, $record);
 
     $self->_print("Saved.");
+
+    return $head->{title};
 }
 
 sub transform_data {

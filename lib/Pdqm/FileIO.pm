@@ -222,7 +222,7 @@ sub _xml_proc_head {
 
     my ( $self, $t, $elt, $rec ) = @_;
 
-    print "Working on ", $elt->tag, "\n";
+    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
@@ -238,7 +238,7 @@ sub _xml_proc_body {
 
     my ( $self, $t, $elt, $rec ) = @_;
 
-    print "Working on ", $elt->tag, "\n";
+    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
@@ -256,7 +256,7 @@ sub _xml_proc_para {
 
     my ( $self, $t, $elt, $rec ) = @_;
 
-    print "Working on ", $elt->tag, "\n";
+    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
