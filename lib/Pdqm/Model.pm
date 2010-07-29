@@ -233,8 +233,8 @@ sub save_query_def {
     $para = $self->transform_para($para);
     $body = $self->transform_data($body);
 
-    # Add file name ???
-    # $head->{filename} = $file_fqn;
+    print "Model:\n";
+    print Dumper( $para );
 
     # Asemble data
     my $record = {

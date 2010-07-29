@@ -489,49 +489,49 @@ sub get_listcontrol {
 sub get_controls_list {
     my $self = shift;
 
-    return {
-        title       => $self->{title},
-        output      => $self->{output},
-        sheet       => $self->{sheet},
-        filename    => $self->{filename},
-        description => $self->{description},
-    };
+    return [
+        { title       => $self->{title},       },
+        { output      => $self->{output},      },
+        { sheet       => $self->{sheet},       },
+        { filename    => $self->{filename},    },
+        { description => $self->{description}, },
+    ];
 }
 
 sub get_controls_para {
     my $self = shift;
 
-    return {
-        descr1 => $self->{descr1},
-        value1 => $self->{value1},
-        descr2 => $self->{descr2},
-        value2 => $self->{value2},
-        descr3 => $self->{descr3},
-        value3 => $self->{value3},
-        descr4 => $self->{descr4},
-        value4 => $self->{value4},
-        descr5 => $self->{descr5},
-        value5 => $self->{value5},
-    };
+    return [
+        { descr1 => $self->{descr1}, },
+        { value1 => $self->{value1}, },
+        { descr2 => $self->{descr2}, },
+        { value2 => $self->{value2}, },
+        { descr3 => $self->{descr3}, },
+        { value3 => $self->{value3}, },
+        { descr4 => $self->{descr4}, },
+        { value4 => $self->{value4}, },
+        { descr5 => $self->{descr5}, },
+        { value5 => $self->{value5}, },
+    ];
 }
 
 sub get_controls_sql {
     my $self = shift;
 
-    return {
-        sql => $self->{sql},
-    };
+    return [
+        { sql => $self->{sql}, },
+    ];
 }
 
 sub get_controls_conf {
     my $self = shift;
 
-    return {
-        extension => $self->{extension},
-        template  => $self->{template},
-        path      => $self->{path},
-        outdir    => $self->{outdir},
-    };
+    return [
+        { extension => $self->{extension}, },
+        { template  => $self->{template},  },
+        { path      => $self->{path},      },
+        { outdir    => $self->{outdir},    },
+    ];
 }
 
 sub get_control_by_name {
@@ -837,10 +837,20 @@ sub controls_write_page {
     my $get = 'get_controls_'.$page;
     my $controls = $self->$get();
 
-    foreach my $name ( keys %{$controls} ) {
-        my $value = $data->{$name};
-        if ($value) {
-            $controls->{$name}->SetValue($value);
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
+
+            my $value = $data->{$name};
+
+            # Cleanup value
+            if ( defined $value ) {
+                $value =~ s/\n$//mg;    # Multiline
+            }
+            else {
+                $value = q{};           # Empty
+            }
+
+            $control->{$name}->SetValue($value);
         }
     }
 }
@@ -853,9 +863,12 @@ sub controls_read_page {
     my $controls = $self->$get();
     my @records;
 
-    foreach my $name ( keys %{$controls} ) {
-        my $value = $controls->{$name}->GetValue();
-        push(@records, { $name => $value } ) if ($name and $value);
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
+
+            my $value = $control->{$name}->GetValue();
+            push(@records, { $name => $value } ) if ($name and $value);
+        }
     }
 
     return \@records;
@@ -869,6 +882,9 @@ sub save_query_def {
     my $head = $self->controls_read_page('list');
     my $para = $self->controls_read_page('para');
     my $body = $self->controls_read_page('sql');
+
+    print "View:\n";
+    print Dumper( $para );
 
     my $new_title =
       $self->_model->save_query_def( $file_fqn, $head, $para, $body );

@@ -226,8 +226,10 @@ sub toggle_controls_page {
     my $get = 'get_controls_'.$page;
     my $controls = $self->_view->$get();
 
-    foreach my $name ( keys %{$controls} ) {
-        $controls->{$name}->Enable($status);
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
+            $control->{$name}->Enable($status);
+        }
     }
 }
 
