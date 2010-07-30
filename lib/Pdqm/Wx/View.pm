@@ -648,6 +648,11 @@ sub list_populate_all {
     $self->list_item_select_first();
 }
 
+sub list_populate_item {
+    my ($self, $rec) = @_;
+    print Dumper( $rec );
+}
+
 sub get_detail_data {
     my $self = shift;
 

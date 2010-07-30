@@ -346,7 +346,6 @@ sub report_add {
     my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . ".$qdfext";
 
     my $qdf = $cnf->cfg->qdf;    # query definition files
-    print Dumper( $qdf );
 
     my $src_fqn  = $cnf->cfg->qdf->{template};
     my $dest_fqn = $cnf->new_qdf_fqn($newrepo_fn);
@@ -363,17 +362,15 @@ sub report_add {
         }
 
         # Adauga titlul si noul fisier
-        # my ($titles, $indice) = $self->{fio}->process_file($dest_fqn);
-        # $self->list_populate_item($titles, $indice);
+        $self->{fio} = Pdqm::FileIO->new();
+        my $data_ref = $self->{fio}->get_title($dest_fqn);
 
-        # &loaddetail( undef, undef, $xmlsql, $dbname );
+        return $data_ref;
     }
     else {
         warn "File exists! ($dest_fqn)\n";
         # &status_mesaj_l("Eroare, nu am creat raport nou");
     }
-
-    return;
 }
 
 sub report_remove {

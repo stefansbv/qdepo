@@ -53,7 +53,6 @@ sub _process_file {
 
     my ($self, $qdf_file, $tag_name) = @_;
 
-    # qdf : report definition file ;)
     if (! defined $qdf_file) {
         print "No report definition file?.\n";
         return;
@@ -92,10 +91,9 @@ sub _process_all_files {
     print scalar @{$qdf_ref}, " query definition files found.\n";
 
     my @qdfdata;
-    # qdf : report definition file ;)
     foreach my $qdf_file ( @{$qdf_ref} ) {
-        my $data = $self->_process_file($qdf_file, $tag_name);
-        push(@qdfdata, $data);
+        my $data = $self->_process_file( $qdf_file, $tag_name );
+        push( @qdfdata, $data );
     }
 
     return \@qdfdata;
@@ -161,6 +159,13 @@ sub get_details {
     my ($self, $file) = @_;
 
     return $self->_process_file($file, 'report');
+}
+
+sub get_title {
+
+    my ($self, $file) = @_;
+
+    return $self->_process_file($file, 'title');
 }
 
 sub get_titles {
