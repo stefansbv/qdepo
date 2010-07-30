@@ -67,17 +67,15 @@ sub cfg {
     return $cf;
 }
 
-sub process_configs {
-    my ($self, ) = @_;
+sub new_qdf_fqn {
+    my ($self, $qdf_fn) = @_;
 
-    my $home_path  = File::HomeDir->my_home;
+    # my $rdfext  = $self->cfg->qdf->{rdfext};
+    my $rdfpath = $self->cfg->qdf->{path};
 
-    my $rdfext  = $self->cfg->rex->{rdfext};
-    my $rdfpath = $self->cfg->rex->{rdfpath};
+    my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
 
-    my $rdfpath_qn = catdir($home_path, '.reports/Contracte' ,);
-
-    return $rdfext;
+    return $rdfpath_qn;
 }
 
 sub save_config {

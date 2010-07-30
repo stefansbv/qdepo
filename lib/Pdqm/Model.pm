@@ -28,8 +28,11 @@ package Pdqm::Model;
 use strict;
 use warnings;
 
+use File::Copy;
+use File::Basename;
 use Data::Dumper;
 
+use Pdqm::Config;
 use Pdqm::FileIO;
 use Pdqm::Observable;
 use Pdqm::Db;
@@ -142,7 +145,7 @@ sub on_item_selected {
     my ($self) = @_;
 
     $self->get_itemchanged_observable->set( 1 );
-    $self->_print('Item selected');
+    # $self->_print('Item selected');
 }
 
 #- prev: Event
@@ -152,9 +155,18 @@ sub get_list_data {
     my ($self) = @_;
 
     # XML read - write module
-    $self->{xmldata} = Pdqm::FileIO->new();
-    my $titles = $self->{xmldata}->get_titles();
-    my $titles_no = scalar keys %{$titles};
+    $self->{fio} = Pdqm::FileIO->new();
+    my $data_ref = $self->{fio}->get_titles();
+
+    my $indice = 0;
+    my $titles = {};
+
+    # Format titles
+    foreach my $rec ( @{$data_ref} ) {
+        my $nrcrt = $indice + 1;
+        $titles->{$indice} = [ $nrcrt, $rec->{title}, $rec->{file} ];
+        $indice++;
+    }
 
     return $titles;
 }
@@ -171,7 +183,7 @@ sub run_export {
 sub get_detail_data {
     my ($self, $file_fqn) = @_;
 
-    my $ddata_ref = $self->{xmldata}->get_details($file_fqn);
+    my $ddata_ref = $self->{fio}->get_details($file_fqn);
 
     return $ddata_ref;
 }
@@ -192,10 +204,10 @@ sub set_editmode {
         $self->get_editmode_observable->set(1);
     }
     if ( $self->is_editmode ) {
-        $self->_print("Edit mode.");
+        # $self->_print("Edit mode.");
     }
     else {
-        $self->_print("Idle mode.");
+        # $self->_print("Idle mode.");
     }
 }
 
@@ -206,10 +218,10 @@ sub set_idlemode {
         $self->get_editmode_observable->set(0);
     }
     if ( $self->is_editmode ) {
-        $self->_print("Edit mode.");
+        # $self->_print("Edit mode.");
     }
     else {
-        $self->_print("Idle mode.");
+        # $self->_print("Idle mode.");
     }
 }
 
@@ -233,9 +245,6 @@ sub save_query_def {
     $para = $self->transform_para($para);
     $body = $self->transform_data($body);
 
-    print "Model:\n";
-    print Dumper( $para );
-
     # Asemble data
     my $record = {
         header     => $head,
@@ -243,7 +252,7 @@ sub save_query_def {
         body       => $body,
     };
 
-    $self->{xmldata}->xml_update($file_fqn, $record);
+    $self->{fio}->xml_update($file_fqn, $record);
 
     $self->_print("Saved.");
 
@@ -289,5 +298,100 @@ sub transform_para {
 }
 
 # prev: Edit mode
+
+sub report_add {
+
+    my ( $self ) = @_;
+
+    my $reports_ref = $self->{fio}->get_file_list();
+
+    # Find a new number to create a file name like raport-nnnnn.xml
+    # Try to fill the gaps between numbers in file names
+    my $files_no = scalar @{$reports_ref};
+
+    my $cnf    = Pdqm::Config->new();
+    my $qdfext = $cnf->cfg->qdf->{extension};
+
+    # Search for an non existent file name
+    my %numbers;
+    my $num;
+    foreach my $item ( @{$reports_ref} ) {
+        my $filename = basename($item);
+        if ( $filename =~ m/raport\-(\d{5})\.$qdfext/ ) {
+            $num = sprintf( "%d", $1 );
+            $numbers{$num} = 1;
+        }
+    }
+
+    # Sort and find max
+    my @numbers = sort { $a <=> $b } keys %numbers;
+    my $num_max = $numbers[-1];
+    $num_max = 0 if ! defined $num_max;
+
+    # Find first gap
+    my $fnd = 0;
+    foreach my $trynum ( 1 .. $num_max ) {
+        if ( !$numbers{$trynum} ) {
+            $num = $trynum;
+            $fnd = 1;
+            last;
+        }
+    }
+    # If not found, just asign the next number
+    if ( $fnd == 0 ) {
+        $num = $num_max + 1;
+    }
+
+    # Create new report definition file
+    my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . ".$qdfext";
+
+    my $qdf = $cnf->cfg->qdf;    # query definition files
+    print Dumper( $qdf );
+
+    my $src_fqn  = $cnf->cfg->qdf->{template};
+    my $dest_fqn = $cnf->new_qdf_fqn($newrepo_fn);
+
+    print " $src_fqn -> $dest_fqn\n";
+
+    if ( !-f $dest_fqn ) {
+        print "Create new report from template ...";
+        if ( copy( $src_fqn, $dest_fqn ) ) {
+            print " Ok ($newrepo_fn)\n";
+        }
+        else {
+            print " failed: $!\n";
+        }
+
+        # Adauga titlul si noul fisier
+        # my ($titles, $indice) = $self->{fio}->process_file($dest_fqn);
+        # $self->list_populate_item($titles, $indice);
+
+        # &loaddetail( undef, undef, $xmlsql, $dbname );
+    }
+    else {
+        warn "File exists! ($dest_fqn)\n";
+        # &status_mesaj_l("Eroare, nu am creat raport nou");
+    }
+
+    return;
+}
+
+sub report_remove {
+
+    my ($self, ) = @_;
+
+    my $item = $self->{control}->get_selected_list_index();
+
+    my ($rdef_fqn) = $self->get_xml_data($item);
+
+    # Move file to backup
+    my $rdef_bak_fqn = "$rdef_fqn.bak";
+    if ( move($rdef_fqn, $rdef_bak_fqn) ) {
+        # Deleted, delete from list too and from titles HoA
+        $self->{control}->list_item_clear($item);
+    }
+
+    return;
+}
 
 1;

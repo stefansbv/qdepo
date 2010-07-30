@@ -49,9 +49,37 @@ sub new {
     return $self;
 }
 
-sub process_all_files {
+sub _process_file {
 
-    my ($self) = @_;
+    my ($self, $qdf_file, $tag_name) = @_;
+
+    # qdf : report definition file ;)
+    if (! defined $qdf_file) {
+        print "No report definition file?.\n";
+        return;
+    }
+
+    my $data;
+    eval {
+        $data = $self->_xml_read_simple($qdf_file, $tag_name);
+    };
+    if ($@) {
+        print "$qdf_file: Not valid XML!\n";
+    } else {
+        if (ref $data) {
+            $data->{file} = $qdf_file;
+            return $data;
+        }
+        else {
+            print "$qdf_file: Not valid RdeF!\n";
+            return;
+        }
+    }
+}
+
+sub _process_all_files {
+
+    my ($self, $tag_name) = @_;
 
     my $qdf_ref = $self->get_file_list();
 
@@ -63,35 +91,17 @@ sub process_all_files {
     print "\nReading XML files...\n";
     print scalar @{$qdf_ref}, " query definition files found.\n";
 
-    my $indice = 0;
-    my $titles = {};
+    my @qdfdata;
     # qdf : report definition file ;)
     foreach my $qdf_file ( @{$qdf_ref} ) {
-
-        # print " File : $qdf_file\n";
-        my $nrcrt = $indice + 1;
-        my $title;
-        eval {
-            $title = $self->xml_read_simple($qdf_file, 'title');
-        };
-        if ($@) {
-            print "$qdf_file: Not valid XML!\n";
-        } else {
-            # print "Fisier: $qdf_file\n";
-            if (ref $title) {
-                $titles->{$indice} = [ $nrcrt, $title->{title}, $qdf_file ];
-                $indice++;
-            }
-            else {
-                print "$qdf_file: Not valid RdeF!\n";
-            }
-        }
+        my $data = $self->_process_file($qdf_file, $tag_name);
+        push(@qdfdata, $data);
     }
 
-    return $titles;
+    return \@qdfdata;
 }
 
-sub xml_read_simple {
+sub _xml_read_simple {
 
     my ($self, $file, $tag) = @_;
 
@@ -116,21 +126,6 @@ sub xml_read_simple {
     }
 
     return $xml_data;
-}
-
-sub process_file {
-
-    my ($self, $qdf_file) = @_;
-
-    # qdf : report definition file ;)
-    if (! defined $qdf_file) {
-        print "No report definition file?.\n";
-        return;
-    }
-
-    my $data = $self->xml_read_simple($qdf_file, 'report');
-
-    return $data;
 }
 
 sub get_file_list {
@@ -165,14 +160,14 @@ sub get_details {
 
     my ($self, $file) = @_;
 
-    return $self->process_file($file);
+    return $self->_process_file($file, 'report');
 }
 
 sub get_titles {
 
     my ($self) = @_;
 
-    return $self->process_all_files('title');
+    return $self->_process_all_files('title');
 }
 
 #-- Update XML
@@ -258,11 +253,9 @@ sub _xml_proc_para {
 
     my ( $self, $t, $elt, $rec ) = @_;
 
-    print "Working on ", $elt->tag, "\n";
+    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
-
-    print Dumper( $rec );
 
     foreach my $item ( @{$rec} ) {
         my $ef = XML::Twig::Elt->new('parameter');

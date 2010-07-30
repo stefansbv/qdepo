@@ -185,7 +185,7 @@ sub create_report_page {
 
     my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Sheet name', );
     $self->{sheet} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 28 ], );
 
     $self->{description} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 40 ],
@@ -883,9 +883,6 @@ sub save_query_def {
     my $para = $self->controls_read_page('para');
     my $body = $self->controls_read_page('sql');
 
-    print "View:\n";
-    print Dumper( $para );
-
     my $new_title =
       $self->_model->save_query_def( $file_fqn, $head, $para, $body );
 
@@ -896,3 +893,10 @@ sub save_query_def {
 #-- End Perl ListCtrl subs
 
 1;
+
+__END__
+
+=BUGS
+
+Can't change style for TextCtrl, styles are suported only for
+multiline text controls!

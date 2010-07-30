@@ -128,6 +128,11 @@ sub _set_event_handlers {
         print " refreshing :)\n";
     };
 
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad'), sub {
+        print " add :)\n";
+        $self->_model->report_add();
+    };
+
     # Disable editmode when save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv'), sub {
         if ($self->_model->is_editmode) {
