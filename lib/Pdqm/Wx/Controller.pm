@@ -129,7 +129,6 @@ sub _set_event_handlers {
     };
 
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad'), sub {
-        print " add :)\n";
         my $rec = $self->_model->report_add();
         $self->_view->list_populate_item($rec);
     };

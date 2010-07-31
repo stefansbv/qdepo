@@ -136,7 +136,6 @@ sub get_file_list {
     my $qdfext     = $cnf->cfg->qdf->{extension};
     my $qdfpath_qn = $cnf->cfg->qdf->{path};
 
-    print "qdfpath_qn is $qdfpath_qn\n";
     if ( ! -d $qdfpath_qn ) {
         print "Wrong path for rdef files:\n$qdfpath_qn !\n";
         return;
@@ -149,7 +148,7 @@ sub get_file_list {
         ->nonempty
         ->in($qdfpath_qn);
 
-    my $nrfisiere = scalar @rapoarte;    # Numãr total de fiºiere
+    my $nrfisiere = scalar @rapoarte;    # total file number
 
     return \@rapoarte;
 }

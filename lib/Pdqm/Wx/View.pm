@@ -113,8 +113,9 @@ sub _set_model_callbacks {
     $upd->add_callback(
         sub { $self->controls_populate(); } );
     #--
-    # my $so = $self->_model->get_stdout_observable;
-    # $so->add_callback( sub{ $self->log_msg( $_[0] ) } );
+    my $so = $self->_model->get_stdout_observable;
+    #$so->add_callback( sub{ $self->log_msg( $_[0] ) } );
+    $so->add_callback( sub{ $self->status_msg( @_ ) } );
 }
 
 sub create_menu {
@@ -145,9 +146,15 @@ sub create_statusbar {
     my $self = shift;
 
     my $sb = $self->CreateStatusBar( 3 );
-    $self->{_stbar} = $sb;
+    $self->{_sb} = $sb;
 
     $self->SetStatusWidths( 260, -1, -2 );
+}
+
+sub get_statusbar {
+    my $self = shift;
+
+    return $self->{_sb};
 }
 
 sub get_notebook {
@@ -565,7 +572,7 @@ sub get_list_data {
 sub list_item_select_first {
     my ($self) = @_;
 
-    my $items_no = $self->get_listcontrol->GetItemCount;
+    my $items_no = $self->get_list_max_index();
 
     if ( $items_no > 0 ) {
         $self->get_listcontrol->Select(0, 1);
@@ -573,10 +580,12 @@ sub list_item_select_first {
 }
 
 sub list_item_select_last {
-    my ($self, $indice) = @_;
+    my ($self) = @_;
 
-    $self->get_listcontrol->Select($indice, 1);
-    $self->get_listcontrol->EnsureVisible($indice);
+    my $items_no = $self->get_list_max_index();
+    my $idx = $items_no - 1;
+    $self->get_listcontrol->Select( $idx, 1 );
+    $self->get_listcontrol->EnsureVisible($idx);
 }
 
 sub get_list_max_index {
@@ -640,7 +649,7 @@ sub list_populate_all {
         my $nrcrt = $titles->{$indice}[0];
         my $title = $titles->{$indice}[1];
         my $file  = $titles->{$indice}[2];
-        print "$nrcrt -> $title\n";
+        # print "$nrcrt -> $title\n";
         $self->list_item_insert($indice, $nrcrt, $title, $file);
     }
 
@@ -649,8 +658,11 @@ sub list_populate_all {
 }
 
 sub list_populate_item {
-    my ($self, $rec) = @_;
-    print Dumper( $rec );
+    my ( $self, $rec ) = @_;
+
+    my $idx = $self->get_list_max_index();
+    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
+    $self->list_item_select_last();
 }
 
 sub get_detail_data {
@@ -739,6 +751,15 @@ sub control_highlight_text {
             $self->control_set_attr( $beg, $end, 'red', 'white' );
         }
     }
+}
+
+sub status_msg {
+    my ( $self, $msg ) = @_;
+
+    my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
+                                            # to pass other parameters ;)
+    $sb_id = 0 if not defined $sb_id;
+    $self->get_statusbar()->SetStatusText( $text, $sb_id );
 }
 
 #-- utils

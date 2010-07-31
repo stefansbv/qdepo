@@ -128,10 +128,9 @@ sub get_stdout_observable {
 }
 
 sub _print {
-    my ( $self, $line ) = @_;
+    my ( $self, $line, $sb_id ) = @_;
 
-    print "$line\n";
-    # $self->get_stdout_observable->set( $line );
+    $self->get_stdout_observable->set( "$line:$sb_id" );
 }
 
 #- prev: Log
@@ -204,10 +203,10 @@ sub set_editmode {
         $self->get_editmode_observable->set(1);
     }
     if ( $self->is_editmode ) {
-        # $self->_print("Edit mode.");
+        $self->_print('edit', 1);
     }
-    else {
-        # $self->_print("Idle mode.");
+    else{
+        $self->_print('idle', 1);
     }
 }
 
@@ -218,10 +217,10 @@ sub set_idlemode {
         $self->get_editmode_observable->set(0);
     }
     if ( $self->is_editmode ) {
-        # $self->_print("Edit mode.");
+        $self->_print('edit', 1);
     }
     else {
-        # $self->_print("Idle mode.");
+        $self->_print('idle', 1);
     }
 }
 
@@ -350,12 +349,12 @@ sub report_add {
     my $src_fqn  = $cnf->cfg->qdf->{template};
     my $dest_fqn = $cnf->new_qdf_fqn($newrepo_fn);
 
-    print " $src_fqn -> $dest_fqn\n";
+    # print " $src_fqn -> $dest_fqn\n";
 
     if ( !-f $dest_fqn ) {
         print "Create new report from template ...";
         if ( copy( $src_fqn, $dest_fqn ) ) {
-            print " Ok ($newrepo_fn)\n";
+            print " done: ($newrepo_fn)\n";
         }
         else {
             print " failed: $!\n";
@@ -377,16 +376,16 @@ sub report_remove {
 
     my ($self, ) = @_;
 
-    my $item = $self->{control}->get_selected_list_index();
+    # my $item = $self->{control}->get_selected_list_index();
 
-    my ($rdef_fqn) = $self->get_xml_data($item);
+    # my ($rdef_fqn) = $self->get_xml_data($item);
 
-    # Move file to backup
-    my $rdef_bak_fqn = "$rdef_fqn.bak";
-    if ( move($rdef_fqn, $rdef_bak_fqn) ) {
-        # Deleted, delete from list too and from titles HoA
-        $self->{control}->list_item_clear($item);
-    }
+    # # Move file to backup
+    # my $rdef_bak_fqn = "$rdef_fqn.bak";
+    # if ( move($rdef_fqn, $rdef_bak_fqn) ) {
+    #     # Deleted, delete from list too and from titles HoA
+    #     $self->{control}->list_item_clear($item);
+    # }
 
     return;
 }
