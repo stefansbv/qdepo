@@ -62,11 +62,11 @@ sub db_connect {
     }
     if ( $self->is_connected ) {
         $self->get_connection_observable->set( 1 );
-        $self->_print('Connected.');
+        $self->_print('Connected');
     }
     else {
         $self->get_connection_observable->set( 0 );
-        $self->_print('NOT connected.');
+        $self->_print('Not connected');
     }
 
     return $self;
@@ -129,6 +129,8 @@ sub get_stdout_observable {
 
 sub _print {
     my ( $self, $line, $sb_id ) = @_;
+
+    $sb_id = 0 if not defined $sb_id;
 
     $self->get_stdout_observable->set( "$line:$sb_id" );
 }

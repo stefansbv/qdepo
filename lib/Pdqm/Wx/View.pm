@@ -758,7 +758,6 @@ sub status_msg {
 
     my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
                                             # to pass other parameters ;)
-    $sb_id = 0 if not defined $sb_id;
     $self->get_statusbar()->SetStatusText( $text, $sb_id );
 }
 
