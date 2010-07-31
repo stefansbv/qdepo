@@ -665,6 +665,19 @@ sub list_populate_item {
     $self->list_item_select_last();
 }
 
+sub list_remove_item {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->get_list_data($sel_item);
+
+    # Remove from list
+    # TODO: Add dialog here !!! ???
+    $self->list_item_clear($sel_item);
+
+    return $file_fqn;
+}
+
 sub get_detail_data {
     my $self = shift;
 

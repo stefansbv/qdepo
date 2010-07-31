@@ -133,6 +133,13 @@ sub _set_event_handlers {
         $self->_view->list_populate_item($rec);
     };
 
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm'), sub {
+        my $file_fqn = $self->_view->list_remove_item();
+        if ($file_fqn) {
+            $self->_model->report_remove($file_fqn);
+        }
+    };
+
     # Disable editmode when save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv'), sub {
         if ($self->_model->is_editmode) {

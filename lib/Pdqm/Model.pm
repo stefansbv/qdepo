@@ -376,18 +376,13 @@ sub report_add {
 
 sub report_remove {
 
-    my ($self, ) = @_;
+    my ($self, $file_fqn) = @_;
 
-    # my $item = $self->{control}->get_selected_list_index();
-
-    # my ($rdef_fqn) = $self->get_xml_data($item);
-
-    # # Move file to backup
-    # my $rdef_bak_fqn = "$rdef_fqn.bak";
-    # if ( move($rdef_fqn, $rdef_bak_fqn) ) {
-    #     # Deleted, delete from list too and from titles HoA
-    #     $self->{control}->list_item_clear($item);
-    # }
+    # Move file to backup
+    my $file_bak_fqn = "$file_fqn.bak";
+    if ( move($file_fqn, $file_bak_fqn) ) {
+        print " Deleted $file_fqn\n";
+    }
 
     return;
 }
