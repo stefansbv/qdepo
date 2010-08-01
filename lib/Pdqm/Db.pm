@@ -61,7 +61,7 @@ sub dbh {
 
 sub db_generate_output {
 
-    my ($self, $choice, $option, $sqltext, $bind, $outfile) = @_;
+    my ($self, $option, $sqltext, $bind, $outfile) = @_;
 
     # Check SQL param
     if (! defined $sqltext ) {

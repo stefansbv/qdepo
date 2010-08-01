@@ -488,6 +488,12 @@ sub get_toolbar {
     return $self->{_tb};
 }
 
+sub get_choice_options_default {
+    my $self = shift;
+
+    return $self->{_tb}->get_choice_options(0);
+}
+
 sub get_listcontrol {
     my $self = shift;
     return $self->{_list};
@@ -597,12 +603,6 @@ sub get_list_selected_index {
     my ($self) = @_;
 
     return $self->get_listcontrol->GetSelection();
-}
-
-sub get_tb_ch_selected_index {
-    my ($self) = @_;
-
-    return $self->get_toolbar_btn_id('tb_go')->GetSelection();
 }
 
 sub list_item_insert {
@@ -780,6 +780,20 @@ sub status_msg {
     $self->get_statusbar()->SetStatusText( $text, $sb_id );
 }
 
+sub process_sql {
+
+    my $self = shift;
+
+    my ($data, $file_fqn, $item) = $self->get_detail_data();
+
+    my ($bind, $sqltext) = $self->string_replace_for_run(
+        $data->{body}->{sql},
+        $data->{parameters},
+    );
+
+    $self->_model->run_export($data->{header}->{output}, $bind, $sqltext);
+}
+
 #-- utils
 
 sub params_data_to_hash {
@@ -831,21 +845,19 @@ sub string_replace_pos {
 
 sub string_replace_for_run {
 
-    my ($self, $text, $params) = @_;
+    my ( $self, $sqltext, $params ) = @_;
 
     my @bind;
+    foreach my $rec ( @{$params} ) {
+        my $value = $rec->{value};
+        my $p_num = $rec->{id};         # Parameter number for bind_param
+        my $var   = 'value' . $p_num;
+        $sqltext =~ s/($var)/\?/pm;
 
-    foreach my $param ( @{$params} ) {
-        while ( my ( $key, $value ) = each( %{$param} ) ) {
-            next unless $key =~ m{value([0-9])}xmg; # Skip 'descr'
-            my $p_num = $1;    # Parameter number for bind_param
-                               # Only 9 parameters allowed here!
-            $text =~ s/($key)/\?/pm;
-            push( @bind, [ $p_num, $value ] );
-        }
+        push( @bind, [ $p_num, $value ] );
     }
 
-    return (\@bind, $text);
+    return ( \@bind, $sqltext );
 }
 
 # end utils

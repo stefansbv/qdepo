@@ -45,6 +45,7 @@ sub new {
         _stdout      => Pdqm::Observable->new(),
         _itemchanged => Pdqm::Observable->new(),
         _editmode    => Pdqm::Observable->new(),
+        _choice      => Pdqm::Observable->new(),
     };
 
     bless $self, $class;
@@ -173,36 +174,30 @@ sub get_list_data {
 }
 
 sub run_export {
-    my ($self) = @_;
+    my ($self, $output, $bind, $sql) = @_;
 
     $self->_print('Running...');
 
-    my $db = Pdql::Db->new();
+    my $db = Pdqm::Db->new(); # user, pass ?
 
-    # my $choice = $self->{control}->get_out_choice();
-    # my $option = $self->{control}->get_choice_options($choice);
+    my $choice = $self->get_choice();
+    my (undef, $option) = split(':', $choice);
 
-    # Get the SQL text from memory
-    # my $sqltext = $self->get_xml_data_elt('body','sql');
-    # my $outfile = $self->get_xml_data_elt('header','output');
-    # my ($bind, $sql) = $self->process_sql($sqltext);
+    my ($err, $out) = $db->db_generate_output(
+        $option,
+        $sql,
+        $bind,
+        $output,
+     );
 
-    # my ($err, $out) = $repodb->db_generate_output(
-    #     $choice,
-    #     $option,
-    #     $sql,
-    #     $bind,
-    #     $outfile,
-    # );
-
-    # if ($err) {
-    #     $self->_print('DB Error!');
-    # }
-    # else {
-    #     if ($out) {
-    #         $self->_print("$out created");
-    #     }
-    # }
+    if ($err) {
+        $self->_print('DB Error!');
+    }
+    else {
+        if ($out) {
+            $self->_print("$out created");
+        }
+    }
 }
 
 # prev:
@@ -412,6 +407,26 @@ sub report_remove {
     }
 
     return;
+}
+
+# next: Choice
+
+sub set_choice {
+    my ($self, $choice) = @_;
+
+    $self->get_choice_observable->set($choice);
+}
+
+sub get_choice {
+    my $self = shift;
+
+    return $self->get_choice_observable->get;
+}
+
+sub get_choice_observable {
+    my $self = shift;
+
+    return $self->{_choice};
 }
 
 1;

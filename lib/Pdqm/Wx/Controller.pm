@@ -82,6 +82,10 @@ sub start {
     # Connect to database at start
     # $self->_model->db_connect();
 
+    # Set default choice for export
+    my $default_choice = $self->_view->get_choice_options_default();
+    $self->_model->set_choice("0:$default_choice");
+
     # Initial mode
     $self->_model->set_idlemode();
     $self->toggle_controls;
@@ -160,15 +164,13 @@ sub _set_event_handlers {
     EVT_CHOICE $self->_view, $self->_view->get_toolbar_btn_id('tb_ls'), sub {
         my $choice = $_[1]->GetSelection;
         my $text   = $_[1]->GetString;
-        print " ($choice) $text\n";
+        $self->_model->set_choice("$choice:$text");
     };
 
     #- Run
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_go'), sub {
         if ($self->_model->is_connected ) {
-            my $tb_idx = $self->_view->get_tb_ch_selected_index();
-            print "tb_idx $tb_idx\n";
-            $self->_model->run_export();
+            $self->_view->process_sql();
         }
         else {
             $self->_view->dialog_popup( 'Error', 'Not connected!' );
