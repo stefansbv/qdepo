@@ -99,12 +99,12 @@ sub _set_model_callbacks {
     #-
     my $co = $self->_model->get_connection_observable;
     $co->add_callback(
-        sub { $tb->ToggleTool( $self->get_toolbar_btn('tb_cn'), $_[0] ) } );
+        sub { $tb->ToggleTool( $self->get_toolbar_btn_id('tb_cn'), $_[0] ) } );
     #--
     my $em = $self->_model->get_editmode_observable;
     $em->add_callback(
         sub {
-            $tb->ToggleTool( $self->get_toolbar_btn('tb_ed'), $_[0] );
+            $tb->ToggleTool( $self->get_toolbar_btn_id('tb_ed'), $_[0] );
             $self->toggle_sql_highlight();
         }
     );
@@ -477,7 +477,7 @@ sub dialog_popup {
     }
 }
 
-sub get_toolbar_btn {
+sub get_toolbar_btn_id {
     my ($self, $name) = @_;
 
     return $self->{_tb}{_tb_btn}{$name};
@@ -597,6 +597,12 @@ sub get_list_selected_index {
     my ($self) = @_;
 
     return $self->get_listcontrol->GetSelection();
+}
+
+sub get_tb_ch_selected_index {
+    my ($self) = @_;
+
+    return $self->get_toolbar_btn_id('tb_go')->GetSelection();
 }
 
 sub list_item_insert {

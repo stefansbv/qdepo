@@ -175,7 +175,34 @@ sub get_list_data {
 sub run_export {
     my ($self) = @_;
 
-    $self->_print("Running export :-)");
+    $self->_print('Running...');
+
+    my $db = Pdql::Db->new();
+
+    # my $choice = $self->{control}->get_out_choice();
+    # my $option = $self->{control}->get_choice_options($choice);
+
+    # Get the SQL text from memory
+    # my $sqltext = $self->get_xml_data_elt('body','sql');
+    # my $outfile = $self->get_xml_data_elt('header','output');
+    # my ($bind, $sql) = $self->process_sql($sqltext);
+
+    # my ($err, $out) = $repodb->db_generate_output(
+    #     $choice,
+    #     $option,
+    #     $sql,
+    #     $bind,
+    #     $outfile,
+    # );
+
+    # if ($err) {
+    #     $self->_print('DB Error!');
+    # }
+    # else {
+    #     if ($out) {
+    #         $self->_print("$out created");
+    #     }
+    # }
 }
 
 # prev:

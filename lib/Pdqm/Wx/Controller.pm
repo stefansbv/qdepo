@@ -31,7 +31,7 @@ use warnings;
 use Data::Dumper;
 
 use Wx ':everything';
-use Wx::Event qw(EVT_CLOSE EVT_MENU EVT_TOOL EVT_BUTTON
+use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
 use Pdqm::Model;
@@ -119,21 +119,21 @@ sub _set_event_handlers {
     EVT_MENU $self->_view, wxID_EXIT,  $exit;
 
     #- Toolbar
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_cn'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_cn'), sub {
         $self->_model->is_connected
             ? $self->_model->db_disconnect
             : $self->_model->db_connect;
     };
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rf'), sub {
         print " refreshing :)\n";
     };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_ad'), sub {
         my $rec = $self->_model->report_add();
         $self->_view->list_populate_item($rec);
     };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rm'), sub {
         my $file_fqn = $self->_view->list_remove_item();
         if ($file_fqn) {
             $self->_model->report_remove($file_fqn);
@@ -141,7 +141,7 @@ sub _set_event_handlers {
     };
 
     # Disable editmode when save
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_sv'), sub {
         if ($self->_model->is_editmode) {
             $self->_view->save_query_def();
             $self->_model->set_idlemode;
@@ -149,20 +149,34 @@ sub _set_event_handlers {
         }
     };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed'), sub {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_ed'), sub {
         $self->_model->is_editmode
             ? $self->_model->set_idlemode
             : $self->_model->set_editmode;
         $self->toggle_controls;
     };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_go'), sub {
-        $self->_model->is_connected
-          ? $self->_model->run_export
-          : $self->_view->dialog_popup( 'Error', 'Not connected!' );
+    #- Choice
+    EVT_CHOICE $self->_view, $self->_view->get_toolbar_btn_id('tb_ls'), sub {
+        my $choice = $_[1]->GetSelection;
+        my $text   = $_[1]->GetString;
+        print " ($choice) $text\n";
     };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_qt'), $exit;
+    #- Run
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_go'), sub {
+        if ($self->_model->is_connected ) {
+            my $tb_idx = $self->_view->get_tb_ch_selected_index();
+            print "tb_idx $tb_idx\n";
+            $self->_model->run_export();
+        }
+        else {
+            $self->_view->dialog_popup( 'Error', 'Not connected!' );
+        }
+    };
+
+    #- Quit
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_qt'), $exit;
 
     #- NoteBook
     EVT_AUINOTEBOOK_PAGE_CHANGED $self->_view, $self->{_nbook}, sub {
@@ -202,25 +216,25 @@ sub toggle_controls {
     # Tool buttons
     my $tb_btn;
 
-    $tb_btn = $self->_view->get_toolbar_btn('tb_sv');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_sv');
     $self->{_toolbar}->EnableTool( $tb_btn, !$status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_rf');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_rf');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_ad');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_ad');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_rm');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_rm');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_ls');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_ls');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_go');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_go');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
     #
-    $tb_btn = $self->_view->get_toolbar_btn('tb_qt');
+    $tb_btn = $self->_view->get_toolbar_btn_id('tb_qt');
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
 
     # List control
