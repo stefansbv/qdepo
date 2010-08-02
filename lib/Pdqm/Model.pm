@@ -183,11 +183,14 @@ sub run_export {
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
+    my $cnf     = Pdqm::Config->new();
+    my $out_fqn = $cnf->out_fqn($output);
+
     my ($err, $out) = $db->db_generate_output(
         $option,
         $sql,
         $bind,
-        $output,
+        $out_fqn,
      );
 
     if ($err) {

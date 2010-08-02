@@ -637,6 +637,7 @@ sub populate_config_page {
     my $cnf = Pdqm::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
+    print Dumper( $qdf );
     $self->controls_write_page('conf', $qdf );
 }
 
@@ -790,11 +791,11 @@ sub process_sql {
     my ($data, $file_fqn, $item) = $self->get_detail_data();
 
     my ($bind, $sqltext) = $self->string_replace_for_run(
-        $data->{body}->{sql},
+        $data->{body}{sql},
         $data->{parameters},
     );
 
-    $self->_model->run_export($data->{header}->{output}, $bind, $sqltext);
+    $self->_model->run_export($data->{header}{output}, $bind, $sqltext);
 }
 
 #-- utils

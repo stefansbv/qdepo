@@ -78,6 +78,16 @@ sub new_qdf_fqn {
     return $rdfpath_qn;
 }
 
+sub out_fqn {
+    my ($self, $out_fn) = @_;
+
+    my $outdir = $self->cfg->qdf->{outdir};
+
+    my $out_qfn = catfile($outdir, $out_fn);
+
+    return $out_qfn;
+}
+
 sub save_config {
 
     my ( $self, ) = @_;
