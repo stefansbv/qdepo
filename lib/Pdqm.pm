@@ -27,9 +27,12 @@ package Pdqm;
 
 use strict;
 use warnings;
+use 5.010;
 
 use Pdqm::Config;
 use Pdqm::Wx::App;
+
+our $VERSION = 0.10;
 
 sub new {
     my ($class, $args) = @_;
@@ -59,3 +62,37 @@ sub run {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Pdqm - Is the main module in a wxPerl application for ...
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head1 BUGS AND LIMITATIONS
+
+There are no known bugs in this module.
+
+This screen module in general does not check the input ...
+
+Please report problems to the author(s)
+
+Patches are welcome.
+
+=head1 AUTHOR
+
+Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2010 Stefan Suciu.
+
+All rights reserved.
+
+GNU General Public License

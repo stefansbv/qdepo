@@ -358,7 +358,7 @@ sub create_sql_page {
         $self->{_nb}{p3}, -1, q{},
         [ -1, -1 ],
         [ -1, -1 ],
-        wxTE_MULTILINE,
+        wxTE_MULTILINE | wxTE_RICH2,
     );
 
     #-- Layout
@@ -674,12 +674,15 @@ sub list_populate_item {
 sub list_remove_item {
     my $self = shift;
 
-    my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->get_list_data($sel_item);
+    my $sel_item = $self->get_list_selected_index();
+    my $file_fqn = $self->get_list_data($sel_item);
 
     # Remove from list
     # TODO: Add dialog here !!! ???
     $self->list_item_clear($sel_item);
+
+    # Set item 0 selected
+    $self->list_item_select_first();
 
     return $file_fqn;
 }

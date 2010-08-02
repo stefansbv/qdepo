@@ -403,7 +403,7 @@ sub report_remove {
     # Move file to backup
     my $file_bak_fqn = "$file_fqn.bak";
     if ( move($file_fqn, $file_bak_fqn) ) {
-        print " Deleted $file_fqn\n";
+        print "$file_fqn deleted.\n";
     }
 
     return;

@@ -350,7 +350,7 @@ Pdqm (Perl Database Query Manager)
 
 pdqm.pl [-list [<app-id>]]
 
-pdqm.pl -a [-user <user> [-pass <pass>]] <app-Id> [-c <config-name>]
+pdqm.pl -a <app-id> [-user <user> [-pass <pass>]] [-c <config-name>]
 
 Options:
 
