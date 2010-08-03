@@ -101,8 +101,11 @@ my $about = sub {
     my ( $self, $event ) = @_;
 
     Wx::MessageBox(
-        "PDQM v0.10\n(C) 2010 Stefan Suciu",
-        "About Perl Database Query Manager",
+        "Perl Database Query Manager v0.10\n(C) 2010 Stefan Suciu\n\n"
+            . " - WxPerl $Wx::VERSION\n"
+            . " - " . Wx::wxVERSION_STRING,
+        "About PDQM",
+
         wxOK | wxICON_INFORMATION,
         $self
     );
