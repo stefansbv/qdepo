@@ -28,8 +28,6 @@ package Pdqm::Wx::App;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Pdqm::Wx::Controller;
 use base qw(Wx::App);
 

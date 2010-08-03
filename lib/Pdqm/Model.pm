@@ -30,7 +30,6 @@ use warnings;
 
 use File::Copy;
 use File::Basename;
-use Data::Dumper;
 
 use Pdqm::Config;
 use Pdqm::FileIO;

@@ -28,8 +28,6 @@ package Pdqm::Wx::Controller;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);

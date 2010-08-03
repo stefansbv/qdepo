@@ -28,8 +28,6 @@ package Pdqm::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
@@ -637,7 +635,6 @@ sub populate_config_page {
     my $cnf = Pdqm::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    print Dumper( $qdf );
     $self->controls_write_page('conf', $qdf );
 }
 

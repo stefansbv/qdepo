@@ -28,7 +28,6 @@ package Pdqm::Config::Instance;
 use strict;
 use warnings;
 
-use Data::Dumper;
 use File::HomeDir;
 use File::Spec::Functions;
 

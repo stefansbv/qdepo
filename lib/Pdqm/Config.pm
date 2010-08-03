@@ -34,8 +34,6 @@ package Pdqm::Config;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::HomeDir;
 use File::Spec::Functions;
 
