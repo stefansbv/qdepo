@@ -133,7 +133,7 @@ sub get_file_list {
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
     my $qdfext     = $cnf->cfg->qdf->{extension};
-    my $qdfpath_qn = $cnf->cfg->qdf->{path};
+    my $qdfpath_qn = $cnf->cfg->options->{db_qdf_qn};
 
     if ( ! -d $qdfpath_qn ) {
         print "Wrong path for rdef files:\n$qdfpath_qn !\n";

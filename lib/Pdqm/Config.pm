@@ -29,7 +29,7 @@ package Pdqm::Config;
 # of Class::Accessor
 #
 # Inspired from PM node: perlmeditation [id://234012]
-# by trs80 (Priest) on Feb 10, 2003 at 04:25 UTC
+# by trs80 (Priest) on Feb 10, 2003 at 04:25 UTC, Thanx!
 
 use strict;
 use warnings;

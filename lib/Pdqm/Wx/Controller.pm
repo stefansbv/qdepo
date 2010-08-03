@@ -39,7 +39,7 @@ sub new {
     my ( $class, $app ) = @_;
 
     # Hardcoded config file name and path
-    my $model = Pdqm::Model->new( { conf_file => 'share/config/pdqm.yml'} );
+    my $model = Pdqm::Model->new();
 
     my $view = Pdqm::Wx::View->new(
         $model,

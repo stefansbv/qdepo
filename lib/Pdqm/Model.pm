@@ -37,7 +37,7 @@ use Pdqm::Observable;
 use Pdqm::Db;
 
 sub new {
-    my ($class, $args) = @_;
+    my $class = shift;
 
     my $self = {
         _connected   => Pdqm::Observable->new(),
@@ -143,7 +143,7 @@ sub on_page_change {
 }
 
 sub on_item_selected {
-    my ($self) = @_;
+    my $self = shift;
 
     $self->get_itemchanged_observable->set( 1 );
     # $self->_print('Item selected');
@@ -153,7 +153,7 @@ sub on_item_selected {
 #- next: List
 
 sub get_list_data {
-    my ($self) = @_;
+    my $self = shift;
 
     # XML read - write module
     $self->{fio} = Pdqm::FileIO->new();
@@ -372,14 +372,14 @@ sub report_add {
 
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    my $src_fqn  = $cnf->cfg->qdf->{template};
-    my $dest_fqn = $cnf->new_qdf_fqn($newrepo_fn);
+    my $src_fqn = $cnf->cfg->options->{cnf_templ};
+    my $dst_fqn = $cnf->new_qdf_fqn($newrepo_fn);
 
-    # print " $src_fqn -> $dest_fqn\n";
+    print " $src_fqn -> $dst_fqn\n";
 
-    if ( !-f $dest_fqn ) {
+    if ( !-f $dst_fqn ) {
         print "Create new report from template ...";
-        if ( copy( $src_fqn, $dest_fqn ) ) {
+        if ( copy( $src_fqn, $dst_fqn ) ) {
             print " done: ($newrepo_fn)\n";
         }
         else {
@@ -388,12 +388,12 @@ sub report_add {
 
         # Adauga titlul si noul fisier
         $self->{fio} = Pdqm::FileIO->new();
-        my $data_ref = $self->{fio}->get_title($dest_fqn);
+        my $data_ref = $self->{fio}->get_title($dst_fqn);
 
         return $data_ref;
     }
     else {
-        warn "File exists! ($dest_fqn)\n";
+        warn "File exists! ($dst_fqn)\n";
         # &status_mesaj_l("Eroare, nu am creat raport nou");
     }
 }
