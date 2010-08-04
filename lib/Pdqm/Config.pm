@@ -68,8 +68,7 @@ sub cfg {
 sub new_qdf_fqn {
     my ($self, $qdf_fn) = @_;
 
-    # my $rdfext  = $self->cfg->qdf->{rdfext};
-    my $rdfpath = $self->cfg->qdf->{path};
+    my $rdfpath = $self->cfg->options->{db_qdf_qn};
 
     my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
 
@@ -84,16 +83,6 @@ sub out_fqn {
     my $out_qfn = catfile($outdir, $out_fn);
 
     return $out_qfn;
-}
-
-sub save_config {
-
-    my ( $self, ) = @_;
-
-    # Save the file
-    YAML::Tiny::DumpFile( 'recipe.conf.new', $self->{conf} );
-
-    return;
 }
 
 1;

@@ -28,7 +28,7 @@ package Pdqm::Config::Instance;
 use strict;
 use warnings;
 
-use Data::Dumper;
+# use Data::Dumper;
 
 use base qw(Class::Singleton Class::Accessor);
 use YAML::Tiny;
@@ -53,7 +53,7 @@ sub _make_accessors {
 
     my $config_hr = $self->_merge_configs($args);
 
-    print Dumper( $config_hr);
+    # print Dumper( $config_hr);
 
     __PACKAGE__->mk_accessors( keys %{$config_hr} );
 
@@ -67,13 +67,13 @@ sub _merge_configs {
     my ($self, $args) = @_;
 
     # Configs from yaml file
-    my $cnf = $self->_get_usr_config_file($args);
+    my $cnf = $self->_load_yaml_config_file($args->{db_cnf_fqn});
 
     # Add options from args
     $cnf->{options} = $args;
 
     # Add toolbar atributes to config
-    my $tb_attrs_hr = $self->_get_tb_settings($args);
+    my $tb_attrs_hr = $self->_load_yaml_config_file($args->{cnf_toolb});
     $cnf->{toolbar} = $tb_attrs_hr->{toolbar};
 
     return $cnf;
@@ -81,16 +81,10 @@ sub _merge_configs {
 
 #--- Utility subs
 
-sub _get_usr_config_file {
-    my ( $self, $args ) = @_;
+sub _load_yaml_config_file {
+    my ( $self, $cnf_fqn ) = @_;
 
-    return  YAML::Tiny::LoadFile( $args->{db_cnf_fqn} );
-}
-
-sub _get_tb_settings {
-    my ($self, $args) = @_;
-
-    return YAML::Tiny::LoadFile( $args->{cnf_toolb} );
+    return  YAML::Tiny::LoadFile( $cnf_fqn );
 }
 
 1;
