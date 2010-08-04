@@ -1,0 +1,14 @@
+.pdqm
+|-- db
+|   `-- contracte
+|       |-- etc
+|       |   `-- contracte-pg.yml
+|       `-- qdf
+|           |-- raport-00001.qdf
+|           |-- raport-00002.qdf
+|           `-- raport-00003.qdf
+`-- etc
+    |-- interfaces
+    |   `-- toolbar.yml
+    `-- template
+        `-- template.qdf
