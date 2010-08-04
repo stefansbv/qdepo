@@ -214,50 +214,68 @@ sub _view {
 sub toggle_controls {
     my $self = shift;
 
-    my $status = $self->_model->is_editmode ? 0 : 1;
+    my $is_edit = $self->_model->is_editmode ? 1 : 0;
 
     # Tool buttons
     my $tb_btn;
 
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_sv');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$status );
+    $self->{_toolbar}->EnableTool( $tb_btn, $is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_rf');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_ad');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_rm');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_ls');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_go');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
     #
     $tb_btn = $self->_view->get_toolbar_btn_id('tb_qt');
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
+    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
 
     # List control
-    $self->{_list}->Enable($status);
+    $self->{_list}->Enable(!$is_edit);
 
     # Controls by page Enabled in edit mode
-    foreach my $page (qw(para list sql)) {
-        $self->toggle_controls_page($page, !$status);
+    foreach my $page (qw(para list sql conf)) {
+        $self->toggle_controls_page($page, $is_edit);
     }
 }
 
 sub toggle_controls_page {
-    my ($self, $page, $status) = @_;
+    my ($self, $page, $is_edit) = @_;
 
     my $get = 'get_controls_'.$page;
     my $controls = $self->_view->$get();
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-            $control->{$name}->Enable($status);
+
+            my $state = $control->{$name}->[1];  # normal | disabled
+            my $color = $control->{$name}->[2];  # name
+
+            # Controls state are defined in View as strings
+            # Here we need to transform them to 0|1
+            my $editable;
+            if (!$is_edit) {
+                $editable = 0;
+                $color = 'lightgrey'; # Default color for disabled ctrl
+            }
+            else {
+                $editable = $state eq 'normal' ? 1 : 0;
+            }
+
+            $control->{$name}->[0]->SetEditable($editable);
+            $control->{$name}->[0]->SetBackgroundColour(
+                Wx::Colour->new( $color ),
+            );
         }
     }
 }

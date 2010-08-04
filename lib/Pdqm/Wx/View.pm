@@ -196,8 +196,6 @@ sub create_report_page {
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 40 ],
                            wxTE_MULTILINE, );
 
-    $self->{filename}->Enable(0);    # This is disabled
-
     #--- Layout
 
     my $repo_main_sz = Wx::FlexGridSizer->new( 4, 1, 5, 5 );
@@ -427,12 +425,6 @@ sub create_config_page {
         [ 170, -1 ],
     );
 
-    # This are disabled by default (ro)
-    $self->{extension}->Enable(0);
-    $self->{path}->Enable(0);
-    $self->{outdir}->Enable(0);
-    $self->{template}->Enable(0);
-
     my $cnf_fgs = Wx::FlexGridSizer->new( 8, 1, 5, 10 );
 
     $cnf_fgs->Add( $cnf_lbl0, 0, wxTOP | wxLEFT, 5 );
@@ -501,11 +493,11 @@ sub get_controls_list {
     my $self = shift;
 
     return [
-        { title       => $self->{title},       },
-        { output      => $self->{output},      },
-        { sheet       => $self->{sheet},       },
-        { filename    => $self->{filename},    },
-        { description => $self->{description}, },
+        { title       => [ $self->{title}      , 'normal'  , 'white'     ] },
+        { filename    => [ $self->{filename}   , 'disabled', 'lightgrey' ] },
+        { output      => [ $self->{output}     , 'normal'  , 'white'     ] },
+        { sheet       => [ $self->{sheet}      , 'normal'  , 'white'     ] },
+        { description => [ $self->{description}, 'normal'  , 'white'     ] },
     ];
 }
 
@@ -513,16 +505,16 @@ sub get_controls_para {
     my $self = shift;
 
     return [
-        { descr1 => $self->{descr1}, },
-        { value1 => $self->{value1}, },
-        { descr2 => $self->{descr2}, },
-        { value2 => $self->{value2}, },
-        { descr3 => $self->{descr3}, },
-        { value3 => $self->{value3}, },
-        { descr4 => $self->{descr4}, },
-        { value4 => $self->{value4}, },
-        { descr5 => $self->{descr5}, },
-        { value5 => $self->{value5}, },
+        { descr1 => [ $self->{descr1}, 'normal'  , 'white' ] },
+        { value1 => [ $self->{value1}, 'normal'  , 'white' ] },
+        { descr2 => [ $self->{descr2}, 'normal'  , 'white' ] },
+        { value2 => [ $self->{value2}, 'normal'  , 'white' ] },
+        { descr3 => [ $self->{descr3}, 'normal'  , 'white' ] },
+        { value3 => [ $self->{value3}, 'normal'  , 'white' ] },
+        { descr4 => [ $self->{descr4}, 'normal'  , 'white' ] },
+        { value4 => [ $self->{value4}, 'normal'  , 'white' ] },
+        { descr5 => [ $self->{descr5}, 'normal'  , 'white' ] },
+        { value5 => [ $self->{value5}, 'normal'  , 'white' ] },
     ];
 }
 
@@ -530,7 +522,7 @@ sub get_controls_sql {
     my $self = shift;
 
     return [
-        { sql => $self->{sql}, },
+        { sql => [ $self->{sql}, 'normal'  , 'white' ] },
     ];
 }
 
@@ -538,10 +530,10 @@ sub get_controls_conf {
     my $self = shift;
 
     return [
-        { extension => $self->{extension}, },
-        { template  => $self->{template},  },
-        { path      => $self->{path},      },
-        { outdir    => $self->{outdir},    },
+        { extension => [ $self->{extension},'disabled', 'lightgrey' ] },
+        { template  => [ $self->{template}, 'disabled', 'lightgrey' ] },
+        { path      => [ $self->{path},     'disabled', 'lightgrey' ] },
+        { outdir    => [ $self->{outdir},   'disabled', 'lightgrey' ] },
     ];
 }
 
@@ -907,7 +899,7 @@ sub controls_write_page {
                 $value = q{};           # Empty
             }
 
-            $control->{$name}->SetValue($value);
+            $control->{$name}->[0]->SetValue($value);
         }
     }
 }
