@@ -899,7 +899,7 @@ sub controls_write_page {
                 $value = q{};           # Empty
             }
 
-            $control->{$name}->[0]->SetValue($value);
+            $control->{$name}[0]->SetValue($value);
         }
     }
 }
@@ -914,8 +914,7 @@ sub controls_read_page {
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-
-            my $value = $control->{$name}->GetValue();
+            my $value = $control->{$name}[0]->GetValue();
             push(@records, { $name => $value } ) if ($name and $value);
         }
     }
