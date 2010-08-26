@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,72 +21,66 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                           p a c k a g e   N o t e b o o k |
+# |                                       p a c k a g e   O b s e r v a b l e |
 # +---------------------------------------------------------------------------+
-package Pdqm::Wx::Notebook;
+package Qrt::Observable;
+
+# Cipres::Registry::Observable
+# Author:
+#   -- Rutger Vos, 17/Aug/2006 13:57
+# Taken from http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen
+# /cipres/framework/perl/cipres/lib/Cipres/
+# Rutger Vos, thank you!
 
 use strict;
 use warnings;
 
-use Wx qw(:everything);  # Eventualy change this !!!
-use Wx::AUI;
-
-use base qw{Wx::AuiNotebook};
-
 sub new {
+    my ( $class, $value ) = @_;
 
-    my ( $class, $gui, $repo ) = @_;
+    my $self = {
+        _data      => $value,
+        _callbacks => {},
+    };
 
-    #- The Notebook
+    bless $self, $class;
 
-    my $self = $class->SUPER::new(
-        $gui,
-        -1,
-        [-1, -1],
-        [-1, -1],
-        wxAUI_NB_TAB_FIXED_WIDTH,
-    );
+    return $self;
+}
 
-    $self->{repo} = $repo;  # Report app object
+sub add_callback {
+    my ( $self, $callback ) = @_;
+    $self->{_callbacks}->{$callback} = $callback;
+    return $self;
+}
 
-    #-- Panels
+sub del_callback {
+    my ( $self, $callback ) = @_;
+    delete $self->{_callbacks}->{$callback};
+    return $self;
+}
 
-    $self->{p1} = Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize );
-    $self->{p2} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+sub _docallbacks {
+    my $self = shift;
+    foreach my $cb ( keys %{ $self->{_callbacks} } ) {
+        $self->{_callbacks}->{$cb}->( $self->{_data} );
+    }
+}
 
-    $self->{p3} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
-    $self->{p4} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+sub set {
+    my ( $self, $data ) = @_;
+    $self->{_data} = $data;
+    $self->_docallbacks();
+}
 
-    #--- Pages
+sub get {
+    my $self = shift;
+    return $self->{_data};
+}
 
-    $self->AddPage( $self->{p1}, 'Query list' );
-    $self->AddPage( $self->{p2}, 'Parameters' );
-    $self->AddPage( $self->{p3}, 'SQL' );
-    $self->AddPage( $self->{p4}, 'Configs' );
-
-    # # Works but makes interface to not respond to mouse interaction
-    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGING(
-    #     $self, -1, \&OnPageChanging );
-
-    # # Inspired ... from Kephra ;)
-    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGED(
-    #     $self,
-    #     -1,
-    #     sub {
-    #         my ( $bar, $event ) = @_;  # bar !!! realy? :)
-
-    #         my $new_pg = $event->GetSelection;
-    #         my $old_pg = $event->GetOldSelection;
-
-    #         $self->{repo}->on_page_change($old_pg, $new_pg);
-
-    #         $event->Skip;
-    #     });
-
-
+sub unset {
+    my $self = shift;
+    $self->{_data} = undef;
     return $self;
 }
 

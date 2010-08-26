@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,13 +23,13 @@
 # +---------------------------------------------------------------------------+
 # |                                                       p a c k a g e   D b |
 # +---------------------------------------------------------------------------+
-package Pdqm::Db;
+package Qrt::Db;
 
 use strict;
 use warnings;
 use Carp;
 
-use Pdqm::Db::Instance;
+use Qrt::Db::Instance;
 
 sub new {
 
@@ -37,7 +37,7 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $self->{db} = Pdqm::Db::Instance->instance( $args );
+    $self->{db} = Qrt::Db::Instance->instance( $args );
 
     return $self;
 }
@@ -54,7 +54,7 @@ sub dbh {
     my $db = $self->{db};
 
     die ref($self) . " not properly initialized"
-        unless defined $db and $db->isa('Pdqm::Db::Instance');
+        unless defined $db and $db->isa('Qrt::Db::Instance');
 
     return $db->{dbh};
 }
@@ -95,14 +95,14 @@ sub generate_output_excel {
     }
 
     eval {
-        require Pdqm::Output::Excel;
+        require Qrt::Output::Excel;
     };
     if ($@) {
         print "Spreadsheet::WriteExcel not available!\n";
         return;
     }
 
-    my $xls = Pdqm::Output::Excel->new($outfile);
+    my $xls = Qrt::Output::Excel->new($outfile);
 
     my $dbh = $self->dbh();
 
@@ -161,14 +161,14 @@ sub generate_output_csv {
     }
 
     eval {
-        require Pdqm::Output::Csv;
+        require Qrt::Output::Csv;
     };
     if ($@) {
         print "Text::CSV_XS not available!\n";
         return;
     }
 
-    my $csv = Pdqm::Output::Csv->new($outfile);
+    my $csv = Qrt::Output::Csv->new($outfile);
 
     my $dbh = $self->dbh();
 
@@ -218,7 +218,7 @@ sub generate_output_calc {
     print " generating $outfile\n";
 
     eval {
-        require Pdqm::Output::Calc;
+        require Qrt::Output::Calc;
     };
     if ($@) {
         print "OpenOffice::OODoc 2.103 not available!\n";
@@ -276,7 +276,7 @@ sub generate_output_calc {
         # Create new spreadsheet with predefined dimensions
         my $cols = scalar @{ $sth->{NAME} };
 
-        $doc = Pdqm::Output::Calc->new($outfile, $rows, $cols);
+        $doc = Qrt::Output::Calc->new($outfile, $rows, $cols);
 
         # Initialize lengths record
         $doc->init_lengths( $sth->{NAME} );
@@ -304,6 +304,5 @@ sub generate_output_calc {
 
     return ($error, $out);
 }
-
 
 1;

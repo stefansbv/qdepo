@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,7 +23,7 @@
 # +---------------------------------------------------------------------------+
 # |                                                 p a c k a g e   E x c e l |
 # +---------------------------------------------------------------------------+
-package Pdqm::Output::Excel;
+package Qrt::Output::Excel;
 
 use strict;
 use warnings;

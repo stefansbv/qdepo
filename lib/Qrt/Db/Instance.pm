@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,68 +21,34 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                               p a c k a g e   C o n f i g |
+# |                                           p a c k a g e   I n s t a n c e |
 # +---------------------------------------------------------------------------+
-package Pdqm::Config;
-
-# Creating accessors for the config options automaticaly with the help
-# of Class::Accessor
-#
-# Inspired from PM node: perlmeditation [id://234012]
-# by trs80 (Priest) on Feb 10, 2003 at 04:25 UTC, Thanx!
+package Qrt::Db::Instance;
 
 use strict;
 use warnings;
 
-use File::HomeDir;
-use File::Spec::Functions;
+use Qrt::Db::Connection;
+use base qw(Class::Singleton);
 
-use Pdqm::Config::Instance;
+our $VERSION = 0.03;
 
-our $VERSION = 0.04;
+sub _new_instance {
+    my ($class, $args) = @_;
 
-sub new {
+    my $conn = Qrt::Db::Connection->new( $args );
+    my $dbh = $conn->db_connect(
+        # params
+    );
 
-    my ( $class, $args ) = @_;
+    # Some defaults
+    $dbh->{AutoCommit}  = 1;            # disable transactions
+    $dbh->{RaiseError}  = 1;
+    $dbh->{LongReadLen} = 512 * 1024;   # Firebird need this with BLOBs
 
-    my $self = {};
-
-    bless $self, $class;
-
-    $self->{cfi} = Pdqm::Config::Instance->instance( $args );
-
-    return $self;
-}
-
-sub cfg {
-    my $self = shift;
-
-    my $cf = $self->{cfi};
-
-    die ref($self) . " requires a config handle!"
-        unless defined $cf and $cf->isa('Pdqm::Config::Instance');
-
-    return $cf;
-}
-
-sub new_qdf_fqn {
-    my ($self, $qdf_fn) = @_;
-
-    my $rdfpath = $self->cfg->options->{db_qdf_qn};
-
-    my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
-
-    return $rdfpath_qn;
-}
-
-sub out_fqn {
-    my ($self, $out_fn) = @_;
-
-    my $outdir = $self->cfg->qdf->{outdir};
-
-    my $out_qfn = catfile($outdir, $out_fn);
-
-    return $out_qfn;
+    return bless {dbh => $dbh}, $class;
 }
 
 1;
+
+__END__

@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,78 +21,73 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                                   p a c k a g e   P d q m |
+# |                                           p a c k a g e   N o t e b o o k |
 # +---------------------------------------------------------------------------+
-package Pdqm;
+package Qrt::Wx::Notebook;
 
 use strict;
 use warnings;
-use 5.010;
 
-use Pdqm::Config;
-use Pdqm::Wx::App;
+use Wx qw(:everything);  # Eventualy change this !!!
+use Wx::AUI;
 
-our $VERSION = 0.10;
+use base qw{Wx::AuiNotebook};
 
 sub new {
-    my ($class, $args) = @_;
 
-    my $self = {};
+    my ( $class, $gui, $repo ) = @_;
 
-    bless $self, $class;
+    #- The Notebook
 
-    $self->_init($args);
+    my $self = $class->SUPER::new(
+        $gui,
+        -1,
+        [-1, -1],
+        [-1, -1],
+        wxAUI_NB_TAB_FIXED_WIDTH,
+    );
+
+    $self->{repo} = $repo;  # Report app object
+
+    #-- Panels
+
+    $self->{p1} = Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize );
+    $self->{p2} =
+        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+
+    $self->{p3} =
+        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+    $self->{p4} =
+        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+
+    #--- Pages
+
+    $self->AddPage( $self->{p1}, 'Query list' );
+    $self->AddPage( $self->{p2}, 'Parameters' );
+    $self->AddPage( $self->{p3}, 'SQL' );
+    $self->AddPage( $self->{p4}, 'Configs' );
+
+    # # Works but makes interface to not respond to mouse interaction
+    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGING(
+    #     $self, -1, \&OnPageChanging );
+
+    # # Inspired ... from Kephra ;)
+    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGED(
+    #     $self,
+    #     -1,
+    #     sub {
+    #         my ( $bar, $event ) = @_;  # bar !!! realy? :)
+
+    #         my $new_pg = $event->GetSelection;
+    #         my $old_pg = $event->GetOldSelection;
+
+    #         $self->{repo}->on_page_change($old_pg, $new_pg);
+
+    #         $event->Skip;
+    #     });
+
 
     return $self;
 }
 
-sub _init {
-    my ( $self, $args ) = @_;
-
-    # Initialize config for the first time
-    my $cnf = Pdqm::Config->new($args);
-
-    # Create Wx application
-    $self->{gui} = Pdqm::Wx::App->create();
-}
-
-sub run {
-    my $self = shift;
-    $self->{gui}->MainLoop;
-}
-
 1;
-
-__END__
-
-=head1 NAME
-
-Pdqm - Is the main module in a wxPerl application for ...
-
-=head1 SYNOPSIS
-
-=head1 DESCRIPTION
-
-=head1 CONFIGURATION AND ENVIRONMENT
-
-=head1 BUGS AND LIMITATIONS
-
-There are no known bugs in this module.
-
-This screen module in general does not check the input ...
-
-Please report problems to the author(s)
-
-Patches are welcome.
-
-=head1 AUTHOR
-
-Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]
-
-=head1 LICENCE AND COPYRIGHT
-
-Copyright (c) 2010 Stefan Suciu.
-
-All rights reserved.
-
-GNU General Public License

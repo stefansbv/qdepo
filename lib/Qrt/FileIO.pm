@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,7 +23,7 @@
 # +---------------------------------------------------------------------------+
 # |                                               p a c k a g e   F i l e I O |
 # +---------------------------------------------------------------------------+
-package Pdqm::FileIO;
+package Qrt::FileIO;
 
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ use Carp;
 use File::Find::Rule;
 use XML::Twig;
 
-use Pdqm::Config;
+use Qrt::Config;
 
 our $VERSION = 0.03;         # Version number
 
@@ -129,7 +129,7 @@ sub get_file_list {
 
     my $self = shift;
 
-    my $cnf = Pdqm::Config->new();
+    my $cnf = Qrt::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
     my $qdfext     = $cnf->cfg->qdf->{extension};

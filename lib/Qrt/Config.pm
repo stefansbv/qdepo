@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,89 +21,68 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                                     p a c k a g e   C s v |
+# |                                               p a c k a g e   C o n f i g |
 # +---------------------------------------------------------------------------+
-package Pdqm::Output::Csv;
+package Qrt::Config;
+
+# Creating accessors for the config options automaticaly with the help
+# of Class::Accessor
+#
+# Inspired from PM node: perlmeditation [id://234012]
+# by trs80 (Priest) on Feb 10, 2003 at 04:25 UTC, Thanx!
 
 use strict;
 use warnings;
-use Carp;
 
-use Text::CSV_XS;
+use File::HomeDir;
+use File::Spec::Functions;
+
+use Qrt::Config::Instance;
+
+our $VERSION = 0.04;
 
 sub new {
 
-    my $class = shift;
+    my ( $class, $args ) = @_;
 
     my $self = {};
 
-    bless( $self, $class );
+    bless $self, $class;
 
-    $self->{csv_file} = shift;
-
-    $self->{csv_fh} = undef;
-
-    $self->{csv} = $self->_create_csv();
+    $self->{cfi} = Qrt::Config::Instance->instance( $args );
 
     return $self;
 }
 
-sub _create_csv {
+sub cfg {
+    my $self = shift;
 
-    my ($self) = @_;
+    my $cf = $self->{cfi};
 
-    # Options from config?
-    my $csv_o = Text::CSV_XS->new(
-        {
-            'sep_char'     => ';',
-            'always_quote' => 1,
-            'binary'       => 1
-        }
-    );
+    die ref($self) . " requires a config handle!"
+        unless defined $cf and $cf->isa('Qrt::Config::Instance');
 
-    open $self->{csv_fh}, '>', $self->{csv_file}
-        or croak "Can't open file ", $self->{csv_file}, ": $!";
-
-    return $csv_o;
+    return $cf;
 }
 
-sub create_row {
+sub new_qdf_fqn {
+    my ($self, $qdf_fn) = @_;
 
-    my ($self, $data) = @_;
+    my $rdfpath = $self->cfg->options->{db_qdf_qn};
 
-    my @data = map { defined $_ ? $_ : "" } @{$data};
+    my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
 
-    chomp(@data);
-
-    # Data
-    # Could use $csv->print ($io, $colref) for eficiency
-    my $status = $self->{csv}->combine( @data );
-    # print " status $status\n";
-    my $line   = $self->{csv}->string();
-    print { $self->{csv_fh} } "$line\n";
-
-    return;
+    return $rdfpath_qn;
 }
 
-sub create_done {
+sub out_fqn {
+    my ($self, $out_fn) = @_;
 
-    my ($self, ) = @_;
+    my $outdir = $self->cfg->qdf->{outdir};
 
-    close $self->{csv_fh}
-        or die "Can not close file: $!\n";
+    my $out_qfn = catfile($outdir, $out_fn);
 
-    my $output;
-    if ( -f $self->{csv_file} ) {
-        $output = $self->{csv_file};
-        print " Output file: ", $self->{csv_file}, " created.\n";
-    }
-    else {
-        $output = '';
-        print " ERROR, output file", $self->{csv_file}, " NOT created.\n";
-    }
-
-    return $output;
+    return $out_qfn;
 }
-
 
 1;

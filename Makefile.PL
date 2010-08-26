@@ -1,7 +1,7 @@
 #
-# Makefile.PL for Pdqm
+# Makefile.PL for Qrt
 #
-# Pdqm (part of Tiny Perl Database Application?)
+# Qrt (part of Tiny Perl Database Application?)
 # Copyright (C) 2010  Stefan Suciu
 # GNU General Public License v3
 #
@@ -12,7 +12,7 @@ use warnings;
 
 use inc::Module::Install;
 
-all_from  'lib/Pdqm.pm';
+all_from  'lib/Qrt.pm';
 
 requires 'perl'                        => 5.008005;
 #requires 'POSIX'                      => 0;

@@ -26,8 +26,8 @@ my $opts = {
     db_cnf_fqn => '/home/fane/.pdqm/db/contracte/etc/contracte-pg.yml',
 };
 
-use Pdqm;
+use Qrt;
 
-my $pdqm = Pdqm->new($opts);
+my $pdqm = Qrt->new($opts);
 
 $pdqm->run;

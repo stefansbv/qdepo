@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,7 +23,7 @@
 # +---------------------------------------------------------------------------+
 # |                                                 p a c k a g e   M o d e l |
 # +---------------------------------------------------------------------------+
-package Pdqm::Model;
+package Qrt::Model;
 
 use strict;
 use warnings;
@@ -31,20 +31,20 @@ use warnings;
 use File::Copy;
 use File::Basename;
 
-use Pdqm::Config;
-use Pdqm::FileIO;
-use Pdqm::Observable;
-use Pdqm::Db;
+use Qrt::Config;
+use Qrt::FileIO;
+use Qrt::Observable;
+use Qrt::Db;
 
 sub new {
     my $class = shift;
 
     my $self = {
-        _connected   => Pdqm::Observable->new(),
-        _stdout      => Pdqm::Observable->new(),
-        _itemchanged => Pdqm::Observable->new(),
-        _editmode    => Pdqm::Observable->new(),
-        _choice      => Pdqm::Observable->new(),
+        _connected   => Qrt::Observable->new(),
+        _stdout      => Qrt::Observable->new(),
+        _itemchanged => Qrt::Observable->new(),
+        _editmode    => Qrt::Observable->new(),
+        _choice      => Qrt::Observable->new(),
     };
 
     bless $self, $class;
@@ -76,7 +76,7 @@ sub _connect {
     my $self = shift;
 
     # Connect to database
-    my $db = Pdqm::Db->new(); # user, pass ?
+    my $db = Qrt::Db->new(); # user, pass ?
 
     # Is connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
@@ -101,7 +101,7 @@ sub db_disconnect {
 sub _disconnect {
     my $self = shift;
 
-    my $db = Pdqm::Db->new();
+    my $db = Qrt::Db->new();
     $db->dbh->disconnect;
 }
 
@@ -156,7 +156,7 @@ sub get_list_data {
     my $self = shift;
 
     # XML read - write module
-    $self->{fio} = Pdqm::FileIO->new();
+    $self->{fio} = Qrt::FileIO->new();
     my $data_ref = $self->{fio}->get_titles();
 
     my $indice = 0;
@@ -177,12 +177,12 @@ sub run_export {
 
     $self->_print('Running...');
 
-    my $db = Pdqm::Db->new(); # user, pass ?
+    my $db = Qrt::Db->new(); # user, pass ?
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
-    my $cnf     = Pdqm::Config->new();
+    my $cnf     = Qrt::Config->new();
     my $out_fqn = $cnf->out_fqn($output);
 
     my ($err, $out) = $db->db_generate_output(
@@ -334,7 +334,7 @@ sub report_add {
     # Try to fill the gaps between numbers in file names
     my $files_no = scalar @{$reports_ref};
 
-    my $cnf    = Pdqm::Config->new();
+    my $cnf    = Qrt::Config->new();
     my $qdfext = $cnf->cfg->qdf->{extension};
 
     # Search for an non existent file name
@@ -387,7 +387,7 @@ sub report_add {
         }
 
         # Adauga titlul si noul fisier
-        $self->{fio} = Pdqm::FileIO->new();
+        $self->{fio} = Qrt::FileIO->new();
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
         return $data_ref;

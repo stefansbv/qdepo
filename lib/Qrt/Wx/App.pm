@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,72 +21,36 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                           p a c k a g e   I n s t a n c e |
+# |                                                     p a c k a g e   A p p |
 # +---------------------------------------------------------------------------+
-package Pdqm::Config::Instance;
+package Qrt::Wx::App;
 
 use strict;
 use warnings;
 
-# use Data::Dumper;
+use Qrt::Wx::Controller;
+use base qw(Wx::App);
 
-use base qw(Class::Singleton Class::Accessor);
-use YAML::Tiny;
+sub create {
+    my $self = shift->new;
 
-our $VERSION = 0.05;
+    # # Check IDE param
+    # my $app = shift;
 
-sub _new_instance {
-    my ($class, $args) = @_;
+    # # Save a link back to the parent ide ???
+    # $self->{app} = $app;
 
-    my $self = bless {}, $class;
+    # wxSingleInstanceChecker ?
 
-    # Weak check for parameter validity
-    if ( $args->{cfg_name} ) {
-        $self->_make_accessors($args);
-    }
+    # Qrt::Wx::Controller->new($self);
+    my $controller = Qrt::Wx::Controller->new();
+
+    # Populate list and connect to database ???
+    $controller->start();
 
     return $self;
 }
 
-sub _make_accessors {
-    my ( $self, $args ) = @_;
-
-    my $config_hr = $self->_merge_configs($args);
-
-    # print Dumper( $config_hr);
-
-    __PACKAGE__->mk_accessors( keys %{$config_hr} );
-
-    # Add data to object
-    foreach ( keys %{$config_hr} ) {
-        $self->$_( $config_hr->{$_} );
-    }
-}
-
-sub _merge_configs {
-    my ($self, $args) = @_;
-
-    # Configs from yaml file
-    my $cnf = $self->_load_yaml_config_file($args->{db_cnf_fqn});
-
-    # Add options from args
-    $cnf->{options} = $args;
-
-    # Add toolbar atributes to config
-    my $tb_attrs_hr = $self->_load_yaml_config_file($args->{cnf_toolb});
-    $cnf->{toolbar} = $tb_attrs_hr->{toolbar};
-
-    return $cnf;
-}
-
-#--- Utility subs
-
-sub _load_yaml_config_file {
-    my ( $self, $cnf_fqn ) = @_;
-
-    return  YAML::Tiny::LoadFile( $cnf_fqn );
-}
+sub OnInit { 1 }
 
 1;
-
-__END__

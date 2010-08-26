@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -120,8 +120,8 @@ if ( exists $opts->{db_name} ) {
     $opts->{cfg_name} = locate_configs( $opts->{db_cnf_qn} );
 
     # Go and run the app
-    use Pdqm;
-    my $app = Pdqm->new( $opts )->run;
+    use Qrt;
+    my $app = Qrt->new( $opts )->run;
 
     print "Normal exit.\n";
     exit 0;
@@ -208,7 +208,7 @@ __END__
 
 =head1 NAME
 
-Pdqm (Perl Database Query Manager)
+Qrt (Perl Database Query Manager)
 
 =head1 SYNOPSIS
 
@@ -229,7 +229,7 @@ Options:
 
 =head1 DESCRIPTION
 
-B<Pdqm> A graphical user interface for your SQL queries ...
+B<Qrt> A graphical user interface for your SQL queries ...
 
 =head1 OPTIONS DETAILS
 

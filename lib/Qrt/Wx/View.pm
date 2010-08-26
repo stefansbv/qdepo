@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,7 +23,7 @@
 # +---------------------------------------------------------------------------+
 # |                                                   p a c k a g e   V i e w |
 # +---------------------------------------------------------------------------+
-package Pdqm::Wx::View;
+package Qrt::Wx::View;
 
 use strict;
 use warnings;
@@ -32,9 +32,9 @@ use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
 
-use Pdqm::Config;
-use Pdqm::Wx::Notebook;
-use Pdqm::Wx::ToolBar;
+use Qrt::Config;
+use Qrt::Wx::Notebook;
+use Qrt::Wx::ToolBar;
 
 use base 'Wx::Frame';
 
@@ -57,7 +57,7 @@ sub new {
     $self->create_menu();
 
     #-- ToolBar
-    $self->SetToolBar( Pdqm::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
+    $self->SetToolBar( Qrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
     $self->{_tb} = $self->GetToolBar;
     $self->{_tb}->Realize;
 
@@ -65,7 +65,7 @@ sub new {
     $self->create_statusbar();
 
     #-- Notebook
-    $self->{_nb} = Pdqm::Wx::Notebook->new( $self );
+    $self->{_nb} = Qrt::Wx::Notebook->new( $self );
 
     #--- Parameters Tab (page) Panel
     $self->create_para_page();
@@ -624,7 +624,7 @@ sub list_item_clear_all {
 sub populate_config_page {
     my $self = shift;
 
-    my $cnf = Pdqm::Config->new();
+    my $cnf = Qrt::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
     $self->controls_write_page('conf', $qdf );

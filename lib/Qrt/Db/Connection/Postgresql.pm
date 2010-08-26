@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,67 +21,83 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                       p a c k a g e   O b s e r v a b l e |
+# |                                       p a c k a g e   P o s t g r e s q l |
 # +---------------------------------------------------------------------------+
-package Pdqm::Observable;
-
-# Cipres::Registry::Observable
-# Author:
-#   -- Rutger Vos, 17/Aug/2006 13:57
-# Taken from http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen
-# /cipres/framework/perl/cipres/lib/Cipres/
-# Rutger Vos, thank you!
+package Qrt::Db::Connection::Postgresql;
 
 use strict;
 use warnings;
 
-sub new {
-    my ( $class, $value ) = @_;
+use Carp;
+use DBI;
 
-    my $self = {
-        _data      => $value,
-        _callbacks => {},
-    };
+# use Postgresql >= 8.3.5 !!! :)
+
+our $VERSION = 0.30;
+
+sub new {
+
+    my $class = shift;
+
+    my $self = {};
 
     bless $self, $class;
 
     return $self;
 }
 
-sub add_callback {
-    my ( $self, $callback ) = @_;
-    $self->{_callbacks}->{$callback} = $callback;
-    return $self;
-}
+sub conectare {
 
-sub del_callback {
-    my ( $self, $callback ) = @_;
-    delete $self->{_callbacks}->{$callback};
-    return $self;
-}
+    # +-----------------------------------------------------------------------+
+    # | Descriere: Connect to the database                                    |
+    # +-----------------------------------------------------------------------+
 
-sub _docallbacks {
-    my $self = shift;
-    foreach my $cb ( keys %{ $self->{_callbacks} } ) {
-        $self->{_callbacks}->{$cb}->( $self->{_data} );
+    my ($self, $conf, $user, $pass) = @_;
+
+    # $pass = undef; # Uncomment when is no password set
+
+    my $dbname = $conf->{Database};
+    my $server = $conf->{Server};
+    my $port   = $conf->{Port};
+    my $rdbms  = $conf->{DBMS};
+
+    print "Connect to the $rdbms server ...\n";
+    print " Parameters:\n";
+    print "  => Database = $dbname\n";
+    print "  => Server   = $server\n";
+    print "  => Port     = $port\n";
+    print "  => User     = $user\n";
+
+    eval {
+        $self->{_dbh} = DBI->connect(
+            "dbi:Pg:"
+                . "dbname="
+                . $dbname
+                . ";host="
+                . $server
+                . ";port="
+                . $port,
+            $user,
+            $pass,
+            { RaiseError => 1, FetchHashKeyName => 'NAME_lc' }
+        );
+    };
+    ## Date format
+    # set: datestyle = 'iso' in postgresql.conf
+    ##
+
+    if ($@) {
+        warn "$@";
+        return undef;
+    }
+    else {
+        print "\nConnected to database \'$dbname\'.\n";
+        return $self->{_dbh};
     }
 }
 
-sub set {
-    my ( $self, $data ) = @_;
-    $self->{_data} = $data;
-    $self->_docallbacks();
-}
-
-sub get {
-    my $self = shift;
-    return $self->{_data};
-}
-
-sub unset {
-    my $self = shift;
-    $self->{_data} = undef;
-    return $self;
-}
+# --* End file
 
 1;
+
+__END__

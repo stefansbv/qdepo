@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,12 +23,12 @@
 # +---------------------------------------------------------------------------+
 # |                                             p a c k a g e   T o o l B a r |
 # +---------------------------------------------------------------------------+
-package Pdqm::Wx::ToolBar;
+package Qrt::Wx::ToolBar;
 
 use strict;
 use warnings;
 
-use Pdqm::Config;
+use Qrt::Config;
 
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
@@ -52,7 +52,7 @@ sub new {
     $self->SetMargins( 4, 4 );
 
     # Get ToolBar button atributes
-    my $cnf = Pdqm::Config->new();
+    my $cnf = Qrt::Config->new();
     my $attribs = $cnf->cfg->toolbar;
 
     #-- Sort by id

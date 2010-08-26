@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,80 +21,89 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                       p a c k a g e   C o n n e c t i o n |
+# |                                                     p a c k a g e   C s v |
 # +---------------------------------------------------------------------------+
-package Pdqm::Db::Connection;
+package Qrt::Output::Csv;
 
 use strict;
 use warnings;
+use Carp;
 
-use Pdqm::Config;
-
-our $VERSION = 0.03;
+use Text::CSV_XS;
 
 sub new {
 
-    my ($class, $args) = @_;
+    my $class = shift;
 
-    my $self = bless( {}, $class);
+    my $self = {};
 
-    $self->{args} = $args;
+    bless( $self, $class );
+
+    $self->{csv_file} = shift;
+
+    $self->{csv_fh} = undef;
+
+    $self->{csv} = $self->_create_csv();
 
     return $self;
 }
 
-sub db_connect {
+sub _create_csv {
 
-# +---------------------------------------------------------------------------+
-# | Descriere: Conect to database                                             |
-# | Parametri: class, alias                                                   |
-# +---------------------------------------------------------------------------+
+    my ($self) = @_;
 
-    my ($self, $user, $pass) = @_;
-
-    # Connection information from config ??? needs rewrite !!!
-    my $cnf = Pdqm::Config->new();
-    my $conninfo = $cnf->cfg->conninfo;
-
-    my $rdbms = $conninfo->{DBMS};
-
-    # Select RDBMS; tryed with 'use if', but not shure is better
-    # 'use' would do but don't want to load modules if not necessary
-    if ( $rdbms =~ /Firebird/i ) {
-        require Pdqm::Db::Connection::Firebird;
-    }
-    elsif ( $rdbms =~ /Postgresql/i ) {
-        require Pdqm::Db::Connection::Postgresql;
-    }
-    elsif ( $rdbms =~ /mysql/i ) {
-        require Pdqm::Db::Connection::MySql;
-    }
-    else {
-        die "Database $rdbms not supported!\n";
-    }
-
-    # Connect to Database, Select RDBMS
-
-    if ( $rdbms =~ /Firebird/i ) {
-        $self->{conn} = Pdqm::Db::Connection::Firebird->new();
-    }
-    elsif ( $rdbms =~ /Postgresql/i ) {
-        $self->{conn} = Pdqm::Db::Connection::Postgresql->new();
-    }
-    elsif ( $rdbms =~ /mysql/i ) {
-        $self->{conn} = Pdqm::Db::Connection::MySql->new();
-    }
-    else {
-        die "Database $rdbms not supported!\n";
-    }
-
-    $self->{dbh} = $self->{conn}->conectare(
-        $conninfo,
-        $user,
-        $pass,
+    # Options from config?
+    my $csv_o = Text::CSV_XS->new(
+        {
+            'sep_char'     => ';',
+            'always_quote' => 1,
+            'binary'       => 1
+        }
     );
 
-    return $self->{dbh};
+    open $self->{csv_fh}, '>', $self->{csv_file}
+        or croak "Can't open file ", $self->{csv_file}, ": $!";
+
+    return $csv_o;
 }
+
+sub create_row {
+
+    my ($self, $data) = @_;
+
+    my @data = map { defined $_ ? $_ : "" } @{$data};
+
+    chomp(@data);
+
+    # Data
+    # Could use $csv->print ($io, $colref) for eficiency
+    my $status = $self->{csv}->combine( @data );
+    # print " status $status\n";
+    my $line   = $self->{csv}->string();
+    print { $self->{csv_fh} } "$line\n";
+
+    return;
+}
+
+sub create_done {
+
+    my ($self, ) = @_;
+
+    close $self->{csv_fh}
+        or die "Can not close file: $!\n";
+
+    my $output;
+    if ( -f $self->{csv_file} ) {
+        $output = $self->{csv_file};
+        print " Output file: ", $self->{csv_file}, " created.\n";
+    }
+    else {
+        $output = '';
+        print " ERROR, output file", $self->{csv_file}, " NOT created.\n";
+    }
+
+    return $output;
+}
+
 
 1;

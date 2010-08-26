@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,33 +23,69 @@
 # +---------------------------------------------------------------------------+
 # |                                           p a c k a g e   I n s t a n c e |
 # +---------------------------------------------------------------------------+
-package Pdqm::Db::Instance;
+package Qrt::Config::Instance;
 
 use strict;
 use warnings;
 
-use Pdqm::Db::Connection;
-use base qw(Class::Singleton);
+# use Data::Dumper;
 
-our $VERSION = 0.03;
+use base qw(Class::Singleton Class::Accessor);
+use YAML::Tiny;
+
+our $VERSION = 0.05;
 
 sub _new_instance {
     my ($class, $args) = @_;
 
-    my $conn = Pdqm::Db::Connection->new( $args );
-    my $dbh = $conn->db_connect(
-        'stefan',   # ??? from cli params !!!
-        'tba790k',  # ??? from cli params !!!
-    );
+    my $self = bless {}, $class;
 
-    # Some defaults
-    $dbh->{AutoCommit}  = 1;            # disable transactions
-    $dbh->{RaiseError}  = 1;
-    $dbh->{LongReadLen} = 512 * 1024;   # Firebird need this with BLOBs
+    # Weak check for parameter validity
+    if ( $args->{cfg_name} ) {
+        $self->_make_accessors($args);
+    }
 
-    return bless {dbh => $dbh}, $class;
+    return $self;
 }
 
+sub _make_accessors {
+    my ( $self, $args ) = @_;
+
+    my $config_hr = $self->_merge_configs($args);
+
+    # print Dumper( $config_hr);
+
+    __PACKAGE__->mk_accessors( keys %{$config_hr} );
+
+    # Add data to object
+    foreach ( keys %{$config_hr} ) {
+        $self->$_( $config_hr->{$_} );
+    }
+}
+
+sub _merge_configs {
+    my ($self, $args) = @_;
+
+    # Configs from yaml file
+    my $cnf = $self->_load_yaml_config_file($args->{db_cnf_fqn});
+
+    # Add options from args
+    $cnf->{options} = $args;
+
+    # Add toolbar atributes to config
+    my $tb_attrs_hr = $self->_load_yaml_config_file($args->{cnf_toolb});
+    $cnf->{toolbar} = $tb_attrs_hr->{toolbar};
+
+    return $cnf;
+}
+
+#--- Utility subs
+
+sub _load_yaml_config_file {
+    my ( $self, $cnf_fqn ) = @_;
+
+    return  YAML::Tiny::LoadFile( $cnf_fqn );
+}
 
 1;
 

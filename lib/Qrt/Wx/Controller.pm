@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -23,7 +23,7 @@
 # +---------------------------------------------------------------------------+
 # |                                       p a c k a g e   C o n t r o l l e r |
 # +---------------------------------------------------------------------------+
-package Pdqm::Wx::Controller;
+package Qrt::Wx::Controller;
 
 use strict;
 use warnings;
@@ -32,16 +32,16 @@ use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
-use Pdqm::Model;
-use Pdqm::Wx::View;
+use Qrt::Model;
+use Qrt::Wx::View;
 
 sub new {
     my ( $class, $app ) = @_;
 
     # Hardcoded config file name and path
-    my $model = Pdqm::Model->new();
+    my $model = Qrt::Model->new();
 
-    my $view = Pdqm::Wx::View->new(
+    my $view = Qrt::Wx::View->new(
         $model,
         undef,
         -1,

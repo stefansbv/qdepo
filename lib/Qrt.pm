@@ -1,5 +1,5 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Pdqm (Perl Database Query Manager)                             |
+# | Name     : Qrt (Perl Database Query Manager)                             |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
 # | Website  :                                                                |
 # |                                                                           |
@@ -21,36 +21,78 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                                     p a c k a g e   A p p |
+# |                                                   p a c k a g e   P d q m |
 # +---------------------------------------------------------------------------+
-package Pdqm::Wx::App;
+package Qrt;
 
 use strict;
 use warnings;
+use 5.010;
 
-use Pdqm::Wx::Controller;
-use base qw(Wx::App);
+use Qrt::Config;
+use Qrt::Wx::App;
 
-sub create {
-    my $self = shift->new;
+our $VERSION = 0.10;
 
-    # # Check IDE param
-    # my $app = shift;
+sub new {
+    my ($class, $args) = @_;
 
-    # # Save a link back to the parent ide ???
-    # $self->{app} = $app;
+    my $self = {};
 
-    # wxSingleInstanceChecker ?
+    bless $self, $class;
 
-    # Pdqm::Wx::Controller->new($self);
-    my $controller = Pdqm::Wx::Controller->new();
-
-    # Populate list and connect to database ???
-    $controller->start();
+    $self->_init($args);
 
     return $self;
 }
 
-sub OnInit { 1 }
+sub _init {
+    my ( $self, $args ) = @_;
+
+    # Initialize config for the first time
+    my $cnf = Qrt::Config->new($args);
+
+    # Create Wx application
+    $self->{gui} = Qrt::Wx::App->create();
+}
+
+sub run {
+    my $self = shift;
+    $self->{gui}->MainLoop;
+}
 
 1;
+
+__END__
+
+=head1 NAME
+
+Qrt - Is the main module in a wxPerl application for ...
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+=head1 BUGS AND LIMITATIONS
+
+There are no known bugs in this module.
+
+This screen module in general does not check the input ...
+
+Please report problems to the author(s)
+
+Patches are welcome.
+
+=head1 AUTHOR
+
+Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2010 Stefan Suciu.
+
+All rights reserved.
+
+GNU General Public License
