@@ -1,9 +1,9 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
-# | Copyright (C) 2010  Stefan Suciu                                          |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
 # |                                                                           |
 # | This program is free software; you can redistribute it and/or modify      |
 # | it under the terms of the GNU General Public License as published by      |
@@ -21,7 +21,7 @@
 # +---------------------------------------------------------------------------+
 # |
 # +---------------------------------------------------------------------------+
-# |                                                   p a c k a g e   P d q m |
+# |                                                     p a c k a g e   Q r t |
 # +---------------------------------------------------------------------------+
 package Qrt;
 
@@ -67,19 +67,15 @@ __END__
 
 =head1 NAME
 
-Qrt - Is the main module in a wxPerl application for ...
+Qrt - Is the main module in TPDA-QRT wxPerl application
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
-=head1 CONFIGURATION AND ENVIRONMENT
-
 =head1 BUGS AND LIMITATIONS
 
 There are no known bugs in this module.
-
-This screen module in general does not check the input ...
 
 Please report problems to the author(s)
 

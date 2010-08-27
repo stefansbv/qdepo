@@ -1,9 +1,9 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
-# | Copyright (C) 2010  Stefan Suciu                                          |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
 # |                                                                           |
 # | This program is free software; you can redistribute it and/or modify      |
 # | it under the terms of the GNU General Public License as published by      |
@@ -694,8 +694,8 @@ sub controls_populate {
 
     #-- Header
     # Write in the control the actual path and filename
-    # Remove path until and including .pdqm
-    ( my $file_qn = $file_fqn ) =~ s{.*.pdqm/}{};
+    # Remove path until and including .tpda-qrt
+    ( my $file_qn = $file_fqn ) =~ s{.*.tpda-qrt/}{};
     # Add real path to control
     $ddata_ref->{header}{filename} = $file_qn;
     $self->controls_write_page('list', $ddata_ref->{header} );

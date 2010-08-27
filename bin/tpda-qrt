@@ -21,10 +21,6 @@
 # | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA |
 # +---------------------------------------------------------------------------+
 # |
-# |
-#!/usr/bin/perl
-
-
 use strict;
 use warnings;
 
@@ -81,7 +77,7 @@ $opts->{pass} = $pass;
 #- Setup paths
 
 $opts->{home}    = File::HomeDir->my_home;  # User home directory
-$opts->{cnf_n}   = '.pdqm';                 # User config directory
+$opts->{cnf_n}   = '.tpda-qrt';             # User config directory
 # User configuration file path
 $opts->{cnf_qn}  = catdir( $opts->{home}, $opts->{cnf_n} );
 # Tool bar configs
@@ -208,13 +204,13 @@ __END__
 
 =head1 NAME
 
-Qrt (Perl Database Query Manager)
+tpda-qrt - TPDA - Query Repository Tool
 
 =head1 SYNOPSIS
 
-pdqm.pl [-list [<app-id>]]
+tpda-qrt [-list [<app-id>]]
 
-pdqm.pl -a <app-id> [-user <user> [-pass <pass>]] [-c <config-name>]
+tpda-qrt -a <app-id> [-user <user> [-pass <pass>]] [-c <config-name>]
 
 Options:
 
@@ -229,7 +225,9 @@ Options:
 
 =head1 DESCRIPTION
 
-B<Qrt> A graphical user interface for your SQL queries ...
+TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
+and query repository management. Queries are saved in XML files and
+can be edited and parametrized.
 
 =head1 OPTIONS DETAILS
 
@@ -241,7 +239,7 @@ List installed (configured) applications
 
 Example:
 
- % pdqm.pl -l
+% tpda-qrt -l
 
 will return something like this:
 
@@ -251,9 +249,9 @@ Applications list:
 and if an application Id is provided, list the configuration details
 for that application.
 
- % pdqm.pl -l classicmodels
+% tpda-qrt -l classicmodels
 
- Application [id]: classicmodels
+Application [id]: classicmodels
   Name           : classicmodels
   Description    : ClassicModels demo application
   Full path      : /home/user/tpda/apps/classicmodels
@@ -303,7 +301,7 @@ Increase the verbosity of the output. This option is incremental.
 
 =head1 LICENSE
 
-Copyright (C) 2004-2010  Stefan Suciu
+Copyright (C) 2010  Stefan Suciu
 This program is free software, you can redistribute it and/or
 modify it under the terms of GNU General Public License.
 

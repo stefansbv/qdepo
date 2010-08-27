@@ -1,7 +1,6 @@
 #
-# Makefile.PL for Qrt
+# Makefile.PL for tpda-qrt
 #
-# Qrt (part of Tiny Perl Database Application?)
 # Copyright (C) 2010  Stefan Suciu
 # GNU General Public License v3
 #
@@ -40,6 +39,6 @@ build_requires 'Module::Install'       => 0.30;
 build_requires 'Test::More'            => 0.47;
 
 #install_share  'share';
-install_script 'bin/pdqm';
+install_script 'bin/tpda-qrt';
 
 WriteAll;

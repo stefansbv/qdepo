@@ -1,9 +1,9 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
-# | Copyright (C) 2010  Stefan Suciu                                          |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
 # |                                                                           |
 # | This program is free software; you can redistribute it and/or modify      |
 # | it under the terms of the GNU General Public License as published by      |
@@ -79,6 +79,12 @@ sub out_fqn {
     my ($self, $out_fn) = @_;
 
     my $outdir = $self->cfg->qdf->{outdir};
+
+    # Check config early, but don't die, just warn
+    # It's not early enough at query run ...
+    if (! -d $outdir) {
+        warn "ERROR: Bad output directory configuration!\n";
+    }
 
     my $out_qfn = catfile($outdir, $out_fn);
 

@@ -1,9 +1,9 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
-# | Copyright (C) 2010  Stefan Suciu                                          |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
 # |                                                                           |
 # | This program is free software; you can redistribute it and/or modify      |
 # | it under the terms of the GNU General Public License as published by      |

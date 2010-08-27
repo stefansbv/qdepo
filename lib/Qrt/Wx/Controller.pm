@@ -1,9 +1,9 @@
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
-# | Copyright (C) 2010  Stefan Suciu                                          |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
 # |                                                                           |
 # | This program is free software; you can redistribute it and/or modify      |
 # | it under the terms of the GNU General Public License as published by      |
@@ -45,7 +45,7 @@ sub new {
         $model,
         undef,
         -1,
-        'Perl Database Query Manager',
+        'TPDA - Query Repository Tool',
         [ -1, -1 ],
         [ -1, -1 ],
         wxDEFAULT_FRAME_STYLE,
@@ -99,10 +99,10 @@ my $about = sub {
     my ( $self, $event ) = @_;
 
     Wx::MessageBox(
-        "Perl Database Query Manager v0.10\n(C) 2010 Stefan Suciu\n\n"
+        "TPDA - Query Repository Tool v0.10\n(C) 2010 Stefan Suciu\n\n"
             . " - WxPerl $Wx::VERSION\n"
             . " - " . Wx::wxVERSION_STRING,
-        "About PDQM",
+        "About TPDA-QRT",
 
         wxOK | wxICON_INFORMATION,
         $self
