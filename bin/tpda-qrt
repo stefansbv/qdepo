@@ -29,11 +29,13 @@ use Data::Dumper;
 use Getopt::Long;
 use Pod::Usage;
 
+use Cwd;
 use File::Basename;
 use File::HomeDir;
 use File::Find::Rule;
 use File::Spec::Functions;
 use File::Path 2.07 qw( make_path remove_tree );
+use File::Copy;
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
@@ -144,7 +146,7 @@ sub init_configs {
     my $cfg_name = shift;
 
     create_tree($cfg_name);
-    copy_defaults();
+    copy_defaults($cfg_name);
 }
 
 sub check_config_paths {
@@ -287,9 +289,51 @@ sub create_tree {
 }
 
 sub copy_defaults {
+    my $cfg_name = shift;
 
+    my $cwd  = getcwd();
+    my $home = File::HomeDir->my_home;
+
+    my $cfg_dir = $opts->{cnf_p};
+
+    print " Copying configuration files\n";
+
+    my $src1_fqn = catdir( $cwd, 'share/config/interfaces/toolbar.yml' );
+    my $dst1_p   = catdir( $cfg_dir, 'etc/interfaces' );
+    copy_files($src1_fqn, $dst1_p);
+
+    my $src2_fqn = catdir( $cwd, 'share/template/tpda-qrt.yml' );
+    my $dst2_p   = catdir( $cfg_dir, 'db', $cfg_name, 'etc' );
+    copy_files($src2_fqn, $dst2_p);
+
+    my $src3_fqn = catdir( $cwd, 'share/template/template.qdf' );
+    my $dst3_p   = catdir( $cfg_dir, '/etc/template' );
+    copy_files($src3_fqn, $dst3_p);
 }
 
+sub copy_files {
+    my ($self, $src_fqn, $dst_p) = @_;
+
+    if ( !-f $src_fqn ) {
+        print "Source not found:\n $src_fqn\n";
+        return;
+    }
+    if ( !-d $dst_p ) {
+        print "Destination path not found:\n $dst_p\n";
+        return;
+    }
+
+    my ($file) = fileparse($src_fqn);
+    my $dst_fqn = catfile($dst_p, $file);
+    if ( -f $dst_fqn ) {
+        print "source found $src_fqn, skipping\n";
+        return;
+    }
+
+    # Copy if we got this far
+    print " $src_fqn -> $dst_p\n";
+    copy( $src_fqn, $dst_p ) or die $!;
+}
 
 __END__
 
