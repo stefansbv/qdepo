@@ -372,7 +372,7 @@ sub report_add {
 
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    my $src_fqn = $cnf->cfg->options->{cnf_templ};
+    my $src_fqn = $cnf->cfg->options->{cnf_tpl_qn};
     my $dst_fqn = $cnf->new_qdf_fqn($newrepo_fn);
 
     print " $src_fqn -> $dst_fqn\n";

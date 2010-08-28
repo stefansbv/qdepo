@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 # +---------------------------------------------------------------------------+
-# | Name     : Qrt (Perl Database Query Manager)                             |
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
 # | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
-# | Website  :                                                                |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
 # |                                                                           |
 # | Copyright (C) 2010  Stefan Suciu                                          |
 # |                                                                           |
@@ -33,87 +33,98 @@ use File::Basename;
 use File::HomeDir;
 use File::Find::Rule;
 use File::Spec::Functions;
+use File::Path 2.07 qw( make_path remove_tree );
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
 my $help    = '';
 my $man     = '';
 my $verbose = 1;     # default option
-my $cfg_name;
-my $db;
 my $list;
 my $user;
 my $pass;
+my $init;
 
 # Process options.
 if ( @ARGV > 0 ) {
     GetOptions(
         'help|?'    => \$help,
         'man'       => \$man,
-        'verbose+'  => \$verbose,
-        'quiet'     => sub { $verbose = 0 },
-        'config=s'  => \$cfg_name,
+        'list:s'    => \$list,
         'user=s'    => \$user,
         'password=s'=> \$pass,
-        'db=s'      => \$db,
-        'list:s'    => \$list,
+        'verbose+'  => \$verbose,
+        'quiet'     => sub { $verbose = 0 },
+        'init'      => \$init,
         ),
         or pod2usage(2);
 }
 if ( $man or $help or $#ARGV >= 0 ) {
     pod2usage(1) if $help;
     pod2usage( VERBOSE => 2 ) if $man;
-    if ( $#ARGV >= 0 ) {
-        pod2usage("$0: too many arguments.");
-    }
 }
+
+my $db = shift;         # Runtime configuration name or database name
 
 #- Options
 my $opts = {};
+
+#- Setup configuration paths
+
+# User configuration path
+$opts->{cnf_n}  = '.tpda-qrt';
+$opts->{cnf_p} = catdir( File::HomeDir->my_home, $opts->{cnf_n} );
+
+# Tool bar configs and qdf template file
+$opts->{cnf_etc_p}  = catdir(  $opts->{cnf_p},    'etc' );
+$opts->{cnf_tlb_qn} = catfile( $opts->{cnf_etc_p},'interfaces','toolbar.yml'  );
+$opts->{cnf_tpl_qn} = catfile( $opts->{cnf_etc_p},'template',  'template.qdf' );
+$opts->{db_root_p}  = catdir(  $opts->{cnf_p},      'db' );
+
+if (defined $db) {
+    # Runtime configuration paths
+
+    $opts->{db_base_p} = catdir( $opts->{db_root_p},  $db );
+    $opts->{db_cnf_p}  = catdir( $opts->{db_base_p}, 'etc' );
+    $opts->{db_qdf_p}  = catdir( $opts->{db_base_p}, 'qdf' );
+    $opts->{db_name}   = $db;
+}
+
+# Check 'list' and 'init' option first
+if ( defined $list xor defined $init) {
+    if ( defined $list ) {
+        list_configs();
+        exit 0;
+    }
+    if ( defined $init ) {
+        if (defined $db) {
+            init_configs($db);
+            exit 0;
+        }
+        else {
+            pod2usage(1);
+        }
+    }
+}
+else {
+    pod2usage(1);
+}
+
+if ( !check_config_paths() ) {
+    print "Configuration not setup properly!\n";
+    print " Run tpda-qrt -init\n";
+    print " and edit the configuration files\n";
+    exit;
+}
+
+#- Other options; add them after check
 $opts->{verbose} = $verbose;
 $opts->{user} = $user;
 $opts->{pass} = $pass;
 
-#- Setup paths
-
-$opts->{home}    = File::HomeDir->my_home;  # User home directory
-$opts->{cnf_n}   = '.tpda-qrt';             # User config directory
-# User configuration file path
-$opts->{cnf_qn}  = catdir( $opts->{home}, $opts->{cnf_n} );
-# Tool bar configs
-$opts->{cnf_etc} = catdir( $opts->{cnf_qn}, 'etc' );
-$opts->{cnf_toolb} = catfile( $opts->{cnf_etc}, 'interfaces', 'toolbar.yml' );
-$opts->{cnf_templ} = catfile( $opts->{cnf_etc}, 'template', 'template.qdf' );
-
-if (defined $db) {
-    # Db base config and qdf paths
-    $opts->{db_root_qn} = catdir( $opts->{cnf_qn},     'db' );
-    $opts->{db_base_qn} = catdir( $opts->{db_root_qn},  $db );
-    $opts->{db_cnf_qn}  = catdir( $opts->{db_base_qn}, 'etc' );
-    $opts->{db_qdf_qn}  = catdir( $opts->{db_base_qn}, 'qdf' );
-    $opts->{db_name}    = $db;
-}
-
-# Check list option first
-if ( defined $list ) {
-
-    print " - list option\n";
-    if ( defined $db ) {
-        print " - db option: $db\n";
-        list_configs();
-    }
-    else {
-        list_configs();
-    }
-
-    exit 0;
-}
-
 # Check database option last
 if ( exists $opts->{db_name} ) {
-
-    #
-    $opts->{cfg_name} = locate_configs( $opts->{db_cnf_qn} );
+    $opts->{cfg_name} = locate_configs( $opts->{db_cnf_p} );
 
     # Go and run the app
     use Qrt;
@@ -129,36 +140,85 @@ pod2usage(1);
 
 #-- Subs
 
+sub init_configs {
+    my $cfg_name = shift;
+
+    create_tree($cfg_name);
+    copy_defaults();
+}
+
+sub check_config_paths {
+
+    foreach my $item ( keys %{$opts} ) {
+
+        # print ' : ', $item, '->', $opts->{$item}, "\n";
+
+        if ( $item =~ m{_p$} ) {
+            check_path( $opts->{$item} );
+        }
+        elsif ( $item =~ m{_qn$} ) {
+            check_file( $opts->{$item} );
+        }
+    }
+
+    return 1;
+}
+
+sub check_path {
+    my $path = shift;
+
+    if (!-d $path) {
+        print "Config error:\n";
+        print "  $path does not exist?\n";
+        exit;
+    }
+}
+
+sub check_file {
+    my $file_qn = shift;
+
+    if (!-f $file_qn) {
+        print "Config error:\n";
+        print "  $file_qn does not exist?\n";
+        exit;
+    }
+}
+
 sub list_configs {
 
-    my $dir = $opts->{db_root_qn};
+    my $dir = $opts->{db_root_p};
 
     my $db_list = find_subdirs($dir);
 
-    foreach my $item ( @{$db_list} ) {
-        my $db_cnf_qn = catdir( $dir, $item, 'etc' );
-        print " db_cnf_qn = $db_cnf_qn\n";
-        my $files = locate_configs($db_cnf_qn);
-        print Dumper( $files );
+    foreach my $cfg_name ( @{$db_list} ) {
+        print " - $cfg_name\n";
+        my $db_cnf_qn = catdir( $dir, $cfg_name, 'etc' );
+        my $configs = locate_configs($db_cnf_qn);
+        if ( ref $configs ) {
+            foreach my $config ( @{$configs} ) {
+                print "   : $config\n";
+            }
+        }
+        else {
+            print "   : $configs\n";
+        }
     }
-
 }
 
 sub locate_configs {
     my $dir = shift;
 
     my $cfg_fn = find_config_files($dir);
+
     # Number of config files found
     my $no_cfg = scalar @{$cfg_fn};
-    print " $no_cfg config files found\n";
-
-    if ($no_cfg == 1) {
-        $opts->{db_cnf_fqn} = catfile($opts->{db_cnf_qn}, $cfg_fn->[0]);
+     if ( $no_cfg == 1 ) {
+        $opts->{db_cnf_fqn} = catfile( $opts->{db_cnf_p}, $cfg_fn->[0] );
         return $cfg_fn->[0];
     }
     else {
         # Multiple config files
-
+        return $cfg_fn;
     }
 }
 
@@ -166,7 +226,7 @@ sub find_subdirs {
 
     my $dir = shift;
 
-    # Find all the subdirectories of a given directory
+    # Find all the sub directories of a given directory
     my $rule = File::Find::Rule->new
         ->mindepth(1)
         ->maxdepth(1);
@@ -200,6 +260,37 @@ sub find_config_files {
     return \@files;
 }
 
+sub create_tree {
+    my $cfg_name = shift;
+
+    my $cfg_dir = $opts->{cnf_p};
+
+    make_path(
+        "$cfg_dir/db/$cfg_name/etc", "$cfg_dir/db/$cfg_name/qdf",
+        "$cfg_dir/etc/interfaces",   "$cfg_dir/etc/template",
+        { error => \my $err }
+    );
+    if (@$err) {
+        for my $diag (@$err) {
+            my ($file, $message) = %$diag;
+            if ($file eq '') {
+                print "Error: $message\n";
+            }
+            else {
+                print "$file: $message\n";
+            }
+        }
+    }
+    else {
+        print "Configuration tree initialized\n";
+    }
+}
+
+sub copy_defaults {
+
+}
+
+
 __END__
 
 =head1 NAME
@@ -208,20 +299,21 @@ tpda-qrt - TPDA - Query Repository Tool
 
 =head1 SYNOPSIS
 
-tpda-qrt [-list [<app-id>]]
+tpda-qrt -init <config_name>
 
-tpda-qrt -a <app-id> [-user <user> [-pass <pass>]] [-c <config-name>]
+tpda-qrt <config_name> [-user <user> [-password <pass>]]
+
+tpda-qrt -list
 
 Options:
 
- -list     [app]   List installed apps or detailed config info
- -app      [app]   Run application
- -config           Application configuration name
- -user             User name
- -password         Password
- -help             Brief help message
- -man              Full documentation
- -verbose          Increase the verbosity of the output
+ -init <config_name>   Initialize (create) configuration tree
+ -list                 List available configuration names and files
+ -user                 User name
+ -password             Password
+ -help                 Brief help message
+ -man                  Full documentation
+ -verbose              Increase the verbosity of the output
 
 =head1 DESCRIPTION
 
@@ -233,50 +325,21 @@ can be edited and parametrized.
 
 =over
 
-=item B<-list> [application Id]
+=item B<-init> <config_name>
 
-List installed (configured) applications
+Initialize (create) configuration tree and copy the default
+configuration files.  A configuration name is required.
 
-Example:
+A configuration name is the name of the directory underneath the
+'.tpda-qrt/db/ ' path.  This directory can contain one or more
+configuration files.  The configuration files are in YAML format, the
+format described in the documentation of the YAML::Tiny module.
 
-% tpda-qrt -l
+=item B<-list>
 
-will return something like this:
-
-Applications list:
- id: [ classicmodels  ] classicmodels
-
-and if an application Id is provided, list the configuration details
-for that application.
-
-% tpda-qrt -l classicmodels
-
-Application [id]: classicmodels
-  Name           : classicmodels
-  Description    : ClassicModels demo application
-  Full path      : /home/user/tpda/apps/classicmodels
-  Config file(s) :
-    classicmodels-pg -> conf\classicmodels-pg.yml
-    classicmodels-my -> conf\classicmodels-my.yml
-    classicmodels-fb -> conf\classicmodels-fb.yml
-
-Where 'classicmodels-xx' is the configuration name corresponding to
-each configuration file located in the conf sub directory of the
-applications sub directory.
-
-=item B<-app>
-
-The name (identifier) of the application.  Has to be the same as the
-name of the sub directory where the application files are located.
-
-=item B<-config> <config-name>
-
-Set configuration name to use. Any application can have one or more
-configuration files with different names in the conf directory. Each
-file has a configuration name assigned to it in a main config file. If
-the main configuration file is build using the install-apps.pl tool,
-then the config name will be set equal to the file name without the
-extension.
+List all configuration names and configuration file names.  Usually a
+configuration name is the same as the database name, but this is not a
+requirement.
 
 =item B<-user>
 

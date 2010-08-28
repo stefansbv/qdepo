@@ -51,6 +51,13 @@ sub new {
     return $self;
 }
 
+=pod
+
+Formats better defined outside the module, maybe in a YAML
+configuration file?
+
+=cut
+
 sub _create_xls {
 
     my ( $self, $sheet_name ) = @_;

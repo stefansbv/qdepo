@@ -132,11 +132,11 @@ sub get_file_list {
     my $cnf = Qrt::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    my $qdfext     = $cnf->cfg->qdf->{extension};
-    my $qdfpath_qn = $cnf->cfg->options->{db_qdf_qn};
+    my $qdfext    = $cnf->cfg->qdf->{extension};
+    my $qdfpath_p = $cnf->cfg->options->{db_qdf_p};
 
-    if ( ! -d $qdfpath_qn ) {
-        print "Wrong path for rdef files:\n$qdfpath_qn !\n";
+    if ( ! -d $qdfpath_p ) {
+        print "Wrong path for rdef files:\n$qdfpath_p !\n";
         return;
     }
 
@@ -145,7 +145,7 @@ sub get_file_list {
         ->name( "*.$qdfext" )
         ->file
         ->nonempty
-        ->in($qdfpath_qn);
+        ->in($qdfpath_p);
 
     my $nrfisiere = scalar @rapoarte;    # total file number
 

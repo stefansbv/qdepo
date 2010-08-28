@@ -81,6 +81,13 @@ sub db_generate_output {
     return ($err, $out);
 }
 
+=pod
+
+A plug-in mechanism would be nice here to detect and extend the output
+formats and maybe update the toolbar Wx::Choice options accordingly.
+
+=cut
+
 sub generate_output_excel {
 
     my ($self, $sql, $bind, $outfile) = @_;
@@ -228,6 +235,8 @@ sub generate_output_calc {
     my $dbh = $self->dbh();
 
     my $doc;
+    # Need the first part of the query to build a counting select
+    # first to create new spreadsheet with predefined dimensions
     my ($from) = $sql =~ m/FROM.+?$/ixmg; # Needs more testing?
     # print "From: $from\n";
 

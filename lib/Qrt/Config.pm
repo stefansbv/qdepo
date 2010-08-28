@@ -68,7 +68,7 @@ sub cfg {
 sub new_qdf_fqn {
     my ($self, $qdf_fn) = @_;
 
-    my $rdfpath = $self->cfg->options->{db_qdf_qn};
+    my $rdfpath = $self->cfg->options->{db_qdf_p};
 
     my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
 
@@ -81,7 +81,7 @@ sub out_fqn {
     my $outdir = $self->cfg->qdf->{outdir};
 
     # Check config early, but don't die, just warn
-    # It's not early enough at query run ...
+    # It's not early enough at query run :(
     if (! -d $outdir) {
         warn "ERROR: Bad output directory configuration!\n";
     }

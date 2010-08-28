@@ -99,11 +99,9 @@ sub conectare {
         # $self->{DBH}->{ib_dateformat}      = '%d.%m.%Y';
         # $self->{DBH}->{ib_timeformat}      = '%H:%M';
 
-        print "\nConnected to database \'$dbname\'.\n"
-            if $self->{tpda}->{run_ref}->{verbose} >= 1;
+        print "\nConnected to database \'$dbname\'.\n";
+        return $self->{_dbh};
     }
-
-    return $self->{DBH};
 }
 
 # --* End file

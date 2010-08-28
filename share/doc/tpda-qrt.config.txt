@@ -1,4 +1,4 @@
-.pdqm
+.tpda-qrt
 |-- db
 |   `-- contracte
 |       |-- etc
@@ -12,3 +12,9 @@
     |   `-- toolbar.yml
     `-- template
         `-- template.qdf
+
+mkdir -p .tpda-qrt/{db/contracte/{etc,qdf},etc/{interfaces,template}}
+
+cp project/tpda-qrt/share/config/interfaces/toolbar.yml .tpda-qrt/etc/interfaces/
+cp project/tpda-qrt/share/template/template.qdf .tpda-qrt/etc/template/
+cp project/tpda-qrt/share/contracte-pg.yml .tpda-qrt/db/contracte/etc/

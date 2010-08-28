@@ -1,6 +1,6 @@
 MANIFEST
 Makefile.PL
-bin/pdqm
+bin/tpda-qrt
 lib/Qrt.pm
 lib/Qrt/Config.pm
 lib/Qrt/Config/Instance.pm
