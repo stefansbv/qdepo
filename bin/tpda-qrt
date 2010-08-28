@@ -24,8 +24,6 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Getopt::Long;
 use Pod::Usage;
 
@@ -296,7 +294,7 @@ sub copy_defaults {
 
     my $cfg_dir = $opts->{cnf_p};
 
-    print " Copying configuration files\n";
+    print "Copying configuration files\n";
 
     my $src1_fqn = catdir( $cwd, 'share/config/interfaces/toolbar.yml' );
     my $dst1_p   = catdir( $cfg_dir, 'etc/interfaces' );
@@ -312,7 +310,7 @@ sub copy_defaults {
 }
 
 sub copy_files {
-    my ($self, $src_fqn, $dst_p) = @_;
+    my ($src_fqn, $dst_p) = @_;
 
     if ( !-f $src_fqn ) {
         print "Source not found:\n $src_fqn\n";
@@ -326,12 +324,12 @@ sub copy_files {
     my ($file) = fileparse($src_fqn);
     my $dst_fqn = catfile($dst_p, $file);
     if ( -f $dst_fqn ) {
-        print "source found $src_fqn, skipping\n";
+        print "skipping $src_fqn\n";
         return;
     }
 
     # Copy if we got this far
-    print " $src_fqn -> $dst_p\n";
+    print "$src_fqn -> $dst_p\n";
     copy( $src_fqn, $dst_p ) or die $!;
 }
 
