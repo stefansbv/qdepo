@@ -28,6 +28,8 @@ package Qrt::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];

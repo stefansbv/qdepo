@@ -132,7 +132,7 @@ sub get_file_list {
     my $cnf = Qrt::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    my $qdfext    = $cnf->cfg->qdf->{extension};
+    my $qdfext    = 'qdf';
     my $qdfpath_p = $cnf->cfg->options->{db_qdf_p};
 
     if ( ! -d $qdfpath_p ) {

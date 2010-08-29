@@ -183,7 +183,7 @@ sub run_export {
     my (undef, $option) = split(':', $choice);
 
     my $cnf     = Qrt::Config->new();
-    my $out_fqn = $cnf->out_fqn($output);
+    my $out_fqn = $cnf->output_fqn($output);
 
     my ($err, $out) = $db->db_generate_output(
         $option,

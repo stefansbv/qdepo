@@ -67,9 +67,18 @@ sub _merge_configs {
     # Configs from yaml file
     my $cnf = $self->_load_yaml_config_file( $args->{db_cnf_fqn} );
 
-    # Check config early, but don't die, just warn, for now
-    if ( !-d $cnf->{qdf}{output_p} ) {
-        warn "\nWARNING: Bad output directory configuration!\n";
+    # Check path for output
+    my $output_p = $cnf->{qdf}{output_p};
+    if ($output_p) {
+
+        # Check config early, but don't die, just warn, for now
+        if ( !-d $output_p ) {
+            warn "\nWARNING: Bad output directory configuration!\n";
+            warn " output_p : $output_p\n";
+        }
+    }
+    else {
+        warn "\nWARNING: No output directory configuration!\n";
     }
 
     # Add options from args

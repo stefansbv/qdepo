@@ -65,7 +65,7 @@ sub new {
     $self->AddPage( $self->{p1}, 'Query list' );
     $self->AddPage( $self->{p2}, 'Parameters' );
     $self->AddPage( $self->{p3}, 'SQL' );
-    $self->AddPage( $self->{p4}, 'Configuration' );
+    $self->AddPage( $self->{p4}, 'Config info' );
 
     # # Works but makes interface to not respond to mouse interaction
     # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGING(

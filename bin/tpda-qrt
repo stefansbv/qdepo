@@ -82,11 +82,10 @@ $opts->{cnf_p} = catdir( File::HomeDir->my_home, $opts->{cnf_n} );
 $opts->{cnf_etc_p}  = catdir(  $opts->{cnf_p},    'etc' );
 $opts->{cnf_tlb_qn} = catfile( $opts->{cnf_etc_p},'interfaces','toolbar.yml'  );
 $opts->{cnf_tpl_qn} = catfile( $opts->{cnf_etc_p},'template',  'template.qdf' );
-$opts->{db_root_p}  = catdir(  $opts->{cnf_p},      'db' );
+$opts->{db_root_p}  = catdir(  $opts->{cnf_p},    'db' );
 
 if (defined $db) {
     # Runtime configuration paths
-
     $opts->{db_base_p} = catdir( $opts->{db_root_p},  $db );
     $opts->{db_cnf_p}  = catdir( $opts->{db_base_p}, 'etc' );
     $opts->{db_qdf_p}  = catdir( $opts->{db_base_p}, 'qdf' );
@@ -109,9 +108,6 @@ if ( defined $list xor defined $init) {
         }
     }
 }
-else {
-    pod2usage(1);
-}
 
 if ( !check_config_paths() ) {
     print "Configuration not setup properly!\n";
@@ -128,6 +124,8 @@ $opts->{pass} = $pass;
 # Check database option last
 if ( exists $opts->{db_name} ) {
     $opts->{cfg_name} = locate_configs( $opts->{db_cnf_p} );
+
+    print $opts->{cfg_name}, "\n";
 
     # Go and run the app
     use Qrt;
