@@ -1,5 +1,7 @@
 # TPDA - QRT
 # User configurations
+# path variable names have a '_p' suffix
+# file names a '_fn' suffix
 ---
 conninfo:
   DBMS:      PostgreSQL
@@ -7,7 +9,4 @@ conninfo:
   Database:  apollo
   Port:      5432
 qdf:
-  extension: qdf
-  path:      qdf_repo
-  template:  qdf-template.xml
-  outdir:    reports
+  output_p:    reports

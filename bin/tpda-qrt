@@ -71,6 +71,9 @@ my $opts = {};
 
 #- Setup configuration paths
 
+# Yes, I know the names are ...  ;)
+# Sufixes inspired by PerlMonks node [id://703412] by ikegami - Thanks
+
 # User configuration path
 $opts->{cnf_n}  = '.tpda-qrt';
 $opts->{cnf_p} = catdir( File::HomeDir->my_home, $opts->{cnf_n} );

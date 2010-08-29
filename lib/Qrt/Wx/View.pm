@@ -373,38 +373,12 @@ sub create_config_page {
 
     #-- Controls
 
-    my $cnf_lbl0 = Wx::StaticText->new(
-        $self->{_nb}{p4},
-        -1,
-        'Query definition files extension',
-    );
-    $self->{extension} = Wx::TextCtrl->new(
-        $self->{_nb}{p4},
-        -1,
-        q{},
-        [ -1, -1 ],
-        [ 170, -1 ],
-    );
-
     my $cnf_lbl1 = Wx::StaticText->new(
-        $self->{_nb}{p4},
-        -1,
-        'Query definition files directory',
-    );
-    $self->{path} = Wx::TextCtrl->new(
-        $self->{_nb}{p4},
-        -1,
-        q{},
-        [ -1, -1 ],
-        [ 170, -1 ],
-    );
-
-    my $cnf_lbl2 = Wx::StaticText->new(
         $self->{_nb}{p4},
         -1,
         q{Output files path},
     );
-    $self->{outdir} = Wx::TextCtrl->new(
+    $self->{output_p} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -412,32 +386,10 @@ sub create_config_page {
         [ 170, -1 ],
     );
 
-    my $cnf_lbl3 = Wx::StaticText->new(
-        $self->{_nb}{p4},
-        -1,
-        'Template file name',
-    );
-    $self->{template} = Wx::TextCtrl->new(
-        $self->{_nb}{p4},
-        -1,
-        q{},
-        [ -1, -1 ],
-        [ 170, -1 ],
-    );
+    my $cnf_fgs = Wx::FlexGridSizer->new( 2, 1, 5, 10 );
 
-    my $cnf_fgs = Wx::FlexGridSizer->new( 8, 1, 5, 10 );
-
-    $cnf_fgs->Add( $cnf_lbl0, 0, wxTOP | wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{extension}, 1, wxEXPAND, 0 );
-
-    $cnf_fgs->Add( $cnf_lbl1, 0, wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{path}, 1, wxEXPAND, 0 );
-
-    $cnf_fgs->Add( $cnf_lbl2, 0, wxLEFT,   5 );
-    $cnf_fgs->Add( $self->{outdir}, 1, wxEXPAND, 0 );
-
-    $cnf_fgs->Add( $cnf_lbl3, 0, wxLEFT,   5 );
-    $cnf_fgs->Add( $self->{template}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
+    $cnf_fgs->Add( $self->{output_p}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->AddGrowableCol(0);
 
@@ -530,10 +482,7 @@ sub get_controls_conf {
     my $self = shift;
 
     return [
-        { extension => [ $self->{extension},'disabled', 'lightgrey' ] },
-        { template  => [ $self->{template}, 'disabled', 'lightgrey' ] },
-        { path      => [ $self->{path},     'disabled', 'lightgrey' ] },
-        { outdir    => [ $self->{outdir},   'disabled', 'lightgrey' ] },
+        { output_p => [ $self->{output_p}, 'disabled', 'lightgrey' ] },
     ];
 }
 
@@ -695,6 +644,7 @@ sub controls_populate {
     #-- Header
     # Write in the control the actual path and filename
     # Remove path until and including .tpda-qrt
+    # not working to well !!! ???
     ( my $file_qn = $file_fqn ) =~ s{.*.tpda-qrt/}{};
     # Add real path to control
     $ddata_ref->{header}{filename} = $file_qn;

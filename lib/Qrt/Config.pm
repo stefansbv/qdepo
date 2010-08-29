@@ -80,12 +80,6 @@ sub out_fqn {
 
     my $outdir = $self->cfg->qdf->{outdir};
 
-    # Check config early, but don't die, just warn
-    # It's not early enough at query run :(
-    if (! -d $outdir) {
-        warn "ERROR: Bad output directory configuration!\n";
-    }
-
     my $out_qfn = catfile($outdir, $out_fn);
 
     return $out_qfn;
