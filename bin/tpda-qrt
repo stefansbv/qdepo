@@ -69,27 +69,21 @@ my $db = shift;         # Runtime configuration name or database name
 #- Options
 my $opts = {};
 
-#- Setup configuration paths
+my $home = File::HomeDir->my_home;
 
-# Yes, I know the names are ...  ;)
-# Sufixes inspired by PerlMonks node [id://703412] by ikegami - Thanks
+# Build in variables
+my $cfg_p = '.tpda-qrt';
+my $src_p = 'etc';
+my $cfg_n = 'general.yml';
 
 # User configuration path
-$opts->{cnf_n}  = '.tpda-qrt';
-$opts->{cnf_p} = catdir( File::HomeDir->my_home, $opts->{cnf_n} );
+$opts->{cfg_path} = catdir($home, $cfg_p);
 
-# Tool bar configs and qdf template file
-$opts->{cnf_etc_p}  = catdir(  $opts->{cnf_p},    'etc' );
-$opts->{cnf_tlb_qn} = catfile( $opts->{cnf_etc_p},'interfaces','toolbar.yml'  );
-$opts->{cnf_tpl_qn} = catfile( $opts->{cnf_etc_p},'template',  'template.qdf' );
-$opts->{db_root_p}  = catdir(  $opts->{cnf_p},    'db' );
+# General configurations file
+$opts->{cfg_gen} = catfile($home, $cfg_p, $src_p, $cfg_n);
 
 if (defined $db) {
-    # Runtime configuration paths
-    $opts->{db_base_p} = catdir( $opts->{db_root_p},  $db );
-    $opts->{db_cnf_p}  = catdir( $opts->{db_base_p}, 'etc' );
-    $opts->{db_qdf_p}  = catdir( $opts->{db_base_p}, 'qdf' );
-    $opts->{db_name}   = $db;
+    $opts->{db} = $db;
 }
 
 # Check 'list' and 'init' option first
@@ -109,12 +103,12 @@ if ( defined $list xor defined $init) {
     }
 }
 
-if ( !check_config_paths() ) {
-    print "Configuration not setup properly!\n";
-    print " Run tpda-qrt -init\n";
-    print " and edit the configuration files\n";
-    exit;
-}
+# if ( !check_config_paths() ) {
+#     print "Configuration not setup properly!\n";
+#     print " Run tpda-qrt -init\n";
+#     print " and edit the configuration files\n";
+#     exit;
+# }
 
 #- Other options; add them after check
 $opts->{verbose} = $verbose;
@@ -122,10 +116,7 @@ $opts->{user} = $user;
 $opts->{pass} = $pass;
 
 # Check database option last
-if ( exists $opts->{db_name} ) {
-    $opts->{cfg_name} = locate_configs( $opts->{db_cnf_p} );
-
-    print $opts->{cfg_name}, "\n";
+if ( exists $opts->{db} ) {
 
     # Go and run the app
     use Qrt;

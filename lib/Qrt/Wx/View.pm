@@ -380,7 +380,7 @@ sub create_config_page {
         -1,
         q{Output files path},
     );
-    $self->{output_p} = Wx::TextCtrl->new(
+    $self->{path} = Wx::TextCtrl->new(
         $self->{_nb}{p4},
         -1,
         q{},
@@ -391,7 +391,7 @@ sub create_config_page {
     my $cnf_fgs = Wx::FlexGridSizer->new( 2, 1, 5, 10 );
 
     $cnf_fgs->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{output_p}, 1, wxEXPAND, 0 );
+    $cnf_fgs->Add( $self->{path}, 1, wxEXPAND, 0 );
 
     $cnf_fgs->AddGrowableCol(0);
 
@@ -484,7 +484,7 @@ sub get_controls_conf {
     my $self = shift;
 
     return [
-        { output_p => [ $self->{output_p}, 'disabled', 'lightgrey' ] },
+        { path => [ $self->{path}, 'disabled', 'lightgrey' ] },
     ];
 }
 
@@ -575,10 +575,10 @@ sub list_item_clear_all {
 sub populate_config_page {
     my $self = shift;
 
-    my $cnf = Qrt::Config->new();
-    my $qdf = $cnf->cfg->qdf;    # query definition files
+    my $cnf  = Qrt::Config->new();
+    my $path = $cnf->cfg->output;    # query definition files
 
-    $self->controls_write_page('conf', $qdf );
+    $self->controls_write_page('conf', $path );
 }
 
 sub list_populate_all {

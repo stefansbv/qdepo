@@ -68,7 +68,7 @@ sub cfg {
 sub new_qdf_fqn {
     my ($self, $qdf_fn) = @_;
 
-    my $rdfpath = $self->cfg->options->{db_qdf_p};
+    my $rdfpath = $self->cfg->qdf;
 
     my $rdfpath_qn = catfile($rdfpath, $qdf_fn);
 
@@ -78,7 +78,7 @@ sub new_qdf_fqn {
 sub output_fqn {
     my ($self, $out_fn) = @_;
 
-    my $outdir = $self->cfg->qdf->{output_p};
+    my $outdir = $self->cfg->output->{path};
 
     my $out_qfn = catfile($outdir, $out_fn);
 

@@ -334,15 +334,12 @@ sub report_add {
     # Try to fill the gaps between numbers in file names
     my $files_no = scalar @{$reports_ref};
 
-    my $cnf    = Qrt::Config->new();
-    my $qdfext = $cnf->cfg->qdf->{extension};
-
     # Search for an non existent file name
     my %numbers;
     my $num;
     foreach my $item ( @{$reports_ref} ) {
         my $filename = basename($item);
-        if ( $filename =~ m/raport\-(\d{5})\.$qdfext/ ) {
+        if ( $filename =~ m/raport\-(\d{5})\.qdf/ ) {
             $num = sprintf( "%d", $1 );
             $numbers{$num} = 1;
         }
@@ -368,11 +365,12 @@ sub report_add {
     }
 
     # Create new report definition file
-    my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . ".$qdfext";
+    my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . '.qdf';
 
+    my $cnf = Qrt::Config->new();
     my $qdf = $cnf->cfg->qdf;    # query definition files
 
-    my $src_fqn = $cnf->cfg->options->{cnf_tpl_qn};
+    my $src_fqn = $cnf->cfg->general->{cfg_qdft_qn};
     my $dst_fqn = $cnf->new_qdf_fqn($newrepo_fn);
 
     print " $src_fqn -> $dst_fqn\n";

@@ -27,7 +27,6 @@ package Qrt::FileIO;
 
 use strict;
 use warnings;
-
 use Carp;
 
 use File::Find::Rule;
@@ -99,7 +98,6 @@ sub _process_all_files {
 }
 
 sub _xml_read_simple {
-
     my ($self, $file, $tag) = @_;
 
     return unless $file;
@@ -126,57 +124,44 @@ sub _xml_read_simple {
 }
 
 sub get_file_list {
-
     my $self = shift;
 
     my $cnf = Qrt::Config->new();
-    my $qdf = $cnf->cfg->qdf;    # query definition files
-
-    my $qdfext    = 'qdf';
-    my $qdfpath_p = $cnf->cfg->options->{db_qdf_p};
-
-    if ( ! -d $qdfpath_p ) {
-        print "Wrong path for rdef files:\n$qdfpath_p !\n";
+    my $qdfpath_p = $cnf->cfg->qdf;              # query definition files path
+    if ( !-d $qdfpath_p ) {
+        print "Wrong path for qdf files:\n$qdfpath_p !\n";
         return;
     }
 
     # Report definition files can be arranged in subdirs; recursive find
     my @rapoarte = File::Find::Rule
-        ->name( "*.$qdfext" )
+        ->name( '*.qdf' )
         ->file
         ->nonempty
         ->in($qdfpath_p);
 
     my $nrfisiere = scalar @rapoarte;    # total file number
-
     return \@rapoarte;
 }
 
 sub get_details {
-
     my ($self, $file) = @_;
-
     return $self->_process_file($file, 'report');
 }
 
 sub get_title {
-
     my ($self, $file) = @_;
-
     return $self->_process_file($file, 'title');
 }
 
 sub get_titles {
-
     my ($self) = @_;
-
     return $self->_process_all_files('title');
 }
 
 #-- Update XML
 
 sub xml_update {
-
     my ($self, $file, $rec) = @_;
 
     my $old = $file;
@@ -219,7 +204,6 @@ sub xml_update {
 }
 
 sub _xml_proc_head {
-
     my ( $self, $t, $elt, $rec ) = @_;
 
     # print "Working on ", $elt->tag, "\n";
@@ -235,7 +219,6 @@ sub _xml_proc_head {
 }
 
 sub _xml_proc_body {
-
     my ( $self, $t, $elt, $rec ) = @_;
 
     # print "Working on ", $elt->tag, "\n";
@@ -253,7 +236,6 @@ sub _xml_proc_body {
 }
 
 sub _xml_proc_para {
-
     my ( $self, $t, $elt, $rec ) = @_;
 
     # print "Working on ", $elt->tag, "\n";

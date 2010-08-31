@@ -28,6 +28,8 @@ package Qrt::Wx::ToolBar;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Qrt::Config;
 
 use Wx qw(:everything);
@@ -54,6 +56,7 @@ sub new {
     # Get ToolBar button atributes
     my $cnf = Qrt::Config->new();
     my $attribs = $cnf->cfg->toolbar;
+    $self->{ico_p} = $cnf->cfg->general->{cfg_ico_p};  # Icons path
 
     #-- Sort by id
 
@@ -134,11 +137,10 @@ sub item_check {
 
 sub make_bitmap {
 
-    my ($self, $icon_file) = @_;
+    my ($self, $icon) = @_;
 
-    my $icon = $icon_file;
     my $bmp = Wx::Bitmap->new(
-        "icons/$icon.gif",
+        $self->{ico_p} . "/$icon.gif",
         wxBITMAP_TYPE_GIF,
     );
 

@@ -54,38 +54,38 @@ sub db_connect {
 
     # Connection information from config ??? needs rewrite !!!
     my $cnf = Qrt::Config->new();
-    my $conninfo = $cnf->cfg->conninfo;
+    my $conninfo = $cnf->cfg->connection;
 
-    my $rdbms = $conninfo->{DBMS};
+    my $dbms = $conninfo->{dbms};
 
-    # Select RDBMS; tryed with 'use if', but not shure is better
+    # Select DBMS; tryed with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary
-    if ( $rdbms =~ /Firebird/i ) {
+    if ( $dbms =~ /Firebird/i ) {
         require Qrt::Db::Connection::Firebird;
     }
-    elsif ( $rdbms =~ /Postgresql/i ) {
+    elsif ( $dbms =~ /Postgresql/i ) {
         require Qrt::Db::Connection::Postgresql;
     }
-    elsif ( $rdbms =~ /mysql/i ) {
+    elsif ( $dbms =~ /MySQL/i ) {
         require Qrt::Db::Connection::MySql;
     }
     else {
-        die "Database $rdbms not supported!\n";
+        die "Database $dbms not supported!\n";
     }
 
     # Connect to Database, Select RDBMS
 
-    if ( $rdbms =~ /Firebird/i ) {
+    if ( $dbms =~ /Firebird/i ) {
         $self->{conn} = Qrt::Db::Connection::Firebird->new();
     }
-    elsif ( $rdbms =~ /Postgresql/i ) {
+    elsif ( $dbms =~ /Postgresql/i ) {
         $self->{conn} = Qrt::Db::Connection::Postgresql->new();
     }
-    elsif ( $rdbms =~ /mysql/i ) {
+    elsif ( $dbms =~ /mysql/i ) {
         $self->{conn} = Qrt::Db::Connection::MySql->new();
     }
     else {
-        die "Database $rdbms not supported!\n";
+        die "Database $dbms not supported!\n";
     }
 
     $self->{dbh} = $self->{conn}->conectare(

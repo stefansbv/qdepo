@@ -1,0 +1,12 @@
+# TPDA - QRT
+# User configurations
+# path variable names have a '_p' suffix
+# file names a '_fn' suffix
+---
+connection:
+  driver:   PostgreSQL
+  server:   localhost
+  database: apollo
+  port:     5432
+output:
+  path:     ~/tmp

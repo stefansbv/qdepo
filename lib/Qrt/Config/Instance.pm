@@ -28,10 +28,10 @@ package Qrt::Config::Instance;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use base qw(Class::Singleton Class::Accessor);
 use YAML::Tiny;
+use File::Spec::Functions;
+use File::HomeDir;
 
 our $VERSION = 0.05;
 
@@ -40,8 +40,8 @@ sub _new_instance {
 
     my $self = bless {}, $class;
 
-    # Weak check for parameter validity
-    if ( $args->{cfg_name} ) {
+    # Make accessors once!
+    if ( $args ) {
         $self->_make_accessors($args);
     }
 
@@ -64,39 +64,84 @@ sub _make_accessors {
 sub _merge_configs {
     my ( $self, $args ) = @_;
 
-    # Configs from yaml file
-    my $cnf = $self->_load_yaml_config_file( $args->{db_cnf_fqn} );
+    # Merge all configs into a big hash, so we can create accessors
+    # for every key
 
-    # Check path for output
-    my $output_p = $cnf->{qdf}{output_p};
+    # Configs for database
+    my $cfg = {};
+
+    # Add options from args
+    $cfg->{arg} = $args;
+
+    # General configs
+    my $cfg_gen = $self->_load_yaml_config_file( $args->{cfg_gen} );
+    $cfg->{general} = $self->_extract_configs($cfg_gen, $args->{cfg_path} );
+
+    # Load database configuration
+    my $db_cfg =
+      catfile( $args->{cfg_path}, 'db', $args->{db}, 'etc', 'database.yml' );
+    my $db = $self->_load_yaml_config_file( $db_cfg );
+    # Merge contents to cfg hash
+    $cfg->{connection} = $db->{connection};
+    $cfg->{output} = $db->{output};
+    # Add qdf path
+    $cfg->{qdf} = catdir( $args->{cfg_path}, 'db', $args->{db}, 'qdf' );
+
+    # Expand ~/ to home in output path
+    my $output_p = $cfg->{output}{path};
+    if ($output_p =~ s{^~/}{} ) {
+        my $home = File::HomeDir->my_home;
+        $output_p = catdir($home, $output_p);
+        $cfg->{output}{path} = $output_p;
+    }
+    # Check path
     if ($output_p) {
 
         # Check config early, but don't die, just warn, for now
         if ( !-d $output_p ) {
             warn "\nWARNING: Bad output directory configuration!\n";
-            warn " output_p : $output_p\n";
+            warn " output path : $output_p\n";
         }
     }
     else {
         warn "\nWARNING: No output directory configuration!\n";
     }
 
-    # Add options from args
-    $cnf->{options} = $args;
-
     # Add toolbar atributes to config
-    my $tb_attrs_hr = $self->_load_yaml_config_file( $args->{cnf_tlb_qn} );
-    $cnf->{toolbar} = $tb_attrs_hr->{toolbar};
+    my $tb_attrs_hr =
+      $self->_load_yaml_config_file( $cfg->{general}{cfg_tlb_qn} );
+    $cfg->{toolbar} = $tb_attrs_hr->{toolbar};
 
-    return $cnf;
+    return $cfg;
 }
 
 #--- Utility subs
 
 sub _load_yaml_config_file {
-    my ( $self, $cnf_fqn ) = @_;
+    my ( $self, $cfg_fqn ) = @_;
 
-    return YAML::Tiny::LoadFile( $cnf_fqn );
+    return YAML::Tiny::LoadFile( $cfg_fqn );
+}
+
+sub _extract_configs {
+    my ($self, $cfgs, $path) = @_;
+
+    # Only extract the configs we are interested in
+
+    my $new_cfg = {};
+    foreach my $sec ( keys %{$cfgs} ) {
+        foreach my $cfg ( keys %{ $cfgs->{$sec} } ) {
+            foreach my $key ( keys %{ $cfgs->{$sec}{$cfg} } ) {
+
+                if ( $key eq 'var' ) {
+                    $new_cfg->{ $cfgs->{$sec}{$cfg}{var} } =
+                      catfile( $path, $cfgs->{$sec}{$cfg}{dst} );
+                }
+            }
+        }
+    }
+
+    return $new_cfg;
 }
 
 1;
