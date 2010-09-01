@@ -826,6 +826,8 @@ sub control_set_attr {
 sub control_set_value {
     my ($self, $name, $value) = @_;
 
+    return unless defined $value;
+
     my $ctrl = $self->get_control_by_name($name);
 
     $ctrl->SetValue($value);

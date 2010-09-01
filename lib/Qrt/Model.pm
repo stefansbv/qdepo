@@ -75,8 +75,10 @@ sub db_connect {
 sub _connect {
     my $self = shift;
 
+    my $cnf = Qrt::Config->new();
+
     # Connect to database
-    my $db = Qrt::Db->new(); # user, pass ?
+    my $db = Qrt::Db->new( $cnf->cfg->arg );
 
     # Is connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
@@ -177,7 +179,7 @@ sub run_export {
 
     $self->_print('Running...');
 
-    my $db = Qrt::Db->new(); # user, pass ?
+    my $db = Qrt::Db->new();
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);

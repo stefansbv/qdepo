@@ -38,7 +38,8 @@ sub _new_instance {
 
     my $conn = Qrt::Db::Connection->new( $args );
     my $dbh = $conn->db_connect(
-        # params
+        $args->{user},
+        $args->{pass},
     );
 
     # Some defaults
