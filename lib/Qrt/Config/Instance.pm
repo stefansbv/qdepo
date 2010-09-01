@@ -79,15 +79,15 @@ sub _merge_configs {
 
     # Load database configuration
     my $db_cfg =
-      catfile( $args->{cfg_path}, 'db', $args->{db}, 'etc', 'database.yml' );
+      catfile( $args->{cfg_path}, 'db', $args->{conn}, 'etc', 'database.yml' );
     my $db = $self->_load_yaml_config_file( $db_cfg );
     # Merge contents to cfg hash
     $cfg->{connection} = $db->{connection};
     $cfg->{output} = $db->{output};
     # Add qdf path
-    $cfg->{qdf} = catdir( $args->{cfg_path}, 'db', $args->{db}, 'qdf' );
+    $cfg->{qdf} = catdir( $args->{cfg_path}, 'db', $args->{conn}, 'qdf' );
 
-    # Expand ~/ to home in output path
+    # Expand '~/' to HOME in output path
     my $output_p = $cfg->{output}{path};
     if ($output_p =~ s{^~/}{} ) {
         my $home = File::HomeDir->my_home;

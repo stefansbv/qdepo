@@ -56,36 +56,36 @@ sub db_connect {
     my $cnf = Qrt::Config->new();
     my $conninfo = $cnf->cfg->connection;
 
-    my $dbms = $conninfo->{dbms};
+    my $driver = $conninfo->{driver};
 
     # Select DBMS; tryed with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary
-    if ( $dbms =~ /Firebird/i ) {
+    if ( $driver =~ /Firebird/i ) {
         require Qrt::Db::Connection::Firebird;
     }
-    elsif ( $dbms =~ /Postgresql/i ) {
+    elsif ( $driver =~ /Postgresql/i ) {
         require Qrt::Db::Connection::Postgresql;
     }
-    elsif ( $dbms =~ /MySQL/i ) {
+    elsif ( $driver =~ /MySQL/i ) {
         require Qrt::Db::Connection::MySql;
     }
     else {
-        die "Database $dbms not supported!\n";
+        die "Database $driver not supported!\n";
     }
 
     # Connect to Database, Select RDBMS
 
-    if ( $dbms =~ /Firebird/i ) {
+    if ( $driver =~ /Firebird/i ) {
         $self->{conn} = Qrt::Db::Connection::Firebird->new();
     }
-    elsif ( $dbms =~ /Postgresql/i ) {
+    elsif ( $driver =~ /Postgresql/i ) {
         $self->{conn} = Qrt::Db::Connection::Postgresql->new();
     }
-    elsif ( $dbms =~ /mysql/i ) {
+    elsif ( $driver =~ /mysql/i ) {
         $self->{conn} = Qrt::Db::Connection::MySql->new();
     }
     else {
-        die "Database $dbms not supported!\n";
+        die "Database $driver not supported!\n";
     }
 
     $self->{dbh} = $self->{conn}->conectare(

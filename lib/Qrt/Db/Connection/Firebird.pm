@@ -57,13 +57,13 @@ sub conectare {
 
     my ($self, $conf, $user, $pass) = @_;
 
-    my $dbname  = $conf->{Database};
-    my $server  = $conf->{Server};
-    my $fbport  = $conf->{Port};
-    my $rdbms   = $conf->{DBMS};
+    my $dbname  = $conf->{database};
+    my $server  = $conf->{server};
+    my $fbport  = $conf->{port};
+    my $driver  = $conf->{driver};
     my $dialect = 3;
 
-    print "Connect to the $rdbms server ...\n";
+    print "Connect to the $driver server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";

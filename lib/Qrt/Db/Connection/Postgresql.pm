@@ -56,12 +56,12 @@ sub conectare {
 
     # $pass = undef; # Uncomment when is no password set
 
-    my $dbname = $conf->{Database};
-    my $server = $conf->{Server};
-    my $port   = $conf->{Port};
-    my $rdbms  = $conf->{DBMS};
+    my $dbname = $conf->{database};
+    my $server = $conf->{server};
+    my $port   = $conf->{port};
+    my $driver = $conf->{driver};
 
-    print "Connect to the $rdbms server ...\n";
+    print "Connect to the $driver server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";
