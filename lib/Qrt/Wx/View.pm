@@ -722,6 +722,8 @@ sub status_msg {
 
     my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
                                             # to pass other parameters ;)
+
+    $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
     $self->get_statusbar()->SetStatusText( $text, $sb_id );
 }
 

@@ -74,13 +74,13 @@ sub _merge_configs {
     $cfg->{arg} = $args;
 
     # General configs
-    $self->check_file( $args->{cfg_gen} );
+    $self->check_file( $args->{cfg_gen}, 'die' );
     my $cfg_gen = $self->_load_yaml_config_file( $args->{cfg_gen} );
     $cfg->{general} = $self->_extract_configs( $cfg_gen, $args->{cfg_path} );
 
     # Load database configuration
     my $db_cfg = $self->connection_file($args);
-    $self->check_file($db_cfg);
+    $self->check_file($db_cfg, 'die');
     my $db = $self->_load_yaml_config_file($db_cfg);
 
     # Merge contents to cfg hash
@@ -89,7 +89,7 @@ sub _merge_configs {
 
     # Add qdf path
     $cfg->{qdf} = $self->qdf_path($args);
-    $self->check_path( $cfg->{qdf} );
+    $self->check_path( $cfg->{qdf}, 'die' );
 
     # Expand '~/' to HOME in output path
     my $output_p = $cfg->{output}{path};
@@ -98,7 +98,7 @@ sub _merge_configs {
         $output_p = catdir($home, $output_p);
         $cfg->{output}{path} = $output_p;
     }
-    $self->check_path($output_p);
+    $self->check_path($output_p); # This prevents start if fails !!!
 
     # Add toolbar atributes to config
     my $tb_attrs_hr =
@@ -138,22 +138,26 @@ sub _extract_configs {
 }
 
 sub check_path {
-    my ($self, $path) = @_;
+    my ($self, $path, $fatal) = @_;
 
     if (!-d $path) {
         print "Config error:\n";
         print "  $path does not exist?\n";
-        exit;
+        if ($fatal) {
+            exit;
+        }
     }
 }
 
 sub check_file {
-    my ($self, $file_qn) = @_;
+    my ($self, $file_qn, $fatal) = @_;
 
     if (!-f $file_qn) {
         print "Config error:\n";
         print "  $file_qn does not exist?\n";
-        exit;
+        if ($fatal) {
+            exit;
+        }
     }
 }
 
