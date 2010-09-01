@@ -66,9 +66,9 @@ sub db_connect {
     elsif ( $driver =~ /Postgresql/i ) {
         require Qrt::Db::Connection::Postgresql;
     }
-    elsif ( $driver =~ /MySQL/i ) {
-        require Qrt::Db::Connection::MySql;
-    }
+    # elsif ( $driver =~ /MySQL/i ) {
+    #     require Qrt::Db::Connection::MySql;
+    # }
     else {
         die "Database $driver not supported!\n";
     }
@@ -81,9 +81,9 @@ sub db_connect {
     elsif ( $driver =~ /Postgresql/i ) {
         $self->{conn} = Qrt::Db::Connection::Postgresql->new();
     }
-    elsif ( $driver =~ /mysql/i ) {
-        $self->{conn} = Qrt::Db::Connection::MySql->new();
-    }
+    # elsif ( $driver =~ /mysql/i ) {
+    #     $self->{conn} = Qrt::Db::Connection::MySql->new();
+    # }
     else {
         die "Database $driver not supported!\n";
     }
