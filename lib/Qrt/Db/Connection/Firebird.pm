@@ -59,7 +59,7 @@ sub conectare {
 
     my $dbname  = $conf->{database};
     my $server  = $conf->{server};
-    my $fbport  = $conf->{port};
+    my $port    = $conf->{port};
     my $driver  = $conf->{driver};
     my $dialect = 3;
 
@@ -71,12 +71,14 @@ sub conectare {
     print "  => User     = $user\n";
 
     eval {
-        $self->{DBH} = DBI->connect(
+        $self->{_dbh} = DBI->connect(
             "DBI:InterBase:"
                 . "dbname="
                 . $dbname
                 . ";host="
                 . $server
+                . ";port="
+                . $port
                 . ";ib_dialect="
                 . $dialect,
             $user,
@@ -91,13 +93,13 @@ sub conectare {
     }
     else {
         ## Default format: ISO
-        $self->{DBH}->{ib_timestampformat} = '%y-%m-%d %H:%M';
-        $self->{DBH}->{ib_dateformat}      = '%Y-%m-%d';
-        $self->{DBH}->{ib_timeformat}      = '%H:%M';
+        $self->{_dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
+        $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
+        $self->{_dbh}->{ib_timeformat}      = '%H:%M';
         ## Format: German
-        # $self->{DBH}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
-        # $self->{DBH}->{ib_dateformat}      = '%d.%m.%Y';
-        # $self->{DBH}->{ib_timeformat}      = '%H:%M';
+        # $self->{_dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
+        # $self->{_dbh}->{ib_dateformat}      = '%d.%m.%Y';
+        # $self->{_dbh}->{ib_timeformat}      = '%H:%M';
 
         print "\nConnected to database \'$dbname\'.\n";
         return $self->{_dbh};
