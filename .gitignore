@@ -6,5 +6,4 @@ blib/
 inc/
 *.tmp
 *~
-icons/
 *.sqlite
