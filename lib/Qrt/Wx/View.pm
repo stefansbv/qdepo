@@ -747,10 +747,12 @@ sub params_data_to_hash {
     # Transform data in simple hash reference format
     # Move this to model ???
     my $parameters;
-    foreach my $parameter ( @{ $params } ) {
+    foreach my $parameter ( @{ $params->{parameter} } ) {
         my $id = $parameter->{id};
-        $parameters->{"value$id"} = $parameter->{value};
-        $parameters->{"descr$id"} = $parameter->{descr};
+        if ($id) {
+            $parameters->{"value$id"} = $parameter->{value};
+            $parameters->{"descr$id"} = $parameter->{descr};
+        }
     }
 
     return $parameters;

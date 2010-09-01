@@ -28,8 +28,6 @@ package Qrt::Config::Instance;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use base qw(Class::Singleton Class::Accessor);
 use YAML::Tiny;
 use File::Spec::Functions;
@@ -52,8 +50,6 @@ sub _new_instance {
 
 sub _make_accessors {
     my ( $self, $args ) = @_;
-
-    print Dumper( $args );
 
     my $config_hr = $self->_merge_configs($args);
 

@@ -28,8 +28,6 @@ package Qrt::Wx::ToolBar;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Qrt::Config;
 
 use Wx qw(:everything);

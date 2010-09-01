@@ -27,6 +27,8 @@ package Qrt::FileIO;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
@@ -61,7 +63,7 @@ sub _process_file {
         $data = $self->_xml_read_simple($qdf_file, $tag_name);
     };
     if ($@) {
-        print "$qdf_file: Not valid XML!\n";
+        print "> $qdf_file: Not valid XML!\n";
     } else {
         if (ref $data) {
             $data->{file} = $qdf_file;
@@ -113,8 +115,10 @@ sub _xml_read_simple {
         $xml_data = $twig->parsefile( $file )->simplify(
             forcearray => [ 'parameter' ],
             keyattr    => 'id',
-            group_tags => { parameters => 'parameter', },
         );                      # should parameterize options?
+        # Removed group_tags => { parameters => 'parameter', },
+        # because xml::twig throws an error if no parameters elements
+        # are present
     }
     else {
         croak "Can't find file: $file!\n";
