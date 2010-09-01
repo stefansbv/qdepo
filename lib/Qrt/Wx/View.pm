@@ -795,7 +795,7 @@ sub string_replace_for_run {
     my ( $self, $sqltext, $params ) = @_;
 
     my @bind;
-    foreach my $rec ( @{$params} ) {
+    foreach my $rec ( @{ $params->{parameter} } ) {
         my $value = $rec->{value};
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
