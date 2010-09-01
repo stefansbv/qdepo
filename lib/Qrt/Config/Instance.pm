@@ -33,7 +33,7 @@ use YAML::Tiny;
 use File::Spec::Functions;
 use File::HomeDir;
 
-our $VERSION = 0.05;
+our $VERSION = 0.10;
 
 sub _new_instance {
     my ($class, $args) = @_;
@@ -74,18 +74,22 @@ sub _merge_configs {
     $cfg->{arg} = $args;
 
     # General configs
+    $self->check_file( $args->{cfg_gen} );
     my $cfg_gen = $self->_load_yaml_config_file( $args->{cfg_gen} );
-    $cfg->{general} = $self->_extract_configs($cfg_gen, $args->{cfg_path} );
+    $cfg->{general} = $self->_extract_configs( $cfg_gen, $args->{cfg_path} );
 
     # Load database configuration
-    my $db_cfg =
-      catfile( $args->{cfg_path}, 'db', $args->{conn}, 'etc', 'database.yml' );
-    my $db = $self->_load_yaml_config_file( $db_cfg );
+    my $db_cfg = $self->connection_file($args);
+    $self->check_file($db_cfg);
+    my $db = $self->_load_yaml_config_file($db_cfg);
+
     # Merge contents to cfg hash
     $cfg->{connection} = $db->{connection};
-    $cfg->{output} = $db->{output};
+    $cfg->{output}     = $db->{output};
+
     # Add qdf path
-    $cfg->{qdf} = catdir( $args->{cfg_path}, 'db', $args->{conn}, 'qdf' );
+    $cfg->{qdf} = $self->qdf_path($args);
+    $self->check_path( $cfg->{qdf} );
 
     # Expand '~/' to HOME in output path
     my $output_p = $cfg->{output}{path};
@@ -94,18 +98,7 @@ sub _merge_configs {
         $output_p = catdir($home, $output_p);
         $cfg->{output}{path} = $output_p;
     }
-    # Check path
-    if ($output_p) {
-
-        # Check config early, but don't die, just warn, for now
-        if ( !-d $output_p ) {
-            warn "\nWARNING: Bad output directory configuration!\n";
-            warn " output path : $output_p\n";
-        }
-    }
-    else {
-        warn "\nWARNING: No output directory configuration!\n";
-    }
+    $self->check_path($output_p);
 
     # Add toolbar atributes to config
     my $tb_attrs_hr =
@@ -142,6 +135,39 @@ sub _extract_configs {
     }
 
     return $new_cfg;
+}
+
+sub check_path {
+    my ($self, $path) = @_;
+
+    if (!-d $path) {
+        print "Config error:\n";
+        print "  $path does not exist?\n";
+        exit;
+    }
+}
+
+sub check_file {
+    my ($self, $file_qn) = @_;
+
+    if (!-f $file_qn) {
+        print "Config error:\n";
+        print "  $file_qn does not exist?\n";
+        exit;
+    }
+}
+
+sub connection_file {
+    my ( $self, $args ) = @_;
+
+    return catfile( $args->{cfg_path}, 'db', $args->{conn}, 'etc',
+        'connection.yml' );
+}
+
+sub qdf_path {
+    my ( $self, $args ) = @_;
+
+    return catdir( $args->{cfg_path}, 'db', $args->{conn}, 'qdf' );
 }
 
 1;

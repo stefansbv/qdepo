@@ -103,14 +103,7 @@ if ( defined $list xor defined $init) {
     }
 }
 
-# if ( !check_config_paths() ) {
-#     print "Configuration not setup properly!\n";
-#     print " Run tpda-qrt -init\n";
-#     print " and edit the configuration files\n";
-#     exit;
-# }
-
-#- Other options; add them after check
+#- Other options
 $opts->{verbose} = $verbose;
 $opts->{user} = $user;
 $opts->{pass} = $pass;
@@ -132,85 +125,95 @@ pod2usage(1);
 
 #-- Subs
 
+#-
+
 sub init_configs {
     my $cfg_name = shift;
 
-    create_tree($cfg_name);
-    copy_defaults($cfg_name);
+    if ( !$cfg_name ) {
+        pod2usage(1);
+    }
+
+    my $etc_dir = create_path($cfg_name);
+    copy_template($etc_dir);
 }
 
-sub check_config_paths {
+sub create_path {
+    my $cfg_name = shift;
 
-    foreach my $item ( keys %{$opts} ) {
+    my $cfg_dir = catdir( $opts->{cfg_path}, 'db' );
 
-        # print ' : ', $item, '->', $opts->{$item}, "\n";
+    my $etc_dir = catdir($cfg_dir, $cfg_name, 'etc');
+    my $qdf_dir = catdir($cfg_dir, $cfg_name, 'qdf');
 
-        if ( $item =~ m{_p$} ) {
-            check_path( $opts->{$item} );
+    make_path(
+        $etc_dir, $qdf_dir,
+        { error => \my $err }
+    );
+    if (@$err) {
+        for my $diag (@$err) {
+            my ($file, $message) = %$diag;
+            if ($file eq '') {
+                print "Error: $message\n";
+            }
+            else {
+                print "$file: $message\n";
+            }
         }
-        elsif ( $item =~ m{_qn$} ) {
-            check_file( $opts->{$item} );
-        }
     }
 
-    return 1;
+    return $etc_dir;
 }
 
-sub check_path {
-    my $path = shift;
+sub copy_template {
+    my $etc_dir = shift;
 
-    if (!-d $path) {
-        print "Config error:\n";
-        print "  $path does not exist?\n";
-        exit;
+    # Copying template file
+
+    my $tmpl_dir = catdir( $opts->{cfg_path}, 'etc', 'template' );
+    my $tmpl_fqn = catfile( $tmpl_dir, 'connection.yml' );
+
+    my $etc_fqn =  catfile( $etc_dir, 'connection.yml' );
+    if (-f $etc_fqn ) {
+        print "Connection configuration exists, can't overwrite.\n";
+        print ":> $etc_fqn\n";
+        return;
     }
+
+    copy_files($tmpl_fqn, $etc_dir);
 }
 
-sub check_file {
-    my $file_qn = shift;
+sub copy_files {
+    my ($src_fqn, $dst_p) = @_;
 
-    if (!-f $file_qn) {
-        print "Config error:\n";
-        print "  $file_qn does not exist?\n";
-        exit;
+    if ( !-f $src_fqn ) {
+        print "Source not found:\n $src_fqn\n";
+        print "Use script/setup-cfg.pl to initialize the config path!\n";
+        return;
     }
+    if ( !-d $dst_p ) {
+        print "Destination path not found:\n $dst_p\n";
+        return;
+    }
+
+    # print "$src_fqn > $dst_p\n";
+    copy( $src_fqn, $dst_p ) or die $!;
 }
+
+#-
 
 sub list_configs {
 
-    my $dir = $opts->{db_root_p};
+    my $dir = catdir( $opts->{cfg_path}, 'db' );
 
     my $conn_list = find_subdirs($dir);
 
     foreach my $cfg_name ( @{$conn_list} ) {
-        print " - $cfg_name\n";
-        my $conn_cnf_qn = catdir( $dir, $cfg_name, 'etc' );
-        my $configs = locate_configs($conn_cnf_qn);
-        if ( ref $configs ) {
-            foreach my $config ( @{$configs} ) {
-                print "   : $config\n";
-            }
+        my $tmpl_fqn = catfile( $dir, $cfg_name, 'etc', 'connection.yml' );
+        # If connection file exist than list an connection
+        if (-f $tmpl_fqn) {
+            print " > $cfg_name\n";
         }
-        else {
-            print "   : $configs\n";
-        }
-    }
-}
-
-sub locate_configs {
-    my $dir = shift;
-
-    my $cfg_fn = find_config_files($dir);
-
-    # Number of config files found
-    my $no_cfg = scalar @{$cfg_fn};
-     if ( $no_cfg == 1 ) {
-        $opts->{db_cnf_fqn} = catfile( $opts->{db_cnf_p}, $cfg_fn->[0] );
-        return $cfg_fn->[0];
-    }
-    else {
-        # Multiple config files
-        return $cfg_fn;
     }
 }
 
@@ -238,92 +241,6 @@ sub find_subdirs {
     return \@dbs;
 }
 
-sub find_config_files {
-
-    my $dir = shift;
-
-    my @files = File::Find::Rule
-        ->mindepth(1)
-        ->maxdepth(1)
-        ->relative
-        ->file->name( '*.yml' )
-        ->in( $dir );
-
-    return \@files;
-}
-
-sub create_tree {
-    my $cfg_name = shift;
-
-    my $cfg_dir = $opts->{cnf_p};
-
-    make_path(
-        "$cfg_dir/db/$cfg_name/etc", "$cfg_dir/db/$cfg_name/qdf",
-        "$cfg_dir/etc/interfaces",   "$cfg_dir/etc/template",
-        { error => \my $err }
-    );
-    if (@$err) {
-        for my $diag (@$err) {
-            my ($file, $message) = %$diag;
-            if ($file eq '') {
-                print "Error: $message\n";
-            }
-            else {
-                print "$file: $message\n";
-            }
-        }
-    }
-    else {
-        print "Configuration tree initialized\n";
-    }
-}
-
-sub copy_defaults {
-    my $cfg_name = shift;
-
-    my $cwd  = getcwd();
-    my $home = File::HomeDir->my_home;
-
-    my $cfg_dir = $opts->{cnf_p};
-
-    print "Copying configuration files\n";
-
-    my $src1_fqn = catdir( $cwd, 'share/config/interfaces/toolbar.yml' );
-    my $dst1_p   = catdir( $cfg_dir, 'etc/interfaces' );
-    copy_files($src1_fqn, $dst1_p);
-
-    my $src2_fqn = catdir( $cwd, 'share/template/tpda-qrt.yml' );
-    my $dst2_p   = catdir( $cfg_dir, 'db', $cfg_name, 'etc' );
-    copy_files($src2_fqn, $dst2_p);
-
-    my $src3_fqn = catdir( $cwd, 'share/template/template.qdf' );
-    my $dst3_p   = catdir( $cfg_dir, '/etc/template' );
-    copy_files($src3_fqn, $dst3_p);
-}
-
-sub copy_files {
-    my ($src_fqn, $dst_p) = @_;
-
-    if ( !-f $src_fqn ) {
-        print "Source not found:\n $src_fqn\n";
-        return;
-    }
-    if ( !-d $dst_p ) {
-        print "Destination path not found:\n $dst_p\n";
-        return;
-    }
-
-    my ($file) = fileparse($src_fqn);
-    my $dst_fqn = catfile($dst_p, $file);
-    if ( -f $dst_fqn ) {
-        print "skipping $src_fqn\n";
-        return;
-    }
-
-    # Copy if we got this far
-    print "$src_fqn -> $dst_p\n";
-    copy( $src_fqn, $dst_p ) or die $!;
-}
 
 __END__
 
@@ -333,15 +250,15 @@ tpda-qrt - TPDA - Query Repository Tool
 
 =head1 SYNOPSIS
 
-tpda-qrt -init <config_name>
+tpda-qrt -init <connection>
 
-tpda-qrt <config_name> [-user <user> [-password <pass>]]
+tpda-qrt <connection> [-user <user> [-password <pass>]]
 
 tpda-qrt -list
 
 Options:
 
- -init <config_name>   Initialize (create) configuration tree
+ -init <connection>   Initialize (create) configuration path
  -list                 List available configuration names and files
  -user                 User name
  -password             Password
@@ -355,25 +272,48 @@ TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
 and query repository management. Queries are saved in XML files and
 can be edited and parametrized.
 
+=head2 Configuration
+
+A configuration name is the name of the directory underneath the
+B<.tpda-qrt/db/ > path.  This directory contains two other directories
+B<etc> and B<qdf>. The B<etc> directory contains a file named
+B<connection.yml>.  This file has to be updated with the connection
+configuration for your database.  The other directory named B<qdf> is
+the place where your query definition files are stored.  This files
+can be created and updated with the GUI or can be copied from existing
+repositories.
+
+Configuration files are in YAML format, the format described in the
+documentation of the YAML::Tiny module.
+
+=head2 Quick start
+
+After installing the application, the first step is to run the
+B<setup-cfg> script from the B<script> directory to initialize the
+user configuration tree in the user's home directory.
+
+Next, run B<tpda-qrt> with the b<-init> option to create the path for
+the connection and query definition files.
+
+Last step is to run B<tpda-qrt> with the connection name created at
+the previous step as argument, create new B<qdf> files and use them to
+export data from the tables in the formats currently supported.
+
+Have fun!
+
 =head1 OPTIONS DETAILS
 
 =over
 
-=item B<-init> <config_name>
+=item B<-init> <connection>
 
-Initialize (create) configuration tree and copy the default
-configuration files.  A configuration name is required.
-
-A configuration name is the name of the directory underneath the
-'.tpda-qrt/db/ ' path.  This directory can contain one or more
-configuration files.  The configuration files are in YAML format, the
-format described in the documentation of the YAML::Tiny module.
+Initialize (create) configuration paths and created default
+configuration files from template.  A connection name is required.
 
 =item B<-list>
 
-List all configuration names and configuration file names.  Usually a
-configuration name is the same as the database name, but this is not a
-requirement.
+List all configuration names.  Usually a configuration name is the
+same as the database name, but this is not a requirement.
 
 =item B<-user>
 

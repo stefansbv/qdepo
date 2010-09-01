@@ -23,11 +23,11 @@ configs:
     dst: etc/template/template.qdf
     var: cfg_qdft_qn
   database:
-    src: template/database.yml
-    dst: etc/template/database.yml
+    src: template/connection.yml
+    dst: etc/template/connection.yml
     var: cfg_dbt_p
 icons:
-  icon:
+  path:
     src: config/interfaces/icons
     dst: etc/interfaces/icons
     var: cfg_ico_p

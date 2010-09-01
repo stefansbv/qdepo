@@ -1,4 +1,12 @@
 #!/usr/bin/perl
+#
+# Script to create the initial configuration tree for tpda-qrt.
+#
+# This uses the information from the general.yml file to create the
+# tree and copy the template files.  The goal was to describe that
+# tree only in the YAML file, and use it all over the place, but for
+# now there is redundant info used in tpda-qrt script and in the
+# Qrt::Config::Instance.pm module
 
 use strict;
 use warnings;
