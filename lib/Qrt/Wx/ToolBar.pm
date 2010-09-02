@@ -161,6 +161,8 @@ sub item_list {
         # wxCB_SORT,
     );
 
+    $output->SetStringSelection($self->{options}[0]); # Explicit default
+
     $self->AddControl( $output );
 
     $self->AddSeparator if $attribs->{sep} =~ m{after};
@@ -176,7 +178,7 @@ sub get_choice_options {
 
     # Options for Wx::Choice from the ToolBar
     # Default is Excel with idx = 0
-    $self->{options} = [ 'Excel', 'Calc', 'Writer', 'CSV' ];
+    $self->{options} = [ 'Calc', 'CSV', 'Excel' ];
 
     if (defined $index) {
         return $self->{options}[$index];
