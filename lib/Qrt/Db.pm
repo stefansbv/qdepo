@@ -27,6 +27,8 @@ package Qrt::Db;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use Qrt::Db::Instance;
@@ -235,21 +237,18 @@ sub generate_output_calc {
     my $dbh = $self->dbh();
 
     my $doc;
-    # Need the first part of the query to build a counting select
+    # Need the last part of the query to build a counting select
     # first to create new spreadsheet with predefined dimensions
-    my ($from) = $sql =~ m/FROM.+?$/ixmg; # Needs more testing?
-    # print "From: $from\n";
+    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # Needs more testing!!!
 
     #--- Count
 
-    my $cnt_sql = 'SELECT COUNT(*) ' . $from;
+    my $cnt_sql = 'SELECT COUNT(*) FROM ' . $from;
+    # print "\nsql=",$cnt_sql,"\n\n";
 
-    print "sql=",$cnt_sql,"\n";
-
-    my $rows;
-    my $error = 0; # Error flag
+    my $rows_cnt;
     eval {
-        my $sth = $dbh->prepare($sql);
+        my $sth = $dbh->prepare($cnt_sql);
 
         # Bind parameters
         foreach my $params ( @{$bind} ) {
@@ -257,18 +256,17 @@ sub generate_output_calc {
             $sth->bind_param($p_num, $data);
         }
 
-        ($rows) = $dbh->selectrow_array( $cnt_sql );
+        my @cols = $dbh->selectrow_array( $sth );
+        $rows_cnt = $cols[0] + 1;         # One more for the header
     };
     if ($@) {
         warn "Transaction aborted because $@";
-        $error++;
-
-        # Return error early
-        return $error;
+        return 1;
     }
 
     #--- Select
 
+    my $error = 0; # Error flag
     eval {
         my $sth = $dbh->prepare($sql);
 
@@ -285,7 +283,7 @@ sub generate_output_calc {
         # Create new spreadsheet with predefined dimensions
         my $cols = scalar @{ $sth->{NAME} };
 
-        $doc = Qrt::Output::Calc->new($outfile, $rows, $cols);
+        $doc = Qrt::Output::Calc->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record
         $doc->init_lengths( $sth->{NAME} );
