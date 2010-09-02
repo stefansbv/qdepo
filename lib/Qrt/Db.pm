@@ -27,8 +27,6 @@ package Qrt::Db;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use Qrt::Db::Instance;
@@ -119,7 +117,6 @@ sub generate_output_excel {
     eval {
         my $sth = $dbh->prepare($sql);
 
-        # Bind parameters
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
@@ -185,7 +182,6 @@ sub generate_output_csv {
     eval {
         my $sth = $dbh->prepare($sql);
 
-        # Bind parameters
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
@@ -250,7 +246,6 @@ sub generate_output_calc {
     eval {
         my $sth = $dbh->prepare($cnt_sql);
 
-        # Bind parameters
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
@@ -270,7 +265,6 @@ sub generate_output_calc {
     eval {
         my $sth = $dbh->prepare($sql);
 
-        # Bind parameters
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
@@ -279,10 +273,9 @@ sub generate_output_calc {
         $sth->execute();
 
         my $row = 0;
-
-        # Create new spreadsheet with predefined dimensions
         my $cols = scalar @{ $sth->{NAME} };
 
+        # Create new spreadsheet with predefined dimensions
         $doc = Qrt::Output::Calc->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record

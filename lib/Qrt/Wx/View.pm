@@ -28,8 +28,6 @@ package Qrt::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 # use Wx::Event  qw[:everything];
@@ -738,7 +736,10 @@ sub process_sql {
         $data->{parameters},
     );
 
-    $self->_model->run_export($data->{header}{output}, $bind, $sqltext);
+    if ($bind and $sqltext) {
+        $self->_model->run_export(
+            $data->{header}{output}, $bind, $sqltext);
+    }
 }
 
 #-- utils
@@ -796,14 +797,25 @@ sub string_replace_for_run {
 
     my ( $self, $sqltext, $params ) = @_;
 
+    # Need to check if number of params match number of 'value[0-9]'
+    # strings in SQL statement text and throw an error if not
     my @bind;
     foreach my $rec ( @{ $params->{parameter} } ) {
         my $value = $rec->{value};
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
-        $sqltext =~ s/($var)/\?/pm;
+        unless ( $sqltext =~ s/($var)/\?/pm ) {
+            print "Parameter number > 'value[0-9]' number in SQL!\n";
+            return;
+        }
 
         push( @bind, [ $p_num, $value ] );
+    }
+
+    # Check for remaining not substituted 'value[0-9]' in SQL
+    if ( $sqltext =~ m{(value[0-9])}pm ) {
+        print "Parameter number < 'value[0-9]' number in SQL!\n";
+        return;
     }
 
     return ( \@bind, $sqltext );

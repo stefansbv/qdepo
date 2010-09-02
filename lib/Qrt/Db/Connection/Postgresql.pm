@@ -88,7 +88,7 @@ sub conectare {
 
     if ($@) {
         warn "$@";
-        return undef;
+        return;
     }
     else {
         print "\nConnected to database \'$dbname\'.\n";
