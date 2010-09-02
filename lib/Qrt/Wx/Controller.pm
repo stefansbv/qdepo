@@ -216,29 +216,21 @@ sub toggle_controls {
 
     my $is_edit = $self->_model->is_editmode ? 1 : 0;
 
-    # Tool buttons
-    my $tb_btn;
+    # Tool buttons states
+    my $states = {
+        tb_cn => !$is_edit,
+        tb_sv => $is_edit,
+        tb_rf => !$is_edit,
+        tb_ad => !$is_edit,
+        tb_rm => !$is_edit,
+        tb_ls => !$is_edit,
+        tb_go => !$is_edit,
+        tb_qt => !$is_edit,
+    };
 
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_sv');
-    $self->{_toolbar}->EnableTool( $tb_btn, $is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_rf');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_ad');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_rm');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_ls');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_go');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
-    #
-    $tb_btn = $self->_view->get_toolbar_btn_id('tb_qt');
-    $self->{_toolbar}->EnableTool( $tb_btn, !$is_edit );
+    foreach my $btn ( keys %{$states} ) {
+        $self->toggle_controls_tb( $btn, $states->{$btn} );
+    }
 
     # List control
     $self->{_list}->Enable(!$is_edit);
@@ -247,6 +239,13 @@ sub toggle_controls {
     foreach my $page (qw(para list sql conf)) {
         $self->toggle_controls_page($page, $is_edit);
     }
+}
+
+sub toggle_controls_tb {
+    my ( $self, $btn_name, $status ) = @_;
+
+    my $tb_btn = $self->_view->get_toolbar_btn_id($btn_name);
+    $self->{_toolbar}->EnableTool( $tb_btn, $status );
 }
 
 sub toggle_controls_page {
