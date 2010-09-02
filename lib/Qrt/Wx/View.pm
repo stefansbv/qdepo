@@ -30,7 +30,7 @@ use warnings;
 
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
-# use Wx::Event  qw[:everything];
+use Wx::STC;
 
 use Qrt::Config;
 use Qrt::Wx::Notebook;
@@ -103,7 +103,7 @@ sub _set_model_callbacks {
     $em->add_callback(
         sub {
             $tb->ToggleTool( $self->get_toolbar_btn_id('tb_ed'), $_[0] );
-            $self->toggle_sql_highlight();
+            $self->toggle_sql_replace();
         }
     );
     #--
@@ -350,19 +350,97 @@ sub create_sql_page {
 
     my $sql_sb = Wx::StaticBox->new( $self->{_nb}{p3}, -1, ' SQL ', );
 
-    $self->{sql} = Wx::TextCtrl->new(
-        $self->{_nb}{p3}, -1, q{},
+    $self->{sql} = Wx::StyledTextCtrl->new(
+        $self->{_nb}{p3},
+        -1,
         [ -1, -1 ],
         [ -1, -1 ],
-        wxTE_MULTILINE | wxTE_RICH2,
     );
+
+    $self->{sql}->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
+    $self->{sql}->SetMarginWidth( 1, 10 );
+    $self->{sql}->StyleSetFont( wxSTC_STYLE_DEFAULT,
+        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
+    $self->{sql}->SetLexer( wxSTC_LEX_MSSQL );
+    $self->{sql}->SetKeyWords(0,
+    q{all and any ascending between by cast collate containing count day
+descending distinct escape exists from full gen_id group having in
+index inner into is join left like max merge min month natural not
+null on order outer plan right select singular some sort starting sum
+transaction union upper user where with year} );
+    $self->{sql}->SetKeyWords(1,
+    q{blob char decimal integer number varchar} );
+    $self->{sql}->SetKeyWords(2,
+    q{avg} );
+    $self->{sql}->SetTabWidth(4);
+    $self->{sql}->SetIndent(4);
+    $self->{sql}->SetHighlightGuide(4);
+
+    # Global default styles for all languages
+    $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACELIGHT,
+                                "fore:#FFFFFF,back:#0000FF,bold" );
+    $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACEBAD,
+                                "fore:#000000,back:#FF0000,bold" );
+
+    #- Stolen from Kephra, ;) Thanks!
+    $self->{sql}->StyleClearAll();
+    # $self->{sql}->StyleSetSpec(0, "fore:#800080");              # Default
+    # $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       # Comment
+    # $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       # Commentline
+    # $self->{sql}->StyleSetSpec(3, "fore:#00ff00");              # Commentdoc
+    # $self->{sql}->StyleSetSpec(4, "fore:#0000ff");              # Number
+    # $self->{sql}->StyleSetSpec(5, "fore:#7979ff");              # Word
+    # $self->{sql}->StyleSetSpec(6, "fore:#0000ff,back:#ddeecc"); # Doublequoted string
+    # $self->{sql}->StyleSetSpec(7, "fore:#ff00ff,back:#eeeebb"); # Singlequoted character
+    # $self->{sql}->StyleSetSpec(8, "fore:#ff0000");              # sqlplus
+    # $self->{sql}->StyleSetSpec(9, "fore:#ff0000");              # sqlplus_prompt
+    # $self->{sql}->StyleSetSpec(10,"fore:#00ff00,bold");         # Operators
+    # $self->{sql}->StyleSetSpec(11,"fore:#000000");              # identifier
+    # $self->{sql}->StyleSetSpec(12,"fore:#000000"); # Global variable?
+    # $self->{sql}->StyleSetSpec(13,"fore:#00FFf0"); # sqlplus_comment
+    # #define wxSTC_SQL_COMMENTLINEDOC 15
+    # $self->{sql}->StyleSetSpec(15,"fore:#FF0000,back:#0000bb"); #
+    # #define wxSTC_SQL_WORD2 16
+    # $self->{sql}->StyleSetSpec(16,"fore:#FF0000,back:#0000bb"); #
+    # #define wxSTC_SQL_COMMENTDOCKEYWORD 17
+    # $self->{sql}->StyleSetSpec(17,"fore:#0000FF,back:#FF0000"); #
+    # #define wxSTC_SQL_COMMENTDOCKEYWORDERROR 18
+    # #define wxSTC_SQL_USER1 19
+    # #define wxSTC_SQL_USER2 20
+    # #define wxSTC_SQL_USER3 21
+    # #define wxSTC_SQL_USER4 22
+    # #define wxSTC_SQL_QUOTEDIDENTIFIER 23
+    # $self->{sql}->StyleSetSpec(23,"fore:#0000FF,back:#FF0000"); #
+
+    # MSSQL
+    $self->{sql}->StyleSetSpec(0, "fore:#dcdccc");              # Default
+    $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       #*Comment
+    $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       #*Commentline
+    $self->{sql}->StyleSetSpec(3, "fore:#3f3f3f");              #*Number
+    $self->{sql}->StyleSetSpec(4, "fore:#705050");              #*Quoted string
+    $self->{sql}->StyleSetSpec(5, "fore:#60b48A");              #*Operator
+    $self->{sql}->StyleSetSpec(6, "fore:#dc8cc3");              #*Identifier
+    $self->{sql}->StyleSetSpec(7, "fore:#8cd1d3");              #* @Variable
+    $self->{sql}->StyleSetSpec(8, "fore:#dfaf8f");              #*Double quoted
+    $self->{sql}->StyleSetSpec(9, "fore:#ff0000");              # Statement
+    $self->{sql}->StyleSetSpec(10,"fore:#506070");              #*Datatype
+    $self->{sql}->StyleSetSpec(11,"fore:#000000");              # Systable
+    $self->{sql}->StyleSetSpec(12,"fore:#000000");              # Global var
+    $self->{sql}->StyleSetSpec(13,"fore:#000000");              # Function
+    $self->{sql}->StyleSetSpec(14,"fore:#000000,back:#0000bb"); # Procedure
+    $self->{sql}->StyleSetSpec(15,"fore:#000000,back:#0000bb"); # Pref datatype
+    $self->{sql}->StyleSetSpec(16,"fore:#000000,back:#FF0000"); # Column name 2
+
+    # $self->{sql}->StyleSetSpec(12,
+    #     "fore:#000000,$(font.monospace),back:#E0C0E0,eolfilled" )
+    #     ;    # End of line where string is not closed
 
     #-- Layout
 
     my $sql_main_sz = Wx::BoxSizer->new(wxVERTICAL);
     my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxHORIZONTAL, );
 
-    $sql_sbs->Add( $self->{sql},      1, wxEXPAND,         0 );
+    $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
 
     $self->{_nb}{p3}->SetSizer( $sql_main_sz );
@@ -637,7 +715,7 @@ sub get_detail_data {
 }
 
 sub controls_populate {
-    my ($self) = @_;
+    my $self = shift;
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
@@ -655,64 +733,36 @@ sub controls_populate {
     $self->controls_write_page('para', $params );
 
     #-- SQL
-    $self->controls_write_page( 'sql', $ddata_ref->{body} );
+    $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
 
     #--- Highlight SQL parameters
-    $self->toggle_sql_highlight();
+    $self->toggle_sql_replace();
 }
 
-sub toggle_sql_highlight {
+sub toggle_sql_replace {
     my $self = shift;
 
     #- Detail data
-    my ($ddata, $file_fqn) = $self->get_detail_data();
+    my ( $ddata, $file_fqn ) = $self->get_detail_data();
 
     #-- Parameters
     my $params = $self->params_data_to_hash( $ddata->{parameters} );
 
     if ( $self->_model->is_editmode ) {
-        $self->control_highlight_text($ddata->{body}{sql}, $params );
+        $self->control_set_value( 'sql', $ddata->{body}{sql} );
     }
     else {
-        $self->control_replace_highlight_text($ddata->{body}{sql}, $params );
+        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
     }
 }
 
-sub control_replace_highlight_text {
+sub control_replace_sql_text {
     my ($self, $sqltext, $params) = @_;
 
     my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
 
     # Write new text to control
     $self->control_set_value('sql', $newtext);
-
-    foreach my $position ( @{$positions} ) {
-
-        my ($beg, $var, $str) = @{$position};
-        my $end = $beg + length($str);
-
-        if ( $beg > 0 and $end > 0 ) {
-            $self->control_set_attr( $beg, $end, 'orange', 'lightgrey' );
-        }
-    }
-}
-
-sub control_highlight_text {
-    my ($self, $sqltext, $para_ref) = @_;
-
-    # Write text to control ???
-    $self->control_set_value('sql', $sqltext);
-
-    while (my ($key, $value) = each ( %{$para_ref} ) ) {
-
-        next unless $key =~ m{value[0-9]}; # Skip 'descr'
-
-        # Find the positions of the string 'value[0-9]' in SQL text
-        my ( $beg, $end ) = $self->string_match_pos( $sqltext, $key );
-        if ( $beg >= 0 and $end > 0 ) {
-            $self->control_set_attr( $beg, $end, 'red', 'white' );
-        }
-    }
 }
 
 sub status_msg {
@@ -726,7 +776,6 @@ sub status_msg {
 }
 
 sub process_sql {
-
     my $self = shift;
 
     my ($data, $file_fqn, $item) = $self->get_detail_data();
@@ -824,20 +873,20 @@ sub string_replace_for_run {
 # end utils
 #
 
-sub control_set_attr {
-    my ($self, $beg, $end, $fgcolor, $bgcolor) = @_;
+# sub control_set_attr {
+#     my ($self, $beg, $end, $fgcolor, $bgcolor) = @_;
 
-    my $ctrl = $self->get_control_by_name('sql');
+#     my $ctrl = $self->get_control_by_name('sql');
 
-    $ctrl->SetStyle(
-        $beg,
-        $end,
-        Wx::TextAttr->new(
-            Wx::Colour->new($fgcolor),
-            Wx::Colour->new($bgcolor),
-        )
-      );
-}
+#     $ctrl->SetStyle(
+#         $beg,
+#         $end,
+#         Wx::TextAttr->new(
+#             Wx::Colour->new($fgcolor),
+#             Wx::Colour->new($bgcolor),
+#         )
+#       );
+# }
 
 sub control_set_value {
     my ($self, $name, $value) = @_;
@@ -846,7 +895,11 @@ sub control_set_value {
 
     my $ctrl = $self->get_control_by_name($name);
 
-    $ctrl->SetValue($value);
+    $ctrl->ClearAll;
+    $ctrl->AppendText($value);
+    $ctrl->AppendText( "\n" );
+    $ctrl->Colourise( 0, $ctrl->GetTextLength );
+
 }
 
 sub controls_write_page {
@@ -884,7 +937,14 @@ sub controls_read_page {
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-            my $value = $control->{$name}[0]->GetValue();
+            my $value;
+            if ($page ne 'sql') {
+                $value = $control->{$name}[0]->GetValue();
+            }
+            else {
+                $value = $control->{$name}[0]->GetText();
+            }
+
             push(@records, { $name => $value } ) if ($name and $value);
         }
     }
@@ -914,7 +974,11 @@ sub save_query_def {
 
 __END__
 
-=BUGS
+=pod
+
+=item BUGS
 
 Can't change style for TextCtrl, styles are suported only for
 multiline text controls!
+
+=cut

@@ -236,8 +236,8 @@ sub toggle_controls {
     $self->{_list}->Enable(!$is_edit);
 
     # Controls by page Enabled in edit mode
-    foreach my $page (qw(para list sql conf)) {
-        $self->toggle_controls_page($page, $is_edit);
+    foreach my $page ( qw(para list conf sql ) ) {
+        $self->toggle_controls_page( $page, $is_edit );
     }
 }
 
@@ -271,7 +271,13 @@ sub toggle_controls_page {
                 $editable = $state eq 'normal' ? 1 : 0;
             }
 
-            $control->{$name}->[0]->SetEditable($editable);
+            if ($page ne 'sql') {
+                $control->{$name}->[0]->SetEditable($editable);
+            }
+            else {
+                $control->{$name}->[0]->Enable($editable);
+            }
+
             $control->{$name}->[0]->SetBackgroundColour(
                 Wx::Colour->new( $color ),
             );
