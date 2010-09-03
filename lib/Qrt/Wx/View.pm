@@ -361,20 +361,26 @@ sub create_sql_page {
     $self->{sql}->SetMarginWidth( 1, 10 );
     $self->{sql}->StyleSetFont( wxSTC_STYLE_DEFAULT,
         Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
+    # $self->{sql}->SetLexer( wxSTC_LEX_SQL );
     $self->{sql}->SetLexer( wxSTC_LEX_MSSQL );
+    # List0
     $self->{sql}->SetKeyWords(0,
-    q{all and any ascending between by cast collate containing count day
-descending distinct escape exists from full gen_id group having in
-index inner into is join left like max merge min month natural not
-null on order outer plan right select singular some sort starting sum
+    q{all and any ascending between by cast collate containing day
+descending distinct escape exists from full group having in
+index inner into is join left like merge month natural not
+null on order outer plan right select singular some sort starting
 transaction union upper user where with year} );
+    # List1
     $self->{sql}->SetKeyWords(1,
     q{blob char decimal integer number varchar} );
+    # List2 Only for MSSQL?
     $self->{sql}->SetKeyWords(2,
-    q{avg} );
+    q{avg count gen_id max min sum} );
     $self->{sql}->SetTabWidth(4);
     $self->{sql}->SetIndent(4);
     $self->{sql}->SetHighlightGuide(4);
+
+    $self->{sql}->StyleClearAll();
 
     # Global default styles for all languages
     $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACELIGHT,
@@ -382,58 +388,30 @@ transaction union upper user where with year} );
     $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACEBAD,
                                 "fore:#000000,back:#FF0000,bold" );
 
-    #- Stolen from Kephra, ;) Thanks!
-    $self->{sql}->StyleClearAll();
-    # $self->{sql}->StyleSetSpec(0, "fore:#800080");              # Default
-    # $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       # Comment
-    # $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       # Commentline
-    # $self->{sql}->StyleSetSpec(3, "fore:#00ff00");              # Commentdoc
-    # $self->{sql}->StyleSetSpec(4, "fore:#0000ff");              # Number
-    # $self->{sql}->StyleSetSpec(5, "fore:#7979ff");              # Word
-    # $self->{sql}->StyleSetSpec(6, "fore:#0000ff,back:#ddeecc"); # Doublequoted string
-    # $self->{sql}->StyleSetSpec(7, "fore:#ff00ff,back:#eeeebb"); # Singlequoted character
-    # $self->{sql}->StyleSetSpec(8, "fore:#ff0000");              # sqlplus
-    # $self->{sql}->StyleSetSpec(9, "fore:#ff0000");              # sqlplus_prompt
-    # $self->{sql}->StyleSetSpec(10,"fore:#00ff00,bold");         # Operators
-    # $self->{sql}->StyleSetSpec(11,"fore:#000000");              # identifier
-    # $self->{sql}->StyleSetSpec(12,"fore:#000000"); # Global variable?
-    # $self->{sql}->StyleSetSpec(13,"fore:#00FFf0"); # sqlplus_comment
-    # #define wxSTC_SQL_COMMENTLINEDOC 15
-    # $self->{sql}->StyleSetSpec(15,"fore:#FF0000,back:#0000bb"); #
-    # #define wxSTC_SQL_WORD2 16
-    # $self->{sql}->StyleSetSpec(16,"fore:#FF0000,back:#0000bb"); #
-    # #define wxSTC_SQL_COMMENTDOCKEYWORD 17
-    # $self->{sql}->StyleSetSpec(17,"fore:#0000FF,back:#FF0000"); #
-    # #define wxSTC_SQL_COMMENTDOCKEYWORDERROR 18
-    # #define wxSTC_SQL_USER1 19
-    # #define wxSTC_SQL_USER2 20
-    # #define wxSTC_SQL_USER3 21
-    # #define wxSTC_SQL_USER4 22
-    # #define wxSTC_SQL_QUOTEDIDENTIFIER 23
-    # $self->{sql}->StyleSetSpec(23,"fore:#0000FF,back:#FF0000"); #
+    # SQL - works with wxSTC_LEX_SQL
+    # $self->{sql}->StyleSetSpec(0, "fore:#ff0000");              #*Symbol
+    # $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       #*Comment
+    # $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       #*Commentline
+    # $self->{sql}->StyleSetSpec(4, "fore:#0000ff");              #*Number
+    # $self->{sql}->StyleSetSpec(5, "fore:#dfaf8f");              #*List0
+    # $self->{sql}->StyleSetSpec(6, "fore:#705050");              #*Doublequoted
+    # $self->{sql}->StyleSetSpec(7, "fore:#dca3a3");              #*Singlequoted
+    # $self->{sql}->StyleSetSpec(11,"fore:#000000");              #*Identifier
+    # $self->{sql}->StyleSetSpec(16,"fore:#94c0f3");              #*List1
 
-    # MSSQL
-    $self->{sql}->StyleSetSpec(0, "fore:#dcdccc");              # Default
-    $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       #*Comment
-    $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       #*Commentline
-    $self->{sql}->StyleSetSpec(3, "fore:#3f3f3f");              #*Number
-    $self->{sql}->StyleSetSpec(4, "fore:#705050");              #*Quoted string
-    $self->{sql}->StyleSetSpec(5, "fore:#60b48A");              #*Operator
-    $self->{sql}->StyleSetSpec(6, "fore:#dc8cc3");              #*Identifier
-    $self->{sql}->StyleSetSpec(7, "fore:#8cd1d3");              #* @Variable
-    $self->{sql}->StyleSetSpec(8, "fore:#dfaf8f");              #*Double quoted
-    $self->{sql}->StyleSetSpec(9, "fore:#ff0000");              # Statement
-    $self->{sql}->StyleSetSpec(10,"fore:#506070");              #*Datatype
-    $self->{sql}->StyleSetSpec(11,"fore:#000000");              # Systable
-    $self->{sql}->StyleSetSpec(12,"fore:#000000");              # Global var
-    $self->{sql}->StyleSetSpec(13,"fore:#000000");              # Function
-    $self->{sql}->StyleSetSpec(14,"fore:#000000,back:#0000bb"); # Procedure
-    $self->{sql}->StyleSetSpec(15,"fore:#000000,back:#0000bb"); # Pref datatype
-    $self->{sql}->StyleSetSpec(16,"fore:#000000,back:#FF0000"); # Column name 2
-
-    # $self->{sql}->StyleSetSpec(12,
-    #     "fore:#000000,$(font.monospace),back:#E0C0E0,eolfilled" )
-    #     ;    # End of line where string is not closed
+    # MSSQL - works with wxSTC_LEX_MSSQL
+    $self->{sql}->StyleSetSpec(0, "fore:#000000");            #*Default
+    $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");     #*Comment
+    $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");     #*Commentline
+    $self->{sql}->StyleSetSpec(3, "fore:#0000ff");            #*Number
+    $self->{sql}->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
+    $self->{sql}->StyleSetSpec(5, "fore:#3f3f3f");            #*Operation
+    $self->{sql}->StyleSetSpec(6, "fore:#000000");            #*Identifier
+    $self->{sql}->StyleSetSpec(7, "fore:#8cd1d3");            #*@-Variable
+    $self->{sql}->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
+    $self->{sql}->StyleSetSpec(9, "fore:#dfaf8f");            #*List0
+    $self->{sql}->StyleSetSpec(10,"fore:#94c0f3");            #*List1
+    $self->{sql}->StyleSetSpec(11,"fore:#705030");            #*List2
 
     #-- Layout
 
