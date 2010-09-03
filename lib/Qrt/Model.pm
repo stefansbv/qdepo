@@ -148,7 +148,6 @@ sub on_item_selected {
     my $self = shift;
 
     $self->get_itemchanged_observable->set( 1 );
-    # $self->_print('Item selected');
 }
 
 #- prev: Event

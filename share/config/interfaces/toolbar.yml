@@ -21,7 +21,7 @@ toolbar:
     id:      1003
     type:    item_normal
     icon:    actreload16
-    tooltip: Refresh
+    tooltip: Reload
     help:    Refresh data
     sep:     after
   tb_ad:

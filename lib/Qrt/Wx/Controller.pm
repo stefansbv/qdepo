@@ -130,7 +130,7 @@ sub _set_event_handlers {
             : $self->_model->db_connect;
     };
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rf'), sub {
-        print " refreshing :)\n";
+        $self->_model->on_item_selected(@_);
     };
 
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_ad'), sub {
