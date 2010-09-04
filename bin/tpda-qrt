@@ -269,8 +269,8 @@ Options:
 =head1 DESCRIPTION
 
 TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
-and query repository management. Queries are saved in XML files and
-can be edited and parametrized.
+and SQL query repository management. Queries are saved in XML files
+and can be edited and parametrized.
 
 =head2 Configuration
 

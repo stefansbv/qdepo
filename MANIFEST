@@ -1,4 +1,5 @@
 bin/tpda-qrt
+BUGS
 dev.pl
 inc/Module/Install.pm
 inc/Module/Install/Base.pm
@@ -32,6 +33,7 @@ Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
+script/setup-cfg.pl
 share/config/general.yml
 share/config/interfaces/icons/actexit16.gif
 share/config/interfaces/icons/actitemadd16.gif
@@ -44,6 +46,11 @@ share/config/interfaces/icons/filesave16.gif
 share/config/interfaces/icons/navforward16.gif
 share/config/interfaces/icons/README
 share/config/interfaces/toolbar.yml
-share/doc/tpda-qrt.config.txt
+share/doc/css/org-style.css
+share/doc/emacs_init.el
+share/doc/publish/css/org-style.css
+share/doc/publish/tpda-qrt-help.html
+share/doc/publish_config.el
+share/doc/tpda-qrt-help.org
+share/template/connection.yml
 share/template/template.qdf
-share/template/tpda-qrt.yml
