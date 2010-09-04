@@ -33,7 +33,7 @@ use YAML::Tiny;
 use File::Spec::Functions;
 use File::HomeDir;
 
-our $VERSION = 0.10;
+our $VERSION = 0.11;
 
 sub _new_instance {
     my ($class, $args) = @_;
@@ -51,127 +51,12 @@ sub _new_instance {
 sub _make_accessors {
     my ( $self, $args ) = @_;
 
-    my $config_hr = $self->_merge_configs($args);
-
-    __PACKAGE__->mk_accessors( keys %{$config_hr} );
+    __PACKAGE__->mk_accessors( keys %{$args} );
 
     # Add data to object
-    foreach ( keys %{$config_hr} ) {
-        $self->$_( $config_hr->{$_} );
+    foreach ( keys %{$args} ) {
+        $self->$_( $args->{$_} );
     }
-}
-
-sub _merge_configs {
-    my ( $self, $args ) = @_;
-
-    # Merge all configs into a big hash, so we can create accessors
-    # for every key
-
-    # Configs for database
-    my $cfg = {};
-
-    # Add options from args
-    $cfg->{arg} = $args;
-
-    # General configs
-    $self->check_file( $args->{cfg_gen}, 'die' );
-    my $cfg_gen = $self->_load_yaml_config_file( $args->{cfg_gen} );
-    $cfg->{general} = $self->_extract_configs( $cfg_gen, $args->{cfg_path} );
-
-    # Load database configuration
-    my $db_cfg = $self->connection_file($args);
-    $self->check_file($db_cfg, 'die');
-    my $db = $self->_load_yaml_config_file($db_cfg);
-
-    # Merge contents to cfg hash
-    $cfg->{connection} = $db->{connection};
-    $cfg->{output}     = $db->{output};
-
-    # Add qdf path
-    $cfg->{qdf} = $self->qdf_path($args);
-    $self->check_path( $cfg->{qdf}, 'die' );
-
-    # Expand '~/' to HOME in output path
-    my $output_p = $cfg->{output}{path};
-    if ($output_p =~ s{^~/}{} ) {
-        my $home = File::HomeDir->my_home;
-        $output_p = catdir($home, $output_p);
-        $cfg->{output}{path} = $output_p;
-    }
-    $self->check_path($output_p); # This prevents start if fails !!!
-
-    # Add toolbar atributes to config
-    my $tb_attrs_hr =
-      $self->_load_yaml_config_file( $cfg->{general}{cfg_tlb_qn} );
-    $cfg->{toolbar} = $tb_attrs_hr->{toolbar};
-
-    return $cfg;
-}
-
-#--- Utility subs
-
-sub _load_yaml_config_file {
-    my ( $self, $cfg_fqn ) = @_;
-
-    return YAML::Tiny::LoadFile( $cfg_fqn );
-}
-
-sub _extract_configs {
-    my ($self, $cfgs, $path) = @_;
-
-    # Only extract the configs we are interested in
-
-    my $new_cfg = {};
-    foreach my $sec ( keys %{$cfgs} ) {
-        foreach my $cfg ( keys %{ $cfgs->{$sec} } ) {
-            foreach my $key ( keys %{ $cfgs->{$sec}{$cfg} } ) {
-
-                if ( $key eq 'var' ) {
-                    $new_cfg->{ $cfgs->{$sec}{$cfg}{var} } =
-                      catfile( $path, $cfgs->{$sec}{$cfg}{dst} );
-                }
-            }
-        }
-    }
-
-    return $new_cfg;
-}
-
-sub check_path {
-    my ($self, $path, $fatal) = @_;
-
-    if (!-d $path) {
-        print "Config error:\n";
-        print "  $path does not exist?\n";
-        if ($fatal) {
-            exit;
-        }
-    }
-}
-
-sub check_file {
-    my ($self, $file_qn, $fatal) = @_;
-
-    if (!-f $file_qn) {
-        print "Config error:\n";
-        print "  $file_qn does not exist?\n";
-        if ($fatal) {
-            exit;
-        }
-    }
-}
-
-sub connection_file {
-    my ( $self, $args ) = @_;
-
-    return catfile( $args->{cfg_path}, 'db', $args->{conn}, 'etc',
-        'connection.yml' );
-}
-
-sub qdf_path {
-    my ( $self, $args ) = @_;
-
-    return catdir( $args->{cfg_path}, 'db', $args->{conn}, 'qdf' );
 }
 
 1;
