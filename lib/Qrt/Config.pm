@@ -36,6 +36,8 @@ use warnings;
 
 use File::HomeDir;
 use File::Spec::Functions;
+use YAML::Tiny;
+
 use Qrt::Config::Instance;
 
 our $VERSION = 0.05;

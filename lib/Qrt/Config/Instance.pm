@@ -29,9 +29,6 @@ use strict;
 use warnings;
 
 use base qw(Class::Singleton Class::Accessor);
-use YAML::Tiny;
-use File::Spec::Functions;
-use File::HomeDir;
 
 our $VERSION = 0.11;
 
