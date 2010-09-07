@@ -50,7 +50,7 @@ sub _init {
     my ( $self, $args ) = @_;
 
     # Initialize config for the first time
-    my $cnf = Qrt::Config->new($args);
+    Qrt::Config->instance($args);
 
     # Create Wx application
     $self->{gui} = Qrt::Wx::App->create();

@@ -52,13 +52,13 @@ sub _new_instance {
 
     $self->_init_cfg_vars($args);
 
-    my $maincfg = $self->_load_main_cfg();
+    my $main_cfg = $self->_load_cfg_main();
 
-    $self->_init_cfg_conn($maincfg);
+    $self->_init_conn_cfg($main_cfg);
 
     my $cfg = $self->_load_conn_cfg();
 
-    $cfg = $self->_load_other_cfgs($maincfg, $cfg);
+    $cfg = $self->_load_other_cfgs($main_cfg, $cfg);
 
     $self->_make_accessors( $cfg->{_cfg} );
 
@@ -94,18 +94,18 @@ sub _init_cfg_vars {
     my ($self, $args) = @_;
 
     my $configpath = File::UserConfig->new(
-        dist     => 'TpdaQrt',
+        dist     => 'Tpda-Qrt',
         module   => 'Tpda::Qrt',
         dirname  => '.tpda-qrt',
         sharedir => 'share',
     )->configdir;
 
     $self->{_cfgpath} = $configpath;
-    $self->{_cfgmain} = catfile( $self->{_cfgpath}, $args->{cfgmain} );
+    $self->{_cfgmain} = catfile( $configpath, $args->{cfgmain} );
     $self->{_cfgname} = $args->{cfgname};
 }
 
-=head2 _init_cfg_conn
+=head2 _init_conn_cfg
 
 Initialize the runtime connection configuration file name and path and
 some miscellaneous info from the main configuration file.
@@ -130,95 +130,35 @@ The connection configuration path
 
 =cut
 
-sub _init_cfg_conn {
-    my ($self, $mcgf) = @_;
+sub _init_conn_cfg {
+    my ($self, $mcfg) = @_;
 
     # Connection
-    my $connd = $mcgf->{paths}{connections};
-    my $connf = $mcgf->{configs}{connection};
+    my $connd = $mcfg->{paths}{connections};
+    my $connf = $mcfg->{configs}{connection};
 
     # Misc
     $self->{_cfgmisc} = {
-        qdfexte => $mcgf->{general}{qdfexte},
-        icons   => $mcgf->{paths}{icons},
-        qdfpath => $mcgf->{paths}{qdfpath},
+        qdfexte => $mcfg->{general}{qdfexte},
+        icons   => catdir( $self->{_cfgpath}, $mcfg->{paths}{icons} ),
+        qdfpath => $mcfg->{paths}{qdfpath},
     };
 
-    $self->{_cfgconn_p} = catdir( $self->cfgpath, $connd, $self->cfgname );
+    $self->{_cfgconn_p} = catdir( $self->{_cfgpath}, $connd, $self->{_cfgname} );
     $self->{_cfgconn_f} = catfile($self->{_cfgconn_p}, $connf );
 }
 
-=head2 cfgpath
-
-Getter for the application configuration path.
-
-=cut
-
-sub cfgpath {
-    my $self = shift;
-
-    return $self->{_cfgpath};
-}
-
-=head2 cfgmain
-
-Getter for the main configuration file.
-
-=cut
-
-sub cfgmain {
-    my $self = shift;
-
-    return $self->{_cfgmain};
-}
-
-=head2 cfgname
-
-Getter for the  runtime configuration name.
-
-=cut
-
-sub cfgname {
-    my $self = shift;
-
-    return $self->{_cfgname};
-}
-
-=head2 cfgconn
-
-Getter for the runtime connection configuration file name.
-
-=cut
-
-sub cfgconn {
-    my ($self, $connd) = @_;
-
-    return $self->{_cfgconn_f};
-}
-
-=head2 cfgmisc
-
-Getter for miscellaneous configurations.
-
-=cut
-
-sub cfgmisc {
-    my $self = shift;
-
-    return $self->{_cfgmisc};
-}
-
-=head2 _load_main_cfg
+=head2 _load_cfg_main
 
 Load the connection configuration file and return a Perl data
 structure.
 
 =cut
 
-sub _load_main_cfg {
+sub _load_cfg_main {
     my $self = shift;
 
-    my $yaml_file = $self->cfgmain;
+    my $yaml_file = $self->{_cfgmain};
 
     if (! -f $yaml_file) {
         print "\nConfiguration error!, this should never happen.\n\n";
@@ -240,7 +180,7 @@ sub _load_conn_cfg {
 
     my $cfg = {};
 
-    my $cfg_data = $self->_load_cfg_file( $self->cfgconn );
+    my $cfg_data = $self->_load_cfg_file( $self->{_cfgconn_f} );
     $cfg = Qrt::Config::Utils->merge_data( $cfg, $cfg_data );
 
     return $cfg;
@@ -261,7 +201,7 @@ sub _load_other_cfgs {
     foreach my $sec ( keys %{ $mcfg->{other} } ) {
         next if $sec eq 'connection';
 
-        my $cfg_file = catfile( $self->cfgpath, $mcfg->{other}{$sec} );
+        my $cfg_file = catfile( $self->{_cfgpath}, $mcfg->{other}{$sec} );
         my $cfg_data = $self->_load_cfg_file($cfg_file);
         $cfg = Qrt::Config::Utils->merge_data( $cfg, $cfg_data );
     }
@@ -282,7 +222,7 @@ sub _load_cfg_file {
     if (! -f $yaml_file) {
         print "\nConfiguration error, to fix, run\n\n";
         print "  tpda-qrt -init ";
-        print $self->cfgname,"\n\n";
+        print $self->{_cfgname},"\n\n";
         print "then edit: ", $yaml_file, "\n\n";
         die;
     }

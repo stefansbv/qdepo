@@ -629,8 +629,8 @@ sub list_item_clear_all {
 sub populate_config_page {
     my $self = shift;
 
-    my $cnf  = Qrt::Config->new();
-    my $path = $cnf->cfg->output;    # query definition files
+    my $cfg  = Qrt::Config->instance();
+    my $path = $cfg->output;
 
     $self->controls_write_page('conf', $path );
 }

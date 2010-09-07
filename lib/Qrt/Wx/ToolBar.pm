@@ -28,6 +28,8 @@ package Qrt::Wx::ToolBar;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Qrt::Config;
 
 use Wx qw(:everything);
@@ -52,9 +54,10 @@ sub new {
     $self->SetMargins( 4, 4 );
 
     # Get ToolBar button atributes
-    my $cnf = Qrt::Config->new();
-    my $attribs = $cnf->cfg->toolbar;
-    $self->{ico_p} = $cnf->cfg->general->{cfg_ico_p};  # Icons path
+    my $cfg = Qrt::Config->instance();
+
+    my $attribs = $cfg->toolbar;
+    $self->{ico_p} = $cfg->{_cfgmisc}{icons};  # ??? # Icons path
 
     #-- Sort by id
 

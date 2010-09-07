@@ -7,17 +7,15 @@ BEGIN {
     unshift @INC, 'lib';
 }
 
-my $conn_name = shift;
+my $cfg_name = shift;
 
-$conn_name ||= 'classicmodels';
+$cfg_name ||= 'test';
 
 my $opts = {
-    'verbose'  => 1,
-    'pass'     => undef,
-    'cfg_gen'  => '/home/fane/.tpda-qrt/etc/general.yml',
-    'cfg_path' => '/home/fane/.tpda-qrt',
-    'conn'     => $conn_name,
-    'user'     => undef
+    cfgname => $cfg_name,
+    cfgmain => 'etc/main.yml',
+    user    => undef,
+    pass    => undef,
 };
 
 use Qrt;

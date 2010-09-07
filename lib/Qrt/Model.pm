@@ -75,10 +75,10 @@ sub db_connect {
 sub _connect {
     my $self = shift;
 
-    my $cnf = Qrt::Config->new();
+    my $cfg = Qrt::Config->instance();
 
     # Connect to database
-    my $db = Qrt::Db->new( $cnf->cfg->arg );
+    my $db = Qrt::Db->instance( $cfg->cfg->arg );
 
     # Is connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
@@ -103,7 +103,7 @@ sub db_disconnect {
 sub _disconnect {
     my $self = shift;
 
-    my $db = Qrt::Db->new();
+    my $db = Qrt::Db->instance();
     $db->dbh->disconnect;
 }
 
@@ -178,13 +178,13 @@ sub run_export {
 
     $self->_print('Running...');
 
-    my $db = Qrt::Db->new();
+    my $db = Qrt::Db->instance();
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
-    my $cnf     = Qrt::Config->new();
-    my $out_fqn = $cnf->output_fqn($output);
+    my $cfg     = Qrt::Config->instance();
+    my $out_fqn = $cfg->output_fqn($output);
 
     my ($err, $out) = $db->db_generate_output(
         $option,
@@ -368,11 +368,11 @@ sub report_add {
     # Create new report definition file
     my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . '.qdf';
 
-    my $cnf = Qrt::Config->new();
-    my $qdf = $cnf->cfg->qdf;    # query definition files
+    my $cfg = Qrt::Config->instance();
+    my $qdf = $cfg->cfg->qdf;    # query definition files
 
-    my $src_fqn = $cnf->cfg->general->{cfg_qdft_qn};
-    my $dst_fqn = $cnf->new_qdf_fqn($newrepo_fn);
+    my $src_fqn = $cfg->cfg->general->{cfg_qdft_qn};
+    my $dst_fqn = $cfg->new_qdf_fqn($newrepo_fn);
 
     print " $src_fqn -> $dst_fqn\n";
 

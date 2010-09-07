@@ -108,7 +108,7 @@ sub _xml_read_simple {
     my $path = sprintf( "%s", $tag ); # Not needed if no attr :)
     # print "Path = $path\n";
 
-    my $twig = new XML::Twig( TwigRoots => { $path => 1 } );
+    my $twig = XML::Twig( TwigRoots => { $path => 1 } )->new();
     my $xml_data;
 
     if ( -f $file ) {
@@ -130,8 +130,8 @@ sub _xml_read_simple {
 sub get_file_list {
     my $self = shift;
 
-    my $cnf = Qrt::Config->new();
-    my $qdfpath_p = $cnf->cfg->qdf;              # query definition files path
+    my $cfg = Qrt::Config->instance();
+    my $qdfpath_p = $cfg->{_cfgconn_p}; # ??? # query definition files path
     if ( !-d $qdfpath_p ) {
         print "Wrong path for qdf files:\n$qdfpath_p !\n";
         return;
@@ -182,10 +182,10 @@ sub xml_update {
         body       => sub { $self->_xml_proc_body(@_, $rec->{body}) },
     };
 
-    my $twig = new XML::Twig(
+    my $twig = XML::Twig(
         pretty_print  => 'indented',
         twig_handlers => $twig_handlers
-    );
+    )->new();
 
     if (-f $file) {
         $twig->parsefile($file);    # build it (the twig...)
