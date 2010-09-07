@@ -1,0 +1,19 @@
+# TPDA - QRT
+# Configurations
+# All source paths are relative to CWD
+# All destination paths are relative to 'cfg_p'
+---
+general:
+  # Query definition files extension
+  qdfexte: qdf
+paths:
+  # Connections config dir
+  connections: db
+  # Query definitions file path
+  qdfpath: db/qdf
+  # Icons path
+  icons: etc/interfaces/icons
+configs:
+  connection: etc/connection.yml
+other:
+  toolbar: etc/interfaces/toolbar.yml
