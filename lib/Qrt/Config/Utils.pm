@@ -44,22 +44,6 @@ sub load {
     return YAML::Tiny::LoadFile( $yaml_file );
 }
 
-=head2 merge_data
-
-Merge two HoH and return the result.
-
-=cut
-
-sub data_merge {
-    my ($self, $cfg, $cfg_data) = @_;
-
-    foreach my $item ( keys %{$cfg_data} ) {
-        $cfg->{_cfg}{$item} = $cfg_data->{$item};
-    }
-
-    return $cfg;
-}
-
 
 =head1 AUTHOR
 

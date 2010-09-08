@@ -55,9 +55,8 @@ sub new {
 
     # Get ToolBar button atributes
     my $cfg = Qrt::Config->instance();
-
     my $attribs = $cfg->toolbar;
-    $self->{ico_p} = $cfg->{_cfgmisc}{icons};  # ??? # Icons path
+    $self->{ico_p} = $cfg->icons;
 
     #-- Sort by id
 

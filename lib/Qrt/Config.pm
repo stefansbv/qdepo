@@ -112,7 +112,12 @@ sub _config_main_load {
         cfgname => $args->{cfgname},
         qdfexte => $maincfg->{general}{qdfexte},
         icons   => catdir( $configpath, $maincfg->{paths}{icons} ),
-        qdfpath => catdir( $configpath, $maincfg->{paths}{qdfpath} ),
+        qdftmpl => catdir( $configpath, $maincfg->{paths}{qdftmpl} ),
+        contmpl => catdir( $configpath, $maincfg->{paths}{contmpl} ),
+        qdfpath => catdir(
+            $configpath,      $maincfg->{paths}{connections},
+            $args->{cfgname}, $maincfg->{paths}{qdfpath}
+        ),
     };
 
     $self->_make_accessors($main_hr);
@@ -150,6 +155,7 @@ sub _config_conn_load {
     $msg   .= $self->cfgname . qq{\n\n};
     $msg   .= qq{then edit: $cfgconn_f\n};
     my $cfg_data = $self->_config_file_load($cfgconn_f, $msg);
+    $cfg_data->{cfgconnf} = $cfgconn_f; # Accessor for connection file
 
     $self->_make_accessors($cfg_data);
 
@@ -168,7 +174,6 @@ at restart.
 sub _config_other_load {
     my ( $self, $mcfg ) = @_;
 
-    my $cfg;
     foreach my $sec ( keys %{ $mcfg->{other} } ) {
         next if $sec eq 'connection';
 
@@ -176,10 +181,9 @@ sub _config_other_load {
         my $msg = qq{\nConfiguration error: \n Can't read configurations};
         $msg   .= qq{\n  from '$cfg_file'!};
         my $cfg_data = $self->_config_file_load($cfg_file, $msg);
-        $cfg = Qrt::Config::Utils->data_merge( $cfg, $cfg_data );
-    }
 
-    $self->_make_accessors($cfg);
+        $self->_make_accessors($cfg_data);
+    }
 
     return;
 }

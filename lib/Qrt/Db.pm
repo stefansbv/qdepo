@@ -10,7 +10,7 @@ use base qw(Class::Singleton);
 
 =head1 NAME
 
-Qrt::Db - Tpda Qrt database access module
+Qrt::Db - Tpda Qrt database operations module
 
 =head1 VERSION
 

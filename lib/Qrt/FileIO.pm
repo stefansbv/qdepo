@@ -70,7 +70,7 @@ sub _process_file {
             return $data;
         }
         else {
-            print "$qdf_file: Not valid RdeF!\n";
+            print "$qdf_file: Not valid query file!\n";
             return;
         }
     }
@@ -108,7 +108,7 @@ sub _xml_read_simple {
     my $path = sprintf( "%s", $tag ); # Not needed if no attr :)
     # print "Path = $path\n";
 
-    my $twig = XML::Twig( TwigRoots => { $path => 1 } )->new();
+    my $twig = XML::Twig->new( twig_roots => { $path => 1 } );
     my $xml_data;
 
     if ( -f $file ) {
@@ -131,18 +131,26 @@ sub get_file_list {
     my $self = shift;
 
     my $cfg = Qrt::Config->instance();
-    my $qdfpath_p = $cfg->{_cfgconn_p}; # ??? # query definition files path
-    if ( !-d $qdfpath_p ) {
-        print "Wrong path for qdf files:\n$qdfpath_p !\n";
-        return;
+
+    my $qdfpath = $cfg->qdfpath;
+    my $qdfexte = $cfg->qdfexte;
+    if ( !-d $qdfpath ) {
+        my $msg = qq{\nWrong path for '$qdfexte' files:\n $qdfpath!\n};
+        $msg   .= qq{\nConfiguration error, try to fix with\n\n};
+        $msg   .= qq{  tpda-qrt -init };
+        $msg   .= $cfg->cfgname . qq{\n\n};
+        $msg   .= qq{then edit: };
+        $msg   .=  $cfg->cfgconnf . qq{\n};
+        print $msg;
+        die;
     }
 
     # Report definition files can be arranged in subdirs; recursive find
     my @rapoarte = File::Find::Rule
-        ->name( '*.qdf' )
+        ->name( qq{*.$qdfexte} )
         ->file
         ->nonempty
-        ->in($qdfpath_p);
+        ->in($qdfpath);
 
     my $nrfisiere = scalar @rapoarte;    # total file number
     return \@rapoarte;
@@ -182,10 +190,10 @@ sub xml_update {
         body       => sub { $self->_xml_proc_body(@_, $rec->{body}) },
     };
 
-    my $twig = XML::Twig(
+    my $twig = XML::Twig->new(
         pretty_print  => 'indented',
         twig_handlers => $twig_handlers
-    )->new();
+    );
 
     if (-f $file) {
         $twig->parsefile($file);    # build it (the twig...)

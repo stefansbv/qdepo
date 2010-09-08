@@ -30,6 +30,7 @@ use warnings;
 
 use File::Copy;
 use File::Basename;
+use File::Spec::Functions;
 
 use Qrt::Config;
 use Qrt::FileIO;
@@ -165,16 +166,18 @@ sub get_list_data {
 
     # Format titles
     foreach my $rec ( @{$data_ref} ) {
-        my $nrcrt = $indice + 1;
-        $titles->{$indice} = [ $nrcrt, $rec->{title}, $rec->{file} ];
-        $indice++;
+        if (ref $rec) {
+            my $nrcrt = $indice + 1;
+            $titles->{$indice} = [ $nrcrt, $rec->{title}, $rec->{file} ];
+            $indice++;
+        }
     }
 
     return $titles;
 }
 
 sub run_export {
-    my ($self, $output, $bind, $sql) = @_;
+    my ($self, $outfile, $bind, $sql) = @_;
 
     $self->_print('Running...');
 
@@ -184,7 +187,7 @@ sub run_export {
     my (undef, $option) = split(':', $choice);
 
     my $cfg     = Qrt::Config->instance();
-    my $out_fqn = $cfg->output_fqn($output);
+    my $out_fqn = catfile($cfg->output, $outfile);
 
     my ($err, $out) = $db->db_generate_output(
         $option,
@@ -365,21 +368,22 @@ sub report_add {
         $num = $num_max + 1;
     }
 
-    # Create new report definition file
-    my $newrepo_fn = 'raport-' . sprintf( "%05d", $num ) . '.qdf';
+    # Template for new qdf file names, can be anything but with
+    # configured extension
+    my $newqdf = 'report-' . sprintf( "%05d", $num ) . '.qdf';
 
     my $cfg = Qrt::Config->instance();
-    my $qdf = $cfg->cfg->qdf;    # query definition files
 
-    my $src_fqn = $cfg->cfg->general->{cfg_qdft_qn};
-    my $dst_fqn = $cfg->new_qdf_fqn($newrepo_fn);
+    my $src_fqn = $cfg->qdftmpl;
+    my $qdfpath = $cfg->qdfpath;
+    my $dst_fqn = catfile($qdfpath, $newqdf);
 
     print " $src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
         print "Create new report from template ...";
         if ( copy( $src_fqn, $dst_fqn ) ) {
-            print " done: ($newrepo_fn)\n";
+            print " done: ($newqdf)\n";
         }
         else {
             print " failed: $!\n";

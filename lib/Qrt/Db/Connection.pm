@@ -3,6 +3,8 @@ package Qrt::Db::Connection;
 use strict;
 use warnings;
 
+use Qrt::Config;
+
 =head1 NAME
 
 Qrt::Db::Connection - The great new Qrt::Db::Connection!
@@ -23,8 +25,6 @@ Connect to a database.
     use Qrt::Db::Connection;
 
     my $dbh = Qrt::Db::Connection->new();
-
-    ...
 
 
 =head1 METHODS
@@ -64,7 +64,6 @@ sub db_connect {
 
     my ($self, $user, $pass) = @_;
 
-    use Qrt::Config;
     my $cfg = Qrt::Config->instance();
     my $conninfo = $cfg->conninfo;
 

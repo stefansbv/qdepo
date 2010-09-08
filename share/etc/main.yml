@@ -10,9 +10,12 @@ paths:
   # Connections config dir
   connections: db
   # Query definitions file path
-  qdfpath: db/qdf
+  qdfpath: qdf
   # Icons path
   icons: etc/interfaces/icons
+  # Templates
+  qdftmpl: template/template.qdf
+  contmpl: template/connection.yml
 configs:
   connection: etc/connection.yml
 other:
