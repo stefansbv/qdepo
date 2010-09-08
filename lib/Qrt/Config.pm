@@ -17,11 +17,11 @@ Qrt::Config - Tpda Qrt configuration module
 
 =head1 VERSION
 
-Version 0.04
+Version 0.10
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.10';
 
 
 =head1 SYNOPSIS
@@ -52,13 +52,10 @@ sub _new_instance {
 
     my $self = bless {}, $class;
 
+    # Load configuration and create accessors
     my $mcfg = $self->_config_main_load($args);
-
-    my $cfg = {};
-    $cfg = $self->_config_conn_load($mcfg, $cfg);
-    $cfg = $self->_config_other_load($mcfg, $cfg);
-
-    $self->_make_accessors( $cfg->{_cfg} );
+    $self->_config_conn_load($mcfg);
+    $self->_config_other_load($mcfg);
 
     return $self;
 }
@@ -88,10 +85,12 @@ module.
 
 Load the main configuration file and return a HoH data structure.
 
+Make accessors.
+
 =cut
 
 sub _config_main_load {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     my $configpath = File::UserConfig->new(
         dist     => 'Tpda-Qrt',
@@ -100,16 +99,25 @@ sub _config_main_load {
         sharedir => 'share',
     )->configdir;
 
-    $self->{_cfgpath} = $configpath;
-    $self->{_cfgmain} = catfile( $configpath, $args->{cfgmain} );
-    $self->{_cfgname} = $args->{cfgname};
+    # Main config file name, load
+    my $main_qfn = catfile( $configpath, $args->{cfgmain} );
 
-    if ( !-f $self->{_cfgmain} ) {
-        print "\nConfiguration error!, this should never happen.\n\n";
-        die;
-    }
+    my $msg = qq{\nConfiguration error: \n Can't read 'main.yml'};
+    $msg   .= qq{\n  from '$main_qfn'!};
+    my $maincfg = $self->_config_file_load($main_qfn, $msg);
 
-    return $self->_config_file_load( $self->{_cfgmain} );
+    # Misc
+    my $main_hr = {
+        cfgpath => $configpath,
+        cfgname => $args->{cfgname},
+        qdfexte => $maincfg->{general}{qdfexte},
+        icons   => catdir( $configpath, $maincfg->{paths}{icons} ),
+        qdfpath => catdir( $configpath, $maincfg->{paths}{qdfpath} ),
+    };
+
+    $self->_make_accessors($main_hr);
+
+    return $maincfg;
 }
 
 =head2 _config_conn_load
@@ -127,27 +135,25 @@ because the path is only known at runtime.
 =cut
 
 sub _config_conn_load {
-    my ($self, $mcfg, $cfg) = @_;
+    my ( $self, $mcfg ) = @_;
 
     # Connection
     my $connd = $mcfg->{paths}{connections};
     my $connf = $mcfg->{configs}{connection};
 
-    # Misc
-    $self->{_cfgmisc} = {
-        qdfexte => $mcfg->{general}{qdfexte},
-        icons   => catdir( $self->{_cfgpath}, $mcfg->{paths}{icons} ),
-        qdfpath => $mcfg->{paths}{qdfpath},
-    };
-
     # The connection configuration path and name
-    $self->{_cfgconn_p} = catdir( $self->{_cfgpath}, $connd, $self->{_cfgname} );
-    $self->{_cfgconn_f} = catfile($self->{_cfgconn_p}, $connf );
+    my $cfgconn_p = catdir( $self->cfgpath, $connd, $self->cfgname );
+    my $cfgconn_f = catfile( $cfgconn_p, $connf );
 
-    my $cfg_data = $self->_config_file_load( $self->{_cfgconn_f} );
-    $cfg = Qrt::Config::Utils->data_merge( $cfg, $cfg_data );
+    my $msg = qq{\nConfiguration error, to fix, run\n\n};
+    $msg   .= qq{  tpda-qrt -init };
+    $msg   .= $self->cfgname . qq{\n\n};
+    $msg   .= qq{then edit: $cfgconn_f\n};
+    my $cfg_data = $self->_config_file_load($cfgconn_f, $msg);
 
-    return $cfg;
+    $self->_make_accessors($cfg_data);
+
+    return;
 }
 
 =head2 _config_other_load
@@ -160,34 +166,37 @@ at restart.
 =cut
 
 sub _config_other_load {
-    my ( $self, $mcfg, $cfg ) = @_;
+    my ( $self, $mcfg ) = @_;
 
+    my $cfg;
     foreach my $sec ( keys %{ $mcfg->{other} } ) {
         next if $sec eq 'connection';
 
-        my $cfg_file = catfile( $self->{_cfgpath}, $mcfg->{other}{$sec} );
-        my $cfg_data = $self->_config_file_load($cfg_file);
+        my $cfg_file = catfile( $self->cfgpath, $mcfg->{other}{$sec} );
+        my $msg = qq{\nConfiguration error: \n Can't read configurations};
+        $msg   .= qq{\n  from '$cfg_file'!};
+        my $cfg_data = $self->_config_file_load($cfg_file, $msg);
         $cfg = Qrt::Config::Utils->data_merge( $cfg, $cfg_data );
     }
 
-    return $cfg;
+    $self->_make_accessors($cfg);
+
+    return;
 }
 
 =head2 _config_file_load
 
 Load a generic config file in YAML format and return the Perl data
-structure.
+structure.  Die, if can't read file.
 
 =cut
 
 sub _config_file_load {
-    my ($self, $yaml_file) = @_;
+    my ($self, $yaml_file, $message) = @_;
 
+    # print "YAML file: $yaml_file\n";
     if (! -f $yaml_file) {
-        # print "\nConfiguration error, to fix, run\n\n";
-        # print "  tpda-qrt -init ";
-        # print $self->{_cfgname},"\n\n";
-        # print "then edit: ", $yaml_file, "\n\n";
+        print "$message\n";
         die;
     }
 
