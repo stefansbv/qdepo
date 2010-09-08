@@ -17,11 +17,12 @@ Qrt::Config - Tpda Qrt configuration module
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+
 
 =head1 SYNOPSIS
 
@@ -31,9 +32,10 @@ keys of the hash.
 
     use Qrt::Config;
 
-    my $cfg = Qrt::Config->instance($args);
+    my $cfg = Qrt::Config->instance($args); # first time init
 
-    ...
+    my $cfg = Qrt::Config->instance(); # later, in other modules
+
 
 =head1 METHODS
 
@@ -50,15 +52,11 @@ sub _new_instance {
 
     my $self = bless {}, $class;
 
-    $self->_init_cfg_vars($args);
+    my $mcfg = $self->_config_main_load($args);
 
-    my $main_cfg = $self->_load_cfg_main();
-
-    $self->_init_conn_cfg($main_cfg);
-
-    my $cfg = $self->_load_conn_cfg();
-
-    $cfg = $self->_load_other_cfgs($main_cfg, $cfg);
+    my $cfg = {};
+    $cfg = $self->_config_conn_load($mcfg, $cfg);
+    $cfg = $self->_config_other_load($mcfg, $cfg);
 
     $self->_make_accessors( $cfg->{_cfg} );
 
@@ -72,25 +70,27 @@ Automatically make accessors for the hash keys.
 =cut
 
 sub _make_accessors {
-    my ( $self, $cfg ) = @_;
+    my ( $self, $cfg_hr ) = @_;
 
-    __PACKAGE__->mk_accessors( keys %{$cfg} );
+    __PACKAGE__->mk_accessors( keys %{$cfg_hr} );
 
     # Add data to object
-    foreach ( keys %{$cfg} ) {
-        $self->$_( $cfg->{$_} );
+    foreach ( keys %{$cfg_hr} ) {
+        $self->$_( $cfg_hr->{$_} );
     }
 }
 
-=head2 _init_cfg_vars
+=head2 _config_main_load
 
 Initialize configuration variables from arguments, also initialize the
 user configuration tree if not exists, with the I<File::UserConfig>
 module.
 
+Load the main configuration file and return a HoH data structure.
+
 =cut
 
-sub _init_cfg_vars {
+sub _config_main_load {
     my ($self, $args) = @_;
 
     my $configpath = File::UserConfig->new(
@@ -103,9 +103,16 @@ sub _init_cfg_vars {
     $self->{_cfgpath} = $configpath;
     $self->{_cfgmain} = catfile( $configpath, $args->{cfgmain} );
     $self->{_cfgname} = $args->{cfgname};
+
+    if ( !-f $self->{_cfgmain} ) {
+        print "\nConfiguration error!, this should never happen.\n\n";
+        die;
+    }
+
+    return $self->_config_file_load( $self->{_cfgmain} );
 }
 
-=head2 _init_conn_cfg
+=head2 _config_conn_load
 
 Initialize the runtime connection configuration file name and path and
 some miscellaneous info from the main configuration file.
@@ -114,24 +121,13 @@ The B<connection> configuration is special.  More than one connection
 configuration is allowed and the name of the used connection is known
 only at runtime from the I<cfgname> argument.
 
-Variables:
-
-=over
-
-=item _cfgconn_f
-
-The connection configuration file name
-
-=item _cfgconn_p
-
-The connection configuration path
-
-=back
+Load the connection configuration file.  This is treated separately
+because the path is only known at runtime.
 
 =cut
 
-sub _init_conn_cfg {
-    my ($self, $mcfg) = @_;
+sub _config_conn_load {
+    my ($self, $mcfg, $cfg) = @_;
 
     # Connection
     my $connd = $mcfg->{paths}{connections};
@@ -144,49 +140,17 @@ sub _init_conn_cfg {
         qdfpath => $mcfg->{paths}{qdfpath},
     };
 
+    # The connection configuration path and name
     $self->{_cfgconn_p} = catdir( $self->{_cfgpath}, $connd, $self->{_cfgname} );
     $self->{_cfgconn_f} = catfile($self->{_cfgconn_p}, $connf );
-}
 
-=head2 _load_cfg_main
-
-Load the connection configuration file and return a Perl data
-structure.
-
-=cut
-
-sub _load_cfg_main {
-    my $self = shift;
-
-    my $yaml_file = $self->{_cfgmain};
-
-    if (! -f $yaml_file) {
-        print "\nConfiguration error!, this should never happen.\n\n";
-        die;
-    }
-
-    return Qrt::Config::Utils->load($yaml_file);
-}
-
-=head2 _load_conn_cfg
-
-Load the connection configuration file.  This is treated separately
-because the path is only known at runtime.
-
-=cut
-
-sub _load_conn_cfg {
-    my ($self) = @_;
-
-    my $cfg = {};
-
-    my $cfg_data = $self->_load_cfg_file( $self->{_cfgconn_f} );
-    $cfg = Qrt::Config::Utils->merge_data( $cfg, $cfg_data );
+    my $cfg_data = $self->_config_file_load( $self->{_cfgconn_f} );
+    $cfg = Qrt::Config::Utils->data_merge( $cfg, $cfg_data );
 
     return $cfg;
 }
 
-=head2 _load_other_cfgs
+=head2 _config_other_load
 
 Process the main configuration file and automaticaly load all the
 other defined configuration files.  That means if we add a YAML
@@ -195,35 +159,35 @@ at restart.
 
 =cut
 
-sub _load_other_cfgs {
+sub _config_other_load {
     my ( $self, $mcfg, $cfg ) = @_;
 
     foreach my $sec ( keys %{ $mcfg->{other} } ) {
         next if $sec eq 'connection';
 
         my $cfg_file = catfile( $self->{_cfgpath}, $mcfg->{other}{$sec} );
-        my $cfg_data = $self->_load_cfg_file($cfg_file);
-        $cfg = Qrt::Config::Utils->merge_data( $cfg, $cfg_data );
+        my $cfg_data = $self->_config_file_load($cfg_file);
+        $cfg = Qrt::Config::Utils->data_merge( $cfg, $cfg_data );
     }
 
     return $cfg;
 }
 
-=head2 _load_cfg_file
+=head2 _config_file_load
 
 Load a generic config file in YAML format and return the Perl data
 structure.
 
 =cut
 
-sub _load_cfg_file {
+sub _config_file_load {
     my ($self, $yaml_file) = @_;
 
     if (! -f $yaml_file) {
-        print "\nConfiguration error, to fix, run\n\n";
-        print "  tpda-qrt -init ";
-        print $self->{_cfgname},"\n\n";
-        print "then edit: ", $yaml_file, "\n\n";
+        # print "\nConfiguration error, to fix, run\n\n";
+        # print "  tpda-qrt -init ";
+        # print $self->{_cfgname},"\n\n";
+        # print "then edit: ", $yaml_file, "\n\n";
         die;
     }
 

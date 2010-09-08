@@ -50,7 +50,7 @@ Merge two HoH and return the result.
 
 =cut
 
-sub merge_data {
+sub data_merge {
     my ($self, $cfg, $cfg_data) = @_;
 
     foreach my $item ( keys %{$cfg_data} ) {
