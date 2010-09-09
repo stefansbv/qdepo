@@ -31,7 +31,7 @@ use Carp;
 
 use DBI;
 
-our $VERSION = '0.80';
+our $VERSION = '0.10';
 
 sub new {
 

@@ -27,16 +27,15 @@ package Qrt::Db::Connection::Postgresql;
 
 use strict;
 use warnings;
-
 use Carp;
+
 use DBI;
 
 # use Postgresql >= 8.3.5 !!! :)
 
-our $VERSION = 0.30;
+our $VERSION = 0.10;
 
 sub new {
-
     my $class = shift;
 
     my $self = {};
@@ -47,12 +46,7 @@ sub new {
 }
 
 sub conectare {
-
-    # +-----------------------------------------------------------------------+
-    # | Descriere: Connect to the database                                    |
-    # +-----------------------------------------------------------------------+
-
-    my ($self, $conf, $user, $pass) = @_;
+    my ($self, $conf) = @_;
 
     # $pass = undef; # Uncomment when is no password set
 
@@ -60,16 +54,17 @@ sub conectare {
     my $server = $conf->{server};
     my $port   = $conf->{port};
     my $driver = $conf->{driver};
+    my $user    = $conf->{user};
+    my $pass    = $conf->{pass};
 
     print "Connect to the $driver server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";
-    print "  => Port     = $port\n";
     print "  => User     = $user\n";
 
     eval {
-        $self->{_dbh} = DBI->connect(
+        $self->{dbh} = DBI->connect(
             "dbi:Pg:"
                 . "dbname="
                 . $dbname
@@ -92,7 +87,8 @@ sub conectare {
     }
     else {
         print "\nConnected to database \'$dbname\'.\n";
-        return $self->{_dbh};
+
+        return $self->{dbh};
     }
 }
 
