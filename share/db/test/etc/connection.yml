@@ -6,7 +6,7 @@
 conninfo:
   driver: Firebird
   server: localhost
-  database: test
-  port: 3050
+  database: testdb
+  port: ~
 output:
   path: ~/tmp
