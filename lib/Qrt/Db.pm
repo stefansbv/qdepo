@@ -2,7 +2,6 @@ package Qrt::Db;
 
 use strict;
 use warnings;
-use Carp;
 
 use Qrt::Db::Connection;
 
@@ -18,7 +17,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -27,43 +26,25 @@ Connect to a database.
 
     use Qrt::Db;
 
-    my $dbh = Qrt::Db->instance($args);
-
-    ...
+    my $dbh = Qrt::Db->new($args);
 
 =head1 METHODS
 
-=head2 _new_instance
+=head2 new
 
-Constructor method, the first and only time a new instance is created.
-All parameters passed to the instance() method are forwarded to this
-method. (From I<Class::Singleton> docs).
+Constructor method.
 
 =cut
 
 sub _new_instance {
-    my ($class, $args) = @_;
+    my $class = shift;
 
-    my $self = bless {}, $class;
+    my $dbh = Qrt::Db::Connection->new;
 
-    my $conn = Qrt::Db::Connection->new( $args );
-    $self->{_dbh} = $conn->db_connect(
-        $args->{user},
-        $args->{pass},
-    );
-
-    if (ref $self->{_dbh}) {
-
-        # Some defaults
-        $self->{_dbh}->{AutoCommit}  = 1;          # disable transactions
-        $self->{_dbh}->{RaiseError}  = 1;
-        $self->{_dbh}->{LongReadLen} = 512 * 1024; # for Firebird with BLOBs
-    }
-
-    return $self;
+    return bless { dbh => $dbh }, $class;
 }
 
-=head2 function2
+=head2 dbh
 
 Return database handle.
 
@@ -72,9 +53,14 @@ Return database handle.
 sub dbh {
     my $self = shift;
 
-    return $self->{_dbh};
+    return $self->{dbh};
 }
 
+sub DESTROY {
+    my $self = shift;
+
+    $self->{dbh}->disconnect () if defined $self->{dbh};
+}
 
 =head1 AUTHOR
 

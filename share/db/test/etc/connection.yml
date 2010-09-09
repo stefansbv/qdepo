@@ -4,9 +4,9 @@
 # file names a '_fn' suffix
 ---
 conninfo:
-  driver: sqlite
+  driver: Firebird
   server: localhost
-  database: testdb
-  port: ~
+  database: test
+  port: 3050
 output:
   path: ~/tmp

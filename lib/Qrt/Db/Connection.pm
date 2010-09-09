@@ -7,7 +7,7 @@ use Qrt::Config;
 
 =head1 NAME
 
-Qrt::Db::Connection - The great new Qrt::Db::Connection!
+Qrt::Db::Connection - Connect to different databases.
 
 =head1 VERSION
 
@@ -29,23 +29,22 @@ Connect to a database.
 
 =head1 METHODS
 
-=head2 new
+=head2 _new_instance
 
-Constructor method.
-
-The arguments are user and password.
+Constructor method, the first and only time a new instance is created.
+All parameters passed to the instance() method are forwarded to this
+method. (From I<Class::Singleton> docs).
 
 =cut
 
 sub new {
+    my $class = shift;
 
-    my ($class, $args) = @_;
+    my $self = bless {}, $class;
 
-    my $self = bless( {}, $class);
+    $self->{dbh} = $self->db_connect();
 
-    $self->{args} = $args;
-
-    return $self;
+    return $self->{dbh};
 }
 
 =head2 # db_connect
@@ -62,14 +61,13 @@ Try DBIx::AnyDBD
 
 sub db_connect {
 
-    my ($self, $user, $pass) = @_;
+    my $self = shift;
 
-    my $cfg = Qrt::Config->instance();
-    my $conninfo = $cfg->conninfo;
+    my $conninfo = Qrt::Config->instance->conninfo;
 
     my $driver = $conninfo->{driver};
 
-    # Select DBMS; tryed with 'use if', but not shure is better
+    # Select DBMS; tried with 'use if', but not shure is better
     # 'use' would do but don't want to load modules if not necessary
     if ( $driver =~ /Firebird/i ) {
         require Qrt::Db::Connection::Firebird;
@@ -86,28 +84,32 @@ sub db_connect {
 
     # Connect to Database, Select RDBMS
 
+    my $conn;
     if ( $driver =~ /Firebird/i ) {
-        $self->{conn} = Qrt::Db::Connection::Firebird->new();
+        $conn = Qrt::Db::Connection::Firebird->new();
     }
     elsif ( $driver =~ /Postgresql/i ) {
-        $self->{conn} = Qrt::Db::Connection::Postgresql->new();
+        $conn = Qrt::Db::Connection::Postgresql->new();
     }
     # elsif ( $driver =~ /mysql/i ) {
-    #     $self->{conn} = Qrt::Db::Connection::MySql->new();
+    #     $conn = Qrt::Db::Connection::MySql->new();
     # }
     else {
         die "Database $driver not supported!\n";
     }
 
-    $self->{dbh} = $self->{conn}->conectare(
-        $conninfo,
-        $user,
-        $pass,
-    );
+    my $dbh = $conn->conectare($conninfo);
 
-    return $self->{dbh};
+    if (ref $self->{_dbh}) {
+
+        # Some defaults
+        $self->{_dbh}->{AutoCommit}  = 1;          # disable transactions
+        $self->{_dbh}->{RaiseError}  = 1;
+        $self->{_dbh}->{LongReadLen} = 512 * 1024; # for Firebird with BLOBs
+    }
+
+    return $dbh;
 }
-
 
 
 =head1 AUTHOR

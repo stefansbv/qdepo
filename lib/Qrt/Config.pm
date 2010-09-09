@@ -54,7 +54,7 @@ sub _new_instance {
 
     # Load configuration and create accessors
     my $mcfg = $self->_config_main_load($args);
-    $self->_config_conn_load($mcfg);
+    $self->_config_conn_load($mcfg, $args);
     $self->_config_other_load($mcfg);
 
     return $self;
@@ -140,7 +140,7 @@ because the path is only known at runtime.
 =cut
 
 sub _config_conn_load {
-    my ( $self, $mcfg ) = @_;
+    my ( $self, $mcfg, $args ) = @_;
 
     # Connection
     my $connd = $mcfg->{paths}{connections};
@@ -155,7 +155,10 @@ sub _config_conn_load {
     $msg   .= $self->cfgname . qq{\n\n};
     $msg   .= qq{then edit: $cfgconn_f\n};
     my $cfg_data = $self->_config_file_load($cfgconn_f, $msg);
+
     $cfg_data->{cfgconnf} = $cfgconn_f; # Accessor for connection file
+    $cfg_data->{conninfo}{user} = $args->{user};
+    $cfg_data->{conninfo}{pass} = $args->{pass};
 
     $self->_make_accessors($cfg_data);
 

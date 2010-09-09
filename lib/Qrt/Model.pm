@@ -53,8 +53,6 @@ sub new {
     return $self;
 }
 
-#- next: DB
-
 sub db_connect {
     my $self = shift;
 
@@ -62,11 +60,9 @@ sub db_connect {
         $self->_connect();
     }
     if ( $self->is_connected ) {
-        $self->get_connection_observable->set( 1 );
         $self->_print('Connected');
     }
     else {
-        $self->get_connection_observable->set( 0 );
         $self->_print('Not connected');
     }
 
@@ -79,14 +75,14 @@ sub _connect {
     my $cfg = Qrt::Config->instance();
 
     # Connect to database
-    my $db = Qrt::Db->instance( $cfg->cfg->arg );
+    my $db = Qrt::Db->instance();
 
     # Is connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
-        $self->get_connection_observable->set( 1 );
+        $self->get_connection_observable->set( 1 ); # yes
     }
     else {
-        $self->get_connection_observable->set( 0 );
+        $self->get_connection_observable->set( 0 ); # no ;)
     }
 }
 
@@ -98,21 +94,22 @@ sub db_disconnect {
         $self->get_connection_observable->set( 0 );
         $self->_print('Disconnected.');
     }
-    return $self;
 }
 
 sub _disconnect {
     my $self = shift;
 
     my $db = Qrt::Db->instance();
+
     $db->dbh->disconnect;
 }
 
 sub is_connected {
     my $self = shift;
 
+    # TODO: What if the connection is lost?
+
     return $self->get_connection_observable->get;
-    # What if the connection is lost ???
 }
 
 sub get_connection_observable {
@@ -120,9 +117,6 @@ sub get_connection_observable {
 
     return $self->{_connected};
 }
-
-#- prev: DB
-#- next: Log
 
 sub get_stdout_observable {
     my $self = shift;
@@ -138,11 +132,10 @@ sub _print {
     $self->get_stdout_observable->set( "$line:$sb_id" );
 }
 
-#- prev: Log
-#- next: Event
-
 sub on_page_change {
     my ($self, $new_pg, $old_pg) = @_;
+
+    # uninplemented
 }
 
 sub on_item_selected {
@@ -150,9 +143,6 @@ sub on_item_selected {
 
     $self->get_itemchanged_observable->set( 1 );
 }
-
-#- prev: Event
-#- next: List
 
 sub get_list_data {
     my $self = shift;
@@ -178,6 +168,8 @@ sub get_list_data {
 
 sub run_export {
     my ($self, $outfile, $bind, $sql) = @_;
+
+    # TODO: Check if exists at least one qdf in list
 
     $self->_print('Running...');
 
@@ -206,9 +198,6 @@ sub run_export {
     }
 }
 
-# prev:
-# next:
-
 sub get_detail_data {
     my ($self, $file_fqn) = @_;
 
@@ -222,9 +211,6 @@ sub get_itemchanged_observable {
 
     return $self->{_itemchanged};
 }
-
-# prev: List
-# next: Edit mode
 
 sub set_editmode {
     my $self = shift;
@@ -289,7 +275,6 @@ sub save_query_def {
 }
 
 sub transform_data {
-
     my ($self, $record) = @_;
 
     my $rec;
@@ -304,7 +289,6 @@ sub transform_data {
 }
 
 sub transform_para {
-
     my ($self, $record) = @_;
 
     my (@aoh, $rec);
@@ -326,10 +310,7 @@ sub transform_para {
     return \@aoh;
 }
 
-# prev: Edit mode
-
 sub report_add {
-
     my ( $self ) = @_;
 
     my $reports_ref = $self->{fio}->get_file_list();
@@ -378,7 +359,7 @@ sub report_add {
     my $qdfpath = $cfg->qdfpath;
     my $dst_fqn = catfile($qdfpath, $newqdf);
 
-    print " $src_fqn -> $dst_fqn\n";
+    # print " $src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
         print "Create new report from template ...";
@@ -402,7 +383,6 @@ sub report_add {
 }
 
 sub report_remove {
-
     my ($self, $file_fqn) = @_;
 
     # Move file to backup
@@ -413,8 +393,6 @@ sub report_remove {
 
     return;
 }
-
-# next: Choice
 
 sub set_choice {
     my ($self, $choice) = @_;

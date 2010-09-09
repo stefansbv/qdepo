@@ -27,8 +27,8 @@ package Qrt::Db::Connection::Firebird;
 
 use strict;
 use warnings;
-
 use Carp;
+
 use DBI;
 
 our $VERSION = '0.80';
@@ -55,23 +55,23 @@ sub conectare {
     # | Descriere: Connect to the database                                    |
     # +-----------------------------------------------------------------------+
 
-    my ($self, $conf, $user, $pass) = @_;
+    my ( $self, $conf ) = @_;
 
     my $dbname  = $conf->{database};
     my $server  = $conf->{server};
     my $port    = $conf->{port};
     my $driver  = $conf->{driver};
-    my $dialect = 3;
+    my $user    = $conf->{user};
+    my $pass    = $conf->{pass};
 
     print "Connect to the $driver server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
     print "  => Server   = $server\n";
-    print "  => Dialect  = $dialect\n";
     print "  => User     = $user\n";
 
     eval {
-        $self->{_dbh} = DBI->connect(
+        $self->{dbh} = DBI->connect(
             "DBI:InterBase:"
                 . "dbname="
                 . $dbname
@@ -79,8 +79,7 @@ sub conectare {
                 . $server
                 . ";port="
                 . $port
-                . ";ib_dialect="
-                . $dialect,
+                . ";ib_dialect=3",
             $user,
             $pass,
             { RaiseError => 1, FetchHashKeyName => 'NAME_lc' }
@@ -93,16 +92,17 @@ sub conectare {
     }
     else {
         ## Default format: ISO
-        $self->{_dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
-        $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
-        $self->{_dbh}->{ib_timeformat}      = '%H:%M';
+        $self->{dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
+        $self->{dbh}->{ib_dateformat}      = '%Y-%m-%d';
+        $self->{dbh}->{ib_timeformat}      = '%H:%M';
         ## Format: German
-        # $self->{_dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
-        # $self->{_dbh}->{ib_dateformat}      = '%d.%m.%Y';
-        # $self->{_dbh}->{ib_timeformat}      = '%H:%M';
+        # $self->{dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
+        # $self->{dbh}->{ib_dateformat}      = '%d.%m.%Y';
+        # $self->{dbh}->{ib_timeformat}      = '%H:%M';
 
         print "\nConnected to database \'$dbname\'.\n";
-        return $self->{_dbh};
+
+        return $self->{dbh};
     }
 }
 
