@@ -3,6 +3,8 @@ package Qrt::Output;
 use warnings;
 use strict;
 
+use Qrt::Db;
+
 =head1 NAME
 
 Qrt::Output - Export from database to various formats
@@ -25,7 +27,21 @@ our $VERSION = '0.01';
 
 =head1 METHODS
 
+=head2 new
+
+Constructor
+
+=cut
+
+sub new {
+    my $class = shift;
+
+    return bless { dbh => Qrt::Db->instance()->dbh, }, $class;
+}
+
 =head2 db_generate_output
+
+Select the appropriate method to generate output
 
 =cut
 
@@ -53,6 +69,8 @@ sub db_generate_output {
 
 =head2 generate_output_excel
 
+Generate output in Microsoft Excel format
+
 =cut
 
 sub generate_output_excel {
@@ -78,11 +96,9 @@ sub generate_output_excel {
 
     my $xls = Qrt::Output::Excel->new($outfile);
 
-    my $dbh = $self->dbh();
-
     my $error = 0; # Error flag
     eval {
-        my $sth = $dbh->prepare($sql);
+        my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
@@ -122,6 +138,8 @@ sub generate_output_excel {
 
 =head2 generate_output_csv
 
+Generate output in CSV format
+
 =cut
 
 sub generate_output_csv {
@@ -147,11 +165,9 @@ sub generate_output_csv {
 
     my $csv = Qrt::Output::Csv->new($outfile);
 
-    my $dbh = $self->dbh();
-
     my $error = 0; # Error flag
     eval {
-        my $sth = $dbh->prepare($sql);
+        my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
@@ -180,6 +196,8 @@ sub generate_output_csv {
 
 =head2 generate_output_calc
 
+Generate output in OpenOffice.org - Calc format
+
 =cut
 
 sub generate_output_calc {
@@ -205,8 +223,6 @@ sub generate_output_calc {
         return;
     }
 
-    my $dbh = $self->dbh();
-
     my $doc;
     # Need the last part of the query to build a counting select
     # first to create new spreadsheet with predefined dimensions
@@ -219,14 +235,14 @@ sub generate_output_calc {
 
     my $rows_cnt;
     eval {
-        my $sth = $dbh->prepare($cnt_sql);
+        my $sth = $self->{dbh}->prepare($cnt_sql);
 
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
         }
 
-        my @cols = $dbh->selectrow_array( $sth );
+        my @cols = $self->{dbh}->selectrow_array( $sth );
         $rows_cnt = $cols[0] + 1;         # One more for the header
     };
     if ($@) {
@@ -238,7 +254,7 @@ sub generate_output_calc {
 
     my $error = 0; # Error flag
     eval {
-        my $sth = $dbh->prepare($sql);
+        my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
@@ -284,6 +300,7 @@ sub generate_output_calc {
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
 
 =head1 BUGS
 

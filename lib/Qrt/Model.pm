@@ -36,6 +36,7 @@ use Qrt::Config;
 use Qrt::FileIO;
 use Qrt::Observable;
 use Qrt::Db;
+use Qrt::Output;
 
 sub new {
     my $class = shift;
@@ -169,19 +170,19 @@ sub get_list_data {
 sub run_export {
     my ($self, $outfile, $bind, $sql) = @_;
 
-    # TODO: Check if exists at least one qdf in list
+    # TODO: Check if exists and selected at least one qdf in list
 
     $self->_print('Running...');
-
-    my $db = Qrt::Db->instance();
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
     my $cfg     = Qrt::Config->instance();
-    my $out_fqn = catfile($cfg->output, $outfile);
+    my $out_fqn = catfile($cfg->output->{path}, $outfile);
 
-    my ($err, $out) = $db->db_generate_output(
+    my $output = Qrt::Output->new();
+
+    my ($err, $out) = $output->db_generate_output(
         $option,
         $sql,
         $bind,
