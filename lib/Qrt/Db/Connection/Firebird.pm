@@ -28,6 +28,9 @@ package Qrt::Db::Connection::Firebird;
 use warnings;
 use strict;
 
+use DBI;
+
+
 =head1 NAME
 
 Qrt::Db::Connection::Firebird - Connect to a Firebird database

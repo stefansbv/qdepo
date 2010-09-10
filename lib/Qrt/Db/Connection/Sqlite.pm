@@ -3,6 +3,9 @@ package Qrt::Db::Connection::Sqlite;
 use warnings;
 use strict;
 
+use DBI;
+
+
 =head1 NAME
 
 Qrt::Db::Connection::Sqlite - The great new Qrt::Db::Connection::Sqlite!
@@ -60,7 +63,6 @@ sub conectare {
     print "Connect to the $driver server ...\n";
     print " Parameters:\n";
     print "  => Database = $dbname\n";
-    print "  => Server   = $server\n";
 
     eval {
         $self->{dbh} = DBI->connect(

@@ -3,6 +3,9 @@ package Qrt::Db::Connection::Mysql;
 use warnings;
 use strict;
 
+use DBI;
+
+
 =head1 NAME
 
 Qrt::Db::Connection::Mysql - Connect to a MySQL database

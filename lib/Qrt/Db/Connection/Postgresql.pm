@@ -28,6 +28,9 @@ package Qrt::Db::Connection::Postgresql;
 use warnings;
 use strict;
 
+use DBI;
+
+
 =head1 NAME
 
 Qrt::Db::Connection::Postgresql - Connect to a PostgreSQL database.

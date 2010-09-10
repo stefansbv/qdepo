@@ -91,39 +91,36 @@ sub db_connect {
     my $conninfo = Qrt::Config->instance->conninfo;
 
     my $driver = $conninfo->{driver};
+    my $db;
 
-    # Select DBMS; tried with 'use if', but not shure is better
-    # 'use' would do but don't want to load modules if not necessary
-    if ( $driver =~ /Firebird/i ) {
-        require Qrt::Db::Connection::Firebird;
-    }
-    elsif ( $driver =~ /Postgresql/i ) {
-        require Qrt::Db::Connection::Postgresql;
-    }
-    # elsif ( $driver =~ /MySQL/i ) {
-    #     require Qrt::Db::Connection::MySql;
-    # }
-    else {
-        die "Database $driver not supported!\n";
-    }
-
-    # Connect to Database, Select RDBMS
-
-    my $conn;
-    if ( $driver =~ /Firebird/i ) {
-        $conn = Qrt::Db::Connection::Firebird->new();
-    }
-    elsif ( $driver =~ /Postgresql/i ) {
-        $conn = Qrt::Db::Connection::Postgresql->new();
-    }
-    # elsif ( $driver =~ /mysql/i ) {
-    #     $conn = Qrt::Db::Connection::MySql->new();
-    # }
-    else {
-        die "Database $driver not supported!\n";
+  SWITCH: for ( $driver ) {
+        /^$/ && do warn "No driver name?\n";
+        /firebird/i && do {
+            require Qrt::Db::Connection::Firebird;
+            $db = Qrt::Db::Connection::Firebird->new();
+            last SWITCH;
+        };
+        /postgresql/i && do {
+            require Qrt::Db::Connection::Postgresql;
+            $db = Qrt::Db::Connection::Postgresql->new();
+            last SWITCH;
+        };
+        /mysql/i && do {
+            require Qrt::Db::Connection::Mysql;
+            $db = Qrt::Db::Connection::MySql->new();
+            last SWITCH;
+        };
+        /sqlite/i && do {
+            require Qrt::Db::Connection::Sqlite;
+            $db = Qrt::Db::Connection::Sqlite->new();
+            last SWITCH;
+        };
+        # Default
+        warn "Database $driver not supported!\n";
+        return;
     }
 
-    my $dbh = $conn->conectare($conninfo);
+    my $dbh = $db->conectare($conninfo);
 
     if (ref $self->{_dbh}) {
 

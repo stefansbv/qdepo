@@ -14,7 +14,7 @@ use lib qw( lib ../lib );
 use Qrt::Config;
 
 my $args = {
-    cfgname => 'pgtest',
+    cfgname => 'test',
     cfgmain => 'etc/main.yml',
     user    => 'stefan',
     pass    => undef,
