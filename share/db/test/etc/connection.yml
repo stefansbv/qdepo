@@ -1,12 +1,10 @@
 # TPDA - QRT
 # User configurations
-# path variable names have a '_p' suffix
-# file names a '_fn' suffix
 ---
 conninfo:
-  driver: Firebird
-  server: localhost
-  database: testdb
+  driver: sqlite
+  server: ~
+  database: /tmp/testdb.db
   port: ~
 output:
-  path: ~/tmp
+  path: /tmp
