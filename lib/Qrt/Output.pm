@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-Qrt::Output - The great new Qrt::Output!
+Qrt::Output - Export from database to various formats
 
 =head1 VERSION
 
@@ -18,15 +18,9 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use Qrt::Output;
 
-    my $foo = Qrt::Output->new();
-
-    ...
+    my $out = Qrt::Output->new();
 
 
 =head1 METHODS
@@ -293,44 +287,9 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-qrt-output at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Qrt-Output>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+None known.
 
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Qrt::Output
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Qrt-Output>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Qrt-Output>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Qrt-Output>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Qrt-Output/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
+Please report any bugs or feature requests to the author.
 
 
 =head1 LICENSE AND COPYRIGHT
@@ -339,10 +298,7 @@ Copyright 2010 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See http://dev.perl.org/licenses/ for more information.
-
+by the Free Software Foundation.
 
 =cut
 

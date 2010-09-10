@@ -1,3 +1,28 @@
+# +---------------------------------------------------------------------------+
+# | Name     : tpda-qrt (TPDA - Query Repository Tool)                        |
+# | Author   : Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]     |
+# | Website  : http://tpda-qrt.sourceforge.net                                |
+# |                                                                           |
+# | Copyright (C) 2004-2010  Stefan Suciu                                     |
+# |                                                                           |
+# | This program is free software; you can redistribute it and/or modify      |
+# | it under the terms of the GNU General Public License as published by      |
+# | the Free Software Foundation; either version 2 of the License, or         |
+# | (at your option) any later version.                                       |
+# |                                                                           |
+# | This program is distributed in the hope that it will be useful,           |
+# | but WITHOUT ANY WARRANTY; without even the implied warranty of            |
+# | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             |
+# | GNU General Public License for more details.                              |
+# |                                                                           |
+# | You should have received a copy of the GNU General Public License         |
+# | along with this program; if not, write to the Free Software               |
+# | Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA |
+# +---------------------------------------------------------------------------+
+# |
+# +---------------------------------------------------------------------------+
+# |                                                 p a c k a g e   U t i l s |
+# +---------------------------------------------------------------------------+
 package Qrt::Config::Utils;
 
 use warnings;
@@ -20,13 +45,9 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use Qrt::Config::Utils;
 
-    my $foo = Qrt::Config::Utils->new();
+    my $cu = Qrt::Config::Utils->new();
 
 
 =head1 METHODS
@@ -51,19 +72,9 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-qrt-config-utils at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Qrt-Config-Utils>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+None known.
 
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Qrt::Config::Utils
-
-
-=head1 ACKNOWLEDGEMENTS
+Please report any bugs or feature requests to the author.
 
 
 =head1 LICENSE AND COPYRIGHT
@@ -72,10 +83,7 @@ Copyright 2010 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See http://dev.perl.org/licenses/ for more information.
-
+by the Free Software Foundation.
 
 =cut
 

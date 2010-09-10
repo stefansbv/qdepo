@@ -25,21 +25,41 @@
 # +---------------------------------------------------------------------------+
 package Qrt::Db::Connection::Firebird;
 
-use strict;
 use warnings;
-use Carp;
+use strict;
 
-use DBI;
+=head1 NAME
 
-our $VERSION = '0.10';
+Qrt::Db::Connection::Firebird - Connect to a Firebird database
+
+
+=head1 VERSION
+
+Version 0.02
+
+=cut
+
+our $VERSION = '0.02';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Db::Connection::Firebird;
+
+    my $db = Qrt::Db::Connection::Firebird->new();
+
+    $db->conectare($conninfo);
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor
+
+=cut
 
 sub new {
-
-# +---------------------------------------------------------------------------+
-# | Descriere: Rutina de instantiere                                          |
-# | Parametri: class, alias                                                   |
-# +---------------------------------------------------------------------------+
-
     my $class = shift;
 
     my $self = {};
@@ -49,12 +69,13 @@ sub new {
     return $self;
 }
 
+=head2 conectare
+
+Connect to database
+
+=cut
+
 sub conectare {
-
-    # +-----------------------------------------------------------------------+
-    # | Descriere: Connect to the database                                    |
-    # +-----------------------------------------------------------------------+
-
     my ( $self, $conf ) = @_;
 
     my $dbname  = $conf->{database};
@@ -106,8 +127,27 @@ sub conectare {
     }
 }
 
-# --* End file
 
-1;
+=head1 AUTHOR
 
-__END__
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Db::Connection::Firebird

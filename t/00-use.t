@@ -5,7 +5,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 20;
 
 use_ok('Wx');
 diag( "using Wx: $Wx::VERSION" );
@@ -20,6 +20,7 @@ use_ok('Qrt::Db::Connection::Postgresql');
 use_ok('Qrt::FileIO');
 use_ok('Qrt::Model');
 use_ok('Qrt::Observable');
+use_ok('Qrt::Output');
 use_ok('Qrt::Output::Calc');
 use_ok('Qrt::Output::Csv');
 use_ok('Qrt::Output::Excel');

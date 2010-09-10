@@ -25,15 +25,39 @@
 # +---------------------------------------------------------------------------+
 package Qrt::Db::Connection::Postgresql;
 
-use strict;
 use warnings;
-use Carp;
+use strict;
 
-use DBI;
+=head1 NAME
 
-# use Postgresql >= 8.3.5 !!! :)
+Qrt::Db::Connection::Postgresql - Connect to a PostgreSQL database.
 
-our $VERSION = 0.10;
+
+=head1 VERSION
+
+Version 0.02
+
+=cut
+
+our $VERSION = '0.02';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Db::Connection::Postgresql;
+
+    my $db = Qrt::Db::Connection::Postgresql->new();
+
+    $db->conectare($conninfo);
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor
+
+=cut
 
 sub new {
     my $class = shift;
@@ -44,6 +68,12 @@ sub new {
 
     return $self;
 }
+
+=head2 conectare
+
+Connect to database
+
+=cut
 
 sub conectare {
     my ($self, $conf) = @_;
@@ -92,8 +122,27 @@ sub conectare {
     }
 }
 
-# --* End file
 
-1;
+=head1 AUTHOR
 
-__END__
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Db::Connection::Postgresql
