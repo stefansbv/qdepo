@@ -118,9 +118,7 @@ sub _config_main_load {
     my ( $self, $args ) = @_;
 
     my $configpath = File::UserConfig->new(
-        dist     => 'Tpda-Qrt',
-        module   => 'Tpda::Qrt',
-        dirname  => '.tpda-qrt',
+        dist     => 'Qrt',
         sharedir => 'share',
     )->configdir;
 
