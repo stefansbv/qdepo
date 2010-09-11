@@ -236,15 +236,6 @@ sub _set_event_handlers {
     #- Quit
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_qt'), $exit;
 
-    #- NoteBook
-    EVT_AUINOTEBOOK_PAGE_CHANGED $self->_view, $self->{_nbook}, sub {
-         my ( $nb, $event ) = @_;
-         my $new_pg = $event->GetSelection;
-         my $old_pg = $event->GetOldSelection;
-         $self->_model->on_page_change($new_pg, $old_pg);
-         $event->Skip;
-    };
-
     #- List controll
     EVT_LIST_ITEM_SELECTED $self->_view, $self->{_list}, sub {
         $self->_model->on_item_selected(@_);

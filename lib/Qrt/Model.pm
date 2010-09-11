@@ -93,10 +93,10 @@ sub toggle_db_connect {
     my $self = shift;
 
     if ( $self->is_connected ) {
-        $self->_connect();
+        $self->_disconnect();
     }
     else {
-        $self->_disconnect();
+        $self->_connect();
     }
 
     return $self;
@@ -112,10 +112,10 @@ sub _connect {
     my $self = shift;
 
     # Connect to database
-    my $db = Qrt::Db->instance();
+    $self->{_dbh} = Qrt::Db->instance->dbh;
 
     # Is realy connected ?
-    if ( ref( $db->dbh() ) =~ m{DBI} ) {
+    if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
         $self->_print('Connected');
     }
@@ -134,9 +134,7 @@ Disconnect from the database
 sub _disconnect {
     my $self = shift;
 
-    my $db = Qrt::Db->instance();
-
-    $db->dbh->disconnect;
+    $self->{_dbh}->disconnect;
     $self->get_connection_observable->set( 0 );
     $self->_print('Disconnected.');
 }
@@ -191,18 +189,6 @@ sub _print {
     $sb_id = 0 if not defined $sb_id;
 
     $self->get_stdout_observable->set( "$line:$sb_id" );
-}
-
-=head2 on_page_change
-
-Uninplemented
-
-=cut
-
-sub on_page_change {
-    my ($self, $new_pg, $old_pg) = @_;
-
-
 }
 
 =head2 on_item_selected
