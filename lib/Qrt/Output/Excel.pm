@@ -31,6 +31,35 @@ use Carp;
 
 use Spreadsheet::WriteExcel;
 
+=head1 NAME
+
+Qrt::Output::Excel - Export data in CSV format
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Output::Excel;
+
+    my $app = Qrt::Output::Excel->new();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
     my $class = shift;
 
@@ -46,19 +75,21 @@ sub new {
     $self->{lenghts}  = [];     # Array to hold max lenghts for each col
     $self->{max_len}  = 30;     # Max column width
 
-    $self->_create_xls();
+    $self->_create_doc();
 
     return $self;
 }
 
 =pod
 
-Formats better defined outside the module, maybe in a YAML
+Create the create the Excel spreadsheet document.
+
+TODO: Formats better defined outside the module, maybe in a YAML
 configuration file?
 
 =cut
 
-sub _create_xls {
+sub _create_doc {
 
     my ( $self, $sheet_name ) = @_;
 
@@ -132,6 +163,12 @@ sub _create_xls {
     return;
 }
 
+=head2 create_row
+
+Create a row of data; format not imlemented yet.
+
+=cut
+
 sub create_row {
 
     my ($self, $row, $fields, $fmt_name) = @_;
@@ -148,6 +185,12 @@ sub create_row {
 
     return;
 }
+
+=head2 create_done
+
+Print a message about the status of document creation and return it.
+
+=cut
 
 sub create_done {
 
@@ -172,6 +215,12 @@ sub create_done {
     return $output;
 }
 
+=head2 init_lengths
+
+Init lengths record to avoid error when making comparisons.
+
+=cut
+
 sub init_lengths {
 
     # Init lengths record to avoid error when making comparisons
@@ -182,6 +231,12 @@ sub init_lengths {
 
     return;
 }
+
+=head2 store_max_len
+
+Impose a maximum width and store max length.
+
+=cut
 
 sub store_max_len {
 
@@ -196,6 +251,12 @@ sub store_max_len {
     return;
 }
 
+=head2 set_cols_width
+
+Set the columns with.
+
+=cut
+
 sub set_cols_width {
 
     my ($self) = @_;
@@ -209,5 +270,26 @@ sub set_cols_width {
     return;
 }
 
+=head1 AUTHOR
 
-1;
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Output::Excel

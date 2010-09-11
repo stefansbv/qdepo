@@ -27,12 +27,41 @@ package Qrt;
 
 use strict;
 use warnings;
-use 5.010;
+#use 5.010;
 
 use Qrt::Config;
 use Qrt::Wx::App;
 
-our $VERSION = 0.10;
+=head1 NAME
+
+Qrt::Db - Tpda Qrt database operations module
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt;
+
+    my $app = Qrt->new( $opts );
+
+    $app->run;
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
 
 sub new {
     my ($class, $args) = @_;
@@ -46,49 +75,52 @@ sub new {
     return $self;
 }
 
+=head2 _init
+
+Initialize the configurations module and create the WxPerl
+application instance.
+
+=cut
+
 sub _init {
     my ( $self, $args ) = @_;
 
-    # Initialize config for the first time
     Qrt::Config->instance($args);
 
-    # Create Wx application
     $self->{gui} = Qrt::Wx::App->create();
 }
+
+=head2 run
+
+Execute the application
+
+=cut
 
 sub run {
     my $self = shift;
     $self->{gui}->MainLoop;
 }
 
-1;
-
-__END__
-
-=head1 NAME
-
-Qrt - Is the main module in TPDA-QRT wxPerl application
-
-=head1 SYNOPSIS
-
-=head1 DESCRIPTION
-
-=head1 BUGS AND LIMITATIONS
-
-There are no known bugs in this module.
-
-Please report problems to the author(s)
-
-Patches are welcome.
-
 =head1 AUTHOR
 
-Stefan Suciu  [ stefansbv 'at' users . sourceforge . net ]
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
-=head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2010 Stefan Suciu.
+=head1 BUGS
 
-All rights reserved.
+None known.
 
-GNU General Public License
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt

@@ -27,8 +27,6 @@ package Qrt::FileIO;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
@@ -36,18 +34,48 @@ use XML::Twig;
 
 use Qrt::Config;
 
-our $VERSION = 0.03;         # Version number
+=head1 NAME
+
+Qrt::FileIO - Tpda Qrt XML file operations module
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::FileIO;
+
+    my $app = Qrt::FileIO->new();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
 
 sub new {
-
-    my ($class, $args) = @_;
+    my $class = shift;
 
     my $self = bless( {}, $class );
 
-    $self->{args} = $args;
-
     return $self;
 }
+
+=head2 _process_file
+
+Process an XML file's tag.
+
+=cut
 
 sub _process_file {
 
@@ -76,6 +104,12 @@ sub _process_file {
     }
 }
 
+=head2 _process_all_files
+
+Loop and process all files.
+
+=cut
+
 sub _process_all_files {
 
     my ($self, $tag_name) = @_;
@@ -99,14 +133,16 @@ sub _process_all_files {
     return \@qdfdata;
 }
 
+=head2 _xml_read_simple
+
+Read an XML file and return its conents as an Perl data structure.
+
+=cut
+
 sub _xml_read_simple {
-    my ($self, $file, $tag) = @_;
+    my ($self, $file, $path) = @_;
 
     return unless $file;
-
-    # XPath syntax: "$tag\[\@$att]"
-    my $path = sprintf( "%s", $tag ); # Not needed if no attr :)
-    # print "Path = $path\n";
 
     my $twig = XML::Twig->new( twig_roots => { $path => 1 } );
     my $xml_data;
@@ -126,6 +162,13 @@ sub _xml_read_simple {
 
     return $xml_data;
 }
+
+=head2 get_file_list
+
+Use File::Find::Rule to get all the file names from the configured
+path.
+
+=cut
 
 sub get_file_list {
     my $self = shift;
@@ -156,22 +199,45 @@ sub get_file_list {
     return \@rapoarte;
 }
 
+=head2 get_details
+
+Process an XML file an return the contents of all the elements.
+
+=cut
+
 sub get_details {
     my ($self, $file) = @_;
     return $self->_process_file($file, 'report');
 }
+
+=head2 get_title
+
+Process an XML file an return the contents of the title element.
+
+=cut
 
 sub get_title {
     my ($self, $file) = @_;
     return $self->_process_file($file, 'title');
 }
 
+=head2 get_titles
+
+Process all XML files an return the contents of the title element.
+
+=cut
+
 sub get_titles {
     my ($self) = @_;
+
     return $self->_process_all_files('title');
 }
 
-#-- Update XML
+=head2 xml_update
+
+Update an XML file with the new values from record.
+
+=cut
 
 sub xml_update {
     my ($self, $file, $rec) = @_;
@@ -215,10 +281,14 @@ sub xml_update {
     return;
 }
 
+=head2 _xml_proc_head
+
+Remove head element childrens, then recreate with the new values.
+
+=cut
+
 sub _xml_proc_head {
     my ( $self, $t, $elt, $rec ) = @_;
-
-    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
@@ -230,10 +300,14 @@ sub _xml_proc_head {
     return;
 }
 
+=head2 _xml_proc_body
+
+Remove body element childrens, then recreate with the new values.
+
+=cut
+
 sub _xml_proc_body {
     my ( $self, $t, $elt, $rec ) = @_;
-
-    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
@@ -247,10 +321,15 @@ sub _xml_proc_body {
     return;
 }
 
+=head2 _xml_proc_para
+
+Remove parameters element childrens, then recreate with the new
+values.
+
+=cut
+
 sub _xml_proc_para {
     my ( $self, $t, $elt, $rec ) = @_;
-
-    # print "Working on ", $elt->tag, "\n";
 
     $elt->cut_children;
 
@@ -263,4 +342,27 @@ sub _xml_proc_para {
     return;
 }
 
-1;
+
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::FileIO

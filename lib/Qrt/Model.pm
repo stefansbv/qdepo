@@ -38,6 +38,35 @@ use Qrt::Observable;
 use Qrt::Db;
 use Qrt::Output;
 
+=head1 NAME
+
+Qrt::Wx::Model - The Model
+
+
+=head1 VERSION
+
+Version 0.08
+
+=cut
+
+our $VERSION = '0.08';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Model;
+
+    my $model = Qrt::Model->new();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
     my $class = shift;
 
@@ -54,48 +83,53 @@ sub new {
     return $self;
 }
 
-sub db_connect {
+=head2 toggle_db_connect
+
+Toggle database connection
+
+=cut
+
+sub toggle_db_connect {
     my $self = shift;
 
-    if ( not $self->is_connected ) {
+    if ( $self->is_connected ) {
         $self->_connect();
     }
-    if ( $self->is_connected ) {
-        $self->_print('Connected');
-    }
     else {
-        $self->_print('Not connected');
+        $self->_disconnect();
     }
 
     return $self;
 }
 
+=head2 _connect
+
+Connect to the database
+
+=cut
+
 sub _connect {
     my $self = shift;
-
-    my $cfg = Qrt::Config->instance();
 
     # Connect to database
     my $db = Qrt::Db->instance();
 
-    # Is connected ?
+    # Is realy connected ?
     if ( ref( $db->dbh() ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
+        $self->_print('Connected');
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
-    }
-}
-
-sub db_disconnect {
-    my $self = shift;
-
-    if ( $self->is_connected ) {
-        $self->_disconnect;
-        $self->get_connection_observable->set( 0 );
         $self->_print('Disconnected.');
     }
 }
+
+=head2 _disconnect
+
+Disconnect from the database
+
+=cut
 
 sub _disconnect {
     my $self = shift;
@@ -103,7 +137,15 @@ sub _disconnect {
     my $db = Qrt::Db->instance();
 
     $db->dbh->disconnect;
+    $self->get_connection_observable->set( 0 );
+    $self->_print('Disconnected.');
 }
+
+=head2 is_connected
+
+Return true if connected
+
+=cut
 
 sub is_connected {
     my $self = shift;
@@ -113,17 +155,35 @@ sub is_connected {
     return $self->get_connection_observable->get;
 }
 
+=head2 get_connection_observable
+
+Get connection observable status
+
+=cut
+
 sub get_connection_observable {
     my $self = shift;
 
     return $self->{_connected};
 }
 
+=head2 get_stdout_observable
+
+Get STDOUT observable status
+
+=cut
+
 sub get_stdout_observable {
     my $self = shift;
 
     return $self->{_stdout};
 }
+
+=head2 _print
+
+Put a message on a Wx text controll
+
+=cut
 
 sub _print {
     my ( $self, $line, $sb_id ) = @_;
@@ -133,17 +193,35 @@ sub _print {
     $self->get_stdout_observable->set( "$line:$sb_id" );
 }
 
+=head2 on_page_change
+
+Uninplemented
+
+=cut
+
 sub on_page_change {
     my ($self, $new_pg, $old_pg) = @_;
 
-    # uninplemented
+
 }
+
+=head2 on_item_selected
+
+On list item selection make the event observable
+
+=cut
 
 sub on_item_selected {
     my $self = shift;
 
     $self->get_itemchanged_observable->set( 1 );
 }
+
+=head2 get_list_data
+
+Get the titles from all the QDF files
+
+=cut
 
 sub get_list_data {
     my $self = shift;
@@ -167,10 +245,16 @@ sub get_list_data {
     return $titles;
 }
 
+=head2 run_export
+
+Run SQL query and generate output data in selected data format
+
+TODO: Check if exists and selected at least one qdf in list
+
+=cut
+
 sub run_export {
     my ($self, $outfile, $bind, $sql) = @_;
-
-    # TODO: Check if exists and selected at least one qdf in list
 
     $self->_print('Running...');
 
@@ -199,6 +283,12 @@ sub run_export {
     }
 }
 
+=head2 get_detail_data
+
+Get all contents from the selected QDF title (file)
+
+=cut
+
 sub get_detail_data {
     my ($self, $file_fqn) = @_;
 
@@ -207,11 +297,23 @@ sub get_detail_data {
     return $ddata_ref;
 }
 
+=head2 get_itemchanged_observable
+
+Return observable status on item changed ???
+
+=cut
+
 sub get_itemchanged_observable {
     my $self = shift;
 
     return $self->{_itemchanged};
 }
+
+=head2 set_editmode
+
+Set edit mode
+
+=cut
 
 sub set_editmode {
     my $self = shift;
@@ -227,6 +329,12 @@ sub set_editmode {
     }
 }
 
+=head2 set_idlemode
+
+Set idle mode
+
+=cut
+
 sub set_idlemode {
     my $self = shift;
 
@@ -241,17 +349,35 @@ sub set_idlemode {
     }
 }
 
+=head2 is_editmode
+
+Return true if is edit mode
+
+=cut
+
 sub is_editmode {
     my $self = shift;
 
     return $self->get_editmode_observable->get;
 }
 
+=head2 get_editmode_observable
+
+Return edit mode observable status
+
+=cut
+
 sub get_editmode_observable {
     my $self = shift;
 
     return $self->{_editmode};
 }
+
+=head2 save_query_def
+
+Save current query definition data from controls
+
+=cut
 
 sub save_query_def {
     my ($self, $file_fqn, $head, $para, $body) = @_;
@@ -275,6 +401,12 @@ sub save_query_def {
     return $head->{title};
 }
 
+=head2 transform_data
+
+Transform data to be suitable to save in XML format
+
+=cut
+
 sub transform_data {
     my ($self, $record) = @_;
 
@@ -288,6 +420,12 @@ sub transform_data {
 
     return $rec;
 }
+
+=head2 transform_para
+
+Transform parameters data to be suitable to save in XML format
+
+=cut
 
 sub transform_para {
     my ($self, $record) = @_;
@@ -310,6 +448,12 @@ sub transform_para {
 
     return \@aoh;
 }
+
+=head2 report_add
+
+Create new QDF file from template
+
+=cut
 
 sub report_add {
     my ( $self ) = @_;
@@ -383,6 +527,14 @@ sub report_add {
     }
 }
 
+=head2 report_remove
+
+Remove QDF from list and from disk.  NO CONFIRMATION DIALOG yet!
+
+TODO: Make  CONFIRMATION DIALOG
+
+=cut
+
 sub report_remove {
     my ($self, $file_fqn) = @_;
 
@@ -395,11 +547,23 @@ sub report_remove {
     return;
 }
 
+=head2 set_choice
+
+Set choice to value
+
+=cut
+
 sub set_choice {
     my ($self, $choice) = @_;
 
     $self->get_choice_observable->set($choice);
 }
+
+=head2 get_choice
+
+Return choice to value
+
+=cut
 
 sub get_choice {
     my $self = shift;
@@ -407,10 +571,39 @@ sub get_choice {
     return $self->get_choice_observable->get;
 }
 
+=head2 get_choice_observable
+
+Return choice observable status
+
+=cut
+
 sub get_choice_observable {
     my $self = shift;
 
     return $self->{_choice};
 }
 
-1;
+
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Model

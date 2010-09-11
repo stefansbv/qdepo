@@ -31,8 +31,36 @@ use Carp;
 
 use Text::CSV_XS;
 
-sub new {
+=head1 NAME
 
+Qrt::Output::Csv - Export data in CSV format
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Output::Csv;
+
+    my $app = Qrt::Output::Csv->new();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
+sub new {
     my $class = shift;
 
     my $self = {};
@@ -43,13 +71,18 @@ sub new {
 
     $self->{csv_fh} = undef;
 
-    $self->{csv} = $self->_create_csv();
+    $self->{csv} = $self->_create_doc();
 
     return $self;
 }
 
-sub _create_csv {
+=head2 _create_doc
 
+Create the CSV text document.
+
+=cut
+
+sub _create_doc {
     my ($self) = @_;
 
     # Options from config?
@@ -67,8 +100,13 @@ sub _create_csv {
     return $csv_o;
 }
 
-sub create_row {
+=head2 create_row
 
+Create a row of data.
+
+=cut
+
+sub create_row {
     my ($self, $data) = @_;
 
     my @data = map { defined $_ ? $_ : "" } @{$data};
@@ -85,8 +123,13 @@ sub create_row {
     return;
 }
 
-sub create_done {
+=head2 create_done
 
+Print a message about the status of document creation and return it.
+
+=cut
+
+sub create_done {
     my ($self, ) = @_;
 
     close $self->{csv_fh}
@@ -105,5 +148,26 @@ sub create_done {
     return $output;
 }
 
+=head1 AUTHOR
 
-1;
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Output::Csv

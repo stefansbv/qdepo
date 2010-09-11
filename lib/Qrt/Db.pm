@@ -98,7 +98,14 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
 =head1 BUGS
 
-None known.
+PostgreSQL: Transaction aborted because execute on disconnected handle
+at lib/Qrt/Db.pm line 125.
+
+Similar for sqlite: Transaction aborted because DBD::SQLite::db
+prepare failed: attempt to prepare on inactive database handle at
+lib/Qrt/Output.pm line 238.
+
+Appears at disconnect - reconect.
 
 Please report any bugs or feature requests to the author.
 

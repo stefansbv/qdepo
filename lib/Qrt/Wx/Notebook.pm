@@ -28,14 +28,43 @@ package Qrt::Wx::Notebook;
 use strict;
 use warnings;
 
-use Wx qw(:everything);  # Eventualy change this !!!
+use Wx qw(:everything);  # TODO: Eventualy change this!
 use Wx::AUI;
 
 use base qw{Wx::AuiNotebook};
 
+=head1 NAME
+
+Qrt::Wx::Notebook - Create a notebook
+
+
+=head1 VERSION
+
+Version 0.02
+
+=cut
+
+our $VERSION = '0.02';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Wx::Notebook;
+
+    $self->{_nb} = Qrt::Wx::Notebook->new( $gui );
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
 
-    my ( $class, $gui, $repo ) = @_;
+    my ( $class, $gui ) = @_;
 
     #- The Notebook
 
@@ -46,8 +75,6 @@ sub new {
         [-1, -1],
         wxAUI_NB_TAB_FIXED_WIDTH,
     );
-
-    $self->{repo} = $repo;  # Report app object
 
     #-- Panels
 
@@ -67,27 +94,29 @@ sub new {
     $self->AddPage( $self->{p3}, 'SQL' );
     $self->AddPage( $self->{p4}, 'Config info' );
 
-    # # Works but makes interface to not respond to mouse interaction
-    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGING(
-    #     $self, -1, \&OnPageChanging );
-
-    # # Inspired ... from Kephra ;)
-    # Wx::Event::EVT_AUINOTEBOOK_PAGE_CHANGED(
-    #     $self,
-    #     -1,
-    #     sub {
-    #         my ( $bar, $event ) = @_;  # bar !!! realy? :)
-
-    #         my $new_pg = $event->GetSelection;
-    #         my $old_pg = $event->GetOldSelection;
-
-    #         $self->{repo}->on_page_change($old_pg, $new_pg);
-
-    #         $event->Skip;
-    #     });
-
-
     return $self;
 }
 
-1;
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Wx::Notebook

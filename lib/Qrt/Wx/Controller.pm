@@ -35,10 +35,40 @@ use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
 use Qrt::Model;
 use Qrt::Wx::View;
 
+=head1 NAME
+
+Qrt::Wx::Controller - The Controller
+
+
+=head1 VERSION
+
+Version 0.05
+
+=cut
+
+our $VERSION = '0.05';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Wx::Controller;
+
+    my $controller = Qrt::Wx::Controller->new();
+
+    $controller->start();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
     my ( $class, $app ) = @_;
 
-    # Hardcoded config file name and path
     my $model = Qrt::Model->new();
 
     my $view = Qrt::Wx::View->new(
@@ -68,32 +98,47 @@ sub new {
     return $self;
 }
 
+=head2 start
+
+Populate list with titles, populate configurations page, set default
+choice for export and initial mode.
+
+=cut
+
 sub start {
     my ($self, ) = @_;
 
-    # Populate list with titles
-    $self->_view->list_populate_all();
 
-    # Populate configurations tab
+    $self->_view->list_populate_all();
     $self->_view->populate_config_page();
 
     # Connect to database at start
     # $self->_model->db_connect();
 
-    # Set default choice for export
     my $default_choice = $self->_view->get_choice_options_default();
     $self->_model->set_choice("0:$default_choice");
 
-    # Initial mode
     $self->_model->set_idlemode();
     $self->toggle_controls;
 }
+
+=head2 _set_event_handlers
+
+Close the application window
+
+=cut
 
 my $closeWin = sub {
     my ( $self, $event ) = @_;
 
     $self->Destroy();
 };
+
+=head2 _set_event_handlers
+
+The About dialog
+
+=cut
 
 my $about = sub {
     my ( $self, $event ) = @_;
@@ -109,11 +154,23 @@ my $about = sub {
     );
 };
 
+=head2 _set_event_handlers
+
+The exit sub
+
+=cut
+
 my $exit = sub {
     my ( $self, $event ) = @_;
 
     $self->Close( 1 );
 };
+
+=head2 _set_event_handlers
+
+Setup event handlers
+
+=cut
 
 sub _set_event_handlers {
     my $self = shift;
@@ -125,9 +182,7 @@ sub _set_event_handlers {
 
     #- Toolbar
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_cn'), sub {
-        $self->_model->is_connected
-            ? $self->_model->db_disconnect
-            : $self->_model->db_connect;
+        $self->_model->toggle_db_connect;
     };
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rf'), sub {
         $self->_model->on_item_selected(@_);
@@ -199,17 +254,35 @@ sub _set_event_handlers {
     EVT_CLOSE $self->_view, $closeWin;
 }
 
+=head2 _model
+
+Return model instance variable
+
+=cut
+
 sub _model {
     my $self = shift;
 
     return $self->{_model};
 }
 
+=head2 _view
+
+Return view instance variable
+
+=cut
+
 sub _view {
     my $self = shift;
 
     return $self->{_view};
 }
+
+=head2 toggle_controls
+
+Toggle controls appropriate for diferent states of the application
+
+=cut
 
 sub toggle_controls {
     my $self = shift;
@@ -241,12 +314,24 @@ sub toggle_controls {
     }
 }
 
+=head2 toggle_controls_tb
+
+Toggle the toolbar buttons state
+
+=cut
+
 sub toggle_controls_tb {
     my ( $self, $btn_name, $status ) = @_;
 
     my $tb_btn = $self->_view->get_toolbar_btn_id($btn_name);
     $self->{_toolbar}->EnableTool( $tb_btn, $status );
 }
+
+=head2 toggle_controls_page
+
+Toggle the controls on page
+
+=cut
 
 sub toggle_controls_page {
     my ($self, $page, $is_edit) = @_;
@@ -285,4 +370,26 @@ sub toggle_controls_page {
     }
 }
 
-1;
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Wx::Controller

@@ -54,7 +54,7 @@ Connect to a database.
 
 =head1 METHODS
 
-=head2 _new_instance
+=head2 new
 
 Constructor method, the first and only time a new instance is created.
 All parameters passed to the instance() method are forwarded to this
@@ -72,15 +72,9 @@ sub new {
     return $self->{dbh};
 }
 
-=head2 # db_connect
+=head2 db_connect
 
 Connect method, uses I<Qrt::Config> module for configuration.
-
-=cut
-
-=for TODO
-
-Try DBIx::AnyDBD
 
 =cut
 

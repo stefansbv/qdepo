@@ -38,6 +38,35 @@ use Qrt::Wx::ToolBar;
 
 use base 'Wx::Frame';
 
+=head1 NAME
+
+Qrt::Wx::App - Wx Perl application class
+
+
+=head1 VERSION
+
+Version 0.02
+
+=cut
+
+our $VERSION = '0.02';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Wx::Notebook;
+
+    $self->{_nb} = Qrt::Wx::Notebook->new( $gui );
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
     my $class = shift;
     my $model = shift;
@@ -84,11 +113,23 @@ sub new {
     return $self;
 }
 
+=head2 _model
+
+Return model instance
+
+=cut
+
 sub _model {
     my $self = shift;
 
     $self->{_model};
 }
+
+=head2 _set_model_callbacks
+
+Define the model callbacks
+
+=cut
 
 sub _set_model_callbacks {
     my $self = shift;
@@ -116,6 +157,12 @@ sub _set_model_callbacks {
     $so->add_callback( sub{ $self->status_msg( @_ ) } );
 }
 
+=head2 create_menu
+
+Create the menu
+
+=cut
+
 sub create_menu {
     my $self = shift;
 
@@ -135,10 +182,22 @@ sub create_menu {
     $self->SetMenuBar($menu);
 }
 
+=head2 get_menubar
+
+Return the menu bar handler
+
+=cut
+
 sub get_menubar {
     my $self = shift;
     return $self->{_menu};
 }
+
+=head2 create_statusbar
+
+Create the status bar
+
+=cut
 
 sub create_statusbar {
     my $self = shift;
@@ -149,17 +208,35 @@ sub create_statusbar {
     $self->SetStatusWidths( 260, -1, -2 );
 }
 
+=head2 get_statusbar
+
+Return the status bar handler
+
+=cut
+
 sub get_statusbar {
     my $self = shift;
 
     return $self->{_sb};
 }
 
+=head2 get_notebook
+
+Return the notebook handler
+
+=cut
+
 sub get_notebook {
     my $self = shift;
 
     return $self->{_nb};
 }
+
+=head2 create_report_page
+
+Create the report page (tab) on the notebook
+
+=cut
 
 sub create_report_page {
     my $self = shift;
@@ -255,6 +332,12 @@ sub create_report_page {
     $self->{_nb}{p1}->SetSizer($repo_main_sz);
 }
 
+=head2 create_para_page
+
+Create the parameters page (tab) on the notebook
+
+=cut
+
 sub create_para_page {
 
     my $self = shift;
@@ -341,6 +424,12 @@ sub create_para_page {
     $self->{_nb}{p2}->SetSizer( $para_main_sz );
 }
 
+=head2 create_sql_page
+
+Create the SQL page (tab) on the notebook
+
+=cut
+
 sub create_sql_page {
     my $self = shift;
 
@@ -424,6 +513,12 @@ transaction union upper user where with year} );
     $self->{_nb}{p3}->SetSizer( $sql_main_sz );
 }
 
+=head2 create_config_page
+
+Create the configuration info page (tab) on the notebook
+
+=cut
+
 sub create_config_page {
     my $self = shift;
 
@@ -462,6 +557,12 @@ sub create_config_page {
     $self->{_nb}{p4}->SetSizer( $cnf_main_sz );
 }
 
+=head2 dialog_popup
+
+Define a dialog popup
+
+=cut
+
 sub dialog_popup {
     my ( $self, $msgtype, $msg ) = @_;
     if ( $msgtype eq 'Error' ) {
@@ -475,16 +576,34 @@ sub dialog_popup {
     }
 }
 
+=head2 get_toolbar_btn_id
+
+Return a toolbar button ID when we know the its name
+
+=cut
+
 sub get_toolbar_btn_id {
     my ($self, $name) = @_;
 
     return $self->{_tb}{_tb_btn}{$name};
 }
 
+=head2 get_toolbar
+
+Return the toolbar handler
+
+=cut
+
 sub get_toolbar {
     my $self = shift;
     return $self->{_tb};
 }
+
+=head2 get_choice_options_default
+
+Return the choice options default, the first element in the array
+
+=cut
 
 sub get_choice_options_default {
     my $self = shift;
@@ -492,10 +611,22 @@ sub get_choice_options_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
+=head2 get_listcontrol
+
+Return the list control handler
+
+=cut
+
 sub get_listcontrol {
     my $self = shift;
     return $self->{_list};
 }
+
+=head2 get_controls_list
+
+Return a AoH with information regarding the controls from the list page
+
+=cut
 
 sub get_controls_list {
     my $self = shift;
@@ -508,6 +639,12 @@ sub get_controls_list {
         { description => [ $self->{description}, 'normal'  , 'white'     ] },
     ];
 }
+
+=head2 get_controls_para
+
+Return a AoH with information regarding the controls from the parameters page
+
+=cut
 
 sub get_controls_para {
     my $self = shift;
@@ -526,6 +663,12 @@ sub get_controls_para {
     ];
 }
 
+=head2 get_controls_sql
+
+Return a AoH with information regarding the controls from the SQL page
+
+=cut
+
 sub get_controls_sql {
     my $self = shift;
 
@@ -533,6 +676,13 @@ sub get_controls_sql {
         { sql => [ $self->{sql}, 'normal'  , 'white' ] },
     ];
 }
+
+=head2 get_controls_conf
+
+Return a AoH with information regarding the controls from the
+configurations page
+
+=cut
 
 sub get_controls_conf {
     my $self = shift;
@@ -542,33 +692,68 @@ sub get_controls_conf {
     ];
 }
 
+=head2 get_control_by_name
+
+Return the control instance by name
+
+=cut
+
 sub get_control_by_name {
     my ($self, $name) = @_;
 
     return $self->{$name},
 }
 
-#- next ListCtrl
+=head2 get_list_text
+
+Return text item from list control row and col
+
+=cut
 
 sub get_list_text {
     my ($self, $row, $col) = @_;
+
     return $self->get_listcontrol->GetItemText( $row, $col );
 }
+
+=head2 set_list_text
+
+Set text item from list control row and col
+
+=cut
 
 sub set_list_text {
     my ($self, $row, $col, $text) = @_;
     $self->get_listcontrol->SetItemText( $row, $col, $text );
 }
 
+=head2 set_list_data
+
+Set item data from list control
+
+=cut
+
 sub set_list_data {
     my ($self, $item, $data_href) = @_;
     $self->get_listcontrol->SetItemData( $item, $data_href );
 }
 
+=head2 get_list_data
+
+Return item data from list control
+
+=cut
+
 sub get_list_data {
     my ($self, $item) = @_;
     return $self->get_listcontrol->GetItemData( $item );
 }
+
+=head2 list_item_select_first
+
+Select the first item in list
+
+=cut
 
 sub list_item_select_first {
     my ($self) = @_;
@@ -580,6 +765,12 @@ sub list_item_select_first {
     }
 }
 
+=head2 list_item_select_last
+
+Select the last item in list
+
+=cut
+
 sub list_item_select_last {
     my ($self) = @_;
 
@@ -589,16 +780,35 @@ sub list_item_select_last {
     $self->get_listcontrol->EnsureVisible($idx);
 }
 
+=head2 get_list_max_index
+
+Return the max index from the list control
+
+=cut
+
 sub get_list_max_index {
     my ($self) = @_;
+
     return $self->get_listcontrol->GetItemCount();
 }
+
+=head2 get_list_selected_index
+
+Return the selected index from the list control
+
+=cut
 
 sub get_list_selected_index {
     my ($self) = @_;
 
     return $self->get_listcontrol->GetSelection();
 }
+
+=head2 list_item_insert
+
+Insert item in list control
+
+=cut
 
 sub list_item_insert {
     my ( $self, $indice, $nrcrt, $title, $file ) = @_;
@@ -611,20 +821,44 @@ sub list_item_insert {
     $self->set_list_data($indice, $file );
 }
 
+=head2 list_string_item_insert
+
+Insert string item in list control
+
+=cut
+
 sub list_string_item_insert {
     my ($self, $indice) = @_;
     $self->get_listcontrol->InsertStringItem( $indice, 'dummy' );
 }
+
+=head2 list_item_clear
+
+Delete list control item
+
+=cut
 
 sub list_item_clear {
     my ($self, $item) = @_;
     $self->get_listcontrol->DeleteItem($item);
 }
 
+=head2 list_item_clear_all
+
+Delete all list control items
+
+=cut
+
 sub list_item_clear_all {
     my ($self) = @_;
     $self->get_listcontrol->DeleteAllItems;
 }
+
+=head2 populate_config_page
+
+Populate the configuration page with data from the Config module
+
+=cut
 
 sub populate_config_page {
     my $self = shift;
@@ -634,6 +868,12 @@ sub populate_config_page {
 
     $self->controls_write_page('conf', $path );
 }
+
+=head2 list_populate_all
+
+Populate all other pages except the configuration page
+
+=cut
 
 sub list_populate_all {
 
@@ -658,6 +898,12 @@ sub list_populate_all {
     $self->list_item_select_first();
 }
 
+=head2 list_populate_item
+
+Add new item in list control and select the last item
+
+=cut
+
 sub list_populate_item {
     my ( $self, $rec ) = @_;
 
@@ -665,6 +911,12 @@ sub list_populate_item {
     $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
     $self->list_item_select_last();
 }
+
+=head2 list_remove_item
+
+Remove item from list control and select the first item
+
+=cut
 
 sub list_remove_item {
     my $self = shift;
@@ -682,6 +934,12 @@ sub list_remove_item {
     return $file_fqn;
 }
 
+=head2 get_detail_data
+
+Return detail data from the selected list control item
+
+=cut
+
 sub get_detail_data {
     my $self = shift;
 
@@ -691,6 +949,12 @@ sub get_detail_data {
 
     return ( $ddata_ref, $file_fqn, $sel_item );
 }
+
+=head2 controls_populate
+
+Populate controls with data from XML
+
+=cut
 
 sub controls_populate {
     my $self = shift;
@@ -717,6 +981,12 @@ sub controls_populate {
     $self->toggle_sql_replace();
 }
 
+=head2 toggle_sql_replace
+
+Toggle sql replace
+
+=cut
+
 sub toggle_sql_replace {
     my $self = shift;
 
@@ -734,6 +1004,12 @@ sub toggle_sql_replace {
     }
 }
 
+=head2 control_replace_sql_text
+
+Replace sql text control
+
+=cut
+
 sub control_replace_sql_text {
     my ($self, $sqltext, $params) = @_;
 
@@ -742,6 +1018,12 @@ sub control_replace_sql_text {
     # Write new text to control
     $self->control_set_value('sql', $newtext);
 }
+
+=head2 status_msg
+
+Set status message
+
+=cut
 
 sub status_msg {
     my ( $self, $msg ) = @_;
@@ -752,6 +1034,12 @@ sub status_msg {
     $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
     $self->get_statusbar()->SetStatusText( $text, $sb_id );
 }
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
 
 sub process_sql {
     my $self = shift;
@@ -769,13 +1057,17 @@ sub process_sql {
     }
 }
 
-#-- utils
+=head2 params_data_to_hash
+
+Transform data in simple hash reference format
+
+TODO: Move this to model?
+
+=cut
 
 sub params_data_to_hash {
     my ($self, $params) = @_;
 
-    # Transform data in simple hash reference format
-    # Move this to model ???
     my $parameters;
     foreach my $parameter ( @{ $params->{parameter} } ) {
         my $id = $parameter->{id};
@@ -788,16 +1080,11 @@ sub params_data_to_hash {
     return $parameters;
 }
 
-sub string_match_pos {
+=head2 string_replace_pos
 
-    my ($self, $text, $value) = @_;
+Replace string pos
 
-    $text =~ m/($value)/pm;
-    my $beg = $-[0];
-    my $end = $+[0];
-
-    return ($beg, $end);
-}
+=cut
 
 sub string_replace_pos {
 
@@ -820,12 +1107,19 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
-sub string_replace_for_run {
+=head2 string_replace_for_run
 
+Prepare sql text string for execution.  Replace the 'valueN' string
+with with '?'.  Create an array of parameter values, used for binding.
+
+Need to check if number of parameters match number of 'valueN' strings
+in SQL statement text and print an error if not.
+
+=cut
+
+sub string_replace_for_run {
     my ( $self, $sqltext, $params ) = @_;
 
-    # Need to check if number of params match number of 'value[0-9]'
-    # strings in SQL statement text and throw an error if not
     my @bind;
     foreach my $rec ( @{ $params->{parameter} } ) {
         my $value = $rec->{value};
@@ -848,23 +1142,11 @@ sub string_replace_for_run {
     return ( \@bind, $sqltext );
 }
 
-# end utils
-#
+=head2 control_set_value
 
-# sub control_set_attr {
-#     my ($self, $beg, $end, $fgcolor, $bgcolor) = @_;
+Set new value for a controll
 
-#     my $ctrl = $self->get_control_by_name('sql');
-
-#     $ctrl->SetStyle(
-#         $beg,
-#         $end,
-#         Wx::TextAttr->new(
-#             Wx::Colour->new($fgcolor),
-#             Wx::Colour->new($bgcolor),
-#         )
-#       );
-# }
+=cut
 
 sub control_set_value {
     my ($self, $name, $value) = @_;
@@ -879,6 +1161,12 @@ sub control_set_value {
     $ctrl->Colourise( 0, $ctrl->GetTextLength );
 
 }
+
+=head2 controls_write_page
+
+Write all controls on page with data
+
+=cut
 
 sub controls_write_page {
     my ($self, $page, $data) = @_;
@@ -905,6 +1193,12 @@ sub controls_write_page {
     }
 }
 
+=head2 controls_read_page
+
+Read all controls from page and return an array reference
+
+=cut
+
 sub controls_read_page {
     my ( $self, $page ) = @_;
 
@@ -930,6 +1224,12 @@ sub controls_read_page {
     return \@records;
 }
 
+=head2 save_query_def
+
+Save query definition file
+
+=cut
+
 sub save_query_def {
     my $self = shift;
 
@@ -946,17 +1246,26 @@ sub save_query_def {
     $self->set_list_text( $item, 1, $new_title );
 }
 
-#-- End Perl ListCtrl subs
+=head1 AUTHOR
 
-1;
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
-__END__
 
-=pod
+=head1 BUGS
 
-=item BUGS
+None known.
 
-Can't change style for TextCtrl, styles are suported only for
-multiline text controls!
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
 
 =cut
+
+1; # End of Qrt::Wx::View

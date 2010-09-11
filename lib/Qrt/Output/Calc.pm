@@ -31,6 +31,35 @@ use Carp;
 
 use OpenOffice::OODoc 2.103;
 
+=head1 NAME
+
+Qrt::Output::Calc - Export data in OppenOffice.org format
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Output::Calc;
+
+    my $app = Qrt::Output::Calc->new();
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
     my $class = shift;
 
@@ -53,11 +82,16 @@ sub new {
     return $self;
 }
 
-sub _create_doc {
+=head2 _create_doc
 
+Create the OpernOffice.org spreadsheet document with a predefined
+number of rows and cols.
+
+=cut
+
+sub _create_doc {
     my ( $self, $sheet_name, $rows, $cols ) = @_;
 
-    # create the OOo spreadsheet
     $self->{doc} = odfDocument(
         file => $self->{doc_file},
         create => 'spreadsheet',
@@ -69,8 +103,13 @@ sub _create_doc {
     return;
 }
 
-sub create_row {
+=head2 create_row
 
+Create a row of data; format not imlemented yet.
+
+=cut
+
+sub create_row {
     my ($self, $row, $data, $fmt_name) = @_;
 
     my $cols = scalar @{$data};
@@ -86,12 +125,14 @@ sub create_row {
     return;
 }
 
+=head2 create_done
+
+Print a message about the status of document creation and return it.
+
+=cut
+
 sub create_done {
-
     my ($self, ) = @_;
-
-    # Set columns width
-    # $self->set_cols_width(); Nu mere in OODoc !!!
 
     $self->{doc}->save
         or die "Can not save document: $!\n";
@@ -109,10 +150,13 @@ sub create_done {
     return $output;
 }
 
+=head2 init_lengths
+
+Init lengths record to avoid error when making comparisons.
+
+=cut
+
 sub init_lengths {
-
-    # Init lengths record to avoid error when making comparisons
-
     my ($self, $fields) = @_;
 
     @{$self->{lenghts}} = map { defined $_ ? length($_) : 0 } @{$fields};
@@ -120,18 +164,26 @@ sub init_lengths {
     return;
 }
 
-sub store_max_len {
+=head2 store_max_len
 
+Impose a maximum width and store max length.
+
+=cut
+
+sub store_max_len {
     my ($self, $col, $len) = @_;
 
-    # Impose a maximum width
     $len = $self->{max_len} if $len > $self->{max_len};
-
-    # Store max
     ${ $self->{lenghts} }[$col] = $len if ${ $self->{lenghts} }[$col] < $len;
 
     return;
 }
+
+=head2 set_cols_width
+
+Set the columns with.
+
+=cut
 
 sub set_cols_width {
 
@@ -146,5 +198,26 @@ sub set_cols_width {
     return;
 }
 
+=head1 AUTHOR
 
-1;
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Output::Calc

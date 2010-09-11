@@ -28,18 +28,44 @@ package Qrt::Wx::ToolBar;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Qrt::Config;
 
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
 
+=head1 NAME
+
+Qrt::Wx::ToolBar - Create a toolbar
+
+
+=head1 VERSION
+
+Version 0.03
+
+=cut
+
+our $VERSION = '0.03';
+
+
+=head1 SYNOPSIS
+
+    use Qrt::Wx::ToolBar;
+    $self->SetToolBar( Qrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
+    $self->{_tb} = $self->GetToolBar;
+    $self->{_tb}->Realize;
+
+
+=head1 METHODS
+
+=head2 new
+
+Constructor method.
+
+=cut
+
 sub new {
 
     my ( $self, $gui ) = @_;
-
-    #- The ToolBar
 
     $self = $self->SUPER::new(
         $gui,
@@ -72,7 +98,6 @@ sub new {
         map  { [ $_ => $temp{$_} ] }
         keys %temp;
 
-    # Get options from Control.pm for Wx::Choice
     $self->{options} = $self->get_choice_options();
 
     # Create buttons in ID order; use sub defined by 'type'
@@ -84,13 +109,25 @@ sub new {
     return $self;
 }
 
+=head2 get_toolbar
+
+Return the toolbar instance variable
+
+=cut
+
 sub get_toolbar {
     my $self = shift;
+
     return $self->{_toolbar};
 }
 
-sub item_normal {
+=head2 item_normal
 
+Create a normal toolbar button
+
+=cut
+
+sub item_normal {
     my ($self, $name, $attribs) = @_;
 
     $self->AddSeparator if $attribs->{sep} =~ m{before};
@@ -110,6 +147,12 @@ sub item_normal {
 
     return;
 }
+
+=head2 item_check
+
+Create a check toolbar button
+
+=cut
 
 sub item_check {
 
@@ -135,6 +178,12 @@ sub item_check {
     return;
 }
 
+=head2 make_bitmap
+
+Create and return a bitmap object
+
+=cut
+
 sub make_bitmap {
 
     my ($self, $icon) = @_;
@@ -146,6 +195,12 @@ sub make_bitmap {
 
     return $bmp;
 }
+
+=head2 item_list
+
+Create a list toolbar button
+
+=cut
 
 sub item_list {
 
@@ -172,10 +227,13 @@ sub item_list {
     return;
 }
 
+=head2 get_choice_options
+
+Return all options or the name of the option with index
+
+=cut
+
 sub get_choice_options {
-
-    # Return all options or the name of the option with index
-
     my ($self, $index) = @_;
 
     # Options for Wx::Choice from the ToolBar
@@ -190,4 +248,27 @@ sub get_choice_options {
     }
 }
 
-1;
+
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation.
+
+=cut
+
+1; # End of Qrt::Wx::App
