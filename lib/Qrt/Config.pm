@@ -77,10 +77,15 @@ sub _new_instance {
 
     my $self = bless {}, $class;
 
+    $args->{cfgmain} = 'etc/main.yml'; # hardcoded main config file name
+
     # Load configuration and create accessors
-    my $mcfg = $self->_config_main_load($args);
-    $self->_config_conn_load($mcfg, $args);
-    $self->_config_other_load($mcfg);
+    $self->_config_main_load($args);
+    if ( $args->{cfgname} ) {
+        # If no config name don't bother to load this
+        $self->_config_conn_load($args);
+        $self->_config_other_load();
+    }
 
     return $self;
 }
@@ -132,16 +137,22 @@ sub _config_main_load {
     # Misc
     my $main_hr = {
         cfgpath => $configpath,
-        cfgname => $args->{cfgname},
         qdfexte => $maincfg->{general}{qdfexte},
         icons   => catdir( $configpath, $maincfg->{paths}{icons} ),
         qdftmpl => catdir( $configpath, $maincfg->{paths}{qdftmpl} ),
         contmpl => catdir( $configpath, $maincfg->{paths}{contmpl} ),
-        qdfpath => catdir(
-            $configpath,      $maincfg->{paths}{connections},
-            $args->{cfgname}, $maincfg->{paths}{qdfpath}
-        ),
+        conpath => catdir( $configpath, $maincfg->{paths}{connections} ),
+        confile => $maincfg->{configs}{connection},
+        cfother => $maincfg->{other},
     };
+
+    # Setup when GUI runtime
+    if ( $args->{cfgname} ) {
+        $main_hr->{cfgname} = $args->{cfgname};
+        $main_hr->{qdfpath} =
+            catdir( $configpath, $maincfg->{paths}{connections},
+                    $args->{cfgname}, 'qdf', );
+    }
 
     $self->_make_accessors($main_hr);
 
@@ -163,15 +174,10 @@ because the path is only known at runtime.
 =cut
 
 sub _config_conn_load {
-    my ( $self, $mcfg, $args ) = @_;
+    my ( $self, $args ) = @_;
 
     # Connection
-    my $connd = $mcfg->{paths}{connections};
-    my $connf = $mcfg->{configs}{connection};
-
-    # The connection configuration path and name
-    my $cfgconn_p = catdir( $self->cfgpath, $connd, $self->cfgname );
-    my $cfgconn_f = catfile( $cfgconn_p, $connf );
+    my $cfgconn_f = $self->conn_cfg_filename($self->cfgname);
 
     my $msg = qq{\nConfiguration error, to fix, run\n\n};
     $msg   .= qq{  tpda-qrt -init };
@@ -198,12 +204,12 @@ at restart.
 =cut
 
 sub _config_other_load {
-    my ( $self, $mcfg ) = @_;
+    my $self = shift;
 
-    foreach my $sec ( keys %{ $mcfg->{other} } ) {
+    foreach my $sec ( keys %{ $self->cfother } ) {
         next if $sec eq 'connection';
 
-        my $cfg_file = catfile( $self->cfgpath, $mcfg->{other}{$sec} );
+        my $cfg_file = catfile( $self->cfgpath, $self->cfother->{$sec} );
         my $msg = qq{\nConfiguration error: \n Can't read configurations};
         $msg   .= qq{\n  from '$cfg_file'!};
         my $cfg_data = $self->_config_file_load($cfg_file, $msg);
@@ -232,6 +238,65 @@ sub _config_file_load {
 
     return Qrt::Config::Utils->load($yaml_file);
 }
+
+=head2 list_configs
+
+List all existing connection configurations.
+
+=cut
+
+sub list_configs {
+    my $self = shift;
+
+    my $conn_list = Qrt::Config::Utils->find_subdirs($self->conpath);
+
+    print "Connection configurations:\n";
+    foreach my $cfg_name ( @{$conn_list} ) {
+        my $ccfn = $self->conn_cfg_filename($cfg_name);
+        # If connection file exist than list as connection name
+        if (-f $ccfn) {
+            print "  > $cfg_name\n";
+        }
+    }
+}
+
+=head2 init_configs
+
+Create new connection configuration directory and install new
+configuration file from template.
+
+=cut
+
+sub init_configs {
+    my ( $self, $conn_name ) = @_;
+
+    my $conn_tmpl = $self->contmpl;
+    my $conn_path = catfile( $self->conpath, $conn_name, 'etc' );
+    my $conn_qdfp = catfile( $self->conpath, $conn_name, 'qdf' );
+    my $conn_file = $self->conn_cfg_filename($conn_name);
+
+    if ( -f $conn_file ) {
+        print "Connection configuration exists, can't overwrite.\n";
+        print " > $conn_name\n";
+        return;
+    }
+
+    Qrt::Config::Utils->create_conn_cfg_tree( $conn_tmpl, $conn_path,
+        $conn_qdfp, $conn_file, );
+}
+
+=head2 conn_cfg_filename
+
+Return full path to connection file.
+
+=cut
+
+sub conn_cfg_filename {
+    my ($self, $cfgname) = @_;
+
+    return catfile($self->conpath, $cfgname, 'etc', $self->confile );
+}
+
 
 =head1 AUTHOR
 

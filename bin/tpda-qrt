@@ -27,41 +27,36 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 
-use Cwd;
-use File::Basename;
-use File::HomeDir;
-use File::Find::Rule;
-use File::Spec::Functions;
-use File::Path 2.07 qw( make_path remove_tree );
-use File::Copy;
+use Qrt;
+use Qrt::Config;
 
 # Parse options and print usage if there is a syntax error,
 # or if usage was explicitly requested.
-my $help    = '';
-my $man     = '';
-my $verbose = 1;     # default option
+my $help    = q{};
+my $man     = q{};
+my $version;
 my $list;
+my $init    = q{};
 my $user;
 my $pass;
-my $init;
 
 # Process options.
 if ( @ARGV > 0 ) {
     GetOptions(
         'help|?'    => \$help,
         'man'       => \$man,
-        'list:s'    => \$list,
+        'version'   => \$version,
+        'list'      => \$list,
         'user=s'    => \$user,
         'password=s'=> \$pass,
-        'verbose+'  => \$verbose,
-        'quiet'     => sub { $verbose = 0 },
-        'init'      => \$init,
+        'init:s'    => \$init,
         ),
         or pod2usage(2);
 }
-if ( $man or $help or $#ARGV >= 0 ) {
-    pod2usage(1) if $help;
+if ( $man or $help or $version or $#ARGV >= 0 ) {
+    pod2usage(1)              if $help;
     pod2usage( VERBOSE => 2 ) if $man;
+    qrt_version()             if $version;
 }
 
 my $cfgname = shift;         # Runtime configuration name or database name
@@ -69,49 +64,32 @@ my $cfgname = shift;         # Runtime configuration name or database name
 #- Options
 my $opts = {};
 
-my $home = File::HomeDir->my_home;
+# Check 'list' and 'init' options first
+if ( defined $list xor $init ) {
 
-# Build in variables
-my $cfg_p = '.tpda-qrt';
-my $src_p = 'etc';
-my $cfg_n = 'general.yml';
+    # Initialize configurations
+    my $cfg = Qrt::Config->instance();
 
-# User configuration path
-my $cfg_path = catdir($home, $cfg_p);
-
-if (defined $cfgname) {
-    $opts->{cfgname} = $cfgname;
-}
-
-# Check 'list' and 'init' option first
-if ( defined $list xor defined $init) {
-    if ( defined $list ) {
-        list_configs();
+    if ( $list ) {
+        $cfg->list_configs();
         exit 0;
     }
-    if ( defined $init ) {
-        if (defined $cfgname) {
-            init_configs($cfgname);
-            exit 0;
-        }
-        else {
-            pod2usage(1);
-        }
+    if ( $init ) {
+        $cfg->init_configs($init);
+        exit 0;
     }
 }
 
-#- Other options
-$opts->{cfgmain} = 'etc/main.yml';
-$opts->{verbose} = $verbose;
-$opts->{user}    = $user;
-$opts->{pass}    = $pass;
+# Check connection configuration name option last
+if ( $cfgname ) {
 
-# Check database option last
-if ( exists $opts->{cfgname} ) {
+    # Other options
+    $opts->{user} = $user;
+    $opts->{pass} = $pass;
+    $opts->{cfgname} = $cfgname;
 
     # Go and run the app
-    use Qrt;
-    my $app = Qrt->new( $opts )->run;
+    Qrt->new( $opts )->run;
 
     print "Normal exit.\n";
     exit 0;
@@ -120,125 +98,15 @@ if ( exists $opts->{cfgname} ) {
 # If no other option, usage
 pod2usage(1);
 
+#- Print version
 
-#-- Subs
+sub qrt_version {
 
-#-
+    my $ver = $Qrt::VERSION;
+    print "TPDA - Query Repository Tool v$ver\n(C) 2010 Stefan Suciu\n\n";
 
-sub init_configs {
-    my $cfg_name = shift;
-
-    if ( !$cfg_name ) {
-        pod2usage(1);
-    }
-
-    my $etc_dir = create_path($cfg_name);
-    copy_template($etc_dir);
+    exit 0;
 }
-
-sub create_path {
-    my $cfg_name = shift;
-
-    my $cfg_dir = catdir( $cfg_path, 'db' );
-
-    my $etc_dir = catdir($cfg_dir, $cfg_name, 'etc');
-    my $qdf_dir = catdir($cfg_dir, $cfg_name, 'qdf');
-
-    make_path(
-        $etc_dir, $qdf_dir,
-        { error => \my $err }
-    );
-    if (@$err) {
-        for my $diag (@$err) {
-            my ($file, $message) = %$diag;
-            if ($file eq '') {
-                print "Error: $message\n";
-            }
-            else {
-                print "$file: $message\n";
-            }
-        }
-    }
-
-    return $etc_dir;
-}
-
-sub copy_template {
-    my $etc_dir = shift;
-
-    # Copying template file
-
-    my $tmpl_dir = catdir( $cfg_path, 'template' );
-    my $tmpl_fqn = catfile( $tmpl_dir, 'connection.yml' );
-
-    my $etc_fqn =  catfile( $etc_dir, 'connection.yml' );
-    if (-f $etc_fqn ) {
-        print "Connection configuration exists, can't overwrite.\n";
-        print ":> $etc_fqn\n";
-        return;
-    }
-
-    copy_files($tmpl_fqn, $etc_dir);
-}
-
-sub copy_files {
-    my ($src_fqn, $dst_p) = @_;
-
-    if ( !-f $src_fqn ) {
-        print "Source not found:\n $src_fqn\n";
-        print "Use script/setup-cfg.pl to initialize the config path!\n";
-        return;
-    }
-    if ( !-d $dst_p ) {
-        print "Destination path not found:\n $dst_p\n";
-        return;
-    }
-
-    # print "$src_fqn > $dst_p\n";
-    copy( $src_fqn, $dst_p ) or die $!;
-}
-
-#-
-
-sub list_configs {
-
-    my $dir = catdir( $cfg_path, 'db' );
-
-    my $conn_list = find_subdirs($dir);
-
-    foreach my $cfg_name ( @{$conn_list} ) {
-        my $tmpl_fqn = catfile( $dir, $cfg_name, 'etc', 'connection.yml' );
-        # If connection file exist than list an connection
-        if (-f $tmpl_fqn) {
-            print " > $cfg_name\n";
-        }
-    }
-}
-
-sub find_subdirs {
-
-    my $dir = shift;
-
-    # Find all the sub directories of a given directory
-    my $rule = File::Find::Rule->new
-        ->mindepth(1)
-        ->maxdepth(1);
-    # Ignore git
-    $rule->or(
-        $rule->new
-            ->directory
-            ->name('.git')
-            ->prune
-            ->discard,
-        $rule->new);
-
-    my @subdirs = $rule->directory->in( $dir );
-
-    my @dbs = map { basename($_); } @subdirs;
-
-    return \@dbs;
-}
-
 
 __END__
 
@@ -262,7 +130,7 @@ Options:
  -password             Password
  -help                 Brief help message
  -man                  Full documentation
- -verbose              Increase the verbosity of the output
+ -version              Current version
 
 =head1 DESCRIPTION
 
@@ -273,7 +141,7 @@ and can be edited and parametrized.
 =head2 Configuration
 
 A configuration name is the name of the directory underneath the
-B<.tpda-qrt/db/ > path.  This directory contains two other directories
+B<.qrt/db/> path.  This directory contains two other directories
 B<etc> and B<qdf>. The B<etc> directory contains a file named
 B<connection.yml>.  This file has to be updated with the connection
 configuration for your database.  The other directory named B<qdf> is
@@ -328,9 +196,9 @@ usage and exit.  If the user is specified skip the login dialog.
 
 Prints the manual page and exits.
 
-=item B<-verbose>
+=item B<-version>
 
-Increase the verbosity of the output. This option is incremental.
+Print current version information.
 
 =back
 

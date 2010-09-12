@@ -27,7 +27,6 @@ package Qrt;
 
 use strict;
 use warnings;
-#use 5.010;
 
 use Qrt::Config;
 use Qrt::Wx::App;
@@ -39,11 +38,11 @@ Qrt::Db - Tpda Qrt database operations module
 
 =head1 VERSION
 
-Version 0.03
+Version 0.10
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.10';
 
 
 =head1 SYNOPSIS
