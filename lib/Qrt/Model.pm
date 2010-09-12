@@ -28,6 +28,8 @@ package Qrt::Model;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
@@ -77,6 +79,8 @@ sub new {
         _editmode    => Qrt::Observable->new(),
         _choice      => Qrt::Observable->new(),
     };
+
+    $self->{fio} = Qrt::FileIO->new();
 
     bless $self, $class;
 
@@ -212,8 +216,6 @@ Get the titles from all the QDF files
 sub get_list_data {
     my $self = shift;
 
-    # XML read - write module
-    $self->{fio} = Qrt::FileIO->new();
     my $data_ref = $self->{fio}->get_titles();
 
     my $indice = 0;
@@ -442,7 +444,7 @@ Create new QDF file from template
 =cut
 
 sub report_add {
-    my ( $self ) = @_;
+    my $self = shift;
 
     my $reports_ref = $self->{fio}->get_file_list();
 
@@ -450,12 +452,11 @@ sub report_add {
     # Try to fill the gaps between numbers in file names
     my $files_no = scalar @{$reports_ref};
 
-    # Search for an non existent file name
-    my %numbers;
-    my $num;
+    # Search for an non existent file name ;)
+    my (%numbers, $num);
     foreach my $item ( @{$reports_ref} ) {
         my $filename = basename($item);
-        if ( $filename =~ m/raport\-(\d{5})\.qdf/ ) {
+        if ( $filename =~ m/report\-(\d{5})\.qdf/ ) {
             $num = sprintf( "%d", $1 );
             $numbers{$num} = 1;
         }
@@ -467,16 +468,16 @@ sub report_add {
     $num_max = 0 if ! defined $num_max;
 
     # Find first gap
-    my $fnd = 0;
+    my $found = 0;
     foreach my $trynum ( 1 .. $num_max ) {
-        if ( !$numbers{$trynum} ) {
+        if ( not exists $numbers{$trynum} ) {
             $num = $trynum;
-            $fnd = 1;
+            $found = 1;
             last;
         }
     }
-    # If not found, just asign the next number
-    if ( $fnd == 0 ) {
+    # If gap not found, just asign the next number
+    if ( $found == 0 ) {
         $num = $num_max + 1;
     }
 
@@ -487,8 +488,7 @@ sub report_add {
     my $cfg = Qrt::Config->instance();
 
     my $src_fqn = $cfg->qdftmpl;
-    my $qdfpath = $cfg->qdfpath;
-    my $dst_fqn = catfile($qdfpath, $newqdf);
+    my $dst_fqn = catfile($cfg->qdfpath, $newqdf);
 
     # print " $src_fqn -> $dst_fqn\n";
 
@@ -499,17 +499,17 @@ sub report_add {
         }
         else {
             print " failed: $!\n";
+            return;
         }
 
-        # Adauga titlul si noul fisier
-        $self->{fio} = Qrt::FileIO->new();
+        # Add title and file name in list
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
         return $data_ref;
     }
     else {
         warn "File exists! ($dst_fqn)\n";
-        # &status_mesaj_l("Eroare, nu am creat raport nou");
+        $self->_print("File exists! ($dst_fqn)");
     }
 }
 
