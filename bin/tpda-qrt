@@ -54,9 +54,9 @@ if ( @ARGV > 0 ) {
         or pod2usage(2);
 }
 if ( $man or $help or $version or $#ARGV >= 0 ) {
-    pod2usage(1)              if $help;
     pod2usage( VERBOSE => 2 ) if $man;
-    qrt_version()             if $version;
+    if ($version) { qrt_version(); exit 0; }
+    if ($help)    { qrt_version(); pod2usage(1); }
 }
 
 my $cfgname = shift;         # Runtime configuration name or database name
@@ -96,6 +96,7 @@ if ( $cfgname ) {
 }
 
 # If no other option, usage
+qrt_version();
 pod2usage(1);
 
 #- Print version
@@ -104,8 +105,6 @@ sub qrt_version {
 
     my $ver = $Qrt::VERSION;
     print "TPDA - Query Repository Tool v$ver\n(C) 2010 Stefan Suciu\n\n";
-
-    exit 0;
 }
 
 __END__
@@ -116,21 +115,21 @@ tpda-qrt - TPDA - Query Repository Tool
 
 =head1 SYNOPSIS
 
+tpda-qrt -list
+
 tpda-qrt -init <connection>
 
 tpda-qrt <connection> [-user <user> [-password <pass>]]
 
-tpda-qrt -list
-
 Options:
 
  -init <connection>   Initialize (create) configuration path
- -list                 List available configuration names and files
- -user                 User name
- -password             Password
- -help                 Brief help message
- -man                  Full documentation
- -version              Current version
+ -list                List available configuration names
+ -user                User name
+ -password            Password
+ -help                Brief help message
+ -man                 Full documentation
+ -version             Current version
 
 =head1 DESCRIPTION
 
@@ -154,12 +153,12 @@ documentation of the YAML::Tiny module.
 
 =head2 Quick start
 
-After installing the application, the first step is to run the
-B<setup-cfg> script from the B<script> directory to initialize the
-user configuration tree in the user's home directory.
+After installing the application, at the first run the user
+configuration tree in the user's home directory is created if it
+doesn't exists.
 
-Next, run B<tpda-qrt> with the b<-init> option to create the path for
-the connection and query definition files.
+Next, run B<tpda-qrt> with the b<-init> option to create a new
+configuration for the connection and query definition files.
 
 Last step is to run B<tpda-qrt> with the connection name created at
 the previous step as argument, create new B<qdf> files and use them to

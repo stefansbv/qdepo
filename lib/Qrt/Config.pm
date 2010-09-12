@@ -283,6 +283,8 @@ sub init_configs {
 
     Qrt::Config::Utils->create_conn_cfg_tree( $conn_tmpl, $conn_path,
         $conn_qdfp, $conn_file, );
+
+    print "New configuration: $conn_name\n";
 }
 
 =head2 conn_cfg_filename
