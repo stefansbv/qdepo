@@ -110,6 +110,8 @@ sub new {
 
     $self->_set_model_callbacks();
 
+    $self->Fit;
+
     return $self;
 }
 
@@ -267,7 +269,7 @@ sub create_report_page {
 
     my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Sheet name', );
     $self->{sheet} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 28 ], );
+        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     $self->{description} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 40 ],
@@ -294,19 +296,19 @@ sub create_report_page {
 
     my $repo_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
 
-    $repo_mid_fgs->Add( $repo_lbl1, 0, wxTOP | wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{title},    1, wxEXPAND | wxTOP, 5 );
+    $repo_mid_fgs->Add( $repo_lbl1, 0, wxTOP | wxLEFT,  5 );
+    $repo_mid_fgs->Add( $self->{title},    0, wxEXPAND | wxTOP, 5 );
 
     $repo_mid_fgs->Add( $repo_lbl2, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{filename},    1, wxEXPAND, 0 );
+    $repo_mid_fgs->Add( $self->{filename}, 0, wxEXPAND, 0 );
 
     $repo_mid_fgs->Add( $repo_lbl3, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{output},    1, wxEXPAND, 0 );
+    $repo_mid_fgs->Add( $self->{output},   0, wxEXPAND, 0 );
 
     $repo_mid_fgs->Add( $repo_lbl4, 0, wxLEFT,   5 );
     $repo_mid_fgs->Add( $self->{sheet},    0, wxEXPAND, 0 );
 
-    $repo_mid_fgs->AddGrowableRow( 1, 1 );
+    # $repo_mid_fgs->AddGrowableRow( 1, 1 );
     $repo_mid_fgs->AddGrowableCol( 1, 1 );
 
     $repo_mid_sz->Add( $repo_mid_fgs, 0, wxALL | wxGROW, 0 );
