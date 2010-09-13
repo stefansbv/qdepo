@@ -31,7 +31,6 @@ requires 'Spreadsheet::WriteExcel'    => 0;
 requires 'OpenOffice::OODoc'          => 2.103;
 requires 'Text::CSV_XS'               => 0;
 
-build_requires 'Module::Install'      => 0.30;
 build_requires 'Test::More'           => 0.47;
 
 install_share  'share';
