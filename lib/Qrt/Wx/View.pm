@@ -28,6 +28,7 @@ package Qrt::Wx::View;
 use strict;
 use warnings;
 
+use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 use Wx::STC;
@@ -964,13 +965,14 @@ sub controls_populate {
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
     my $cfg  = Qrt::Config->instance();
-    my $qdfpath =$cfg->qdfpath;
+    my $qdfpath =$cfg->cfgpath;
 
     #-- Header
-    # Write in the control the filename, remove path
-    ( my $file_qn = $file_fqn ) =~ s{$qdfpath/}{};
+    # Write in the control the filename, remove path config path
+    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
+
     # Add real path to control
-    $ddata_ref->{header}{filename} = $file_qn;
+    $ddata_ref->{header}{filename} = $file_rel;
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
