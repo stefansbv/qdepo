@@ -248,7 +248,8 @@ List all existing connection configurations.
 sub list_configs {
     my $self = shift;
 
-    my $conn_list = Qrt::Config::Utils->find_subdirs($self->conpath);
+    my $conpath = $self->conpath;
+    my $conn_list = Qrt::Config::Utils->find_subdirs($conpath);
 
     print "Connection configurations:\n";
     foreach my $cfg_name ( @{$conn_list} ) {
@@ -258,6 +259,7 @@ sub list_configs {
             print "  > $cfg_name\n";
         }
     }
+    print " in '$conpath'\n";
 }
 
 =head2 init_configs
