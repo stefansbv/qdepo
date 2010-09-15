@@ -963,11 +963,12 @@ sub controls_populate {
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
+    my $cfg  = Qrt::Config->instance();
+    my $qdfpath =$cfg->qdfpath;
+
     #-- Header
-    # Write in the control the actual path and filename
-    # Remove path until and including .tpda-qrt
-    # not working to well !!! ???
-    ( my $file_qn = $file_fqn ) =~ s{.*.tpda-qrt/}{};
+    # Write in the control the filename, remove path
+    ( my $file_qn = $file_fqn ) =~ s{$qdfpath/}{};
     # Add real path to control
     $ddata_ref->{header}{filename} = $file_qn;
     $self->controls_write_page('list', $ddata_ref->{header} );
