@@ -107,7 +107,7 @@ sub conectare {
                 . $port,
             $user,
             $pass,
-            { RaiseError => 1, FetchHashKeyName => 'NAME_lc' }
+            { FetchHashKeyName => 'NAME_lc' }
         );
     };
     ## Date format

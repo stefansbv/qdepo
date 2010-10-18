@@ -70,7 +70,7 @@ sub conectare {
                 . $dbname,
             q{},
             q{},
-            { RaiseError => 1, FetchHashKeyName => 'NAME_lc' }
+            { FetchHashKeyName => 'NAME_lc' }
         );
     };
 

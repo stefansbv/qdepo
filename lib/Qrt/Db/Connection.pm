@@ -116,12 +116,12 @@ sub db_connect {
 
     my $dbh = $db->conectare($conninfo);
 
-    if (ref $self->{_dbh}) {
+    if (ref $dbh) {
 
         # Some defaults
-        $self->{_dbh}->{AutoCommit}  = 1;          # disable transactions
-        $self->{_dbh}->{RaiseError}  = 1;
-        $self->{_dbh}->{LongReadLen} = 512 * 1024; # for Firebird with BLOBs
+        $dbh->{AutoCommit}  = 1;          # disable transactions
+        $dbh->{RaiseError}  = 0;
+        $dbh->{LongReadLen} = 512 * 1024; # for BLOBs
     }
 
     return $dbh;
