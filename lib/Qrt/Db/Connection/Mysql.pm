@@ -45,13 +45,13 @@ sub new {
     return $self;
 }
 
-=head2 conectare
+=head2 db_connect
 
 Connect to database
 
 =cut
 
-sub conectare {
+sub db_connect {
     my ($self, $conf) = @_;
 
     print "Connecting to the $conf->{driver} server\n";
@@ -61,7 +61,7 @@ sub conectare {
     print "  => User     = $conf->{user}\n";
 
     try {
-        $self->{dbh} = DBI->connect(
+        $self->{_dbh} = DBI->connect(
             "dbi:mysql:"
                 . "dbname="
                 . $conf->{dbname}
@@ -85,18 +85,15 @@ sub conectare {
     return $self->{_dbh};
 }
 
-
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
-
 
 =head1 BUGS
 
 None known.
 
 Please report any bugs or feature requests to the author.
-
 
 =head1 LICENSE AND COPYRIGHT
 

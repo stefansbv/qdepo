@@ -76,7 +76,7 @@ sub db_connect {
         };
         /mysql/i && do {
             require Qrt::Db::Connection::Mysql;
-            $db = Qrt::Db::Connection::MySql->new();
+            $db = Qrt::Db::Connection::Mysql->new();
             last SWITCH;
         };
         /sqlite/i && do {

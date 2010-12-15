@@ -81,13 +81,13 @@ sub db_connect {
 
     ## Date format
     ## Default format: ISO
-    $self->{dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
-    $self->{dbh}->{ib_dateformat}      = '%Y-%m-%d';
-    $self->{dbh}->{ib_timeformat}      = '%H:%M';
+    $self->{_dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
+    $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
+    $self->{_dbh}->{ib_timeformat}      = '%H:%M';
     ## Format: German
-    # $self->{dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
-    # $self->{dbh}->{ib_dateformat}      = '%d.%m.%Y';
-    # $self->{dbh}->{ib_timeformat}      = '%H:%M';
+    # $self->{_dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
+    # $self->{_dbh}->{ib_dateformat}      = '%d.%m.%Y';
+    # $self->{_dbh}->{ib_timeformat}      = '%H:%M';
 
     print "Connected to database $conf->{dbname}\n";
 
