@@ -4,5 +4,30 @@ and query repository management. Queries are saved in XML files and
 can be edited and parametrized.
 
 Current supported export formats: CSV, Excel, OpenOffice Calc.
-Database management systems support: Firebird and PostgreSQL.
+Database management systems support: Firebird, PostgreSQL MySQL and
+SQLite.
 
+
+ACKNOWLEDGMENTS
+
+The Open Source movement, and all the authors, contributors and
+community behind this great projects:
+ Perl and Perl modules
+ Firebird and Flamerobin
+ Postgresql
+ GNU/Linux
+ MySQL
+ SQLite
+ [[http://www.perlmonks.org/][Perl Monks]] (the best Perl support site)
+and of course Sourceforge for hosting this project :)
+
+The implementation of the MVC pattern is (heavily) based on the
+implementation from the Cipres project:
+
+Author: Rutger Vos, 17/Aug/2006
+        http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen \
+             /cipres/framework/perl/cipres/lib/Cipres/
+
+and last but least, to Herbert Breunung.
+
+Thank You!

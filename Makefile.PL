@@ -19,6 +19,7 @@ requires 'Wx'                         => '0.970101';
 requires 'Wx::Perl::ListCtrl'         => '0.03';
 requires 'Class::Singleton'           => '1.4';
 requires 'Class::Accessor'            => '0';
+requires 'Try::Tiny'                  => '0.07';
 requires 'Number::Compare'            => '0';
 requires 'File::UserConfig'           => '0';
 requires 'File::Find::Rule'           => '0.30';

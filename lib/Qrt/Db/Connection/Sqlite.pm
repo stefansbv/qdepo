@@ -1,32 +1,30 @@
 package Qrt::Db::Connection::Sqlite;
 
-use warnings;
 use strict;
+use warnings;
 
 use DBI;
-
+use Try::Tiny;
 
 =head1 NAME
 
-Qrt::Db::Connection::Sqlite - The great new Qrt::Db::Connection::Sqlite!
+Tpda3::Db::Connection::Sqlite - Connect to a PostgreSQL database.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.03
 
 =cut
 
-our $VERSION = '0.01';
-
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Db::Connection::Sqlite;
+    use Tpda3::Db::Connection::Sqlite;
 
-    my $db = Qrt::Db::Connection::Sqlite->new();
+    my $db = Tpda3::Db::Connection::Sqlite->new();
 
-    $db->conectare($conninfo);
-
+    $db->db_connect($connection);
 
 =head1 METHODS
 
@@ -46,45 +44,40 @@ sub new {
     return $self;
 }
 
-=head2 conectare
+=head2 db_connect
 
 Connect to database
 
 =cut
 
-sub conectare {
+sub db_connect {
     my ($self, $conf) = @_;
 
-    # $pass = undef; # Uncomment when is no password set
+    print "Connecting to the $conf->{driver} server\n";
+    print "Parameters:\n";
+    print "  => Database = $conf->{dbname}\n";
 
-    my $dbname = $conf->{database};
-    my $driver = $conf->{driver};
-
-    print "Connect to the $driver server ...\n";
-    print " Parameters:\n";
-    print "  => Database = $dbname\n";
-
-    eval {
-        $self->{dbh} = DBI->connect(
+    try {
+        $self->{_dbh} = DBI->connect(
             "dbi:SQLite:"
-                . $dbname,
+              . $conf->{dbname},
             q{},
             q{},
-            { FetchHashKeyName => 'NAME_lc' }
         );
+    }
+    catch {
+        print "Transaction aborted: $_"
+            or print STDERR "$_\n";
+
+        # exit 1;
     };
 
-    if ($@) {
-        warn "$@";
-        return;
-    }
-    else {
-        print "\nConnected to database \'$dbname\'.\n";
+    ## Date format ISO ???
 
-        return $self->{dbh};
-    }
+    print "Connected to database $conf->{dbname}\n";
+
+    return $self->{_dbh};
 }
-
 
 =head1 AUTHOR
 

@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use DBI;
-
+use Try::Tiny;
 
 =head1 NAME
 
@@ -12,7 +12,7 @@ Qrt::Db::Connection::Mysql - Connect to a MySQL database
 
 =head1 VERSION
 
-Version 0.01
+Version 0.03
 
 =cut
 
@@ -55,45 +55,35 @@ Connect to database
 sub conectare {
     my ($self, $conf) = @_;
 
-    # $pass = undef; # Uncomment when is no password set
+    print "Connecting to the $conf->{driver} server\n";
+    print "Parameters:\n";
+    print "  => Database = $conf->{dbname}\n";
+    print "  => Host   = $conf->{host}\n";
+    print "  => User     = $conf->{user}\n";
 
-    my $dbname = $conf->{database};
-    my $server = $conf->{server};
-    my $port   = $conf->{port};
-    my $driver = $conf->{driver};
-    my $user   = $conf->{user};
-    my $pass   = $conf->{pass};
-
-    print "Connect to the $driver server ...\n";
-    print " Parameters:\n";
-    print "  => Database = $dbname\n";
-    print "  => Server   = $server\n";
-    print "  => User     = $user\n";
-
-    eval {
+    try {
         $self->{dbh} = DBI->connect(
             "dbi:mysql:"
                 . "dbname="
-                . $dbname
+                . $conf->{dbname}
                 . ";host="
-                . $server
+                . $conf->{host}
                 . ";port="
-                . $port,
-            $user,
-            $pass,
+                . $conf->{port},
+            $conf->{user}, $conf->{pass},
             { FetchHashKeyName => 'NAME_lc' }
         );
     };
+    catch {
+        print "Transaction aborted: $_"
+            or print STDERR "$_\n";
 
-    if ($@) {
-        warn "$@";
-        return;
-    }
-    else {
-        print "\nConnected to database \'$dbname\'.\n";
+          # exit 1;
+    };
 
-        return $self->{dbh};
-    }
+    print "Connected to database $conf->{dbname}\n";
+
+    return $self->{_dbh};
 }
 
 

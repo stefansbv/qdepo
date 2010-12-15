@@ -38,14 +38,4 @@ ok( $d2->isa('Qrt::Db'), 'created Qrt::Db instance 2' );
 
 is( $d1, $d2, 'both instances are the same object' );
 
-#-- Check accessors
-
-# # Check some config key => value pairs ( stollen from Padre ;) )
-
-# ok( $c1->conninfo->{database} eq 'testdb',
-#     'conninfo has expected config value for "database"' )
-#   or diag( '"database" defined as "'
-#       . $c1->conninfo->{database}
-#       . '" and not "testdb" in config' );
-
 # end test

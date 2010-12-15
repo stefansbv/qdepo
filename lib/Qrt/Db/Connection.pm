@@ -114,14 +114,16 @@ sub db_connect {
         return;
     }
 
-    my $dbh = $db->conectare($conninfo);
+    my $dbh = $db->db_connect($conninfo);
 
     if (ref $dbh) {
 
         # Some defaults
         $dbh->{AutoCommit}  = 1;          # disable transactions
         $dbh->{RaiseError}  = 0;
+        $dbh->{PrintError}  = 0;
         $dbh->{LongReadLen} = 512 * 1024; # for BLOBs
+        $dbh->{FetchHashKeyName} = 'NAME_lc';
     }
 
     return $dbh;

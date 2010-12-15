@@ -36,10 +36,10 @@ is( $c1, $c2, 'both instances are the same object' );
 
 # Check some config key => value pairs ( stollen from Padre ;) )
 
-ok( $c1->conninfo->{database} =~ m{testdb},
-    'conninfo has expected config value for "database"' )
-  or diag( '"database" defined as "'
-      . $c1->conninfo->{database}
+ok( $c1->conninfo->{dbname} =~ m{testdb},
+    'conninfo has expected config value for "dbname"' )
+  or diag( '"dbname" defined as "'
+      . $c1->conninfo->{dbname}
       . '" and not "testdb" in config' );
 
 # end test

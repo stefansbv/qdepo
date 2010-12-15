@@ -25,34 +25,31 @@
 # +---------------------------------------------------------------------------+
 package Qrt::Db::Connection::Firebird;
 
-use warnings;
 use strict;
+use warnings;
 
 use DBI;
-
+use Try::Tiny;
 
 =head1 NAME
 
-Qrt::Db::Connection::Firebird - Connect to a Firebird database
-
+Tpda3::Db::Connection::Firebird - Connect to a Firebird database.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
-
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Db::Connection::Firebird;
+    use Tpda3::Db::Connection::Firebird;
 
-    my $db = Qrt::Db::Connection::Firebird->new();
+    my $db = Tpda3::Db::Connection::Firebird->new();
 
-    $db->conectare($conninfo);
-
+    $db->db_connect($connection);
 
 =head1 METHODS
 
@@ -72,76 +69,65 @@ sub new {
     return $self;
 }
 
-=head2 conectare
+=head2 db_connect
 
 Connect to database
 
 =cut
 
-sub conectare {
-    my ( $self, $conf ) = @_;
+sub db_connect {
+    my ($self, $conf) = @_;
 
-    my $dbname  = $conf->{database};
-    my $server  = $conf->{server};
-    my $port    = $conf->{port};
-    my $driver  = $conf->{driver};
-    my $user    = $conf->{user};
-    my $pass    = $conf->{pass};
+    print "Connecting to the $conf->{driver} server\n";
+    print "Parameters:\n";
+    print "  => Database = $conf->{dbname}\n";
+    print "  => Host     = $conf->{host}\n";
+    print "  => User     = $conf->{user}\n";
 
-    print "Connect to the $driver server ...\n";
-    print " Parameters:\n";
-    print "  => Database = $dbname\n";
-    print "  => Server   = $server\n";
-    print "  => User     = $user\n";
-
-    eval {
-        $self->{dbh} = DBI->connect(
-            "DBI:InterBase:"
-                . "dbname="
-                . $dbname
-                . ";host="
-                . $server
-                . ";port="
-                . $port
-                . ";ib_dialect=3",
-            $user,
-            $pass,
-            { FetchHashKeyName => 'NAME_lc' }
+    try {
+        $self->{_dbh} = DBI->connect(
+            "dbi:Pg:"
+              . "dbname="
+              . $conf->{dbname}
+              . ";host="
+              . $conf->{host}
+              . ";port="
+              . $conf->{port}
+              . ";ib_dialect=3",
+            $conf->{user}, $conf->{pass},
         );
+    }
+    catch {
+        print "Transaction aborted: $_"
+            or print STDERR "$_\n";
+
+        # exit 1;
     };
 
-    if ($@) {
-        warn "Transaction aborted because $@";
-        print "Not connected!\n";
-    }
-    else {
-        ## Default format: ISO
-        $self->{dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
-        $self->{dbh}->{ib_dateformat}      = '%Y-%m-%d';
-        $self->{dbh}->{ib_timeformat}      = '%H:%M';
-        ## Format: German
-        # $self->{dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
-        # $self->{dbh}->{ib_dateformat}      = '%d.%m.%Y';
-        # $self->{dbh}->{ib_timeformat}      = '%H:%M';
+    ## Date format
+    ## Default format: ISO
+    $self->{dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
+    $self->{dbh}->{ib_dateformat}      = '%Y-%m-%d';
+    $self->{dbh}->{ib_timeformat}      = '%H:%M';
+    ## Format: German
+    # $self->{dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
+    # $self->{dbh}->{ib_dateformat}      = '%d.%m.%Y';
+    # $self->{dbh}->{ib_timeformat}      = '%H:%M';
 
-        print "\nConnected to database \'$dbname\'.\n";
+    print "Connected to database $conf->{dbname}\n";
 
-        return $self->{dbh};
-    }
+    return $self->{_dbh};
 }
-
 
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
-
 
 =head1 BUGS
 
 None known.
 
 Please report any bugs or feature requests to the author.
-
 
 =head1 LICENSE AND COPYRIGHT
 

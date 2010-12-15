@@ -1,11 +1,10 @@
 # TPDA - QRT
-# User configurations
-# path variable names have a '_p' suffix
-# file names a '_fn' suffix
+# Connection configuration
+# ~ means undef
 ---
 conninfo:
   driver: sqlite
-  server: localhost
+  host: localhost
   database: testdb
   port: ~
 output:

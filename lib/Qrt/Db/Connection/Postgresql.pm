@@ -25,34 +25,31 @@
 # +---------------------------------------------------------------------------+
 package Qrt::Db::Connection::Postgresql;
 
-use warnings;
 use strict;
+use warnings;
 
 use DBI;
-
+use Try::Tiny;
 
 =head1 NAME
 
-Qrt::Db::Connection::Postgresql - Connect to a PostgreSQL database.
-
+Tpda3::Db::Connection::Postgresql - Connect to a PostgreSQL database.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
-
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Db::Connection::Postgresql;
+    use Tpda3::Db::Connection::Postgresql;
 
-    my $db = Qrt::Db::Connection::Postgresql->new();
+    my $db = Tpda3::Db::Connection::Postgresql->new();
 
-    $db->conectare($conninfo);
-
+    $db->db_connect($connection);
 
 =head1 METHODS
 
@@ -72,71 +69,59 @@ sub new {
     return $self;
 }
 
-=head2 conectare
+=head2 db_connect
 
 Connect to database
 
 =cut
 
-sub conectare {
+sub db_connect {
     my ($self, $conf) = @_;
 
-    # $pass = undef; # Uncomment when is no password set
+    print "Connecting to the $conf->{driver} server\n";
+    print "Parameters:\n";
+    print "  => Database = $conf->{dbname}\n";
+    print "  => Host   = $conf->{host}\n";
+    print "  => User     = $conf->{user}\n";
 
-    my $dbname = $conf->{database};
-    my $server = $conf->{server};
-    my $port   = $conf->{port};
-    my $driver = $conf->{driver};
-    my $user    = $conf->{user};
-    my $pass    = $conf->{pass};
-
-    print "Connect to the $driver server ...\n";
-    print " Parameters:\n";
-    print "  => Database = $dbname\n";
-    print "  => Server   = $server\n";
-    print "  => User     = $user\n";
-
-    eval {
-        $self->{dbh} = DBI->connect(
+    try {
+        $self->{_dbh} = DBI->connect(
             "dbi:Pg:"
-                . "dbname="
-                . $dbname
-                . ";host="
-                . $server
-                . ";port="
-                . $port,
-            $user,
-            $pass,
-            { FetchHashKeyName => 'NAME_lc' }
+              . "dbname="
+              . $conf->{dbname}
+              . ";host="
+              . $conf->{host}
+              . ";port="
+              . $conf->{port},
+            $conf->{user}, $conf->{pass},
         );
+    }
+    catch {
+        print "Transaction aborted: $_"
+            or print STDERR "$_\n";
+
+          # exit 1;
     };
+
     ## Date format
     # set: datestyle = 'iso' in postgresql.conf
     ##
+    $self->{_dbh}{pg_enable_utf8} = 1;
 
-    if ($@) {
-        warn "$@";
-        return;
-    }
-    else {
-        print "\nConnected to database \'$dbname\'.\n";
+    print "Connected to database $conf->{dbname}\n";
 
-        return $self->{dbh};
-    }
+    return $self->{_dbh};
 }
-
 
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
-
 
 =head1 BUGS
 
 None known.
 
 Please report any bugs or feature requests to the author.
-
 
 =head1 LICENSE AND COPYRIGHT
 
