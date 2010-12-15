@@ -5,7 +5,7 @@
 conninfo:
   driver: sqlite
   host: localhost
-  database: testdb
+  dbname: testdb
   port: ~
 output:
   path: ~/tmp

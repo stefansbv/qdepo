@@ -16,8 +16,7 @@ Version 0.03
 
 =cut
 
-our $VERSION = '0.01';
-
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -58,7 +57,7 @@ sub conectare {
     print "Connecting to the $conf->{driver} server\n";
     print "Parameters:\n";
     print "  => Database = $conf->{dbname}\n";
-    print "  => Host   = $conf->{host}\n";
+    print "  => Host     = $conf->{host}\n";
     print "  => User     = $conf->{user}\n";
 
     try {
@@ -103,9 +102,9 @@ Please report any bugs or feature requests to the author.
 
 Copyright 2010 Stefan Suciu.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation.
 
 =cut
 

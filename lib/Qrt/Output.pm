@@ -296,11 +296,9 @@ sub generate_output_calc {
     return ($error, $out);
 }
 
-
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
-
 
 =head1 BUGS
 
@@ -308,14 +306,13 @@ None known.
 
 Please report any bugs or feature requests to the author.
 
-
 =head1 LICENSE AND COPYRIGHT
 
 Copyright 2010 Stefan Suciu.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation.
 
 =cut
 
