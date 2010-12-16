@@ -7,19 +7,13 @@ Currently supported export formats: CSV, Excel, OpenOffice Calc.
 Database management systems support: Firebird, PostgreSQL MySQL and
 SQLite.
 
+The idea for this project, was born from the necessity to run, monthly,
+the same queries against two small databases, with a couple of
+parameters changed at every run, and get the data in spreadsheet
+format for further processing.
+
 
 ACKNOWLEDGMENTS
-
-To the Open Source movement, and all the authors, contributors and
-community behind this great projects:
- Perl and Perl modules
- Firebird and Flamerobin
- Postgresql
- GNU/Linux
- MySQL
- SQLite
- [[http://www.perlmonks.org/][Perl Monks]] (the best Perl support site)
-and of course Sourceforge for hosting this project :)
 
 The implementation of the MVC pattern is (heavily) based on the
 implementation from the Cipres project:
@@ -28,6 +22,21 @@ To the author: Rutger Vos, 17/Aug/2006
         http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen \
              /cipres/framework/perl/cipres/lib/Cipres/
 
-and last but least, to Herbert Breunung.
-
 Thank You!
+
+Also a big Thank You! to:
+
+The Open Source movement, and all the authors, contributors and
+community behind this great projects:
+ Perl and Perl modules
+ Padre the Perl IDE
+ Firebird and Flamerobin
+ Postgresql
+ GNU/Linux
+ MySQL
+ SQLite
+ [[http://www.perlmonks.org/][Perl Monks]] (the best Perl support site)
+and of course Sourceforge for hosting this project :)
+
+and last but least, to Herbert Breunung for his guidance, hints and
+for his Kephra project a very good source of inspiration.

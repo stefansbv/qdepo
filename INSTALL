@@ -1,4 +1,8 @@
 
+Open source, alpha status software, be careful it might harm your
+computer ;) Be sure to read the Disclaimer of Warranty. from the GNU
+GENERAL PUBLIC LICENSE
+
 TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
 and query repository management. Queries are saved in XML files and
 can be edited and parametrized.
@@ -29,12 +33,23 @@ INSTALL
 % make test
 % make install
 
+Only make install should be run as root
+
+
+IMPORTANT
+
+If 'make test' is skipped, than, run 'qrt' from the package directory
+first.  This will create the configuration tree in the users $HOME
+path, by copying the files found in the Qrt-0.10/share directory.
+
+% qrt test
+
 
 USAGE
 
 Create a new connection configuration, let's name it 'myconn':
 
-% tpda-qrt -i myconn
+% qrt -i myconn
 
 Edit $HOME/.qrt/db/myconn/etc/connection.yml
 
@@ -51,7 +66,7 @@ case is not important
 
 Start the program with:
 
-% tpda-qrt myconn [-u username -p password]
+% qrt myconn [-u username -p password]
 
 no login screen yet ...
 
@@ -74,9 +89,12 @@ WHERE salary < value1 AND salary IS NOT NULL;
 
 Save, then select a file output type between 'Calc', 'CSV' or 'Excel'
 click on the connect button and than on 'Run'.  A new file, filled
-with appropriate data, should have been created on the 'output' path,
-if not, than please, contact me:
+with appropriate data, should have been created on the 'output' path.
 
-mailto: stefansbv 'at' users . sourceforge . net
+I'd like some feedback from you, if you tried to install and succeeded
+or failed, than please, contact me at <stefansbv 'at' users
+. sourceforge . net>.  Of course, a more or less detailed explanation
+of what you like or dislike would be helpful for the future
+development of this project.
 
 Have fun!
