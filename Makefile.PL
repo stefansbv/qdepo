@@ -37,6 +37,6 @@ requires 'Text::CSV_XS'               => '0';
 build_requires 'Test::More'           => '0.47';
 
 install_share  'share';
-install_script 'bin/tpda-qrt';
+install_script 'bin/qrt';
 
 WriteAll;

@@ -111,15 +111,15 @@ __END__
 
 =head1 NAME
 
-tpda-qrt - TPDA - Query Repository Tool
+qrt - TPDA - Query Repository Tool
 
 =head1 SYNOPSIS
 
-tpda-qrt -list
+qrt -list
 
-tpda-qrt -init <connection>
+qrt -init <connection>
 
-tpda-qrt <connection> [-user <user> [-password <pass>]]
+qrt <connection> [-user <user> [-password <pass>]]
 
 Options:
 
@@ -157,11 +157,11 @@ After installing the application, at the first run the user
 configuration tree in the user's home directory is created if it
 doesn't exists.
 
-Next, run B<tpda-qrt> with the b<-init> option to create a new
+Next, run B<qrt> with the b<-init> option to create a new
 configuration for the connection and query definition files.
 
-Last step is to run B<tpda-qrt> with the connection name created at
-the previous step as argument, create new B<qdf> files and use them to
+Last step is to run B<qrt> with the connection name created at the
+previous step as argument, create new B<qdf> files and use them to
 export data from the tables in the formats currently supported.
 
 Have fun!

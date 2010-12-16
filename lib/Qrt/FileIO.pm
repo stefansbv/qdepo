@@ -152,7 +152,7 @@ sub get_file_list {
     if ( !-d $qdfpath ) {
         my $msg = qq{\nWrong path for '$qdfexte' files:\n $qdfpath!\n};
         $msg   .= qq{\nConfiguration error, try to fix with\n\n};
-        $msg   .= qq{  tpda-qrt -init };
+        $msg   .= qq{ qrt -init };
         $msg   .= $cfg->cfgname . qq{\n\n};
         $msg   .= qq{then edit: };
         $msg   .=  $cfg->cfgconnf . qq{\n};
