@@ -96,7 +96,7 @@ sub _config_main_load {
     my ( $self, $args ) = @_;
 
     my $configpath = File::UserConfig->new(
-        dist     => 'Qrt',
+        dist     => 'tpda-qrt',
         sharedir => 'share',
     )->configdir;
 
@@ -153,7 +153,7 @@ sub _config_conn_load {
     my $cfgconn_f = $self->conn_cfg_filename($self->cfgname);
 
     my $msg = qq{\nConfiguration error, to fix, run\n\n};
-    $msg   .= qq{ qrt -init };
+    $msg   .= qq{ tpda-qrt -init };
     $msg   .= $self->cfgname . qq{\n\n};
     $msg   .= qq{then edit: $cfgconn_f\n};
     my $cfg_data = $self->_config_file_load($cfgconn_f, $msg);

@@ -16,7 +16,7 @@ use Qrt::Config;
 my $args = {
     cfgname => 'test',
     cfgmain => 'etc/main.yml',
-    user    => 'stefan',
+    user    => undef,
     pass    => undef,
 };
 

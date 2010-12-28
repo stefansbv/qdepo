@@ -4,7 +4,7 @@
 conninfo:
   driver: sqlite
   server: ~
-  dbname: /tmp/testdb.db
+  dbname: testdb.db
   port: ~
 output:
-  path: /tmp
+  path: ./
