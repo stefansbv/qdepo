@@ -11,14 +11,22 @@ Current supported export formats: CSV, Excel, OpenOffice Calc.
 Database management systems support: Firebird, PostgreSQL MySQL and
 SQLite.
 
+'Makefile.PL' lists the required modules, from that list 'DBD::SQLite'
+is required for the tests and for the initial demo configuration.  The
+other DBD modules are optional, use only the needed ones. Same is true
+for 'Spreadsheet::WriteExcel', 'OpenOffice::OODoc' and 'Text::CSV_XS'.
 
-% tar -xvzf Qrt-0.10.tar.gz
+The other modules minimum versions from 'Makefile.PL' are the version
+I have on my devel system and tested the application with, that
+doesn't mean other versions won't work, but some tests are required.
+
+% tar -xvzf Qrt-0.11.tar.gz
 
 or
 
-% unzip  Qrt-0.10.zip
+% unzip  Qrt-0.11.zip
 
-cd Qrt-0.10
+cd Qrt-0.11
 
 
 QUICK start
@@ -30,17 +38,22 @@ INSTALL
 
 % perl Makefile.PL
 % make
-% make test
+% make test        # EXPERIMENTAL!
 % make install
 
-Only make install should be run as root
+Only make install should be run as root.
+
+Note: With version 0.11, back to 'tpda-qrt' name for the starter
+script, using 'qrt' in the initial release, was a bad choice, I think.
+I hope no harm was done for those, who tried to test installed the
+application.
 
 
 IMPORTANT
 
 If 'make test' is skipped, than, run 'tpda-qrt' from the package
 directory first.  This will create the configuration tree in the users
-$HOME path, by copying the files found in the Qrt-0.10/share
+$HOME path, by copying the files found in the Qrt-0.11/share
 directory.
 
 % tpda-qrt test
