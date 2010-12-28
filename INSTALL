@@ -38,20 +38,21 @@ Only make install should be run as root
 
 IMPORTANT
 
-If 'make test' is skipped, than, run 'qrt' from the package directory
-first.  This will create the configuration tree in the users $HOME
-path, by copying the files found in the Qrt-0.10/share directory.
+If 'make test' is skipped, than, run 'tpda-qrt' from the package
+directory first.  This will create the configuration tree in the users
+$HOME path, by copying the files found in the Qrt-0.10/share
+directory.
 
-% qrt test
+% tpda-qrt test
 
 
 USAGE
 
 Create a new connection configuration, let's name it 'myconn':
 
-% qrt -i myconn
+% tpda-qrt -i myconn
 
-Edit $HOME/.qrt/db/myconn/etc/connection.yml
+Edit $HOME/.tpda_qrt/db/myconn/etc/connection.yml
 
 For 'driver', following options are valid:
 
@@ -66,7 +67,7 @@ case is not important
 
 Start the program with:
 
-% qrt myconn [-u username -p password]
+% tpda-qrt myconn [-u username -p password]
 
 no login screen yet ...
 

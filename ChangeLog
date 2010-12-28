@@ -1,3 +1,13 @@
+2010-12-28    <stefan@master.home>
+
+        * Release ver. 0.11 - Bugfix release
+
+2010-12-28    <stefan>
+
+        * Bug fix. Back to tpda-qrt name for the starter script; Fixed
+        some configurations. The min perl version is now 5.8. The min
+        SQLite version is 1.29. Using '.tpda_qrt' as config directory.
+
 2010-12-16    <stefan>
 
-	* Release ver. 0.10 - Initial release
+        * Release ver. 0.10 - Initial release
