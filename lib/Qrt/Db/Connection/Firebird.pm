@@ -61,7 +61,7 @@ sub db_connect {
 
     try {
         $self->{_dbh} = DBI->connect(
-            "dbi:Pg:"
+            "dbi:InterBase:"
               . "dbname="
               . $conf->{dbname}
               . ";host="

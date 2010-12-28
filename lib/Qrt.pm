@@ -1,6 +1,6 @@
 package Qrt;
 
-use 5.010002;
+use 5.008005;
 use strict;
 use warnings;
 

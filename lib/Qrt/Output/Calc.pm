@@ -49,14 +49,14 @@ sub new {
     $self->{lenghts} = [];      # Array to hold max lenghts for each col
     $self->{max_len} = 30;      # Max column width
 
-    $self->_create_doc('Test', $doc_rows, $doc_cols);
+    $self->_create_doc('TesT', $doc_rows, $doc_cols);
 
     return $self;
 }
 
 =head2 _create_doc
 
-Create the OpernOffice.org spreadsheet document with a predefined
+Create the OpenOffice.org spreadsheet document with a predefined
 number of rows and cols.
 
 =cut
@@ -65,12 +65,14 @@ sub _create_doc {
     my ( $self, $sheet_name, $rows, $cols ) = @_;
 
     $self->{doc} = odfDocument(
-        file => $self->{doc_file},
+        file   => $self->{doc_file},
         create => 'spreadsheet',
     );
 
+    $self->{doc}->renameTable(0, $sheet_name);
+
     # select & size the 1st (and only) sheet in the document
-    $self->{sheet} = $self->{doc}->expandTable(0, $rows, $cols);
+    $self->{sheet} = $self->{doc}->expandTable( 0, $rows, $cols );
 
     return;
 }

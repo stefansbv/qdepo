@@ -5,7 +5,7 @@
 # GNU General Public License v3
 #
 
-use 5.010;
+use 5.008005;
 use strict;
 use warnings;
 
@@ -26,7 +26,7 @@ requires 'File::Find::Rule'           => '0.30';
 requires 'File::HomeDir'              => '0.89';
 requires 'File::Spec::Functions'      => '0';
 requires 'DBI'                        => '1.53';
-requires 'DBD::SQLite'                => '1.31';
+requires 'DBD::SQLite'                => '1.29';
 requires 'DBD::InterBase'             => '0.44';
 requires 'DBD::Pg'                    => '1.32';
 requires 'XML::Twig'                  => '3.26';
@@ -37,6 +37,6 @@ requires 'Text::CSV_XS'               => '0';
 build_requires 'Test::More'           => '0.47';
 
 install_share  'share';
-install_script 'bin/qrt';
+install_script 'bin/tpda-qrt';
 
 WriteAll;
