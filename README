@@ -13,6 +13,15 @@ parameters changed at every run, and get the data in spreadsheet
 format for further processing.
 
 
+IMPORTANT NOTE
+
+With version 0.11, back to 'tpda-qrt' name for the
+starter script, using 'qrt' in the initial release, was a bad choice,
+I think, because it looks like there are some other applications out
+there with this name.  I hope no harm was done for those, who
+installed the application.
+
+
 ACKNOWLEDGMENTS
 
 The implementation of the MVC pattern is (heavily) based on the
