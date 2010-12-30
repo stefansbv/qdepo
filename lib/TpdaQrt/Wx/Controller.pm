@@ -1,4 +1,4 @@
-package Qrt::Wx::Controller;
+package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
@@ -7,12 +7,12 @@ use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
-use Qrt::Model;
-use Qrt::Wx::View;
+use TpdaQrt::Model;
+use TpdaQrt::Wx::View;
 
 =head1 NAME
 
-Qrt::Wx::Controller - The Controller
+TpdaQrt::Wx::Controller - The Controller
 
 
 =head1 VERSION
@@ -26,9 +26,9 @@ our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
-    use Qrt::Wx::Controller;
+    use TpdaQrt::Wx::Controller;
 
-    my $controller = Qrt::Wx::Controller->new();
+    my $controller = TpdaQrt::Wx::Controller->new();
 
     $controller->start();
 
@@ -44,9 +44,9 @@ Constructor method.
 sub new {
     my ( $class, $app ) = @_;
 
-    my $model = Qrt::Model->new();
+    my $model = TpdaQrt::Model->new();
 
-    my $view = Qrt::Wx::View->new(
+    my $view = TpdaQrt::Wx::View->new(
         $model,
         undef,
         -1,
@@ -356,4 +356,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Wx::Controller
+1; # End of TpdaQrt::Wx::Controller

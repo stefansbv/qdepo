@@ -1,13 +1,13 @@
-package Qrt::Db::Connection;
+package TpdaQrt::Db::Connection;
 
 use strict;
 use warnings;
 
-use Qrt::Config;
+use TpdaQrt::Config;
 
 =head1 NAME
 
-Qrt::Db::Connection - Connect to different databases.
+TpdaQrt::Db::Connection - Connect to various databases.
 
 =head1 VERSION
 
@@ -17,15 +17,13 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
 Connect to a database.
 
-    use Qrt::Db::Connection;
+    use TpdaQrt::Db::Connection;
 
-    my $dbh = Qrt::Db::Connection->new();
-
+    my $dbh = TpdaQrt::Db::Connection->new();
 
 =head1 METHODS
 
@@ -49,7 +47,7 @@ sub new {
 
 =head2 db_connect
 
-Connect method, uses I<Qrt::Config> module for configuration.
+Connect method, uses I<TpdaQrt::Config> module for configuration.
 
 =cut
 
@@ -57,7 +55,7 @@ sub db_connect {
 
     my $self = shift;
 
-    my $conninfo = Qrt::Config->instance->conninfo;
+    my $conninfo = TpdaQrt::Config->instance->conninfo;
 
     my $driver = $conninfo->{driver};
     my $db;
@@ -65,23 +63,23 @@ sub db_connect {
   SWITCH: for ( $driver ) {
         /^$/ && do warn "No driver name?\n";
         /firebird/i && do {
-            require Qrt::Db::Connection::Firebird;
-            $db = Qrt::Db::Connection::Firebird->new();
+            require TpdaQrt::Db::Connection::Firebird;
+            $db = TpdaQrt::Db::Connection::Firebird->new();
             last SWITCH;
         };
         /postgresql/i && do {
-            require Qrt::Db::Connection::Postgresql;
-            $db = Qrt::Db::Connection::Postgresql->new();
+            require TpdaQrt::Db::Connection::Postgresql;
+            $db = TpdaQrt::Db::Connection::Postgresql->new();
             last SWITCH;
         };
         /mysql/i && do {
-            require Qrt::Db::Connection::Mysql;
-            $db = Qrt::Db::Connection::Mysql->new();
+            require TpdaQrt::Db::Connection::Mysql;
+            $db = TpdaQrt::Db::Connection::Mysql->new();
             last SWITCH;
         };
         /sqlite/i && do {
-            require Qrt::Db::Connection::Sqlite;
-            $db = Qrt::Db::Connection::Sqlite->new();
+            require TpdaQrt::Db::Connection::Sqlite;
+            $db = TpdaQrt::Db::Connection::Sqlite->new();
             last SWITCH;
         };
         # Default
@@ -104,18 +102,16 @@ sub db_connect {
     return $dbh;
 }
 
-
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
-
 =head1 BUGS
 
-None known.
+Disconnecting an reconnecting with the toolbar button does not work, the
+application reports that the connection is established but is not.
 
-Please report any bugs or feature requests to the author.
-
+Please report any other bugs or feature requests to the author.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -127,4 +123,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db::Connection
+1; # End of TpdaQrt::Db::Connection

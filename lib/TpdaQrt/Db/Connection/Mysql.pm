@@ -1,14 +1,14 @@
-package Qrt::Db::Connection::Sqlite;
+package TpdaQrt::Db::Connection::Mysql;
 
-use strict;
 use warnings;
+use strict;
 
 use DBI;
 use Try::Tiny;
 
 =head1 NAME
 
-Tpda3::Db::Connection::Sqlite - Connect to a PostgreSQL database.
+TpdaQrt::Db::Connection::Mysql - Connect to a MySQL database
 
 =head1 VERSION
 
@@ -20,11 +20,12 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Tpda3::Db::Connection::Sqlite;
+    use TpdaQrt::Db::Connection::Mysql;
 
-    my $db = Tpda3::Db::Connection::Sqlite->new();
+    my $db = TpdaQrt::Db::Connection::Mysql->new();
 
-    $db->db_connect($connection);
+    $db->conectare($conninfo);
+
 
 =head1 METHODS
 
@@ -56,23 +57,28 @@ sub db_connect {
     print "Connecting to the $conf->{driver} server\n";
     print "Parameters:\n";
     print "  => Database = $conf->{dbname}\n";
+    print "  => Host     = $conf->{host}\n";
+    print "  => User     = $conf->{user}\n";
 
     try {
         $self->{_dbh} = DBI->connect(
-            "dbi:SQLite:"
-              . $conf->{dbname},
-            q{},
-            q{},
+            "dbi:mysql:"
+                . "dbname="
+                . $conf->{dbname}
+                . ";host="
+                . $conf->{host}
+                . ";port="
+                . $conf->{port},
+            $conf->{user}, $conf->{pass},
+            { FetchHashKeyName => 'NAME_lc' }
         );
-    }
+    };
     catch {
         print "Transaction aborted: $_"
             or print STDERR "$_\n";
 
-        # exit 1;
+          # exit 1;
     };
-
-    ## Date format ISO ???
 
     print "Connected to database $conf->{dbname}\n";
 
@@ -99,4 +105,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db::Connection::Sqlite
+1; # End of TpdaQrt::Db::Connection::Mysql

@@ -1,4 +1,4 @@
-package Qrt::Wx::View;
+package TpdaQrt::Wx::View;
 
 use strict;
 use warnings;
@@ -8,15 +8,15 @@ use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
 use Wx::STC;
 
-use Qrt::Config;
-use Qrt::Wx::Notebook;
-use Qrt::Wx::ToolBar;
+use TpdaQrt::Config;
+use TpdaQrt::Wx::Notebook;
+use TpdaQrt::Wx::ToolBar;
 
 use base 'Wx::Frame';
 
 =head1 NAME
 
-Qrt::Wx::App - Wx Perl application class
+TpdaQrt::Wx::App - Wx Perl application class
 
 =head1 VERSION
 
@@ -28,9 +28,9 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-    use Qrt::Wx::Notebook;
+    use TpdaQrt::Wx::Notebook;
 
-    $self->{_nb} = Qrt::Wx::Notebook->new( $gui );
+    $self->{_nb} = TpdaQrt::Wx::Notebook->new( $gui );
 
 =head1 METHODS
 
@@ -59,7 +59,7 @@ sub new {
     $self->create_menu();
 
     #-- ToolBar
-    $self->SetToolBar( Qrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
+    $self->SetToolBar( TpdaQrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
     $self->{_tb} = $self->GetToolBar;
     $self->{_tb}->Realize;
 
@@ -67,7 +67,7 @@ sub new {
     $self->create_statusbar();
 
     #-- Notebook
-    $self->{_nb} = Qrt::Wx::Notebook->new( $self );
+    $self->{_nb} = TpdaQrt::Wx::Notebook->new( $self );
 
     #--- Parameters Tab (page) Panel
     $self->create_para_page();
@@ -838,7 +838,7 @@ Populate the configuration page with data from the Config module
 sub populate_config_page {
     my $self = shift;
 
-    my $cfg  = Qrt::Config->instance();
+    my $cfg  = TpdaQrt::Config->instance();
     my $path = $cfg->output;
 
     $self->controls_write_page('conf', $path );
@@ -936,7 +936,7 @@ sub controls_populate {
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
-    my $cfg  = Qrt::Config->instance();
+    my $cfg  = TpdaQrt::Config->instance();
     my $qdfpath =$cfg->cfgpath;
 
     #-- Header
@@ -1243,4 +1243,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Wx::View
+1; # End of TpdaQrt::Wx::View

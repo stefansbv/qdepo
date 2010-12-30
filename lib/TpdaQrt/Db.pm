@@ -1,15 +1,15 @@
-package Qrt::Db;
+package TpdaQrt::Db;
 
 use strict;
 use warnings;
 
-use Qrt::Db::Connection;
+use TpdaQrt::Db::Connection;
 
 use base qw(Class::Singleton);
 
 =head1 NAME
 
-Qrt::Db - Tpda Qrt database operations module
+TpdaQrt::Db - Tpda TpdaQrt database operations module
 
 =head1 VERSION
 
@@ -23,9 +23,9 @@ our $VERSION = '0.02';
 
 Connect to a database.
 
-    use Qrt::Db;
+    use TpdaQrt::Db;
 
-    my $db = Qrt::Db->_new_instance();
+    my $db = TpdaQrt::Db->_new_instance();
 
     my $dbh = $db->dbh;
 
@@ -41,7 +41,7 @@ Constructor method.
 sub _new_instance {
     my $class = shift;
 
-    my $dbh = Qrt::Db::Connection->new;
+    my $dbh = TpdaQrt::Db::Connection->new;
 
     return bless { dbh => $dbh }, $class;
 }
@@ -71,11 +71,11 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 =head1 BUGS
 
 PostgreSQL: Transaction aborted because execute on disconnected handle
-at lib/Qrt/Db.pm line 125.
+at lib/TpdaQrt/Db.pm line 125.
 
 Similar for sqlite: Transaction aborted because DBD::SQLite::db
 prepare failed: attempt to prepare on inactive database handle at
-lib/Qrt/Output.pm line 238.
+lib/TpdaQrt/Output.pm line 238.
 
 Appears at disconnect - reconect.
 
@@ -95,4 +95,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db
+1; # End of TpdaQrt::Db

@@ -1,4 +1,4 @@
-package Qrt::Output::Csv;
+package TpdaQrt::Output::Csv;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use Text::CSV_XS;
 
 =head1 NAME
 
-Qrt::Output::Csv - Export data in CSV format
+TpdaQrt::Output::Csv - Export data in CSV format
 
 =head1 VERSION
 
@@ -20,9 +20,9 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Output::Csv;
+    use TpdaQrt::Output::Csv;
 
-    my $app = Qrt::Output::Csv->new();
+    my $app = TpdaQrt::Output::Csv->new();
 
 =head1 METHODS
 
@@ -140,4 +140,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Output::Csv
+1; # End of TpdaQrt::Output::Csv

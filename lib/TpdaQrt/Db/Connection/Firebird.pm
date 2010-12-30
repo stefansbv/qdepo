@@ -1,4 +1,4 @@
-package Qrt::Db::Connection::Firebird;
+package TpdaQrt::Db::Connection::Firebird;
 
 use strict;
 use warnings;
@@ -114,4 +114,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db::Connection::Firebird
+1; # End of TpdaQrt::Db::Connection::Firebird

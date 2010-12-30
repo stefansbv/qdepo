@@ -1,4 +1,4 @@
-package Qrt::Wx::Notebook;
+package TpdaQrt::Wx::Notebook;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ use base qw{Wx::AuiNotebook};
 
 =head1 NAME
 
-Qrt::Wx::Notebook - Create a notebook
+TpdaQrt::Wx::Notebook - Create a notebook
 
 =head1 VERSION
 
@@ -22,9 +22,9 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-    use Qrt::Wx::Notebook;
+    use TpdaQrt::Wx::Notebook;
 
-    $self->{_nb} = Qrt::Wx::Notebook->new( $gui );
+    $self->{_nb} = TpdaQrt::Wx::Notebook->new( $gui );
 
 =head1 METHODS
 
@@ -89,4 +89,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Wx::Notebook
+1; # End of TpdaQrt::Wx::Notebook

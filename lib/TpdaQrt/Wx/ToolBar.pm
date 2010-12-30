@@ -1,16 +1,16 @@
-package Qrt::Wx::ToolBar;
+package TpdaQrt::Wx::ToolBar;
 
 use strict;
 use warnings;
 
-use Qrt::Config;
+use TpdaQrt::Config;
 
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
 
 =head1 NAME
 
-Qrt::Wx::ToolBar - Create a toolbar
+TpdaQrt::Wx::ToolBar - Create a toolbar
 
 =head1 VERSION
 
@@ -22,8 +22,8 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Wx::ToolBar;
-    $self->SetToolBar( Qrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
+    use TpdaQrt::Wx::ToolBar;
+    $self->SetToolBar( TpdaQrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
     $self->{_tb} = $self->GetToolBar;
     $self->{_tb}->Realize;
 
@@ -52,7 +52,7 @@ sub new {
     $self->SetMargins( 4, 4 );
 
     # Get ToolBar button atributes
-    my $cfg = Qrt::Config->instance();
+    my $cfg = TpdaQrt::Config->instance();
     my $attribs = $cfg->toolbar;
     $self->{ico_p} = $cfg->icons;
 
@@ -241,4 +241,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Wx::App
+1; # End of TpdaQrt::Wx::App

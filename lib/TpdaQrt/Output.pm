@@ -1,13 +1,13 @@
-package Qrt::Output;
+package TpdaQrt::Output;
 
 use warnings;
 use strict;
 
-use Qrt::Db;
+use TpdaQrt::Db;
 
 =head1 NAME
 
-Qrt::Output - Export from database to various formats
+TpdaQrt::Output - Export from database to various formats
 
 =head1 VERSION
 
@@ -20,9 +20,9 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use Qrt::Output;
+    use TpdaQrt::Output;
 
-    my $out = Qrt::Output->new();
+    my $out = TpdaQrt::Output->new();
 
 
 =head1 METHODS
@@ -36,7 +36,7 @@ Constructor
 sub new {
     my $class = shift;
 
-    return bless { dbh => Qrt::Db->instance()->dbh, }, $class;
+    return bless { dbh => TpdaQrt::Db->instance()->dbh, }, $class;
 }
 
 =head2 db_generate_output
@@ -87,14 +87,14 @@ sub generate_output_excel {
     }
 
     eval {
-        require Qrt::Output::Excel;
+        require TpdaQrt::Output::Excel;
     };
     if ($@) {
         print "Spreadsheet::WriteExcel not available!\n";
         return;
     }
 
-    my $xls = Qrt::Output::Excel->new($outfile);
+    my $xls = TpdaQrt::Output::Excel->new($outfile);
 
     my $error = 0; # Error flag
     eval {
@@ -156,14 +156,14 @@ sub generate_output_csv {
     }
 
     eval {
-        require Qrt::Output::Csv;
+        require TpdaQrt::Output::Csv;
     };
     if ($@) {
         print "Text::CSV_XS not available!\n";
         return;
     }
 
-    my $csv = Qrt::Output::Csv->new($outfile);
+    my $csv = TpdaQrt::Output::Csv->new($outfile);
 
     my $error = 0; # Error flag
     eval {
@@ -216,7 +216,7 @@ sub generate_output_calc {
     print " generating $outfile\n";
 
     eval {
-        require Qrt::Output::Calc;
+        require TpdaQrt::Output::Calc;
     };
     if ($@) {
         print "OpenOffice::OODoc 2.103 not available!\n";
@@ -267,7 +267,7 @@ sub generate_output_calc {
         my $cols = scalar @{ $sth->{NAME} };
 
         # Create new spreadsheet with predefined dimensions
-        $doc = Qrt::Output::Calc->new($outfile, $rows_cnt, $cols);
+        $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record
         $doc->init_lengths( $sth->{NAME} );
@@ -316,4 +316,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Output
+1; # End of TpdaQrt::Output

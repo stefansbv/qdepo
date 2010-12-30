@@ -1,4 +1,4 @@
-package Qrt::Config;
+package TpdaQrt::Config;
 
 use warnings;
 use strict;
@@ -7,13 +7,13 @@ use File::HomeDir;
 use File::UserConfig;
 use File::Spec::Functions;
 
-use Qrt::Config::Utils;
+use TpdaQrt::Config::Utils;
 
 use base qw(Class::Singleton Class::Accessor);
 
 =head1 NAME
 
-Qrt::Config - Tpda Qrt configuration module
+TpdaQrt::Config - Tpda TpdaQrt configuration module
 
 =head1 VERSION
 
@@ -29,11 +29,11 @@ Reads configuration files in I<YAML::Tiny> format and create a HoH.
 Then using I<Class::Accessor>, automatically create methods from the
 keys of the hash.
 
-    use Qrt::Config;
+    use TpdaQrt::Config;
 
-    my $cfg = Qrt::Config->instance($args); # first time init
+    my $cfg = TpdaQrt::Config->instance($args); # first time init
 
-    my $cfg = Qrt::Config->instance(); # later, in other modules
+    my $cfg = TpdaQrt::Config->instance(); # later, in other modules
 
 =head1 METHODS
 
@@ -96,8 +96,8 @@ sub _config_main_load {
     my ( $self, $args ) = @_;
 
     my $configpath = File::UserConfig->new(
-        dist     => 'tpda-qrt',
-        sharedir => 'share',
+        dist     => 'TpdaQrt',
+        #sharedir => 'share',
     )->configdir;
 
     # Main config file name, load
@@ -209,7 +209,7 @@ sub _config_file_load {
         die;
     }
 
-    return Qrt::Config::Utils->load($yaml_file);
+    return TpdaQrt::Config::Utils->load($yaml_file);
 }
 
 =head2 list_configs
@@ -222,7 +222,7 @@ sub list_configs {
     my $self = shift;
 
     my $conpath = $self->conpath;
-    my $conn_list = Qrt::Config::Utils->find_subdirs($conpath);
+    my $conn_list = TpdaQrt::Config::Utils->find_subdirs($conpath);
 
     print "Connection configurations:\n";
     foreach my $cfg_name ( @{$conn_list} ) {
@@ -256,7 +256,7 @@ sub init_configs {
         return;
     }
 
-    Qrt::Config::Utils->create_conn_cfg_tree( $conn_tmpl, $conn_path,
+    TpdaQrt::Config::Utils->create_conn_cfg_tree( $conn_tmpl, $conn_path,
         $conn_qdfp, $conn_file, );
 
     print "New configuration: $conn_name\n";
@@ -294,4 +294,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Config
+1; # End of TpdaQrt::Config

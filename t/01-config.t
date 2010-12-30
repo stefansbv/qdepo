@@ -1,5 +1,5 @@
 #
-# Qrt::Config test script
+# TpdaQrt::Config test script
 #
 # From Class::Singleton test script
 #   by Andy Wardley <abw@wardley.org>
@@ -11,7 +11,7 @@ use Test::More tests => 5;
 
 use lib qw( lib ../lib );
 
-use Qrt::Config;
+use TpdaQrt::Config;
 
 my $args = {
     cfgname => 'test',
@@ -22,13 +22,13 @@ my $args = {
 #-- Check the one instance functionality
 
 # No instance if instance() not called yet
-ok( ! Qrt::Config->has_instance(), 'no Qrt::Config instance yet' );
+ok( ! TpdaQrt::Config->has_instance(), 'no TpdaQrt::Config instance yet' );
 
-my $c1 = Qrt::Config->instance( $args );
-ok( $c1->isa('Qrt::Config'), 'created Qrt::Config instance 1' );
+my $c1 = TpdaQrt::Config->instance( $args );
+ok( $c1->isa('TpdaQrt::Config'), 'created TpdaQrt::Config instance 1' );
 
-my $c2 = Qrt::Config->instance();
-ok( $c2->isa('Qrt::Config'), 'created Qrt::Config instance 2' );
+my $c2 = TpdaQrt::Config->instance();
+ok( $c2->isa('TpdaQrt::Config'), 'created TpdaQrt::Config instance 2' );
 
 is( $c1, $c2, 'both instances are the same object' );
 

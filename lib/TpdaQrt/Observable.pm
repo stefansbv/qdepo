@@ -1,11 +1,11 @@
-package Qrt::Observable;
+package TpdaQrt::Observable;
 
 use strict;
 use warnings;
 
 =head1 NAME
 
-Qrt::Observable - Obrserver patern implementation
+TpdaQrt::Observable - Obrserver patern implementation
 
 =head1 VERSION
 
@@ -17,14 +17,14 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-    use Qrt::Observable;
+    use TpdaQrt::Observable;
 
     sub new {
         my $class = shift;
 
         my $self = {
-            _data1 => Qrt::Observable->new(),
-            _data2 => Qrt::Observable->new(),
+            _data1 => TpdaQrt::Observable->new(),
+            _data2 => TpdaQrt::Observable->new(),
         };
 
         bless $self, $class;
@@ -165,4 +165,4 @@ by the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db
+1; # End of TpdaQrt::Db

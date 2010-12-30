@@ -1,15 +1,15 @@
-package Qrt;
+package TpdaQrt;
 
 use 5.008005;
 use strict;
 use warnings;
 
-use Qrt::Config;
-use Qrt::Wx::App;
+use TpdaQrt::Config;
+use TpdaQrt::Wx::App;
 
 =head1 NAME
 
-Qrt::Db - Tpda Qrt database operations module
+TpdaQrt::Db - Tpda TpdaQrt database operations module
 
 =head1 VERSION
 
@@ -21,9 +21,9 @@ our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
-    use Qrt;
+    use TpdaQrt;
 
-    my $app = Qrt->new( $opts );
+    my $app = TpdaQrt->new( $opts );
 
     $app->run;
 
@@ -57,9 +57,9 @@ application instance.
 sub _init {
     my ( $self, $args ) = @_;
 
-    Qrt::Config->instance($args);
+    TpdaQrt::Config->instance($args);
 
-    $self->{gui} = Qrt::Wx::App->create();
+    $self->{gui} = TpdaQrt::Wx::App->create();
 }
 
 =head2 run
@@ -93,4 +93,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt
+1; # End of TpdaQrt

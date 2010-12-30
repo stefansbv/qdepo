@@ -1,4 +1,4 @@
-package Qrt::Db::Connection::Postgresql;
+package TpdaQrt::Db::Connection::Postgresql;
 
 use strict;
 use warnings;
@@ -108,4 +108,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Db::Connection::Postgresql
+1; # End of TpdaQrt::Db::Connection::Postgresql

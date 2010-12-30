@@ -11,8 +11,8 @@ use warnings;
 
 use inc::Module::Install;
 
-name     'Qrt';
-all_from 'lib/Qrt.pm';
+name     'TpdaQrt';
+all_from 'lib/TpdaQrt.pm';
 
 requires 'perl'                       => '5.008005';
 requires 'Wx'                         => '0.970101';

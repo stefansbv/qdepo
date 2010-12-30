@@ -1,4 +1,4 @@
-package Qrt::FileIO;
+package TpdaQrt::FileIO;
 
 use strict;
 use warnings;
@@ -7,11 +7,11 @@ use Carp;
 use File::Find::Rule;
 use XML::Twig;
 
-use Qrt::Config;
+use TpdaQrt::Config;
 
 =head1 NAME
 
-Qrt::FileIO - Tpda Qrt XML file operations module
+TpdaQrt::FileIO - Tpda TpdaQrt XML file operations module
 
 =head1 VERSION
 
@@ -23,9 +23,9 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::FileIO;
+    use TpdaQrt::FileIO;
 
-    my $app = Qrt::FileIO->new();
+    my $app = TpdaQrt::FileIO->new();
 
 =head1 METHODS
 
@@ -145,7 +145,7 @@ path.
 sub get_file_list {
     my $self = shift;
 
-    my $cfg = Qrt::Config->instance();
+    my $cfg = TpdaQrt::Config->instance();
 
     my $qdfpath = $cfg->qdfpath;
     my $qdfexte = $cfg->qdfexte;
@@ -334,4 +334,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::FileIO
+1; # End of TpdaQrt::FileIO

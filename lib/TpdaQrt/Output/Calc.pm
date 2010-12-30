@@ -1,4 +1,4 @@
-package Qrt::Output::Calc;
+package TpdaQrt::Output::Calc;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use OpenOffice::OODoc 2.103;
 
 =head1 NAME
 
-Qrt::Output::Calc - Export data in OppenOffice.org format
+TpdaQrt::Output::Calc - Export data in OppenOffice.org format
 
 =head1 VERSION
 
@@ -20,9 +20,9 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Output::Calc;
+    use TpdaQrt::Output::Calc;
 
-    my $app = Qrt::Output::Calc->new();
+    my $app = TpdaQrt::Output::Calc->new();
 
 =head1 METHODS
 
@@ -192,4 +192,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Output::Calc
+1; # End of TpdaQrt::Output::Calc

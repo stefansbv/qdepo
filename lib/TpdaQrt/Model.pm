@@ -1,4 +1,4 @@
-package Qrt::Model;
+package TpdaQrt::Model;
 
 use strict;
 use warnings;
@@ -7,15 +7,15 @@ use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
 
-use Qrt::Config;
-use Qrt::FileIO;
-use Qrt::Observable;
-use Qrt::Db;
-use Qrt::Output;
+use TpdaQrt::Config;
+use TpdaQrt::FileIO;
+use TpdaQrt::Observable;
+use TpdaQrt::Db;
+use TpdaQrt::Output;
 
 =head1 NAME
 
-Qrt::Wx::Model - The Model
+TpdaQrt::Wx::Model - The Model
 
 =head1 VERSION
 
@@ -27,9 +27,9 @@ our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
-    use Qrt::Model;
+    use TpdaQrt::Model;
 
-    my $model = Qrt::Model->new();
+    my $model = TpdaQrt::Model->new();
 
 
 =head1 METHODS
@@ -44,14 +44,14 @@ sub new {
     my $class = shift;
 
     my $self = {
-        _connected   => Qrt::Observable->new(),
-        _stdout      => Qrt::Observable->new(),
-        _itemchanged => Qrt::Observable->new(),
-        _editmode    => Qrt::Observable->new(),
-        _choice      => Qrt::Observable->new(),
+        _connected   => TpdaQrt::Observable->new(),
+        _stdout      => TpdaQrt::Observable->new(),
+        _itemchanged => TpdaQrt::Observable->new(),
+        _editmode    => TpdaQrt::Observable->new(),
+        _choice      => TpdaQrt::Observable->new(),
     };
 
-    $self->{fio} = Qrt::FileIO->new();
+    $self->{fio} = TpdaQrt::FileIO->new();
 
     bless $self, $class;
 
@@ -87,7 +87,7 @@ sub _connect {
     my $self = shift;
 
     # Connect to database
-    $self->{_dbh} = Qrt::Db->instance->dbh;
+    $self->{_dbh} = TpdaQrt::Db->instance->dbh;
 
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
@@ -220,10 +220,10 @@ sub run_export {
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
-    my $cfg     = Qrt::Config->instance();
+    my $cfg     = TpdaQrt::Config->instance();
     my $out_fqn = catfile($cfg->output->{path}, $outfile);
 
-    my $output = Qrt::Output->new();
+    my $output = TpdaQrt::Output->new();
 
     my ($err, $out) = $output->db_generate_output(
         $option,
@@ -456,7 +456,7 @@ sub report_add {
     # configured extension
     my $newqdf = 'report-' . sprintf( "%05d", $num ) . '.qdf';
 
-    my $cfg = Qrt::Config->instance();
+    my $cfg = TpdaQrt::Config->instance();
 
     my $src_fqn = $cfg->qdftmpl;
     my $dst_fqn = catfile($cfg->qdfpath, $newqdf);
@@ -560,4 +560,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Model
+1; # End of TpdaQrt::Model

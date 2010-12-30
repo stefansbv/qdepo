@@ -1,14 +1,14 @@
-package Qrt::Wx::App;
+package TpdaQrt::Wx::App;
 
 use strict;
 use warnings;
 
-use Qrt::Wx::Controller;
+use TpdaQrt::Wx::Controller;
 use base qw(Wx::App);
 
 =head1 NAME
 
-Qrt::Wx::App - Wx Perl application class
+TpdaQrt::Wx::App - Wx Perl application class
 
 =head1 VERSION
 
@@ -20,10 +20,10 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-    use Qrt::Wx::App;
-    use Qrt::Wx::Controller;
+    use TpdaQrt::Wx::App;
+    use TpdaQrt::Wx::Controller;
 
-    $gui = Qrt::Wx::App->create();
+    $gui = TpdaQrt::Wx::App->create();
 
     $gui->MainLoop;
 
@@ -38,7 +38,7 @@ Constructor method.
 sub create {
     my $self = shift->new;
 
-    my $controller = Qrt::Wx::Controller->new();
+    my $controller = TpdaQrt::Wx::Controller->new();
 
     $controller->start();
 
@@ -74,4 +74,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Wx::App
+1; # End of TpdaQrt::Wx::App

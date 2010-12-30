@@ -1,4 +1,4 @@
-package Qrt::Config::Utils;
+package TpdaQrt::Config::Utils;
 
 use warnings;
 use strict;
@@ -11,7 +11,7 @@ use YAML::Tiny;
 
 =head1 NAME
 
-Qrt::Config::Utils - Utility functions for config paths and files
+TpdaQrt::Config::Utils - Utility functions for config paths and files
 
 =head1 VERSION
 
@@ -23,9 +23,9 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use Qrt::Config::Utils;
+    use TpdaQrt::Config::Utils;
 
-    my $cu = Qrt::Config::Utils->new();
+    my $cu = TpdaQrt::Config::Utils->new();
 
 =head1 METHODS
 
@@ -152,4 +152,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Config::Utils
+1; # End of TpdaQrt::Config::Utils

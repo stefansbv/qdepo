@@ -1,4 +1,4 @@
-package Qrt::Output::Excel;
+package TpdaQrt::Output::Excel;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use Spreadsheet::WriteExcel;
 
 =head1 NAME
 
-Qrt::Output::Excel - Export data in CSV format
+TpdaQrt::Output::Excel - Export data in CSV format
 
 =head1 VERSION
 
@@ -20,9 +20,9 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Qrt::Output::Excel;
+    use TpdaQrt::Output::Excel;
 
-    my $app = Qrt::Output::Excel->new();
+    my $app = TpdaQrt::Output::Excel->new();
 
 =head1 METHODS
 
@@ -262,4 +262,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of Qrt::Output::Excel
+1; # End of TpdaQrt::Output::Excel
