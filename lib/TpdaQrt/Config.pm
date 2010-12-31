@@ -97,7 +97,6 @@ sub _config_main_load {
 
     my $configpath = File::UserConfig->new(
         dist     => 'TpdaQrt',
-        #sharedir => 'share',
     )->configdir;
 
     # Main config file name, load
