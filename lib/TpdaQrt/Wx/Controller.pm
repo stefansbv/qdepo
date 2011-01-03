@@ -157,8 +157,14 @@ sub _set_event_handlers {
 
     #- Toolbar
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_cn'), sub {
-        $self->_model->toggle_db_connect;
+        if ($self->_model->is_connected ) {
+            $self->_view->dialog_popup( 'Info', 'Already connected!' );
+        }
+        else {
+            $self->_model->db_connect;
+        }
     };
+
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rf'), sub {
         $self->_model->on_item_selected(@_);
     };

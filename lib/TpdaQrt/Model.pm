@@ -58,23 +58,23 @@ sub new {
     return $self;
 }
 
-=head2 toggle_db_connect
+=head2 db_connect
 
-Toggle database connection
+Database connection
 
 =cut
 
-sub toggle_db_connect {
+sub db_connect {
     my $self = shift;
 
     if ( $self->is_connected ) {
-        $self->_disconnect();
+        # no nothing
     }
     else {
         $self->_connect();
     }
 
-    return $self;
+    return;
 }
 
 =head2 _connect

@@ -1,14 +1,14 @@
-# Perl Database Query Manager
+# Tpda-Qrt
 # Interface configuration
 # Don't touch!, not for users ;)
 ---
 toolbar:
   tb_cn:
     id:      1001
-    type:    item_check
+    type:    item_normal
     icon:    connectyes16
-    tooltip: Connect/disconnect
-    help:    Connect/disconnect from the database
+    tooltip: Connect
+    help:    Connect to the database
     sep:     after
   tb_sv:
     id:      1002

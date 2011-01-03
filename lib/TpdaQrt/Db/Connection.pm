@@ -49,6 +49,8 @@ sub new {
 
 Connect method, uses I<TpdaQrt::Config> module for configuration.
 
+Using separate modules for each RDBMS, because ...
+
 =cut
 
 sub db_connect {
@@ -92,14 +94,24 @@ sub db_connect {
     if (ref $dbh) {
 
         # Some defaults
-        $dbh->{AutoCommit}  = 1;          # disable transactions
-        $dbh->{RaiseError}  = 0;
-        $dbh->{PrintError}  = 0;
-        $dbh->{LongReadLen} = 512 * 1024; # for BLOBs
-        $dbh->{FetchHashKeyName} = 'NAME_lc';
+        $dbh->{AutoCommit}         = 1; # disable transactions
+        $dbh->{RaiseError}         = 0; # non fatal, handled
+        $dbh->{PrintError}         = 0;
+        $dbh->{ShowErrorStatement} = 1;
+        $dbh->{HandleError}        = \&dbi_error_handler;
+        $dbh->{LongReadLen}        = 512 * 1024;    # for BLOBs
+        $dbh->{FetchHashKeyName}   = 'NAME_lc';
     }
 
     return $dbh;
+}
+
+sub dbi_error_handler {
+    my( $message, $handle, $first_value ) = @_;
+
+    print "Caught: $message\n";
+
+    return 1;
 }
 
 =head1 AUTHOR
