@@ -92,7 +92,7 @@ sub _connect {
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
-        $self->_print('Connected');
+        $self->_print('Connected.');         # why is this persistent?
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
@@ -106,13 +106,13 @@ Disconnect from the database
 
 =cut
 
-sub _disconnect {
-    my $self = shift;
+# sub _disconnect {
+#     my $self = shift;
 
-    $self->{_dbh}->disconnect;
-    $self->get_connection_observable->set( 0 );
-    $self->_print('Disconnected.');
-}
+#     $self->{_dbh}->disconnect;
+#     $self->get_connection_observable->set( 0 );
+#     $self->_print('Disconnected.');
+# }
 
 =head2 is_connected
 
@@ -233,7 +233,7 @@ sub run_export {
      );
 
     if ($err) {
-        $self->_print('DB Error!');
+        $self->_print('Database error!');
     }
     else {
         if ($out) {

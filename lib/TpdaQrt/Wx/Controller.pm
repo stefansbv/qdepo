@@ -88,7 +88,7 @@ sub start {
     $self->_view->populate_config_page();
 
     # Connect to database at start
-    # $self->_model->db_connect();
+    $self->_model->db_connect();
 
     my $default_choice = $self->_view->get_choice_options_default();
     $self->_model->set_choice("0:$default_choice");
@@ -119,7 +119,7 @@ my $about = sub {
     my ( $self, $event ) = @_;
 
     Wx::MessageBox(
-        "TPDA - Query Repository Tool v0.10\n(C) 2010 Stefan Suciu\n\n"
+        "TPDA - Query Repository Tool v0.11\n(C) 2010 Stefan Suciu\n\n"
             . " - WxPerl $Wx::VERSION\n"
             . " - " . Wx::wxVERSION_STRING,
         "About TPDA-QRT",

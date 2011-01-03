@@ -1,10 +1,15 @@
-# TPDA - QRT
-# User configurations
+# Tpda-Qrt
+# Database connection configuration
+# Valid options for driver are:
+#  firebird postgresql mysql sqlite
+# Output path points to the directory where output files are created
+#
+# ~ means undefined
 ---
 conninfo:
   driver: sqlite
   server: ~
-  dbname: testdb.db
+  dbname: tpdaqrt-test.db
   port: ~
 output:
   path: ./
