@@ -3,6 +3,9 @@ package TpdaQrt::Db::Connection;
 use strict;
 use warnings;
 
+use DBI;
+use Exception::Class::DBI;
+
 use TpdaQrt::Config;
 
 =head1 NAME
@@ -98,20 +101,12 @@ sub db_connect {
         $dbh->{RaiseError}         = 0; # non fatal, handled
         $dbh->{PrintError}         = 0;
         $dbh->{ShowErrorStatement} = 1;
-        $dbh->{HandleError}        = \&dbi_error_handler;
+        $dbh->{HandleError}        = Exception::Class::DBI->handler;
         $dbh->{LongReadLen}        = 512 * 1024;    # for BLOBs
         $dbh->{FetchHashKeyName}   = 'NAME_lc';
     }
 
     return $dbh;
-}
-
-sub dbi_error_handler {
-    my( $message, $handle, $first_value ) = @_;
-
-    print "Caught: $message\n";
-
-    return 1;
 }
 
 =head1 AUTHOR

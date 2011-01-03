@@ -125,10 +125,19 @@ sub generate_output_excel {
             $row++;
         }
     };
-    if ($@) {
-        warn "Transaction aborted because $@";
-        $error++;
+    if (my $ex = $@) {
+        print STDERR "1-DBI Exception:\n";
+        print STDERR "  Exception Type: ", ref $ex, "\n";
+        print STDERR "  Error:          ", $ex->error, "\n";
+        print STDERR "  Err:            ", $ex->err, "\n";
+        print STDERR "  Errstr:         ", $ex->errstr, "\n";
+        print STDERR "  State:          ", $ex->state, "\n";
+        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
     }
+    # if ($@) {
+    #     warn "Transaction aborted because $@";
+    #     $error++;
+    # }
 
     # Try to close file and check if realy exists
     my $out = $xls->create_done();
@@ -183,10 +192,20 @@ sub generate_output_csv {
             $csv->create_row(\@rezultat);
         }
     };
-    if ($@) {
-        warn "Transaction aborted because $@";
-        $error++;
+    if (my $ex = $@) {
+        print STDERR "2-DBI Exception:\n";
+        print STDERR "  Exception Type: ", ref $ex, "\n";
+        print STDERR "  Error:          ", $ex->error, "\n";
+        print STDERR "  Err:            ", $ex->err, "\n";
+        print STDERR "  Errstr:         ", $ex->errstr, "\n";
+        print STDERR "  State:          ", $ex->state, "\n";
+        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
     }
+
+    # if ($@) {
+    #     warn "Transaction aborted because $@";
+    #     $error++;
+    # }
 
     # Try to close file and check if realy exists
     my $out = $csv->create_done();
@@ -245,14 +264,21 @@ sub generate_output_calc {
         my @cols = $self->{dbh}->selectrow_array( $sth );
         $rows_cnt = $cols[0] + 1;         # One more for the header
     };
-    if ($@) {
-        warn "Transaction aborted because $@";
-        return 1;
+    if (my $ex = $@) {
+        print STDERR "3-DBI Exception:\n";
+        print STDERR "  Exception Type: ", ref $ex, "\n";
+        print STDERR "  Error:          ", $ex->error, "\n";
+        print STDERR "  Err:            ", $ex->err, "\n";
+        print STDERR "  Errstr:         ", $ex->errstr, "\n";
+        print STDERR "  State:          ", $ex->state, "\n";
+        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        return;
     }
 
     #--- Select
 
     my $error = 0; # Error flag
+    my $out;
     eval {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -284,14 +310,20 @@ sub generate_output_calc {
 
             $row++;
         }
-    };
-    if ($@) {
-        warn "Transaction aborted because $@";
-        $error++;
-    }
 
-    # Try to close file and check if realy exists
-    my $out = $doc->create_done();
+        # Try to close file and check if realy exists
+        $out = $doc->create_done();
+    };
+    if (my $ex = $@) {
+        print STDERR "4-DBI Exception:\n";
+        print STDERR "  Exception Type: ", ref $ex, "\n";
+        print STDERR "  Error:          ", $ex->error, "\n";
+        print STDERR "  Err:            ", $ex->err, "\n";
+        print STDERR "  Errstr:         ", $ex->errstr, "\n";
+        print STDERR "  State:          ", $ex->state, "\n";
+        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        return;
+    }
 
     return ($error, $out);
 }
