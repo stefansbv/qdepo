@@ -46,25 +46,24 @@ Select the appropriate method to generate output
 =cut
 
 sub db_generate_output {
-
     my ($self, $option, $sqltext, $bind, $outfile) = @_;
 
     # Check SQL param
-    if (! defined $sqltext ) {
-        warn "SQL parameter?\n";
+    if ( !defined $sqltext ) {
+        warn "No SQL!\n";
         return;
     }
 
     my $sub_name = 'generate_output_' . lc($option);
-    my ($err, $out);
+    my $out;
     if ( $self->can($sub_name) ) {
-        ($err, $out) = $self->$sub_name($sqltext, $bind, $outfile);
+        $out = $self->$sub_name($sqltext, $bind, $outfile);
     }
     else {
         print " $option generation is not implemented yet...\n";
     }
 
-    return ($err, $out);
+    return $out;
 }
 
 =head2 generate_output_excel
@@ -74,7 +73,6 @@ Generate output in Microsoft Excel format
 =cut
 
 sub generate_output_excel {
-
     my ($self, $sql, $bind, $outfile) = @_;
 
     # File name
@@ -82,7 +80,7 @@ sub generate_output_excel {
         $outfile .= '.xls';
     }
     else {
-        warn "File parameter?\n";
+        warn "No file!\n";
         return;
     }
 
@@ -96,7 +94,6 @@ sub generate_output_excel {
 
     my $xls = TpdaQrt::Output::Excel->new($outfile);
 
-    my $error = 0; # Error flag
     eval {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -138,7 +135,7 @@ sub generate_output_excel {
     # Try to close file and check if realy exists
     my $out = $xls->create_done();
 
-    return ($error, $out);
+    return $out;
 }
 
 =head2 generate_output_csv
@@ -170,7 +167,6 @@ sub generate_output_csv {
 
     my $csv = TpdaQrt::Output::Csv->new($outfile);
 
-    my $error = 0; # Error flag
     eval {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -201,7 +197,7 @@ sub generate_output_csv {
     # Try to close file and check if realy exists
     my $out = $csv->create_done();
 
-    return ($error, $out);
+    return $out;
 }
 
 =head2 generate_output_calc
@@ -268,7 +264,6 @@ sub generate_output_calc {
 
     #--- Select
 
-    my $error = 0; # Error flag
     my $out;
     eval {
         my $sth = $self->{dbh}->prepare($sql);
@@ -316,7 +311,7 @@ sub generate_output_calc {
         return;
     }
 
-    return ($error, $out);
+    return $out;
 }
 
 =head1 AUTHOR

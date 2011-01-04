@@ -101,20 +101,6 @@ sub _connect {
     }
 }
 
-=head2 _disconnect
-
-Disconnect from the database
-
-=cut
-
-# sub _disconnect {
-#     my $self = shift;
-
-#     $self->{_dbh}->disconnect;
-#     $self->get_connection_observable->set( 0 );
-#     $self->_print('Disconnected.');
-# }
-
 =head2 is_connected
 
 Return true if connected
@@ -250,22 +236,21 @@ sub run_export {
 
     my $output = TpdaQrt::Output->new();
 
-    my ($err, $out) = $output->db_generate_output(
+    my $out = $output->db_generate_output(
         $option,
         $sql,
         $bind,
         $out_fqn,
     );
 
-    if ( my $e = Exception::Class::DBI->caught() ) {
-        print "Error: ", $e->errstr, "\n";
-        $self->_display($e->errstr);
+    if ($out) {
+        $self->_print("$out created");
     }
     else {
-        if ($out) {
-            $self->_print("$out created");
-        }
+        $self->_print("No output created");
     }
+
+    return;
 }
 
 =head2 get_detail_data
