@@ -116,10 +116,6 @@ sub create_done {
         $output = $self->{doc_file};
         print " Output file: ", $self->{doc_file}, " created.\n";
     }
-    else {
-        $output = '';
-        print " ERROR, output file", $self->{doc_file}, " NOT created.\n";
-    }
 
     return $output;
 }

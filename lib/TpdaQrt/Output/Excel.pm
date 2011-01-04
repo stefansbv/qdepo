@@ -179,10 +179,6 @@ sub create_done {
         $output = $self->{xls_file};
         print " Output file: ", $output, " created.\n";
     }
-    else {
-        $output = '';
-        print " ERROR, output file", $self->{xls_file}, " NOT created.\n";
-    }
 
     return $output;
 }

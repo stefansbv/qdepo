@@ -112,10 +112,6 @@ sub create_done {
         $output = $self->{csv_file};
         print " Output file: ", $self->{csv_file}, " created.\n";
     }
-    else {
-        $output = '';
-        print " ERROR, output file", $self->{csv_file}, " NOT created.\n";
-    }
 
     return $output;
 }
