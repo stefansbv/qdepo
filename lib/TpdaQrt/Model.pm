@@ -46,6 +46,7 @@ sub new {
     my $self = {
         _connected   => TpdaQrt::Observable->new(),
         _stdout      => TpdaQrt::Observable->new(),
+        _exception   => TpdaQrt::Observable->new(),
         _itemchanged => TpdaQrt::Observable->new(),
         _editmode    => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
@@ -166,6 +167,30 @@ sub _print {
     $self->get_stdout_observable->set( "$line:$sb_id" );
 }
 
+=head2 get_exception_observable
+
+Get EXCEPTION observable status
+
+=cut
+
+sub get_exception_observable {
+    my $self = shift;
+
+    return $self->{_exception};
+}
+
+=head2 _display
+
+Display a message on a Wx text controll
+
+=cut
+
+sub _display {
+    my ( $self, $message ) = @_;
+
+    $self->get_exception_observable->set($message);
+}
+
 =head2 on_item_selected
 
 On list item selection make the event observable
@@ -230,10 +255,11 @@ sub run_export {
         $sql,
         $bind,
         $out_fqn,
-     );
+    );
 
-    if ($err) {
-        $self->_print('Database error!');
+    if ( my $e = Exception::Class::DBI->caught() ) {
+        print "Error: ", $e->errstr, "\n";
+        $self->_display($e->errstr);
     }
     else {
         if ($out) {

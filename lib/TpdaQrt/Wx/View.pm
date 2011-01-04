@@ -130,6 +130,9 @@ sub _set_model_callbacks {
     my $so = $self->_model->get_stdout_observable;
     #$so->add_callback( sub{ $self->log_msg( $_[0] ) } );
     $so->add_callback( sub{ $self->status_msg( @_ ) } );
+
+    my $xo = $self->_model->get_exception_observable;
+    $xo->add_callback( sub{ $self->dialog_msg( @_ ) } );
 }
 
 =head2 create_menu
@@ -1010,6 +1013,18 @@ sub status_msg {
 
     $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
     $self->get_statusbar()->SetStatusText( $text, $sb_id );
+}
+
+=head2 dialog_msg
+
+Set dialog message
+
+=cut
+
+sub dialog_msg {
+    my ( $self, $message ) = @_;
+
+    $self->dialog_popup( 'Error', $message );
 }
 
 =head2 process_sql

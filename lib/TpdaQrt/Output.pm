@@ -134,10 +134,6 @@ sub generate_output_excel {
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
     }
-    # if ($@) {
-    #     warn "Transaction aborted because $@";
-    #     $error++;
-    # }
 
     # Try to close file and check if realy exists
     my $out = $xls->create_done();
@@ -201,11 +197,6 @@ sub generate_output_csv {
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
     }
-
-    # if ($@) {
-    #     warn "Transaction aborted because $@";
-    #     $error++;
-    # }
 
     # Try to close file and check if realy exists
     my $out = $csv->create_done();
