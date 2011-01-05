@@ -17,7 +17,6 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
     use TpdaQrt::Output;
@@ -34,9 +33,16 @@ Constructor
 =cut
 
 sub new {
-    my $class = shift;
+    my ($class, $model) = @_;
 
-    return bless { dbh => TpdaQrt::Db->instance()->dbh, }, $class;
+    my $self = {};
+
+    $self->{model} = $model;
+    $self->{dbh}   = TpdaQrt::Db->instance()->dbh;
+
+    bless $self, $class;
+
+    return $self;
 }
 
 =head2 db_generate_output
@@ -50,7 +56,7 @@ sub db_generate_output {
 
     # Check SQL param
     if ( !defined $sqltext ) {
-        warn "No SQL!\n";
+        $self->{model}->display("No SQL!");
         return;
     }
 
@@ -60,7 +66,7 @@ sub db_generate_output {
         $out = $self->$sub_name($sqltext, $bind, $outfile);
     }
     else {
-        print " $option generation is not implemented yet...\n";
+        $self->{model}->display("$option is not implemented yet!");
     }
 
     return $out;
@@ -80,7 +86,7 @@ sub generate_output_excel {
         $outfile .= '.xls';
     }
     else {
-        warn "No file!\n";
+        $self->{model}->display("No file!");
         return;
     }
 
@@ -88,7 +94,7 @@ sub generate_output_excel {
         require TpdaQrt::Output::Excel;
     };
     if ($@) {
-        print "Spreadsheet::WriteExcel not available!\n";
+        $self->{model}->display("Spreadsheet::WriteExcel not available!");
         return;
     }
 
@@ -130,6 +136,7 @@ sub generate_output_excel {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        $self->{model}->display($ex->errstr);
     }
 
     # Try to close file and check if realy exists
@@ -153,7 +160,7 @@ sub generate_output_csv {
         $outfile .= '.csv';
     }
     else {
-        warn "File parameter?\n";
+        $self->{model}->display("No file parameter!");
         return;
     }
 
@@ -161,7 +168,7 @@ sub generate_output_csv {
         require TpdaQrt::Output::Csv;
     };
     if ($@) {
-        print "Text::CSV_XS not available!\n";
+        $self->{model}->display("Text::CSV_XS not available!");
         return;
     }
 
@@ -192,6 +199,7 @@ sub generate_output_csv {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        $self->{model}->display($ex->errstr);
     }
 
     # Try to close file and check if realy exists
@@ -215,17 +223,17 @@ sub generate_output_calc {
         $outfile .= '.ods';
     }
     else {
-        warn "File parameter?\n";
+        $self->{model}->display("File parameter?");
         return;
     }
 
-    print " generating $outfile\n";
+    $self->{model}->display(" generating $outfile");
 
     eval {
         require TpdaQrt::Output::Calc;
     };
     if ($@) {
-        print "OpenOffice::OODoc 2.103 not available!\n";
+        $self->{model}->display("OpenOffice::OODoc 2.103 not available!");
         return;
     }
 
@@ -259,6 +267,7 @@ sub generate_output_calc {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        $self->{model}->display($ex->errstr);
         return;
     }
 
@@ -308,6 +317,7 @@ sub generate_output_calc {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
+        $self->{model}->display($ex->errstr);
         return;
     }
 

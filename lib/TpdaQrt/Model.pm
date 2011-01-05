@@ -93,11 +93,11 @@ sub _connect {
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
-        $self->_print('Connected.');         # why is this persistent?
+        $self->display('Connected');
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
-        $self->_print('Disconnected.');
+        $self->display('Disconnected');
     }
 }
 
@@ -165,13 +165,13 @@ sub get_exception_observable {
     return $self->{_exception};
 }
 
-=head2 _display
+=head2 display
 
 Display a message on a Wx text controll
 
 =cut
 
-sub _display {
+sub display {
     my ( $self, $message ) = @_;
 
     $self->get_exception_observable->set($message);
@@ -226,7 +226,7 @@ TODO: Check if exists and selected at least one qdf in list
 sub run_export {
     my ($self, $outfile, $bind, $sql) = @_;
 
-    $self->_print('Running...');
+    $self->display('Running...');
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
@@ -234,7 +234,7 @@ sub run_export {
     my $cfg     = TpdaQrt::Config->instance();
     my $out_fqn = catfile($cfg->output->{path}, $outfile);
 
-    my $output = TpdaQrt::Output->new();
+    my $output = TpdaQrt::Output->new($self);
 
     my $out = $output->db_generate_output(
         $option,
@@ -244,10 +244,10 @@ sub run_export {
     );
 
     if ($out) {
-        $self->_print("$out created");
+        $self->display("$out created");
     }
     else {
-        $self->_print("No output created");
+        $self->display("No output created");
     }
 
     return;
@@ -366,7 +366,7 @@ sub save_query_def {
 
     $self->{fio}->xml_update($file_fqn, $record);
 
-    $self->_print("Saved.");
+    $self->display('Saved');
 
     return $head->{title};
 }
@@ -475,12 +475,12 @@ sub report_add {
     # print " $src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
-        print "Create new report from template ...";
+        $self->display("Create new report from template ...");
         if ( copy( $src_fqn, $dst_fqn ) ) {
-            print " done: ($newqdf)\n";
+            $self->display(" done: ($newqdf)");
         }
         else {
-            print " failed: $!\n";
+            $self->display(" failed: $!");
             return;
         }
 
@@ -491,7 +491,7 @@ sub report_add {
     }
     else {
         warn "File exists! ($dst_fqn)\n";
-        $self->_print("File exists! ($dst_fqn)");
+        $self->display("File exists! ($dst_fqn)");
     }
 }
 
@@ -509,7 +509,7 @@ sub report_remove {
     # Move file to backup
     my $file_bak_fqn = "$file_fqn.bak";
     if ( move($file_fqn, $file_bak_fqn) ) {
-        print "$file_fqn deleted.\n";
+        $self->display("$file_fqn deleted");
     }
 
     return;

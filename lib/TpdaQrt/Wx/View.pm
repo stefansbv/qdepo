@@ -132,7 +132,8 @@ sub _set_model_callbacks {
     $so->add_callback( sub{ $self->status_msg( @_ ) } );
 
     my $xo = $self->_model->get_exception_observable;
-    $xo->add_callback( sub{ $self->dialog_msg( @_ ) } );
+    # $xo->add_callback( sub{ $self->dialog_msg( @_ ) } );
+    $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 }
 
 =head2 create_menu
@@ -515,24 +516,52 @@ sub create_config_page {
         [ 170, -1 ],
     );
 
-    my $cnf_fgs = Wx::FlexGridSizer->new( 2, 1, 5, 10 );
+    #- Log text control
 
-    $cnf_fgs->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
-    $cnf_fgs->Add( $self->{path}, 1, wxEXPAND, 0 );
+    $self->{log} = Wx::StyledTextCtrl->new(
+        $self->{_nb}{p4},
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
 
-    $cnf_fgs->AddGrowableCol(0);
+    # $self->{log}->SetUseHorizontalScrollBar(0); # turn off scrollbars
+    # $self->{log}->SetUseVerticalScrollBar(0);
 
-    my $cnf_main_sz = Wx::BoxSizer->new(wxHORIZONTAL);
+    $self->{log}->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
 
-    my $top_sz_p4 =
-        Wx::StaticBoxSizer->new(
-            Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Configurations ', ),
-            wxVERTICAL, );
+    #--- Layout
 
-    $top_sz_p4->Add( $cnf_fgs, 0, wxEXPAND, 3 );
-    $cnf_main_sz->Add( $top_sz_p4, 1, wxALL | wxGROW, 5 );
+    my $conf_main_sz = Wx::FlexGridSizer->new( 2, 1, 5, 5 );
 
-    $self->{_nb}{p4}->SetSizer( $cnf_main_sz );
+    #-- Top
+
+    my $conf_top_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Info ', ),
+        wxVERTICAL, );
+
+    $conf_top_sz->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
+    $conf_top_sz->Add( $self->{path}, 1, wxEXPAND, 0 );
+
+    #-- Bottom
+
+    my $conf_bot_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Log ', ),
+        wxVERTICAL, );
+
+    $conf_bot_sz->Add( $self->{log}, 1, wxEXPAND );
+
+    #--
+
+    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
+    $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
+
+    $conf_main_sz->AddGrowableRow(1);
+    $conf_main_sz->AddGrowableCol(0);
+
+    $self->{_nb}{p4}->SetSizer($conf_main_sz);
 }
 
 =head2 dialog_popup
@@ -1027,6 +1056,18 @@ sub dialog_msg {
     $self->dialog_popup( 'Error', $message );
 }
 
+=head2 log_msg
+
+Set log message
+
+=cut
+
+sub log_msg {
+    my ( $self, $message ) = @_;
+
+    $self->control_append_value( 'log', $message );
+}
+
 =head2 process_sql
 
 Get the sql text string from the QDF file, prepare it for execution.
@@ -1152,6 +1193,24 @@ sub control_set_value {
     $ctrl->AppendText( "\n" );
     $ctrl->Colourise( 0, $ctrl->GetTextLength );
 
+}
+
+=head2 control_set_value
+
+Set new value for a controll
+
+=cut
+
+sub control_append_value {
+    my ($self, $name, $value) = @_;
+
+    return unless defined $value;
+
+    my $ctrl = $self->get_control_by_name($name);
+
+    $ctrl->AppendText($value);
+    $ctrl->AppendText( "\n" );
+    #$ctrl->Colourise( 0, $ctrl->GetTextLength );
 }
 
 =head2 controls_write_page
