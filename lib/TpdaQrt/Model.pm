@@ -524,6 +524,8 @@ Set choice to value
 sub set_choice {
     my ($self, $choice) = @_;
 
+    $self->display("II Output format set to '$choice'");
+
     $self->get_choice_observable->set($choice);
 }
 

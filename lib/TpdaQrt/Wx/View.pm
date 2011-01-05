@@ -3,6 +3,8 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
@@ -498,18 +500,18 @@ sub create_config_page {
 
     #-- Controls
 
-    my $cnf_lbl1 = Wx::StaticText->new(
-        $self->{_nb}{p4},
-        -1,
-        q{Output files path},
-    );
-    $self->{path} = Wx::TextCtrl->new(
-        $self->{_nb}{p4},
-        -1,
-        q{},
-        [ -1, -1 ],
-        [ 170, -1 ],
-    );
+    # my $cnf_lbl1 = Wx::StaticText->new(
+    #     $self->{_nb}{p4},
+    #     -1,
+    #     q{Output files path},
+    # );
+    # $self->{path} = Wx::TextCtrl->new(
+    #     $self->{_nb}{p4},
+    #     -1,
+    #     q{},
+    #     [ -1, -1 ],
+    #     [ 170, -1 ],
+    # );
 
     #- Log text control
 
@@ -554,13 +556,13 @@ sub create_config_page {
 
     #-- Top
 
-    my $conf_top_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Info ', ),
-        wxVERTICAL, );
+    # my $conf_top_sz =
+    #   Wx::StaticBoxSizer->new(
+    #     Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Info ', ),
+    #     wxVERTICAL, );
 
-    $conf_top_sz->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
-    $conf_top_sz->Add( $self->{path}, 1, wxEXPAND, 0 );
+    # $conf_top_sz->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
+    # $conf_top_sz->Add( $self->{path}, 1, wxEXPAND, 0 );
 
     #-- Bottom
 
@@ -573,10 +575,10 @@ sub create_config_page {
 
     #--
 
-    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
+    # $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
     $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
 
-    $conf_main_sz->AddGrowableRow(1);
+    $conf_main_sz->AddGrowableRow(0);
     $conf_main_sz->AddGrowableCol(0);
 
     $self->{_nb}{p4}->SetSizer($conf_main_sz);
@@ -713,7 +715,7 @@ sub get_controls_conf {
     my $self = shift;
 
     return [
-        { path => [ $self->{path}, 'disabled', 'lightgrey' ] },
+#        { path => [ $self->{path}, 'disabled', 'lightgrey' ] },
     ];
 }
 
@@ -879,19 +881,21 @@ sub list_item_clear_all {
     $self->get_listcontrol->DeleteAllItems;
 }
 
-=head2 populate_config_page
+=head2 log_config_options
 
-Populate the configuration page with data from the Config module
+Log configuration options with data from the Config module
 
 =cut
 
-sub populate_config_page {
+sub log_config_options {
     my $self = shift;
 
     my $cfg  = TpdaQrt::Config->instance();
     my $path = $cfg->output;
 
-    $self->controls_write_page('conf', $path );
+    while ( my ( $key, $value ) = each( %{$path} ) ) {
+        $self->log_msg("II Config otion '$key' set to '$value'");
+    }
 }
 
 =head2 list_populate_all

@@ -75,8 +75,10 @@ sub new {
 
 =head2 start
 
-Populate list with titles, populate configurations page, set default
+Populate list with titles, Log configuration options, set default
 choice for export and initial mode.
+
+TODO: make a more general method
 
 =cut
 
@@ -85,7 +87,8 @@ sub start {
 
 
     $self->_view->list_populate_all();
-    $self->_view->populate_config_page();
+
+    $self->_view->log_config_options();
 
     # Connect to database at start
     $self->_model->db_connect();
