@@ -93,11 +93,11 @@ sub _connect {
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
-        $self->display('Connected');
+        $self->display('II Connected');
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
-        $self->display('Disconnected');
+        $self->display('II Disconnected');
     }
 }
 
@@ -226,7 +226,7 @@ TODO: Check if exists and selected at least one qdf in list
 sub run_export {
     my ($self, $outfile, $bind, $sql) = @_;
 
-    $self->display('Running...');
+    $self->display('II Running ...');
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
@@ -244,10 +244,10 @@ sub run_export {
     );
 
     if ($out) {
-        $self->display("$out created");
+        $self->display("II File '$out' generated");
     }
     else {
-        $self->display("No output created");
+        $self->display("EE No output file generated");
     }
 
     return;
@@ -366,7 +366,7 @@ sub save_query_def {
 
     $self->{fio}->xml_update($file_fqn, $record);
 
-    $self->display('Saved');
+    $self->display('II Saved');
 
     return $head->{title};
 }
@@ -475,12 +475,12 @@ sub report_add {
     # print " $src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
-        $self->display("Create new report from template ...");
+        $self->display("II Create new report from template ...");
         if ( copy( $src_fqn, $dst_fqn ) ) {
-            $self->display(" done: ($newqdf)");
+            $self->display("II done: '$newqdf'");
         }
         else {
-            $self->display(" failed: $!");
+            $self->display("EE failed: $!");
             return;
         }
 
@@ -491,7 +491,7 @@ sub report_add {
     }
     else {
         warn "File exists! ($dst_fqn)\n";
-        $self->display("File exists! ($dst_fqn)");
+        $self->display("WW File exists! ($dst_fqn)");
     }
 }
 
@@ -509,7 +509,7 @@ sub report_remove {
     # Move file to backup
     my $file_bak_fqn = "$file_fqn.bak";
     if ( move($file_fqn, $file_bak_fqn) ) {
-        $self->display("$file_fqn deleted");
+        $self->display("WW '$file_fqn' deleted");
     }
 
     return;

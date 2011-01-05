@@ -114,7 +114,6 @@ sub create_done {
     my $output;
     if ( -f $self->{doc_file} ) {
         $output = $self->{doc_file};
-        print " Output file: ", $self->{doc_file}, " created.\n";
     }
 
     return $output;

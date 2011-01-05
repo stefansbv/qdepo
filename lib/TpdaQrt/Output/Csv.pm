@@ -110,7 +110,6 @@ sub create_done {
     my $output;
     if ( -f $self->{csv_file} ) {
         $output = $self->{csv_file};
-        print " Output file: ", $self->{csv_file}, " created.\n";
     }
 
     return $output;

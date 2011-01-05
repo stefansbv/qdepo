@@ -456,17 +456,6 @@ transaction union upper user where with year} );
     $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACEBAD,
                                 "fore:#000000,back:#FF0000,bold" );
 
-    # SQL - works with wxSTC_LEX_SQL
-    # $self->{sql}->StyleSetSpec(0, "fore:#ff0000");              #*Symbol
-    # $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");       #*Comment
-    # $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");       #*Commentline
-    # $self->{sql}->StyleSetSpec(4, "fore:#0000ff");              #*Number
-    # $self->{sql}->StyleSetSpec(5, "fore:#dfaf8f");              #*List0
-    # $self->{sql}->StyleSetSpec(6, "fore:#705050");              #*Doublequoted
-    # $self->{sql}->StyleSetSpec(7, "fore:#dca3a3");              #*Singlequoted
-    # $self->{sql}->StyleSetSpec(11,"fore:#000000");              #*Identifier
-    # $self->{sql}->StyleSetSpec(16,"fore:#94c0f3");              #*List1
-
     # MSSQL - works with wxSTC_LEX_MSSQL
     $self->{sql}->StyleSetSpec(0, "fore:#000000");            #*Default
     $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");     #*Comment
@@ -494,7 +483,13 @@ transaction union upper user where with year} );
 
 =head2 create_config_page
 
-Create the configuration info page (tab) on the notebook
+Create the configuration info page (tab) on the notebook.
+
+Using the MySQL lexer for very basic syntax highlighting. This was
+chosen because permits the definition of 3 custom lists. For this
+purpose three key word lists are defined with a keyword in each. B<EE>
+is for error, B<II> for information and B<WW> for warning. words in
+list must be lower case.
 
 =cut
 
@@ -527,8 +522,31 @@ sub create_config_page {
 
     # $self->{log}->SetUseHorizontalScrollBar(0); # turn off scrollbars
     # $self->{log}->SetUseVerticalScrollBar(0);
-
+    $self->{log}->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
+    $self->{log}->SetMarginWidth( 1, 10 );
+    $self->{log}->StyleSetFont( wxSTC_STYLE_DEFAULT,
+        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
+    $self->{log}->SetLexer( wxSTC_LEX_MSSQL );
     $self->{log}->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
+
+    # List0
+    $self->{log}->SetKeyWords(0, q{ii} );
+    # List1
+    $self->{log}->SetKeyWords(1, q{ee} );
+    # List2
+
+    $self->{log}->SetKeyWords(2, q{ww} );
+    $self->{log}->SetTabWidth(4);
+    $self->{log}->SetIndent(4);
+    $self->{log}->SetHighlightGuide(4);
+    $self->{log}->StyleClearAll();
+
+    # MSSQL - works with wxSTC_LEX_MSSQL
+    $self->{log}->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
+    $self->{log}->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
+    $self->{log}->StyleSetSpec(9, "fore:#00ff00");            #*List0
+    $self->{log}->StyleSetSpec(10,"fore:#ff0000");            #*List1
+    $self->{log}->StyleSetSpec(11,"fore:#0000ff");            #*List2
 
     #--- Layout
 
@@ -1159,7 +1177,7 @@ sub string_replace_for_run {
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
         unless ( $sqltext =~ s/($var)/\?/pm ) {
-            print "Parameter number > 'value[0-9]' number in SQL!\n";
+            $self->log_msg("EE Parameter mismatch, to few parameters in SQL");
             return;
         }
 
@@ -1168,7 +1186,7 @@ sub string_replace_for_run {
 
     # Check for remaining not substituted 'value[0-9]' in SQL
     if ( $sqltext =~ m{(value[0-9])}pm ) {
-        print "Parameter number < 'value[0-9]' number in SQL!\n";
+        $self->log_msg("EE Parameter mismatch, to many parameters in SQL");
         return;
     }
 
@@ -1210,7 +1228,7 @@ sub control_append_value {
 
     $ctrl->AppendText($value);
     $ctrl->AppendText( "\n" );
-    #$ctrl->Colourise( 0, $ctrl->GetTextLength );
+    $ctrl->Colourise( 0, $ctrl->GetTextLength );
 }
 
 =head2 controls_write_page
@@ -1306,6 +1324,8 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 None known.
 
 Please report any bugs or feature requests to the author.
+
+=head1 ACKNOWLEDGEMENTS
 
 =head1 LICENSE AND COPYRIGHT
 

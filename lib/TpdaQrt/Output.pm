@@ -56,7 +56,7 @@ sub db_generate_output {
 
     # Check SQL param
     if ( !defined $sqltext ) {
-        $self->{model}->display("No SQL!");
+        $self->{model}->display('EE No SQL parameter!');
         return;
     }
 
@@ -66,7 +66,7 @@ sub db_generate_output {
         $out = $self->$sub_name($sqltext, $bind, $outfile);
     }
     else {
-        $self->{model}->display("$option is not implemented yet!");
+        $self->{model}->display("WW $option is not implemented yet!");
     }
 
     return $out;
@@ -86,7 +86,7 @@ sub generate_output_excel {
         $outfile .= '.xls';
     }
     else {
-        $self->{model}->display("No file!");
+        $self->{model}->display('EE No file parameter');
         return;
     }
 
@@ -94,7 +94,7 @@ sub generate_output_excel {
         require TpdaQrt::Output::Excel;
     };
     if ($@) {
-        $self->{model}->display("Spreadsheet::WriteExcel not available!");
+        $self->{model}->display("EE Spreadsheet::WriteExcel not available!");
         return;
     }
 
@@ -136,7 +136,7 @@ sub generate_output_excel {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display($ex->errstr);
+        $self->{model}->display('EE ' . $ex->errstr);
     }
 
     # Try to close file and check if realy exists
@@ -160,7 +160,7 @@ sub generate_output_csv {
         $outfile .= '.csv';
     }
     else {
-        $self->{model}->display("No file parameter!");
+        $self->{model}->display("EE No file parameter!");
         return;
     }
 
@@ -168,7 +168,7 @@ sub generate_output_csv {
         require TpdaQrt::Output::Csv;
     };
     if ($@) {
-        $self->{model}->display("Text::CSV_XS not available!");
+        $self->{model}->display("EE Text::CSV_XS not available!");
         return;
     }
 
@@ -199,7 +199,7 @@ sub generate_output_csv {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display($ex->errstr);
+        $self->{model}->display('EE ' . $ex->errstr);
     }
 
     # Try to close file and check if realy exists
@@ -223,17 +223,17 @@ sub generate_output_calc {
         $outfile .= '.ods';
     }
     else {
-        $self->{model}->display("File parameter?");
+        $self->{model}->display('EE No file parameter');
         return;
     }
 
-    $self->{model}->display(" generating $outfile");
+    $self->{model}->display("II Generating output file '$outfile'");
 
     eval {
         require TpdaQrt::Output::Calc;
     };
     if ($@) {
-        $self->{model}->display("OpenOffice::OODoc 2.103 not available!");
+        $self->{model}->display("EE OpenOffice::OODoc 2.103 not available!");
         return;
     }
 
@@ -267,7 +267,7 @@ sub generate_output_calc {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display($ex->errstr);
+        $self->{model}->display('EE ' . $ex->errstr);
         return;
     }
 
@@ -317,7 +317,7 @@ sub generate_output_calc {
         print STDERR "  Errstr:         ", $ex->errstr, "\n";
         print STDERR "  State:          ", $ex->state, "\n";
         print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display($ex->errstr);
+        $self->{model}->display('EE ' . $ex->errstr);
         return;
     }
 

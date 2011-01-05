@@ -177,7 +177,6 @@ sub create_done {
     my $output;
     if ( -f $self->{xls_file} ) {
         $output = $self->{xls_file};
-        print " Output file: ", $output, " created.\n";
     }
 
     return $output;
