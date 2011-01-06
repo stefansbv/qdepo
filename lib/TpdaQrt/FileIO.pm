@@ -8,6 +8,7 @@ use File::Find::Rule;
 use XML::Twig;
 
 use TpdaQrt::Config;
+use TpdaQrt::Utils;
 
 =head1 NAME
 
@@ -275,6 +276,7 @@ sub _xml_proc_head {
 =head2 _xml_proc_body
 
 Remove body element childrens, then recreate with the new values.
+Values are trimmed before saving.
 
 =cut
 
@@ -285,9 +287,9 @@ sub _xml_proc_body {
 
     foreach my $item ( keys %{$rec} ) {
         my $ef = XML::Twig::Elt->new(
-            '#CDATA' => $rec->{$item}
+            '#CDATA' => TpdaQrt::Utils->trim( $rec->{$item} )
         )->wrap_in($item);
-        $ef->paste('last_child', $elt);
+        $ef->paste( 'last_child', $elt );
     }
 
     return;
