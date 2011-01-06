@@ -98,6 +98,8 @@ sub generate_output_excel {
         return;
     }
 
+    $self->{model}->display("II SQL: $sql");
+
     my $xls = TpdaQrt::Output::Excel->new($outfile);
 
     eval {
@@ -172,6 +174,8 @@ sub generate_output_csv {
         return;
     }
 
+    $self->{model}->display("II SQL: $sql");
+
     my $csv = TpdaQrt::Output::Csv->new($outfile);
 
     eval {
@@ -237,6 +241,8 @@ sub generate_output_calc {
         return;
     }
 
+    $self->{model}->display("II SQL: $sql");
+
     my $doc;
     # Need the last part of the query to build a counting select
     # first to create new spreadsheet with predefined dimensions
@@ -245,7 +251,8 @@ sub generate_output_calc {
     #--- Count
 
     my $cnt_sql = 'SELECT COUNT(*) FROM ' . $from;
-    # print "\nsql=",$cnt_sql,"\n\n";
+
+    $self->{model}->display("II SQL: $cnt_sql");
 
     my $rows_cnt;
     eval {

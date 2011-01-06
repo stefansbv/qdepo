@@ -4,7 +4,7 @@ and query repository management. Queries are saved in XML files and
 can be edited and parametrized.
 
 Currently supported export formats: CSV, Excel, OpenOffice Calc.
-Database management systems support: Firebird, PostgreSQL MySQL and
+Database management systems support: Firebird, PostgreSQL, MySQL and
 SQLite.
 
 The idea for this project, was born from the necessity to run, monthly,

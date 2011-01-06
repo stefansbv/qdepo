@@ -12,6 +12,7 @@ use TpdaQrt::FileIO;
 use TpdaQrt::Observable;
 use TpdaQrt::Db;
 use TpdaQrt::Output;
+use TpdaQrt::Utils;
 
 =head1 NAME
 
@@ -228,9 +229,9 @@ TODO: Check if exists and selected at least one qdf in list
 =cut
 
 sub run_export {
-    my ($self, $outfile, $bind, $sql) = @_;
+    my ($self, $outfile, $bind, $sqltext) = @_;
 
-    $self->display('II Running ...');
+    $self->display('II Running data export ...');
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
@@ -240,9 +241,12 @@ sub run_export {
 
     my $output = TpdaQrt::Output->new($self);
 
+    # trim SQL text;
+    $sqltext = TpdaQrt::Utils->trim($sqltext);
+
     my $out = $output->db_generate_output(
         $option,
-        $sql,
+        $sqltext,
         $bind,
         $out_fqn,
     );
