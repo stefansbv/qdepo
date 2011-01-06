@@ -490,8 +490,8 @@ Create the configuration info page (tab) on the notebook.
 Using the MySQL lexer for very basic syntax highlighting. This was
 chosen because permits the definition of 3 custom lists. For this
 purpose three key word lists are defined with a keyword in each. B<EE>
-is for error, B<II> for information and B<WW> for warning. words in
-list must be lower case.
+is for error, B<II> for information and B<WW> for warning. Words in
+the lists must be lower case.
 
 =cut
 
@@ -499,19 +499,6 @@ sub create_config_page {
     my $self = shift;
 
     #-- Controls
-
-    # my $cnf_lbl1 = Wx::StaticText->new(
-    #     $self->{_nb}{p4},
-    #     -1,
-    #     q{Output files path},
-    # );
-    # $self->{path} = Wx::TextCtrl->new(
-    #     $self->{_nb}{p4},
-    #     -1,
-    #     q{},
-    #     [ -1, -1 ],
-    #     [ 170, -1 ],
-    # );
 
     #- Log text control
 
@@ -554,15 +541,7 @@ sub create_config_page {
 
     my $conf_main_sz = Wx::FlexGridSizer->new( 2, 1, 5, 5 );
 
-    #-- Top
-
-    # my $conf_top_sz =
-    #   Wx::StaticBoxSizer->new(
-    #     Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Info ', ),
-    #     wxVERTICAL, );
-
-    # $conf_top_sz->Add( $cnf_lbl1, 0, wxTOP | wxLEFT, 5 );
-    # $conf_top_sz->Add( $self->{path}, 1, wxEXPAND, 0 );
+    #-- Top - removed :)
 
     #-- Bottom
 
@@ -586,7 +565,7 @@ sub create_config_page {
 
 =head2 dialog_popup
 
-Define a dialog popup
+Define a dialog popup.
 
 =cut
 
@@ -603,9 +582,30 @@ sub dialog_popup {
     }
 }
 
+=head2 action_confirmed
+
+Yes - No message dialog.
+
+=cut
+
+sub action_confirmed {
+    my ( $self, $msg ) = @_;
+
+    my( $answer ) =  Wx::MessageBox(
+        $msg,
+        'Confirm',
+        Wx::wxYES_NO(),  # if you use Wx ':everything', it's wxYES_NO
+        undef,           # you needn't pass anything, much less $frame
+     );
+
+     if( $answer == Wx::wxYES() ) {
+         return 1;
+     }
+}
+
 =head2 get_toolbar_btn_id
 
-Return a toolbar button ID when we know the its name
+Return a toolbar button ID when we know the its name.
 
 =cut
 
@@ -617,22 +617,23 @@ sub get_toolbar_btn_id {
 
 =head2 get_toolbar
 
-Return the toolbar handler
+Return the toolbar handler.
 
 =cut
 
 sub get_toolbar {
     my $self = shift;
+
     return $self->{_tb};
 }
 
-=head2 get_choice_options_default
+=head2 get_choice_default
 
-Return the choice options default, the first element in the array
+Return the choice default option, the first element in the array.
 
 =cut
 
-sub get_choice_options_default {
+sub get_choice_default {
     my $self = shift;
 
     return $self->{_tb}->get_choice_options(0);
@@ -640,18 +641,19 @@ sub get_choice_options_default {
 
 =head2 get_listcontrol
 
-Return the list control handler
+Return the list control handler.
 
 =cut
 
 sub get_listcontrol {
     my $self = shift;
+
     return $self->{_list};
 }
 
 =head2 get_controls_list
 
-Return a AoH with information regarding the controls from the list page
+Return a AoH with information regarding the controls from the list page.
 
 =cut
 
@@ -669,7 +671,7 @@ sub get_controls_list {
 
 =head2 get_controls_para
 
-Return a AoH with information regarding the controls from the parameters page
+Return a AoH with information regarding the controls from the parameters page.
 
 =cut
 
@@ -692,7 +694,7 @@ sub get_controls_para {
 
 =head2 get_controls_sql
 
-Return a AoH with information regarding the controls from the SQL page
+Return a AoH with information regarding the controls from the SQL page.
 
 =cut
 
@@ -707,21 +709,21 @@ sub get_controls_sql {
 =head2 get_controls_conf
 
 Return a AoH with information regarding the controls from the
-configurations page
+configurations page.
+
+None at this time.
 
 =cut
 
 sub get_controls_conf {
     my $self = shift;
 
-    return [
-#        { path => [ $self->{path}, 'disabled', 'lightgrey' ] },
-    ];
+    return [];
 }
 
 =head2 get_control_by_name
 
-Return the control instance by name
+Return the control instance by name.
 
 =cut
 

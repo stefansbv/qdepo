@@ -93,7 +93,7 @@ sub start {
     # Connect to database at start
     $self->_model->db_connect();
 
-    my $default_choice = $self->_view->get_choice_options_default();
+    my $default_choice = $self->_view->get_choice_default();
     $self->_model->set_choice("0:$default_choice");
 
     $self->_model->set_idlemode();
@@ -178,9 +178,15 @@ sub _set_event_handlers {
     };
 
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rm'), sub {
-        my $file_fqn = $self->_view->list_remove_item();
-        if ($file_fqn) {
-            $self->_model->report_remove($file_fqn);
+        my $msg = 'Delete query definition file?';
+        if ( $self->_view->action_confirmed($msg) ) {
+            my $file_fqn = $self->_view->list_remove_item();
+            if ($file_fqn) {
+                $self->_model->report_remove($file_fqn);
+            }
+        }
+        else {
+            $self->_view->log_msg("II delete canceled");
         }
     };
 

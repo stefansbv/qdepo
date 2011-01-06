@@ -293,9 +293,11 @@ sub set_editmode {
     }
     if ( $self->is_editmode ) {
         $self->_print('edit', 1);
+        # $self->display('II Edit mode');
     }
     else{
         $self->_print('idle', 1);
+        # $self->display('II Idle mode');
     }
 }
 
@@ -313,9 +315,11 @@ sub set_idlemode {
     }
     if ( $self->is_editmode ) {
         $self->_print('edit', 1);
+        # $self->display('II Edit mode');
     }
     else {
         $self->_print('idle', 1);
+        # $self->display('II Idle mode');
     }
 }
 
