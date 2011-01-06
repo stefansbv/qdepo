@@ -87,17 +87,21 @@ Connect to the database
 sub _connect {
     my $self = shift;
 
+    my $conninfo = TpdaQrt::Config->instance->conninfo;
+    my $driver = $conninfo->{driver};
+    my $dbname = $conninfo->{dbname};
+
     # Connect to database
     $self->{_dbh} = TpdaQrt::Db->instance->dbh;
 
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
-        $self->display('II Connected');
+        $self->display("II Connected to \"$dbname\" with '$driver'");
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
-        $self->display('II Disconnected');
+        $self->display("II Disconnected from '$dbname'");
     }
 }
 
