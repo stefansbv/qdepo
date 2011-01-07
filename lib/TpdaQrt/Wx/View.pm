@@ -896,7 +896,7 @@ sub log_config_options {
     my $path = $cfg->output;
 
     while ( my ( $key, $value ) = each( %{$path} ) ) {
-        $self->log_msg("II Config otion '$key' set to '$value'");
+        $self->log_msg("II Config: '$key' set to '$value'");
     }
 }
 

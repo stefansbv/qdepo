@@ -14,7 +14,6 @@ use inc::Module::Install;
 name     'TpdaQrt';
 all_from 'lib/TpdaQrt.pm';
 
-requires 'perl'                       => '5.008005';
 requires 'Wx'                         => '0.970101';
 requires 'Wx::Perl::ListCtrl'         => '0.03';
 requires 'Class::Singleton'           => '1.4';
@@ -27,8 +26,6 @@ requires 'File::HomeDir'              => '0.89';
 requires 'File::Spec::Functions'      => '0';
 requires 'DBI'                        => '1.53';
 requires 'DBD::SQLite'                => '1.29';
-requires 'DBD::InterBase'             => '0.44';
-requires 'DBD::Pg'                    => '1.32';
 requires 'XML::Twig'                  => '3.26';
 requires 'Spreadsheet::WriteExcel'    => '0';
 requires 'OpenOffice::OODoc'          => '2.103';
