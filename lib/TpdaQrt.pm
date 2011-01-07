@@ -13,11 +13,11 @@ TpdaQrt::Db - Tpda TpdaQrt database operations module
 
 =head1 VERSION
 
-Version 0.10
+Version 0.20
 
 =cut
 
-our $VERSION = '0.11';
+our $VERSION = '0.20';
 
 =head1 SYNOPSIS
 

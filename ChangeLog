@@ -1,10 +1,32 @@
-2010-12-28    <stefan@master.home>
+2011-01-07    <stefan>
 
-        * Release ver. 0.11 - Bugfix release
+	* Release ver. 0.20
+
+2011-01-06    <stefan>
+
+	* Sample report for the test connection
+
+2011-01-05    <stefan>
+
+	* Added text control for logging, with customized log
+	messages. Removed (ugly) config values display, switched to
+	logging
+
+2011-01-03    <stefan>
+
+	* Added exception reporting for DBI operations
+
+2010-12-30    <stefan>
+
+	* Renamed main module to TpdaQrt
 
 2010-12-28    <stefan>
 
-        * Bug fix. Back to tpda-qrt name for the starter script; Fixed
+	* Release ver. 0.11 - Bugfix release
+
+2010-12-28    <stefan>
+
+	* Bug fix. Back to tpda-qrt name for the starter script; Fixed
 	some configurations in Makefile.PL: the min perl version is now
 	5.8 and the min SQLite version is 1.29. Using '.tpda_qrt' as
 	config directory.
