@@ -20,18 +20,13 @@ The other modules minimum versions from 'Makefile.PL' are the version
 I have on my devel system and tested the application with, that
 doesn't mean other versions won't work, but some tests are required.
 
-% tar -xvzf Qrt-0.11.tar.gz
+% tar -xvzf TpdaQrt-0.20.tar.gz
 
 or
 
-% unzip  Qrt-0.11.zip
+% unzip  TpdaQrt-0.20.zip
 
-cd Qrt-0.11
-
-
-QUICK start
-
-perl dev.pl
+cd TpdaQrt-0.20
 
 
 INSTALL
@@ -39,7 +34,11 @@ INSTALL
 % perl Makefile.PL
 % make
 % make test        # EXPERIMENTAL!
-% make install
+% make install     # EXPERIMENTAL!
+
+For testing the application without installation, after 'make' one can use:
+
+% perl -Mblib bin/tpda-qrt [options] ...
 
 Only make install should be run as root.
 
@@ -49,23 +48,19 @@ I hope no harm was done for those, who tried to test installed the
 application.
 
 
-IMPORTANT
-
-If 'make test' is skipped, than, run 'tpda-qrt' from the package
-directory first.  This will create the configuration tree in the users
-$HOME path, by copying the files found in the Qrt-0.11/share
-directory.
-
-% tpda-qrt test
-
-
 USAGE
+
+After installing the application, at first start, the configuration
+directory is initialized automatically.  The following command will
+list all the defined configurations.
+
+% tpda-qrt -list
 
 Create a new connection configuration, let's name it 'myconn':
 
-% tpda-qrt -i myconn
+% tpda-qrt -init myconn
 
-Edit $HOME/.tpda_qrt/db/myconn/etc/connection.yml
+Edit $HOME/.tpdaqrt/db/myconn/etc/connection.yml
 
 For 'driver', following options are valid:
 
@@ -82,7 +77,7 @@ Start the program with:
 
 % tpda-qrt myconn [-u username -p password]
 
-no login screen yet ...
+No login screen yet ...
 
 Click on the '+' toolbar button and then on the 'Edit' button, edit
 the title, the output file name, (the sheet name is valid only for
