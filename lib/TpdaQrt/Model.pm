@@ -509,9 +509,9 @@ sub report_add {
 
 =head2 report_remove
 
-Remove QDF from list and from disk.  NO CONFIRMATION DIALOG yet!
-
-TODO: Make  CONFIRMATION DIALOG
+Remove B<.qdf> file from list and from disk.  Have to confirm the
+action first, to get here.  For safety, the file is renamed with a
+B<.bak> extension, so it can be I<manualy> recovered.
 
 =cut
 

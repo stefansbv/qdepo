@@ -956,7 +956,6 @@ sub list_remove_item {
     my $file_fqn = $self->get_list_data($sel_item);
 
     # Remove from list
-    # TODO: Add dialog here !!! ???
     $self->list_item_clear($sel_item);
 
     # Set item 0 selected
