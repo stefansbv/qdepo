@@ -152,7 +152,7 @@ sub item_check {
 
 =head2 make_bitmap
 
-Create and return a bitmap object
+Create and return a bitmap object, of any type.
 
 =cut
 
@@ -161,8 +161,8 @@ sub make_bitmap {
     my ($self, $icon) = @_;
 
     my $bmp = Wx::Bitmap->new(
-        $self->{ico_p} . "/$icon.gif",
-        wxBITMAP_TYPE_GIF,
+        $self->{ico_p} . "/$icon",
+        wxBITMAP_TYPE_ANY,
     );
 
     return $bmp;

@@ -10,11 +10,11 @@ paths:
   # Connections config dir
   connections: db
   # Icons path
-  icons: etc/interfaces/icons
+  icons: etc/interfaces/icons2
   # Templates
   qdftmpl: template/template.qdf
   contmpl: template/connection.yml
 configs:
   connection: connection.yml
 other:
-  toolbar: etc/interfaces/toolbar.yml
+  toolbar: etc/interfaces/toolbar2.yml

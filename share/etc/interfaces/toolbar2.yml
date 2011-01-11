@@ -1,0 +1,65 @@
+# Tpda-Qrt
+# Interface configuration
+# Don't touch!, not for users ;)
+---
+toolbar:
+  tb_cn:
+    id:      1001
+    type:    item_normal
+    icon:    database_connect.png
+    tooltip: Connect
+    help:    Connect to the database
+    sep:     after
+  tb_sv:
+    id:      1002
+    type:    item_normal
+    icon:    report_disk.png
+    tooltip: Save report
+    help:    Save report
+    sep:     none
+  tb_rf:
+    id:      1003
+    type:    item_normal
+    icon:    arrow_refresh.png
+    tooltip: Reload report
+    help:    Reload report
+    sep:     after
+  tb_ad:
+    id:      1004
+    type:    item_normal
+    icon:    report_add.png
+    tooltip: Add report
+    help:    Create new query definition file
+    sep:     none
+  tb_rm:
+    id:      1005
+    type:    item_normal
+    icon:    report_delete.png
+    tooltip: Remove report
+    help:    Remove query definition file
+    sep:     none
+  tb_ed:
+    id:      1006
+    type:    item_check
+    icon:    report_edit.png
+    tooltip: Edit report
+    help:    Edit mode on/off
+    sep:     after
+  tb_ls:
+    id:      1007
+    type:    item_list
+    sep:     after
+  tb_go:
+    id:      1008
+    type:    item_normal
+    icon:    report_disk.png
+    tooltip: Execute report
+    help:    Execute query
+    sep:     after
+  tb_qt:
+    id:      1009
+    type:    item_normal
+    icon:    cancel.png
+    tooltip: Quit
+    help:    Quit the application
+    sep:     none
