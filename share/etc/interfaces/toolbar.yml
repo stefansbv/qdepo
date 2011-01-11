@@ -6,42 +6,42 @@ toolbar:
   tb_cn:
     id:      1001
     type:    item_normal
-    icon:    connectyes16
+    icon:    connectyes16.gif
     tooltip: Connect
     help:    Connect to the database
     sep:     after
   tb_sv:
     id:      1002
     type:    item_normal
-    icon:    filesave16
+    icon:    filesave16.gif
     tooltip: Save
     help:    Save query definition file
     sep:     none
   tb_rf:
     id:      1003
     type:    item_normal
-    icon:    actreload16
+    icon:    actreload16.gif
     tooltip: Reload
     help:    Refresh data
     sep:     after
   tb_ad:
     id:      1004
     type:    item_normal
-    icon:    actitemadd16
+    icon:    actitemadd16.gif
     tooltip: Add report
     help:    Create new query definition file
     sep:     none
   tb_rm:
     id:      1005
     type:    item_normal
-    icon:    actitemdelete16
+    icon:    actitemdelete16.gif
     tooltip: Remove
     help:    Remove query definition file
     sep:     none
   tb_ed:
     id:      1006
     type:    item_check
-    icon:    edit16
+    icon:    edit16.gif
     tooltip: Edit
     help:    Edit mode on/off
     sep:     after
@@ -52,14 +52,14 @@ toolbar:
   tb_go:
     id:      1008
     type:    item_normal
-    icon:    navforward16
+    icon:    navforward16.gif
     tooltip: Run
     help:    Run export
     sep:     after
   tb_qt:
     id:      1009
     type:    item_normal
-    icon:    actexit16
+    icon:    actexit16.gif
     tooltip: Quit
     help:    Quit the application
     sep:     none
