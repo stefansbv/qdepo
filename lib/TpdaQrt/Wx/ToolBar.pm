@@ -81,17 +81,17 @@ sub new {
     return $self;
 }
 
-=head2 get_toolbar
+# =head2 get_toolbar
 
-Return the toolbar instance variable
+# Return the toolbar instance variable
 
-=cut
+# =cut
 
-sub get_toolbar {
-    my $self = shift;
+# sub get_toolbar {
+#     my $self = shift;
 
-    return $self->{_toolbar};
-}
+#     return $self->{_toolbar};
+# }
 
 =head2 item_normal
 

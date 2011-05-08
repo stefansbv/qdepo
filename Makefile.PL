@@ -25,13 +25,15 @@ requires 'File::Find::Rule'           => '0.30';
 requires 'File::HomeDir'              => '0.89';
 requires 'File::Spec::Functions'      => '0';
 requires 'DBI'                        => '1.53';
+requires 'Exception::Class::DBI'      => '1.00';
 requires 'DBD::SQLite'                => '1.29';
 requires 'XML::Twig'                  => '3.26';
-requires 'Spreadsheet::WriteExcel'    => '0';
-requires 'OpenOffice::OODoc'          => '2.103';
-requires 'Text::CSV_XS'               => '0';
 
-build_requires 'Test::More'           => '0.47';
+recommends 'Spreadsheet::WriteExcel'    => '0';
+recommends 'OpenOffice::OODoc'          => '2.103';
+recommends 'Text::CSV_XS'               => '0';
+
+test_requires  'Test::More' => '0.47';
 
 install_share  'share';
 install_script 'bin/tpda-qrt';

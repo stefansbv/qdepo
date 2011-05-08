@@ -159,6 +159,9 @@ sub _set_event_handlers {
     EVT_MENU $self->_view, wxID_EXIT,  $exit;
 
     #- Toolbar
+
+    # TODO: Simplify using 'GetId' to get the id of the window
+
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_cn'), sub {
         if ($self->_model->is_connected ) {
             $self->_view->dialog_popup( 'Info', 'Already connected!' );
