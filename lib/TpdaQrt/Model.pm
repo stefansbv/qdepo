@@ -98,11 +98,11 @@ sub _connect {
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
         $self->get_connection_observable->set( 1 ); # yes
-        $self->display("II Connected to \"$dbname\" with '$driver'");
+        $self->message_log("II Connected to \"$dbname\" with '$driver'");
     }
     else {
         $self->get_connection_observable->set( 0 ); # no ;)
-        $self->display("II Disconnected from '$dbname'");
+        $self->message_log("II Disconnected from '$dbname'");
     }
 }
 
@@ -144,13 +144,13 @@ sub get_stdout_observable {
     return $self->{_stdout};
 }
 
-=head2 _print
+=head2 message
 
-Put a message on a Wx text controll
+Put a message on the status bar.
 
 =cut
 
-sub _print {
+sub message {
     my ( $self, $line, $sb_id ) = @_;
 
     $sb_id = 0 if not defined $sb_id;
@@ -170,13 +170,13 @@ sub get_exception_observable {
     return $self->{_exception};
 }
 
-=head2 display
+=head2 message_log
 
-Display a message on a Wx text controll
+Log a message on a Wx text controll
 
 =cut
 
-sub display {
+sub message_log {
     my ( $self, $message ) = @_;
 
     $self->get_exception_observable->set($message);
@@ -231,13 +231,20 @@ TODO: Check if exists and selected at least one qdf in list
 sub run_export {
     my ($self, $outfile, $bind, $sqltext) = @_;
 
-    $self->display('II Running data export ...');
+    $self->message_log('II Running data export ...');
+
+    my $cfg     = TpdaQrt::Config->instance();
+    my $outpath = $cfg->output->{path};
+    if ( !-d $outpath ) {
+        $self->message('Wrong output path!', 0);
+        $self->message_log("EE Wrong output path '$outpath'");
+        return;
+    }
 
     my $choice = $self->get_choice();
     my (undef, $option) = split(':', $choice);
 
-    my $cfg     = TpdaQrt::Config->instance();
-    my $out_fqn = catfile($cfg->output->{path}, $outfile);
+    my $out_fqn = catfile($outpath, $outfile);
 
     my $output = TpdaQrt::Output->new($self);
 
@@ -252,10 +259,10 @@ sub run_export {
     );
 
     if ($out) {
-        $self->display("II File '$out' generated");
+        $self->message_log("II File '$out' generated");
     }
     else {
-        $self->display("EE No output file generated");
+        $self->message_log("EE No output file generated");
     }
 
     return;
@@ -300,12 +307,12 @@ sub set_editmode {
         $self->get_editmode_observable->set(1);
     }
     if ( $self->is_editmode ) {
-        $self->_print('edit', 1);
-        # $self->display('II Edit mode');
+        $self->message('edit', 1);
+        # $self->message_log('II Edit mode');
     }
     else{
-        $self->_print('idle', 1);
-        # $self->display('II Idle mode');
+        $self->message('idle', 1);
+        # $self->message_log('II Idle mode');
     }
 }
 
@@ -322,12 +329,10 @@ sub set_idlemode {
         $self->get_editmode_observable->set(0);
     }
     if ( $self->is_editmode ) {
-        $self->_print('edit', 1);
-        # $self->display('II Edit mode');
+        $self->message('edit', 1);
     }
     else {
-        $self->_print('idle', 1);
-        # $self->display('II Idle mode');
+        $self->message('idle', 1);
     }
 }
 
@@ -378,7 +383,7 @@ sub save_query_def {
 
     $self->{fio}->xml_update($file_fqn, $record);
 
-    $self->display('II Saved');
+    $self->message_log('II Saved');
 
     return $head->{title};
 }
@@ -487,12 +492,12 @@ sub report_add {
     # print " $src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
-        $self->display("II Create new report from template ...");
+        $self->message_log("II Create new report from template ...");
         if ( copy( $src_fqn, $dst_fqn ) ) {
-            $self->display("II done: '$newqdf'");
+            $self->message_log("II done: '$newqdf'");
         }
         else {
-            $self->display("EE failed: $!");
+            $self->message_log("EE failed: $!");
             return;
         }
 
@@ -503,7 +508,7 @@ sub report_add {
     }
     else {
         warn "File exists! ($dst_fqn)\n";
-        $self->display("WW File exists! ($dst_fqn)");
+        $self->message_log("WW File exists! ($dst_fqn)");
     }
 }
 
@@ -521,7 +526,7 @@ sub report_remove {
     # Move file to backup
     my $file_bak_fqn = "$file_fqn.bak";
     if ( move($file_fqn, $file_bak_fqn) ) {
-        $self->display("WW '$file_fqn' deleted");
+        $self->message_log("WW '$file_fqn' deleted");
     }
 
     return;
@@ -536,7 +541,7 @@ Set choice to value
 sub set_choice {
     my ($self, $choice) = @_;
 
-    $self->display("II Output format set to '$choice'");
+    $self->message_log("II Output format set to '$choice'");
 
     $self->get_choice_observable->set($choice);
 }
