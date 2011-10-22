@@ -1,29 +1,30 @@
-package TpdaQrt::Output::Calc;
+package TpdaQrt::Output::ODF;
 
 use strict;
 use warnings;
+use 5.010_000;
 use Carp;
 
-use OpenOffice::OODoc 2.103;
+use ODF::lpOD;
 use Encode qw(encode);
 
 =head1 NAME
 
-TpdaQrt::Output::Calc - Export data in OppenOffice.org format
+TpdaQrt::Output::ODF - Export data in ODF format
 
 =head1 VERSION
 
-Version 0.03
+Version 0.01
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use TpdaQrt::Output::Calc;
+    use TpdaQrt::Output::ODF;
 
-    my $app = TpdaQrt::Output::Calc->new();
+    my $app = TpdaQrt::Output::ODF->new();
 
 =head1 METHODS
 
@@ -41,39 +42,38 @@ sub new {
     bless( $self, $class );
 
     $self->{doc_file} = shift;
-    my $doc_rows      = shift;  # Number of rows for doc init
-    my $doc_cols      = shift;  # Number of cols for doc init
+    $self->{doc_rows} = shift;
+    $self->{doc_cols} = shift;
 
-    $self->{doc_fh}  = undef;
-    $self->{doc}     = undef;
-    $self->{sheet}   = undef;
-    $self->{lenghts} = [];      # Array to hold max lenghts for each col
-    $self->{max_len} = 30;      # Max column width
+    $self->{doc} = undef;
 
-    $self->_create_doc('TesT', $doc_rows, $doc_cols);
+    $self->_create_doc('Sheet');
 
     return $self;
 }
 
 =head2 _create_doc
 
-Create the OpenOffice.org spreadsheet document with a predefined
-number of rows and cols.
+Create the ODF spreadsheet document.
 
 =cut
 
 sub _create_doc {
-    my ( $self, $sheet_name, $rows, $cols ) = @_;
+    my ( $self, $sheet_name ) = @_;
 
-    $self->{doc} = odfDocument(
-        file   => $self->{doc_file},
-        create => 'spreadsheet',
+    $self->{doc} = odf_document->create('spreadsheet');
+
+    my $contexte = $self->{doc}->get_body();
+
+    $contexte->clear;
+
+    $self->{sheet} = odf_table->create(
+        $sheet_name,
+        height => $self->{doc_rows},
+        width  => $self->{doc_cols},
     );
 
-    $self->{doc}->renameTable(0, $sheet_name);
-
-    # select & size the 1st (and only) sheet in the document
-    $self->{sheet} = $self->{doc}->expandTable( 0, $rows, $cols );
+    $contexte->insert_element( $self->{sheet} );
 
     return;
 }
@@ -87,14 +87,9 @@ Create a row of data; format not imlemented yet.
 sub create_row {
     my ($self, $row, $data, $fmt_name) = @_;
 
-    my $cols = scalar @{$data};
-
-    for ( my $col = 0 ; $col < $cols ; $col++ ) {
+    for ( my $col = 0 ; $col < $self->{doc_cols} ; $col++ ) {
         my $data = encode('utf-8', $data->[$col]);
-        $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
-        if (defined $data) {
-            $self->store_max_len( $col, length $data );
-        }
+        $self->{sheet}->get_cell($row,$col)->set_value($data);
     }
 
     return;
@@ -109,8 +104,7 @@ Print a message about the status of document creation and return it.
 sub create_done {
     my ($self, ) = @_;
 
-    $self->{doc}->save
-        or die "Can not save document: $!\n";
+    $self->{doc}->save(target => $self->{doc_file});
 
     my $output;
     if ( -f $self->{doc_file} ) {
@@ -188,4 +182,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of TpdaQrt::Output::Calc
+1; # End of TpdaQrt::Output::ODF

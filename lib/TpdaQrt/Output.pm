@@ -3,11 +3,13 @@ package TpdaQrt::Output;
 use warnings;
 use strict;
 
+use Try::Tiny;
+
 use TpdaQrt::Db;
 
 =head1 NAME
 
-TpdaQrt::Output - Export from database to various formats
+TpdaQrt::Output - Export from database to various formats.
 
 =head1 VERSION
 
@@ -28,7 +30,7 @@ our $VERSION = '0.01';
 
 =head2 new
 
-Constructor
+Constructor.
 
 =cut
 
@@ -47,7 +49,7 @@ sub new {
 
 =head2 db_generate_output
 
-Select the appropriate method to generate output
+Select the appropriate method to generate output.
 
 =cut
 
@@ -56,7 +58,7 @@ sub db_generate_output {
 
     # Check SQL param
     if ( !defined $sqltext ) {
-        $self->{model}->display('EE No SQL parameter!');
+        $self->{model}->message('No SQL parameter!');
         return;
     }
 
@@ -66,7 +68,7 @@ sub db_generate_output {
         $out = $self->$sub_name($sqltext, $bind, $outfile);
     }
     else {
-        $self->{model}->display("WW $option is not implemented yet!");
+        $self->{model}->message_log("WW $option is not implemented yet!");
     }
 
     return $out;
@@ -74,7 +76,7 @@ sub db_generate_output {
 
 =head2 generate_output_excel
 
-Generate output in Microsoft Excel format
+Generate output in Microsoft Excel format.
 
 =cut
 
@@ -86,23 +88,21 @@ sub generate_output_excel {
         $outfile .= '.xls';
     }
     else {
-        $self->{model}->display('EE No file parameter');
+        $self->{model}->message('No file parameter');
         return;
     }
 
-    eval {
+    try {
         require TpdaQrt::Output::Excel;
-    };
-    if ($@) {
-        $self->{model}->display("EE Spreadsheet::WriteExcel not available!");
-        return;
     }
-
-    $self->{model}->display("II SQL: $sql");
+    catch {
+        $self->{model}->message_log("EE Spreadsheet::WriteExcel not available!");
+        return;
+    };
 
     my $xls = TpdaQrt::Output::Excel->new($outfile);
 
-    eval {
+    try {
         my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
@@ -129,17 +129,11 @@ sub generate_output_excel {
 
             $row++;
         }
-    };
-    if (my $ex = $@) {
-        print STDERR "1-DBI Exception:\n";
-        print STDERR "  Exception Type: ", ref $ex, "\n";
-        print STDERR "  Error:          ", $ex->error, "\n";
-        print STDERR "  Err:            ", $ex->err, "\n";
-        print STDERR "  Errstr:         ", $ex->errstr, "\n";
-        print STDERR "  State:          ", $ex->state, "\n";
-        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display('EE ' . $ex->errstr);
     }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
 
     # Try to close file and check if realy exists
     my $out = $xls->create_done();
@@ -149,7 +143,7 @@ sub generate_output_excel {
 
 =head2 generate_output_csv
 
-Generate output in CSV format
+Generate output in CSV format.
 
 =cut
 
@@ -162,23 +156,21 @@ sub generate_output_csv {
         $outfile .= '.csv';
     }
     else {
-        $self->{model}->display("EE No file parameter!");
+        $self->{model}->message("No file parameter!");
         return;
     }
 
-    eval {
+    try {
         require TpdaQrt::Output::Csv;
-    };
-    if ($@) {
-        $self->{model}->display("EE Text::CSV_XS not available!");
-        return;
     }
-
-    $self->{model}->display("II SQL: $sql");
+    catch {
+        $self->{model}->message_log("EE Text::CSV_XS not available!");
+        return;
+    };
 
     my $csv = TpdaQrt::Output::Csv->new($outfile);
 
-    eval {
+    try {
         my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
@@ -194,17 +186,11 @@ sub generate_output_csv {
         while ( my @rezultat = $sth->fetchrow_array() ) {
             $csv->create_row(\@rezultat);
         }
-    };
-    if (my $ex = $@) {
-        print STDERR "2-DBI Exception:\n";
-        print STDERR "  Exception Type: ", ref $ex, "\n";
-        print STDERR "  Error:          ", $ex->error, "\n";
-        print STDERR "  Err:            ", $ex->err, "\n";
-        print STDERR "  Errstr:         ", $ex->errstr, "\n";
-        print STDERR "  State:          ", $ex->state, "\n";
-        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display('EE ' . $ex->errstr);
     }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
 
     # Try to close file and check if realy exists
     my $out = $csv->create_done();
@@ -214,7 +200,7 @@ sub generate_output_csv {
 
 =head2 generate_output_calc
 
-Generate output in OpenOffice.org - Calc format
+Generate output in OpenOffice.org - Calc format.
 
 =cut
 
@@ -227,21 +213,19 @@ sub generate_output_calc {
         $outfile .= '.ods';
     }
     else {
-        $self->{model}->display('EE No file parameter');
+        $self->{model}->message('No file parameter');
         return;
     }
 
-    $self->{model}->display("II Generating output file '$outfile'");
+    $self->{model}->message_log("II Generating output file '$outfile'");
 
-    eval {
+    try {
         require TpdaQrt::Output::Calc;
-    };
-    if ($@) {
-        $self->{model}->display("EE OpenOffice::OODoc 2.103 not available!");
-        return;
     }
-
-    $self->{model}->display("II SQL: $sql");
+    catch {
+        $self->{model}->message_log("EE OpenOffice::OODoc not available!");
+        return;
+    };
 
     my $doc;
     # Need the last part of the query to build a counting select
@@ -250,12 +234,12 @@ sub generate_output_calc {
 
     #--- Count
 
-    my $cnt_sql = 'SELECT COUNT(*) FROM ' . $from;
+    my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
 
-    $self->{model}->display("II SQL: $cnt_sql");
+    $self->{model}->message_log("II SQL: $cnt_sql");
 
     my $rows_cnt;
-    eval {
+    try {
         my $sth = $self->{dbh}->prepare($cnt_sql);
 
         foreach my $params ( @{$bind} ) {
@@ -265,23 +249,16 @@ sub generate_output_calc {
 
         my @cols = $self->{dbh}->selectrow_array( $sth );
         $rows_cnt = $cols[0] + 1;         # One more for the header
-    };
-    if (my $ex = $@) {
-        print STDERR "3-DBI Exception:\n";
-        print STDERR "  Exception Type: ", ref $ex, "\n";
-        print STDERR "  Error:          ", $ex->error, "\n";
-        print STDERR "  Err:            ", $ex->err, "\n";
-        print STDERR "  Errstr:         ", $ex->errstr, "\n";
-        print STDERR "  State:          ", $ex->state, "\n";
-        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display('EE ' . $ex->errstr);
-        return;
     }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
 
     #--- Select
 
     my $out;
-    eval {
+    try {
         my $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
@@ -315,18 +292,113 @@ sub generate_output_calc {
 
         # Try to close file and check if realy exists
         $out = $doc->create_done();
+    }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
     };
-    if (my $ex = $@) {
-        print STDERR "4-DBI Exception:\n";
-        print STDERR "  Exception Type: ", ref $ex, "\n";
-        print STDERR "  Error:          ", $ex->error, "\n";
-        print STDERR "  Err:            ", $ex->err, "\n";
-        print STDERR "  Errstr:         ", $ex->errstr, "\n";
-        print STDERR "  State:          ", $ex->state, "\n";
-        print STDERR "  Return Value:   ", ($ex->retval || 'undef'), "\n";
-        $self->{model}->display('EE ' . $ex->errstr);
+
+    return $out;
+}
+
+=head2 generate_output_odf
+
+Generate output in ODF format.
+
+=cut
+
+sub generate_output_odf {
+
+    my ($self, $sql, $bind, $outfile) = @_;
+
+    # File name
+    if ( defined $outfile ) {
+        $outfile .= '.ods';
+    }
+    else {
+        $self->{model}->message('No file parameter');
         return;
     }
+
+    $self->{model}->message_log("II Generating output file '$outfile'");
+
+    try {
+        require TpdaQrt::Output::ODF;
+    }
+    catch {
+        $self->{model}->message_log("EE ODF::lpOD not available!");
+        return;
+    };
+
+    my $doc;
+    # Need the last part of the query to build a counting select
+    # first to create new spreadsheet with predefined dimensions
+    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # Needs more testing!!!
+
+    #--- Count
+
+    my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
+
+    $self->{model}->message_log("II SQL: $cnt_sql");
+
+    my $rows_cnt;
+    try {
+        my $sth = $self->{dbh}->prepare($cnt_sql);
+
+        foreach my $params ( @{$bind} ) {
+            my ($p_num, $data) = @{$params};
+            $sth->bind_param($p_num, $data);
+        }
+
+        my @cols = $self->{dbh}->selectrow_array( $sth );
+        $rows_cnt = $cols[0] + 1;         # One more for the header
+    }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
+
+    #--- Select
+
+    my $out;
+    try {
+        my $sth = $self->{dbh}->prepare($sql);
+
+        foreach my $params ( @{$bind} ) {
+            my ($p_num, $data) = @{$params};
+            $sth->bind_param($p_num, $data);
+        }
+
+        $sth->execute();
+
+        my $cols = scalar @{ $sth->{NAME} };
+
+        # Create new spreadsheet
+        my $doc = TpdaQrt::Output::ODF->new($outfile, $rows_cnt, $cols);
+
+        # Initialize lengths record
+        $doc->init_lengths( $sth->{NAME} );
+
+        my $row = 0;
+
+        # Header
+        $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
+
+        while ( my @rezultat = $sth->fetchrow_array() ) {
+            my $fmt_name = 's_format'; # Default to string format
+                                       # other formats support TODO
+            $doc->create_row($row, \@rezultat, $fmt_name);
+
+            $row++;
+        }
+
+        # Try to close file and check if realy exists
+        $out = $doc->create_done();
+    }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
 
     return $out;
 }

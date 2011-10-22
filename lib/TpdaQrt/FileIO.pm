@@ -220,8 +220,10 @@ sub xml_update {
     my $bak = "$file.orig";
 
     # Output new file.rex
-    open my $file_fh, '>', $new
-        or die "Can't open file ",$new, ": $!";
+    open my $file_fh, '>:encoding(utf8)', $new
+        or die "Can't open file ", $new, ": $!";
+
+    print {$file_fh} '<?xml version="1.0" encoding="UTF-8" ?>', "\n";
 
     my $twig_handlers = {
         header     => sub { $self->_xml_proc_head(@_, $rec->{header} ) },

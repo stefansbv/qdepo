@@ -259,9 +259,11 @@ sub run_export {
     );
 
     if ($out) {
-        $self->message_log("II File '$out' generated");
+        $self->message("'$out' generated");
+        $self->message_log("II '$out' generated");
     }
     else {
+        $self->message("No output file generated");
         $self->message_log("EE No output file generated");
     }
 
