@@ -219,6 +219,7 @@ sub _set_event_handlers {
     #- Run
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_go'), sub {
         if ($self->_model->is_connected ) {
+            $self->_view->progress_dialog('Export data');
             $self->_view->process_sql();
         }
         else {
@@ -352,6 +353,29 @@ sub toggle_controls_page {
             );
         }
     }
+}
+
+sub dialog_progress {
+    my ($self, $event, $max) = @_;
+
+    my $dialog = Wx::ProgressDialog->new(
+        'Progress dialog example',
+        'An example',
+        $max,
+        $self,
+        wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_ELAPSED_TIME
+            | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
+    );
+
+    my $usercontinue = 1;
+    foreach (1 .. $max) {
+        $usercontinue = $dialog->Update($_);
+        last if $usercontinue == 0;
+    }
+
+    $dialog->Destroy;
+
+    return;
 }
 
 =head1 AUTHOR

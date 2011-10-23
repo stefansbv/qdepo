@@ -90,6 +90,9 @@ sub create_row {
     for ( my $col = 0 ; $col < $self->{doc_cols} ; $col++ ) {
         my $data = encode('utf-8', $data->[$col]);
         $self->{sheet}->get_cell($row,$col)->set_value($data);
+        # if (defined $data) {
+        #     $self->store_max_len( $col, length $data );
+        # }
     }
 
     return;
@@ -103,6 +106,9 @@ Print a message about the status of document creation and return it.
 
 sub create_done {
     my ($self, ) = @_;
+
+    # Set columns width
+    # $self->set_cols_width();
 
     $self->{doc}->save(target => $self->{doc_file});
 

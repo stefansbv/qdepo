@@ -92,9 +92,9 @@ sub create_row {
     for ( my $col = 0 ; $col < $cols ; $col++ ) {
         my $data = encode('utf-8', $data->[$col]);
         $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
-        if (defined $data) {
-            $self->store_max_len( $col, length $data );
-        }
+        # if (defined $data) {
+        #     $self->store_max_len( $col, length $data );
+        # }
     }
 
     return;
@@ -108,6 +108,9 @@ Print a message about the status of document creation and return it.
 
 sub create_done {
     my ($self, ) = @_;
+
+    # Set columns width
+    # $self->set_cols_width();
 
     $self->{doc}->save
         or die "Can not save document: $!\n";

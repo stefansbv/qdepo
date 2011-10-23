@@ -1,7 +1,9 @@
 package TpdaQrt::Output;
 
-use warnings;
 use strict;
+use warnings;
+
+use POSIX qw (floor);
 
 use Try::Tiny;
 
@@ -13,11 +15,11 @@ TpdaQrt::Output - Export from database to various formats.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.10
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
@@ -205,7 +207,6 @@ Generate output in OpenOffice.org - Calc format.
 =cut
 
 sub generate_output_calc {
-
     my ($self, $sql, $bind, $outfile) = @_;
 
     # File name
@@ -219,41 +220,13 @@ sub generate_output_calc {
 
     $self->{model}->message_log("II Generating output file '$outfile'");
 
-    try {
-        require TpdaQrt::Output::Calc;
-    }
+    try { require TpdaQrt::Output::Calc; }
     catch {
         $self->{model}->message_log("EE OpenOffice::OODoc not available!");
         return;
     };
 
-    my $doc;
-    # Need the last part of the query to build a counting select
-    # first to create new spreadsheet with predefined dimensions
-    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # Needs more testing!!!
-
-    #--- Count
-
-    my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
-
-    $self->{model}->message_log("II SQL: $cnt_sql");
-
-    my $rows_cnt;
-    try {
-        my $sth = $self->{dbh}->prepare($cnt_sql);
-
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-
-        my @cols = $self->{dbh}->selectrow_array( $sth );
-        $rows_cnt = $cols[0] + 1;         # One more for the header
-    }
-    catch {
-        $self->{model}->message_log("II SQL: $sql");
-        $self->{model}->message_log('EE ' . $_);
-    };
+    my $rows_cnt = $self->count_rows($sql, $bind);
 
     #--- Select
 
@@ -268,19 +241,25 @@ sub generate_output_calc {
 
         $sth->execute();
 
-        my $row = 0;
         my $cols = scalar @{ $sth->{NAME} };
 
         # Create new spreadsheet with predefined dimensions
-        $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
+        my $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record
-        $doc->init_lengths( $sth->{NAME} );
+        # $doc->init_lengths( $sth->{NAME} );
+
+        my $row = 0;
 
         # Header
         $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
 
         $row++;
+
+        $self->{model}->message("$rows_cnt total rows");
+
+        $self->{model}->progress_update(0);
+        my $pv = 0;
 
         while ( my @rezultat = $sth->fetchrow_array() ) {
             my $fmt_name = 's_format'; # Default to string format
@@ -288,7 +267,16 @@ sub generate_output_calc {
             $doc->create_row($row, \@rezultat, $fmt_name);
 
             $row++;
+
+            # Progress bar
+            my $p = floor ($row * 100 / $rows_cnt);
+            next if $pv == $p;
+
+            $self->{model}->progress_update($p);
+            $pv = $p;
         }
+
+        $self->{model}->progress_update(100); # finish
 
         # Try to close file and check if realy exists
         $out = $doc->create_done();
@@ -322,18 +310,88 @@ sub generate_output_odf {
 
     $self->{model}->message_log("II Generating output file '$outfile'");
 
-    try {
-        require TpdaQrt::Output::ODF;
-    }
+    try { require TpdaQrt::Output::ODF; }
     catch {
         $self->{model}->message_log("EE ODF::lpOD not available!");
         return;
     };
 
-    my $doc;
-    # Need the last part of the query to build a counting select
-    # first to create new spreadsheet with predefined dimensions
-    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # Needs more testing!!!
+    my $rows_cnt = $self->count_rows($sql, $bind);
+
+    #--- Select
+
+    my $out;
+    try {
+        my $sth = $self->{dbh}->prepare($sql);
+
+        foreach my $params ( @{$bind} ) {
+            my ($p_num, $data) = @{$params};
+            $sth->bind_param($p_num, $data);
+        }
+
+        $sth->execute();
+
+        my $cols = scalar @{ $sth->{NAME} };
+
+        # Create new spreadsheet
+        my $doc = TpdaQrt::Output::ODF->new($outfile, $rows_cnt, $cols);
+
+        # Initialize lengths record
+        # $doc->init_lengths( $sth->{NAME} );
+
+        my $row = 0;
+
+        # Header
+        $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
+
+        $row++;
+
+        $self->{model}->message("$rows_cnt total rows");
+
+        $self->{model}->progress_update(0);
+        my $pv = 0;
+
+        while ( my @rezultat = $sth->fetchrow_array() ) {
+            my $fmt_name = 's_format'; # Default to string format
+                                       # other formats support TODO
+            $doc->create_row($row, \@rezultat, $fmt_name);
+
+            $row++;
+
+            # Progress bar
+            my $p = floor ($row * 100 / $rows_cnt);
+            next if $pv == $p;
+
+            $self->{model}->progress_update($p);
+            $pv = $p;
+        }
+
+        $self->{model}->progress_update(100); # finish
+
+        # Try to close file and check if realy exists
+        $out = $doc->create_done();
+    }
+    catch {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log('EE ' . $_);
+    };
+
+    return $out;
+}
+
+=head2 count_rows
+
+Count rows. Build the count SQL query using the from clause from the
+query from the qdf file.
+
+TODO: Improve to support GROUP BY | ORDER and so ...
+
+=cut
+
+sub count_rows {
+    my ($self, $sql, $bind) = @_;
+
+    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
 
     #--- Count
 
@@ -358,49 +416,7 @@ sub generate_output_odf {
         $self->{model}->message_log('EE ' . $_);
     };
 
-    #--- Select
-
-    my $out;
-    try {
-        my $sth = $self->{dbh}->prepare($sql);
-
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-
-        $sth->execute();
-
-        my $cols = scalar @{ $sth->{NAME} };
-
-        # Create new spreadsheet
-        my $doc = TpdaQrt::Output::ODF->new($outfile, $rows_cnt, $cols);
-
-        # Initialize lengths record
-        $doc->init_lengths( $sth->{NAME} );
-
-        my $row = 0;
-
-        # Header
-        $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
-
-        while ( my @rezultat = $sth->fetchrow_array() ) {
-            my $fmt_name = 's_format'; # Default to string format
-                                       # other formats support TODO
-            $doc->create_row($row, \@rezultat, $fmt_name);
-
-            $row++;
-        }
-
-        # Try to close file and check if realy exists
-        $out = $doc->create_done();
-    }
-    catch {
-        $self->{model}->message_log("II SQL: $sql");
-        $self->{model}->message_log('EE ' . $_);
-    };
-
-    return $out;
+    return $rows_cnt;
 }
 
 =head1 AUTHOR

@@ -130,12 +130,13 @@ sub _set_model_callbacks {
         sub { $self->controls_populate(); } );
     #--
     my $so = $self->_model->get_stdout_observable;
-    #$so->add_callback( sub{ $self->log_msg( $_[0] ) } );
     $so->add_callback( sub{ $self->status_msg( @_ ) } );
 
     my $xo = $self->_model->get_exception_observable;
-    # $xo->add_callback( sub{ $self->dialog_msg( @_ ) } );
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
+
+    my $pr = $self->_model->get_progress_observable;
+    $pr->add_callback( sub{ $self->progress_update( @_ ) } );
 }
 
 =head2 create_menu
@@ -1089,6 +1090,26 @@ sub log_msg {
     my ( $self, $message ) = @_;
 
     $self->control_append_value( 'log', $message );
+}
+
+sub progress_dialog {
+    my ($self, $title, $max) = @_;
+
+    require TpdaQrt::Wx::Progress;
+
+    $self->{progress} = TpdaQrt::Wx::Progress->new($self, $title, 100);
+
+    return;
+}
+
+sub progress_update {
+    my ($self, $count) = @_;
+
+    return if !$count;
+
+    $self->{progress}->update($count) if defined $self->{progress};
+
+    return;
 }
 
 =head2 process_sql

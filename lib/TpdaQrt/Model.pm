@@ -51,6 +51,7 @@ sub new {
         _itemchanged => TpdaQrt::Observable->new(),
         _editmode    => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
+        _progress    => TpdaQrt::Observable->new(),
     };
 
     $self->{fio} = TpdaQrt::FileIO->new();
@@ -134,7 +135,7 @@ sub get_connection_observable {
 
 =head2 get_stdout_observable
 
-Get STDOUT observable status
+Get STDOUT observable status.
 
 =cut
 
@@ -180,6 +181,30 @@ sub message_log {
     my ( $self, $message ) = @_;
 
     $self->get_exception_observable->set($message);
+}
+
+=head2 progress_update
+
+Update progress value.
+
+=cut
+
+sub progress_update {
+    my ( $self, $count ) = @_;
+
+    $self->get_progress_observable->set($count);
+}
+
+=head2 get_progress_observable
+
+Get progres observable status.
+
+=cut
+
+sub get_progress_observable {
+    my $self = shift;
+
+    return $self->{_progress};
 }
 
 =head2 on_item_selected

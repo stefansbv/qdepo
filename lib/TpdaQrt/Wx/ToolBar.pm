@@ -210,7 +210,7 @@ sub get_choice_options {
 
     # Options for Wx::Choice from the ToolBar
     # Default is Excel with idx = 0
-    $self->{options} = [qw{Calc CSV Excel ODF}];
+    $self->{options} = [qw{ODF CSV Calc Excel}];
 
     if (defined $index) {
         return $self->{options}[$index];
