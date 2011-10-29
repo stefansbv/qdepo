@@ -5,16 +5,13 @@ use warnings;
 use Carp;
 
 use Tk;
-use Tk::Font;
-use Tk::DialogBox;
+# use Tk::Font;
+# use Tk::DialogBox;
 
 use TpdaQrt::Config;
 use TpdaQrt::Utils;
 use TpdaQrt::Model;
 use TpdaQrt::Tk::View;
-
-use File::Basename;
-use File::Spec::Functions qw(catfile);
 
 =head1 NAME
 
@@ -41,22 +38,6 @@ our $VERSION = '0.14';
 =head2 new
 
 Constructor method.
-
-=over
-
-=item _rscrcls  - class name of the current I<record> screen
-
-=item _rscrobj  - current I<record> screen object
-
-=item _dscrcls  - class name of the current I<detail> screen
-
-=item _dscrobj  - current I<detail> screen object
-
-=item _tblkeys  - primary and foreign keys and values record
-
-=item _scrdata  - current screen data
-
-=back
 
 =cut
 
@@ -91,18 +72,77 @@ database.
 sub start {
     my $self = shift;
 
-    # $self->_view->list_populate_all();
+#    $self->_view->log_config_options();
 
-    # $self->_view->log_config_options();
-
-    # # Connect to database at start
-    # $self->_model->db_connect();
+    # Connect to database at start
+    $self->_model->db_connect();
 
     # my $default_choice = $self->_view->get_choice_default();
     # $self->_model->set_choice("0:$default_choice");
 
-    # $self->_model->set_idlemode();
-    # $self->toggle_controls;
+    $self->set_app_mode('idle');
+
+#    $self->_view->list_populate_all();
+
+    $self->set_app_mode('sele');
+
+    return;
+}
+
+=head2 set_app_mode
+
+Set application mode
+
+=cut
+
+sub set_app_mode {
+    my ( $self, $mode ) = @_;
+
+    # if ( $mode eq 'sele' ) {
+    #     my $item_no = $self->_view->get_list_max_index();
+
+    #     # Set mode to 'idle' if no items
+    #     $mode = 'idle' if $item_no <= 0;
+    # }
+
+    $self->_model->set_mode($mode);
+
+    my %method_for = (
+        idle => 'on_screen_mode_idle',
+        edit => 'on_screen_mode_edit',
+        sele => 'on_screen_mode_sele',
+    );
+
+#    $self->toggle_interface_controls;
+
+    if ( my $method_name = $method_for{$mode} ) {
+        $self->$method_name();
+    }
+
+    return 1;
+}
+
+sub on_screen_mode_idle {
+    my $self = shift;
+    print " on_screen_mode_idle\n";
+    return;
+}
+
+sub on_screen_mode_edit {
+    my $self = shift;
+
+    print " on_screen_mode_edit\n";
+    # $self->screen_write( undef, 'clear' );    # Empty the main controls
+
+    # #    $self->control_tmatrix_write();
+    # $self->controls_state_set('off');
+    # $self->_log->trace("Mode has changed to 'idle'");
+
+    return;
+}
+
+sub on_screen_mode_sele {
+    my $self = shift;
 
     return;
 }
@@ -120,39 +160,9 @@ sub _set_event_handlers {
 
     #- Base menu
 
-    #-- Toggle find mode - Menu
-    $self->_view->get_menu_popup_item('mn_fm')->configure(
-        -command => sub {
-            return if !defined $self->ask_to_save;
-
-            # From add mode forbid find mode
-            $self->toggle_mode_find() if !$self->_model->is_mode('add');
-
-        }
-    );
-
-    #-- Toggle execute find - Menu
-    $self->_view->get_menu_popup_item('mn_fe')->configure(
-        -command => sub {
-            $self->_model->is_mode('find')
-                ? $self->record_find_execute
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
-        }
-    );
-
-    #-- Toggle execute count - Menu
-    $self->_view->get_menu_popup_item('mn_fc')->configure(
-        -command => sub {
-            $self->_model->is_mode('find')
-                ? $self->record_find_count
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
-        }
-    );
-
     #-- Exit
     $self->_view->get_menu_popup_item('mn_qt')->configure(
         -command => sub {
-            return if !defined $self->ask_to_save;
             $self->_view->on_quit;
         }
     );
@@ -171,155 +181,95 @@ sub _set_event_handlers {
         }
     );
 
-    #-- Preview RepMan report
-    $self->_view->get_menu_popup_item('mn_pr')->configure(
-        -command => sub { $self->repman; }
-    );
-
-    #-- Edit RepMan report metadata
-    $self->_view->get_menu_popup_item('mn_er')->configure(
-        -command => sub { $self->screen_module_load('Reports','tools'); }
-    );
-
-    #-- Save geometry
-    $self->_view->get_menu_popup_item('mn_sg')->configure(
-        -command => sub {
-            $self->save_geometry();
-        }
-    );
-
-    #- Custom application menu from menu.yml
-
-    my $appmenus = $self->_view->get_app_menus_list();
-    foreach my $item ( @{$appmenus} ) {
-        $self->_view->get_menu_popup_item($item)->configure(
-            -command => sub {
-                $self->screen_module_load($item);
-            }
-        );
-    }
-
     #- Toolbar
 
-    #-- Attach to desktop - pin (save geometry to config file)
-    $self->_view->get_toolbar_btn('tb_at')->bind(
+    #-- Connect
+    $self->_view->get_toolbar_btn('tb_cn')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->save_geometry();
+            if ($self->_model->is_connected ) {
+                $self->_view->dialog_popup( 'Info', 'Already connected!' );
+            }
+            else {
+                $self->_model->db_connect;
+            }
         }
     );
 
-    #-- Find mode
+    #-- Refresh
     $self->_view->get_toolbar_btn('tb_fm')->bind(
         '<ButtonRelease-1>' => sub {
-
-            # From add mode forbid find mode
-            $self->toggle_mode_find() if !$self->_model->is_mode('add');
+            $self->_model->on_item_selected(@_);
         }
     );
 
-    #-- Find execute
+    #-- Add report
     $self->_view->get_toolbar_btn('tb_fe')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('find')
-                ? $self->record_find_execute
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
+            my $rec = $self->_model->report_add();
+            $self->_view->list_populate_item($rec);
         }
     );
 
-    #-- Find count
+    #-- Remove report
     $self->_view->get_toolbar_btn('tb_fc')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('find')
-                ? $self->record_find_count
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
+            my $msg = 'Delete query definition file?';
+            if ( $self->_view->action_confirmed($msg) ) {
+                my $file_fqn = $self->_view->list_remove_item();
+                if ($file_fqn) {
+                    $self->_model->report_remove($file_fqn);
+                }
+            }
+            else {
+                $self->_view->log_msg("II delete canceled");
+            }
         }
     );
 
-    #-- Print (preview) default report button
+    #-- Save
     $self->_view->get_toolbar_btn('tb_pr')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('edit')
-                ? $self->screen_report_print()
-                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
+            if ( $self->_model->is_mode('edit') ) {
+                $self->_view->save_query_def();
+                $self->set_app_mode('sele');
+            }
         }
     );
 
-    #-- Generate default document button
+    #-- Edit
     $self->_view->get_toolbar_btn('tb_gr')->bind(
         '<ButtonRelease-1>' => sub {
             $self->_model->is_mode('edit')
-                ? $self->screen_document_generate()
-                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
+                ? $self->set_app_mode('sele')
+                : $self->set_app_mode('edit');
         }
     );
 
-    #-- Take note
+    #- Choice
     $self->_view->get_toolbar_btn('tb_tn')->bind(
         '<ButtonRelease-1>' => sub {
-            (          $self->_model->is_mode('edit')
-                    or $self->_model->is_mode('add')
-                )
-                ? $self->take_note()
-                : $self->_view->set_status( 'Not add|edit mode',
-                'ms', 'orange' );
+            my $choice = $_[1]->GetSelection;
+            my $text   = $_[1]->GetString;
+            $self->_model->set_choice("$choice:$text");
         }
     );
 
-    #-- Restore note
-    $self->_view->get_toolbar_btn('tb_tr')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('add')
-                ? $self->restore_note()
-                : $self->_view->set_status( 'Not add mode', 'ms', 'orange' );
-        }
-    );
-
-    #-- Clear screen
-    $self->_view->get_toolbar_btn('tb_cl')->bind(
-        '<ButtonRelease-1>' => sub {
-            (          $self->_model->is_mode('edit')
-                    or $self->_model->is_mode('add')
-                )
-                ? $self->screen_clear()
-                : $self->_view->set_status( 'Not add|edit mode',
-                'ms', 'orange' );
-        }
-    );
-
-    #-- Reload
-    $self->_view->get_toolbar_btn('tb_rr')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('edit')
-                ? $self->record_reload()
-                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
-        }
-    );
-
-    #-- Add mode
-    $self->_view->get_toolbar_btn('tb_ad')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->toggle_mode_add() if $self->{_rscrcls};
-        }
-    );
-
-    #-- Delete
-    $self->_view->get_toolbar_btn('tb_rm')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->event_record_delete();
-        }
-    );
-
-    #-- Save record
+    #- Run
     $self->_view->get_toolbar_btn('tb_sv')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->record_save();
+            if ( $self->_model->is_connected ) {
+                $self->_view->progress_dialog('Export data');
+                $self->_view->process_sql();
+            }
+            else {
+                $self->_view->dialog_popup( 'Error', 'Not connected!' );
+            }
         }
     );
 
     #-- Quit
     $self->_view->get_toolbar_btn('tb_qt')->bind(
         '<ButtonRelease-1>' => sub {
-            return if !defined $self->ask_to_save;
             $self->_view->on_quit;
         }
     );
@@ -343,61 +293,140 @@ sub _set_event_handlers {
         }
     );
 
-    #-- Toggle find mode - F7
-    $self->_view->bind(
-        '<F7>' => sub {
-
-            # From add mode forbid find mode
-            $self->toggle_mode_find()
-                if $self->{_rscrcls} and !$self->_model->is_mode('add');
-        }
-    );
-
-    #-- Execute find - F8
-    $self->_view->bind(
-        '<F8>' => sub {
-            ( $self->{_rscrcls} and $self->_model->is_mode('find') )
-                ? $self->record_find_execute
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
-        }
-    );
-
-    #-- Execute count - F9
+    #-- Execute run - F9
     $self->_view->bind(
         '<F9>' => sub {
-            ( $self->{_rscrcls} and $self->_model->is_mode('find') )
-                ? $self->record_find_count
-                : $self->_view->set_status( 'Not find mode', 'ms', 'orange' );
         }
     );
 
     return;
 }
 
-=head2 DESTROY
+=head2 _model
 
-Cleanup on destroy.  Remove I<Storable> data files from the
-configuration directory.
+Return model instance variable
 
 =cut
 
-sub DESTROY {
+sub _model {
     my $self = shift;
 
-    # my $dir = $self->_cfg->configdir;
-    # my @files = glob("$dir/*.dat");
+    return $self->{_model};
+}
 
-    # foreach my $file (@files) {
-    #     if ( -f $file ) {
-    #         my $cnt = unlink $file;
-    #         if ( $cnt == 1 ) {
-    #             # print "Cleanup: $file\n";
-    #         }
-    #         else {
-    #             $self->_log->error("EE, cleaning up: $file");
-    #         }
-    #     }
+=head2 _view
+
+Return view instance variable
+
+=cut
+
+sub _view {
+    my $self = shift;
+
+    return $self->{_view};
+}
+
+=head2 toggle_interface_controls
+
+Toggle controls (tool bar buttons) appropriate for different states of
+the application.
+
+=cut
+
+sub toggle_interface_controls {
+    my $self = shift;
+
+    my ( $toolbars, $attribs ) = $self->{_view}->toolbar_names();
+
+    my $mode = $self->_model->get_appmode();
+
+    foreach my $name ( @{$toolbars} ) {
+        my $status = $attribs->{$name}{state}{$mode};
+        $self->_view->enable_tool( $name, $status );
+    }
+
+    return;
+}
+
+#     # List control
+#     $self->{_list}->Enable(!$is_edit);
+
+#     # Controls by page Enabled in edit mode
+#     foreach my $page ( qw(para list conf sql ) ) {
+#         $self->toggle_controls_page( $page, $is_edit );
+#     }
+# }
+
+# =head2 toggle_controls_page
+
+# Toggle the controls on page
+
+# =cut
+
+# sub toggle_controls_page {
+#     my ($self, $page, $is_edit) = @_;
+
+#     my $get = 'get_controls_'.$page;
+#     my $controls = $self->_view->$get();
+
+#     foreach my $control ( @{$controls} ) {
+#         foreach my $name ( keys %{$control} ) {
+
+#             my $state = $control->{$name}->[1];  # normal | disabled
+#             my $color = $control->{$name}->[2];  # name
+
+#             # Controls state are defined in View as strings
+#             # Here we need to transform them to 0|1
+#             my $editable;
+#             if (!$is_edit) {
+#                 $editable = 0;
+#                 $color = 'lightgrey'; # Default color for disabled ctrl
+#             }
+#             else {
+#                 $editable = $state eq 'normal' ? 1 : 0;
+#             }
+
+#             if ($page ne 'sql') {
+#                 $control->{$name}->[0]->SetEditable($editable);
+#             }
+#             else {
+#                 $control->{$name}->[0]->Enable($editable);
+#             }
+
+#             $control->{$name}->[0]->SetBackgroundColour(
+#                 Wx::Colour->new( $color ),
+#             );
+#         }
+#     }
+# }
+
+=head2 dialog_progress
+
+Progress dialog.
+
+=cut
+
+sub dialog_progress {
+    my ($self, $event, $max) = @_;
+
+    # my $dialog = Wx::ProgressDialog->new(
+    #     'Progress dialog example',
+    #     'An example',
+    #     $max,
+    #     $self,
+    #     wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_ELAPSED_TIME
+    #         | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
+    # );
+
+    # my $usercontinue = 1;
+    # foreach (1 .. $max) {
+    #     $usercontinue = $dialog->Update($_);
+    #     last if $usercontinue == 0;
     # }
+
+    # $dialog->Destroy;
+
+    return;
 }
 
 =head1 AUTHOR

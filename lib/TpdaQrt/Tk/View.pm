@@ -2,23 +2,15 @@ package TpdaQrt::Tk::View;
 
 use strict;
 use warnings;
-use Carp;
 
-use POSIX qw (floor);
-
-#use Log::Log4perl qw(get_logger);
-
-use File::Spec::Functions qw(abs2rel catfile);
+use File::Spec::Functions qw(abs2rel);
 use Tk;
-use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox Checkbutton
-    LabFrame Listbox JComboBox);
-
-# require Tk::ErrorDialog;
+use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
+    LabFrame );
 
 use base 'Tk::MainWindow';
 
 use TpdaQrt::Config;
-use TpdaQrt::Utils;
 use TpdaQrt::Tk::TB;    # ToolBar
 
 =head1 NAME
@@ -61,37 +53,29 @@ sub new {
 
     $self->title(" TpdaQrt ");
 
-    # Load resource file, if found
-    # my $resource = catfile( $self->{_cfg}->cfetc, 'xresource.xrdb' );
-    # if ($resource) {
-    #     if ( -f $resource ) {
-    #         $self->log_msg("II: Reading resource from '$resource'");
-    #         $self->optionReadfile( $resource, 'widgetDefault' );
-    #     }
-    #     else {
-    #         $self->log_msg("II: Resource not found: '$resource'");
-    #     }
-    # }
-
     #-- Menu
-    #$self->_create_menu();
-    # $self->_create_app_menu();
+    $self->_create_menu();
 
     #-- ToolBar
-    # $self->_create_toolbar();
+    $self->_create_toolbar();
 
     #-- Statusbar
     $self->_create_statusbar();
 
-    # $self->_set_model_callbacks();
+    #-- Notebook
+    $self->_create_notebook();
 
-    # $self->set_geometry_main();
+    #--- Parameters Tab (page) Panel
+    $self->create_para_page();
 
-    # $self->define_dialogs();
+    #--- SQL Tab (page)
+    $self->create_sql_page();
 
-    # $self->{lookup}  = undef;    # info about list header
-    # $self->{nb_prev} = q{};
-    # $self->{nb_curr} = q{};
+    #--- Configs Tab (page)
+    $self->create_config_page();
+
+    #--- Front Tab (page)
+    $self->create_report_page();
 
     return $self;
 }
@@ -130,42 +114,32 @@ sub _set_model_callbacks {
     my $self = shift;
 
     my $co = $self->_model->get_connection_observable;
-    $co->add_callback( sub { $self->toggle_status_cn( $_[0] ); } );
-
-    # Show message in status bar
-    my $so = $self->_model->get_stdout_observable;
-    $so->add_callback( sub { $self->status_message( $_[0] ) } );
+    $co->add_callback(
+        sub {
+            $self->toggle_status_cn( $_[0] );
+        }
+    );
 
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
     $apm->add_callback( sub { $self->update_gui_components(); } );
 
-    # When the modified status changes, update statusbar
-    my $svs = $self->_model->get_scrdata_rec_observable;
-    $svs->add_callback( sub { $self->set_status( $_[0], 'ss' ) } );
+    #--
+    my $upd = $self->_model->get_itemchanged_observable;
+    $upd->add_callback(
+        sub { $self->controls_populate(); } );
+
+    my $so = $self->_model->get_stdout_observable;
+    $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
+
+    my $xo = $self->_model->get_exception_observable;
+    $xo->add_callback( sub{ $self->log_msg( @_ ) } );
+
+    my $pr = $self->_model->get_progress_observable;
+    $pr->add_callback( sub{ $self->progress_update( @_ ) } );
 
     return;
 }
-
-=head2 set_modified_record
-
-Set modified to 1 if not already set but only if in I<edit> or I<add>
-mode.
-
-=cut
-
-sub set_modified_record {
-    my $self = shift;
-
-    if (   $self->_model->is_mode('edit')
-        or $self->_model->is_mode('add') )
-    {
-        $self->_model->set_scrdata_rec(1) if !$self->_model->is_modified;
-    }
-
-    return;
-}
-
 =head2 update_gui_components
 
 When the application status (mode) changes, update gui components.
@@ -181,83 +155,13 @@ sub update_gui_components {
 
     $self->set_status( $mode, 'md' );    # update statusbar
 
-SWITCH: {
-        $mode eq 'find' && do {
-            $self->{_tb}->toggle_tool_check( 'tb_ad', 0 );
-            $self->{_tb}->toggle_tool_check( 'tb_fm', 1 );
-            last SWITCH;
-        };
-        $mode eq 'add' && do {
-            $self->{_tb}->toggle_tool_check( 'tb_ad', 1 );
-            $self->{_tb}->toggle_tool_check( 'tb_fm', 0 );
-            last SWITCH;
-        };
-
-        # Else
-        $self->{_tb}->toggle_tool_check( 'tb_ad', 0 );
-        $self->{_tb}->toggle_tool_check( 'tb_fm', 0 );
+    if ($mode eq 'edit') {
+        $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
+        $self->toggle_sql_replace();
     }
-
-    return;
-}
-
-=head2 set_geometry_main
-
-Set main window geometry.  Load instance config, than set geometry for
-the window.  Fall back to default if no instance config yet.
-
-=cut
-
-sub set_geometry_main {
-    my $self = shift;
-
-    $self->_cfg->config_load_instance();
-
-    my $geom;
-    if ( $self->_cfg->can('geometry') ) {
-        my $go = $self->_cfg->geometry();
-        if (exists $go->{main}) {
-            $geom = $go->{main};
-        }
+    else {
+        $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
     }
-    unless ($geom) {
-        # Failed, set main geom from config
-        $geom = $self->_cfg->cfgeom->{main};
-    }
-
-    $self->geometry($geom);
-
-    return;
-}
-
-=head2 set_geometry
-
-Set window geometry
-
-=cut
-
-sub set_geometry {
-    my ( $self, $geom ) = @_;
-
-    $self->geometry($geom);
-
-    return;
-}
-
-=head2 log_msg
-
-Log messages.
-
-TODO: get_logger only once.
-
-=cut
-
-sub log_msg {
-    my ( $self, $msg ) = @_;
-
-    my $log = get_logger();
-
-    $log->info($msg);
 
     return;
 }
@@ -273,134 +177,94 @@ sub _create_menu {
 
     #- Menu bar
 
-    $self->{_menu} = $self->Menu();
+    my $menu = $self->Menu();
 
-    # Get MenuBar atributes
+    $self->configure( -menu => $menu );
 
-    my $attribs = $self->_cfg->menubar;
-
-    $self->make_menus($attribs);
-
-    $self->configure( -menu => $self->{_menu} );
-
-    return;
-}
-
-sub _create_app_menu {
-    my $self = shift;
-
-    my $attribs = $self->_cfg->appmenubar;
-
-    $self->make_menus( $attribs, 2 );    # Add starting with position = 2
-
-    return;
-}
-
-=head2 make_menus
-
-Make menus
-
-=cut
-
-sub make_menus {
-    my ( $self, $attribs, $position ) = @_;
-
-    $position = 1 if !$position;
-    my $menus = TpdaQrt::Utils->sort_hash_by_id($attribs);
-
-    #- Create menus
-    foreach my $menu_name ( @{$menus} ) {
-
-        $self->{_menu}{$menu_name} = $self->{_menu}->Menu( -tearoff => 0 );
-
-        my @popups
-            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
-        foreach my $id (@popups) {
-            $self->make_popup_item(
-                $self->{_menu}{$menu_name},
-                $attribs->{$menu_name}{popup}{$id},
-            );
-        }
-
-        $self->{_menu}->insert(
-            $position,
-            'cascade',
-            -menu      => $self->{_menu}{$menu_name},
-            -label     => $attribs->{$menu_name}{label},
-            -underline => $attribs->{$menu_name}{underline},
-        );
-
-        $position++;
-    }
-
-    return;
-}
-
-=head2 get_app_menus_list
-
-Get application menus list, needed for binding the command to load the
-screen.  We only need the name of the popup which is also the name of
-the screen (and also the name of the module).
-
-=cut
-
-sub get_app_menus_list {
-    my $self = shift;
-
-    my $attribs = $self->_cfg->appmenubar;
-    my $menus   = TpdaQrt::Utils->sort_hash_by_id($attribs);
-
-    my @menulist;
-    foreach my $menu_name ( @{$menus} ) {
-        my @popups
-            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
-        foreach my $item (@popups) {
-            push @menulist, $attribs->{$menu_name}{popup}{$item}{name};
-        }
-    }
-
-    return \@menulist;
-}
-
-=head2 make_popup_item
-
-Make popup item
-
-=cut
-
-sub make_popup_item {
-    my ( $self, $menu, $item ) = @_;
-
-    $menu->add('separator') if $item->{sep} eq 'before';
-
-    $self->{_menu}{ $item->{name} } = $menu->command(
-        -label       => $item->{label},
-        -accelerator => $item->{key},
-        -underline   => $item->{underline},
+    my $menu_app = $menu->cascade(
+        -label   => 'App',
+        -tearoff => 0,
     );
 
-    $menu->add('separator') if $item->{sep} eq 'after';
+    my $menu_help = $menu->cascade(
+        -label     => 'Help',
+        -tearoff   => 0,
+        -menuitems => [
+            [   command  => 'Help',
+                -command => \&helpcontents,
+            ],
+            [   command  => 'About',
+                -command => \&about,
+            ],
+        ]
+    );
 
     return;
 }
 
-=head2 get_menu_popup_item
+=head2 get_menubar
 
-Return a menu popup by name
+Return the menu bar handler
 
 =cut
 
-sub get_menu_popup_item {
-    my ( $self, $name ) = @_;
-
-    return $self->{_menu}{$name};
+sub get_menubar {
+    my $self = shift;
+    return $self->{_menu};
 }
 
-=head2 create_statusbar
+=head2 _create_toolbar
 
-Create the status bar
+Create toolbar
 
 =cut
+
+sub _create_toolbar {
+    my $self = shift;
+
+    $self->{_tb} = $self->TB();
+
+    my ( $toolbars, $attribs ) = $self->toolbar_names();
+
+    $self->{_tb}->make_toolbar_buttons( $toolbars, $attribs );
+
+    return;
+}
+
+=head2 toolbar_names
+
+Get Toolbar names as array reference from config.
+
+=cut
+
+sub toolbar_names {
+    my $self = shift;
+
+    # Get ToolBar button atributes
+    my $attribs = $self->_cfg->toolbar;
+
+    # TODO: Change the config file so we don't need this sorting anymore
+    # or better keep them sorted and ready to use in config
+    my $toolbars = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    return ( $toolbars, $attribs );
+}
+
+=head2 enable_tool
+
+Enable|disable tool bar button.
+
+State can come as 0|1 and normal|disabled.
+
+=cut
+
+sub enable_tool {
+    my ( $self, $btn_name, $state ) = @_;
+
+    $self->{_tb}->enable_tool( $btn_name, $state );
+
+    return;
+}
 
 sub _create_statusbar {
     my $self = shift;
@@ -474,6 +338,254 @@ sub get_statusbar {
 
     return $self->{_sb}{$sb_id};
 }
+=head2 get_notebook
+
+Return the notebook handler
+
+=cut
+
+sub get_notebook {
+    my ( $self, $page ) = @_;
+
+    if ($page) {
+        return $self->{_nb}{$page};
+    }
+    else {
+        return $self->{_nb};
+    }
+}
+
+=head2 create_report_page
+
+Create the report page (tab) on the notebook
+
+=cut
+
+sub create_report_page {
+    my $self = shift;
+
+    # Frame box
+    my $frm_box = $self->{_nb}{rec}->LabFrame(
+        -foreground => 'blue',
+        -label      => 'Search results',
+        -labelside  => 'acrosstop'
+    )->pack( -expand => 1, -fill => 'both' );
+
+    $self->{_list} = $frm_box->Scrolled(
+        'MListbox',
+        -scrollbars         => 'osoe',
+        -background         => 'white',
+        -textwidth          => 10,
+        -highlightthickness => 2,
+        -width              => 0,
+        -selectmode         => 'browse',
+        -relief             => 'sunken',
+        -columns            => [
+            [ -text => '#', -textwidth => 10, ],
+            [ -text => 'Query name', -textwidth => 40, ],
+        ],
+    );
+
+    $self->{_list}->pack( -expand => 1, -fill => 'both' );
+
+    #--- Frame_Mid
+
+    my $frame_mid = $self->{_nb}{rec}->LabFrame(
+        -label      => 'Frame_Mid',
+        -labelside  => 'acrosstop',
+        -foreground => 'blue',
+    );
+    $frame_mid->pack(
+        -expand => 1,
+        -fill   => 'x',
+    );
+
+    #-- Controls
+
+    # $self->{title}
+
+    my $bg  = $self->cget('-background');
+    my $f1d = 90;
+
+    #-- title
+
+    my $ltitle = $frame_mid->Label( -text => 'Title' );
+    $ltitle->form(
+        -top     => [ %0, 0 ],
+        -left    => [ %0, 5 ],
+    );
+    my $etitle = $frame_mid->Entry(
+        -width              => 40,
+        -disabledbackground => $bg,
+        -disabledforeground => 'black',
+    );
+    $etitle->form(
+        -top  => [ '&', $ltitle, 0 ],
+        -left => [ %0, $f1d ],
+    );
+
+    #-- filename
+
+    my $lfilename = $frame_mid->Label( -text => 'File name' );
+    $lfilename->form(
+        -top  => [ $ltitle, 8 ],
+        -left => [ %0, 5 ],
+    );
+    my $efilename = $frame_mid->Entry(
+        -width              => 40,
+        -disabledbackground => $bg,
+        -disabledforeground => 'black',
+    );
+    $efilename->form(
+        -top  => [ '&', $lfilename, 0 ],
+        -left => [ %0, $f1d ],
+    );
+
+    #-- output
+
+    my $loutput = $frame_mid->Label( -text => 'Output' );
+    $loutput->form(
+        -top  => [ $lfilename, 8 ],
+        -left => [ %0, 5 ],
+    );
+    my $eoutput = $frame_mid->Entry(
+        -width              => 40,
+        -disabledbackground => $bg,
+        -disabledforeground => 'black',
+    );
+    $eoutput->form(
+        -top  => [ '&', $loutput, 0 ],
+        -left => [ %0, $f1d ],
+    );
+
+    #-- sheet
+
+    my $lsheet = $frame_mid->Label( -text => 'Sheet' );
+    $lsheet->form(
+        -top  => [ $loutput, 8 ],
+        -left => [ %0, 5 ],
+    );
+    my $esheet = $frame_mid->Entry(
+        -width              => 40,
+        -disabledbackground => $bg,
+        -disabledforeground => 'black',
+    );
+    $esheet->form(
+        -top  => [ '&', $lsheet, 0 ],
+        -left => [ %0, $f1d ],
+        -padbottom => 5,
+    );
+
+    #--- Frame_Bot
+
+    my $frame_bot = $self->{_nb}{rec}->LabFrame(
+        -label      => 'Frame_Bot',
+        -labelside  => 'acrosstop',
+        -foreground => 'blue',
+    );
+    $frame_bot->pack(
+        -side   => 'left',
+        -expand => 1,
+        -fill   => 'x',
+    );
+
+    #-- description
+
+    my $tdescription = $frame_bot->Scrolled(
+        'Text',
+        -width      => 40,
+        -height     => 3,
+        -wrap       => 'word',
+        -scrollbars => 'e',
+        -background => 'white',
+    );
+    $tdescription->pack(
+        -expand => 1,
+        -fill   => 'both',
+        -padx   => 5,
+        -pady   => 5,
+    );
+
+    return;
+}
+
+=head2 create_para_page
+
+Create the parameters page (tab) on the notebook
+
+=cut
+
+sub create_para_page {
+
+    my $self = shift;
+
+    #-- Controls
+}
+
+=head2 create_sql_page
+
+Create the SQL page (tab) on the notebook
+
+=cut
+
+sub create_sql_page {
+    my $self = shift;
+
+    #--- SQL Tab (page)
+
+    #-- Controls
+}
+
+=head2 create_config_page
+
+Create the configuration info page (tab) on the notebook.
+
+Using the MySQL lexer for very basic syntax highlighting. This was
+chosen because permits the definition of 3 custom lists. For this
+purpose three key word lists are defined with a keyword in each. B<EE>
+is for error, B<II> for information and B<WW> for warning. Words in
+the lists must be lower case.
+
+=cut
+
+sub create_config_page {
+    my $self = shift;
+
+    #-- Controls
+
+    #- Log text control
+}
+
+=head2 dialog_popup
+
+Define a dialog popup.
+
+=cut
+
+sub dialog_popup {
+}
+
+=head2 action_confirmed
+
+Yes - No message dialog.
+
+=cut
+
+sub action_confirmed {
+    my ( $self, $msg ) = @_;
+}
+
+=head2 get_toolbar_btn
+
+Return a toolbar button when we know the its name
+
+=cut
+
+sub get_toolbar_btn {
+    my ( $self, $name ) = @_;
+
+    return $self->{_tb}->get_toolbar_btn($name);
+}
 
 =head2 status_message
 
@@ -543,55 +655,14 @@ sub set_status {
     return;
 }
 
-=head2 _create_toolbar
+=head2 _create_notebook
 
-Create toolbar
+Create the NoteBook and panes.
 
 =cut
 
-sub _create_toolbar {
+sub _create_notebook {
     my $self = shift;
-
-    $self->{_tb} = $self->TB();
-
-    my ( $toolbars, $attribs ) = $self->toolbar_names();
-
-    $self->{_tb}->make_toolbar_buttons( $toolbars, $attribs );
-
-    return;
-}
-
-=head2 toolbar_names
-
-Get Toolbar names as array reference from config.
-
-=cut
-
-sub toolbar_names {
-    my $self = shift;
-
-    # Get ToolBar button atributes
-    my $attribs = $self->_cfg->toolbar;
-
-    # TODO: Change the config file so we don't need this sorting anymore
-    # or better keep them sorted and ready to use in config
-    my $toolbars = TpdaQrt::Utils->sort_hash_by_id($attribs);
-
-    return ( $toolbars, $attribs );
-}
-
-=head2 create_notebook
-
-Create the NoteBook and the 3 panes.  The pane first named 'rec'
-contains widgets mostly of the type Entry, mapped to the fields of a
-table.  The second pane contains a MListbox widget and is used for
-listing the search results.  The third pane is for records from a
-dependent table.
-
-=cut
-
-sub create_notebook {
-    my ($self) = @_;    # , $det_page
 
     #- NoteBook
 
@@ -609,29 +680,6 @@ sub create_notebook {
 
     $self->create_notebook_panel( 'rec', 'Record' );
     $self->create_notebook_panel( 'lst', 'List' );
-
-    # $self->create_notebook_panel('det', 'Details') if $det_page;
-
-    # Frame box
-    my $frm_box = $self->{_nb}{lst}->LabFrame(
-        -foreground => 'blue',
-        -label      => 'Search results',
-        -labelside  => 'acrosstop'
-    )->pack( -expand => 1, -fill => 'both' );
-
-    $self->{_rc} = $frm_box->Scrolled(
-        'MListbox',
-        -scrollbars         => 'osoe',
-        -background         => 'white',
-        -textwidth          => 10,
-        -highlightthickness => 2,
-        -width              => 0,
-        -selectmode         => 'browse',
-        -relief             => 'sunken',
-        -columns            => [ [qw/-text Nul -textwidth 10/] ]
-    );
-
-    $self->{_rc}->pack( -expand => 1, -fill => 'both' );
 
     $self->{_nb}->pack(
         -side   => 'top',
@@ -661,51 +709,6 @@ sub create_notebook_panel {
         -label     => $label,
         -underline => 0,
     );
-
-    return;
-}
-
-=head2 remove_notebook_panel
-
-Remove a NoteBook panel
-
-=cut
-
-sub remove_notebook_panel {
-    my ( $self, $panel ) = @_;
-
-    $self->{_nb}->delete($panel);
-
-    return;
-}
-
-=head2 get_notebook
-
-Return the notebook handler
-
-=cut
-
-sub get_notebook {
-    my ( $self, $page ) = @_;
-
-    if ($page) {
-        return $self->{_nb}{$page};
-    }
-    else {
-        return $self->{_nb};
-    }
-}
-
-=head2 destroy_notebook
-
-Destroy existing window, before the creation of an other.
-
-=cut
-
-sub destroy_notebook {
-    my $self = shift;
-
-    $self->{_nb}->destroy if Tk::Exists( $self->{_nb} );
 
     return;
 }
@@ -745,27 +748,6 @@ sub get_nb_previous_page {
     my $self = shift;
 
     return $self->{nb_prev};
-}
-
-=head2 notebook_page_clean
-
-Clean a page of the Tk::NoteBook widget, remove all child widgets.
-
-=cut
-
-sub notebook_page_clean {
-    my ( $self, $page ) = @_;
-
-    my $frame = $self->get_notebook($page);
-
-    $frame->Walk(
-        sub {
-            my $widget = shift;
-            $widget->destroy;
-        }
-    );
-
-    return;
 }
 
 =head2 nb_set_page_state
@@ -827,35 +809,6 @@ sub define_dialogs {
     #              -pady => 3,
     #          );
     # }
-
-    return;
-}
-
-=head2 get_toolbar_btn
-
-Return a toolbar button when we know the its name
-
-=cut
-
-sub get_toolbar_btn {
-    my ( $self, $name ) = @_;
-
-    return $self->{_tb}->get_toolbar_btn($name);
-}
-
-=head2 enable_tool
-
-Toggle tool bar button.  If state is defined then set to state do not
-toggle.
-
-State can come as 0 | 1 and normal | disabled.
-
-=cut
-
-sub enable_tool {
-    my ( $self, $btn_name, $state ) = @_;
-
-    $self->{_tb}->enable_tool( $btn_name, $state );
 
     return;
 }

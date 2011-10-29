@@ -146,6 +146,22 @@ sub _item_check {
     return;
 }
 
+sub _item_list {
+    my ( $self, $name, $attribs ) = @_;
+
+    $self->separator if $attribs->{sep} =~ m{before};
+
+    $self->{$name} = $self->ToolOptionmenu(
+        -indicatoron => 0,
+        -tip         => $attribs->{tooltip},
+        # -command     => $callback,
+    );
+
+    $self->separator if $attribs->{sep} =~ m{after};
+
+    return;
+}
+
 =head2 get_toolbar_btn
 
 Return a toolbar button when we know the its name
