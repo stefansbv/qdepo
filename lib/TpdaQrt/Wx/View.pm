@@ -54,6 +54,8 @@ sub new {
 
     $self->{_model} = $model;
 
+    $self->{_cfg} = TpdaQrt::Config->instance();
+
     $self->SetMinSize( Wx::Size->new( 425, 597 ) );
     $self->SetIcon( Wx::GetWxPerlIcon() );
 
@@ -61,9 +63,7 @@ sub new {
     $self->create_menu();
 
     #-- ToolBar
-    $self->SetToolBar( TpdaQrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE ) );
-    $self->{_tb} = $self->GetToolBar;
-    $self->{_tb}->Realize;
+    $self->_create_toolbar();
 
     #-- Statusbar
     $self->create_statusbar();
@@ -102,6 +102,18 @@ sub _model {
     $self->{_model};
 }
 
+=head2 _cfg
+
+Return config instance variable
+
+=cut
+
+sub _cfg {
+    my $self = shift;
+
+    return $self->{_cfg};
+}
+
 =head2 _set_model_callbacks
 
 Define the model callbacks
@@ -111,32 +123,67 @@ Define the model callbacks
 sub _set_model_callbacks {
     my $self = shift;
 
-    my $tb = $self->get_toolbar();
+    #    my $tb = $self->get_toolbar();
     #-
+    # my $co = $self->_model->get_connection_observable;
+    # $co->add_callback(
+    #     sub {
+    #         #$tb->ToggleTool( $self->get_toolbar_btn('tb_cn')->GetId, $_[0] );
+    #         $self->{_tb}->toggle_tool_check( 'tb_cn', $_[0] );
+    #     }
+    # );
+
     my $co = $self->_model->get_connection_observable;
     $co->add_callback(
-        sub { $tb->ToggleTool( $self->get_toolbar_btn_id('tb_cn'), $_[0] ) } );
-    #--
-    my $em = $self->_model->get_editmode_observable;
-    $em->add_callback(
         sub {
-            $tb->ToggleTool( $self->get_toolbar_btn_id('tb_ed'), $_[0] );
-            $self->toggle_sql_replace();
+            $self->toggle_status_cn( $_[0] );
         }
     );
+
+    #--
+    # When the status changes, update gui components
+    my $apm = $self->_model->get_appmode_observable;
+    $apm->add_callback( sub { $self->update_gui_components(); } );
+
     #--
     my $upd = $self->_model->get_itemchanged_observable;
     $upd->add_callback(
         sub { $self->controls_populate(); } );
-    #--
+
     my $so = $self->_model->get_stdout_observable;
-    $so->add_callback( sub{ $self->status_msg( @_ ) } );
+    $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
     my $xo = $self->_model->get_exception_observable;
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
     my $pr = $self->_model->get_progress_observable;
     $pr->add_callback( sub{ $self->progress_update( @_ ) } );
+}
+
+=head2 update_gui_components
+
+When the application status (mode) changes, update gui components.
+Screen controls (widgets) are not handled here, but in controller
+module.
+
+=cut
+
+sub update_gui_components {
+    my $self = shift;
+
+    my $mode = $self->_model->get_appmode();
+
+    $self->set_status( $mode, 'md' );    # update statusbar
+
+    if ($mode eq 'edit') {
+        $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
+        $self->toggle_sql_replace();
+    }
+    else {
+        $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
+    }
+
+    return;
 }
 
 =head2 create_menu
@@ -173,6 +220,66 @@ Return the menu bar handler
 sub get_menubar {
     my $self = shift;
     return $self->{_menu};
+}
+
+=head2 _create_toolbar
+
+Create toolbar
+
+=cut
+
+sub _create_toolbar {
+    my $self = shift;
+
+    my $tb = TpdaQrt::Wx::ToolBar->new( $self, wxADJUST_MINSIZE );
+
+    my ( $toolbars, $attribs ) = $self->toolbar_names();
+
+    my $ico_path = $self->_cfg->icons;
+
+    $tb->make_toolbar_buttons( $toolbars, $attribs, $ico_path );
+
+    $self->SetToolBar($tb);
+
+    $self->{_tb} = $self->GetToolBar;
+    $self->{_tb}->Realize;
+
+    return;
+}
+
+=head2 toolbar_names
+
+Get Toolbar names as array reference from config.
+
+=cut
+
+sub toolbar_names {
+    my $self = shift;
+
+    # Get ToolBar button atributes
+    my $attribs = $self->_cfg->toolbar;
+
+    # TODO: Change the config file so we don't need this sorting anymore
+    # or better keep them sorted and ready to use in config
+    my $toolbars = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    return ( $toolbars, $attribs );
+}
+
+=head2 enable_tool
+
+Enable|disable tool bar button.
+
+State can come as 0|1 and normal|disabled.
+
+=cut
+
+sub enable_tool {
+    my ( $self, $btn_name, $state ) = @_;
+
+    $self->{_tb}->enable_tool( $btn_name, $state );
+
+    return;
 }
 
 =head2 create_statusbar
@@ -604,16 +711,16 @@ sub action_confirmed {
      }
 }
 
-=head2 get_toolbar_btn_id
+=head2 get_toolbar_btn
 
-Return a toolbar button ID when we know the its name.
+Return a toolbar button by name.
 
 =cut
 
-sub get_toolbar_btn_id {
-    my ($self, $name) = @_;
+sub get_toolbar_btn {
+    my ( $self, $name ) = @_;
 
-    return $self->{_tb}{_tb_btn}{$name};
+    return $self->{_tb}->get_toolbar_btn($name);
 }
 
 =head2 get_toolbar
@@ -908,8 +1015,7 @@ Populate all other pages except the configuration page
 =cut
 
 sub list_populate_all {
-
-    my ($self) = @_;
+    my $self = shift;
 
     my $titles = $self->_model->get_list_data();
 
@@ -928,6 +1034,8 @@ sub list_populate_all {
 
     # Set item 0 selected on start
     $self->list_item_select_first();
+
+    return;
 }
 
 =head2 list_populate_item
@@ -1029,7 +1137,7 @@ sub toggle_sql_replace {
     #-- Parameters
     my $params = $self->params_data_to_hash( $ddata->{parameters} );
 
-    if ( $self->_model->is_editmode ) {
+    if ( $self->_model->is_mode('edit') ) {
         $self->control_set_value( 'sql', $ddata->{body}{sql} );
     }
     else {
@@ -1052,20 +1160,79 @@ sub control_replace_sql_text {
     $self->control_set_value('sql', $newtext);
 }
 
-=head2 status_msg
+# =head2 status_msg
 
-Set status message
+# Set status message
+
+# =cut
+
+# sub status_msg {
+#     my ( $self, $msg ) = @_;
+
+#     my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
+#                                             # to pass other parameters ;)
+
+#     $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
+#     $self->get_statusbar()->SetStatusText( $text, $sb_id );
+# }
+
+=head2 set_status
+
+Set status message.
+
+Color is ignored for wxPerl.
 
 =cut
 
-sub status_msg {
-    my ( $self, $msg ) = @_;
+sub set_status {
+    my ( $self, $text, $sb_id, $color ) = @_;
 
-    my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
-                                            # to pass other parameters ;)
+    my $sb = $self->get_statusbar();
 
-    $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
-    $self->get_statusbar()->SetStatusText( $text, $sb_id );
+    if ( $sb_id eq q{db} ) {
+
+        # Database name
+        $sb->PushStatusText( $text, 2 ) if defined $text;
+    }
+    elsif ( $sb_id eq q{ms} ) {
+
+        # Messages
+        $sb->PushStatusText( $text, 0 ) if defined $text;
+    }
+    else {
+
+        # App status
+        # my $cw = $self->GetCharWidth();
+        # my $ln = length $text;
+        # my $cn = () = $text =~ m{i|l}g;
+        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
+        # $pl = ceil $pl / $cw;
+        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
+        # $text = sprintf( "%*s", $pl, $text );
+        $sb->PushStatusText( $text, 1 ) if defined $text;
+    }
+
+    return;
+}
+
+=head2 toggle_status_cn
+
+Toggle the icon in the status bar
+
+=cut
+
+sub toggle_status_cn {
+    my ( $self, $status ) = @_;
+
+    if ($status) {
+        #$self->set_status( $self->_cfg->connection->{dbname}, 'db', '' );
+        $self->set_status( 'dbnamehere', 'db', '' );
+    }
+    else {
+        $self->set_status( '', 'db' );
+    }
+
+    return;
 }
 
 =head2 dialog_msg
@@ -1339,6 +1506,20 @@ sub save_query_def {
 
     # Update title in list
     $self->set_list_text( $item, 1, $new_title );
+}
+
+=head2 on_quit
+
+Quit.
+
+=cut
+
+sub on_quit {
+    my $self = shift;
+
+    $self->Close(1);
+
+    return;
 }
 
 =head1 AUTHOR

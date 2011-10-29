@@ -3,7 +3,7 @@ package TpdaQrt::Wx::App;
 use strict;
 use warnings;
 
-use TpdaQrt::Wx::Controller;
+use Wx q(:everything);
 use base qw(Wx::App);
 
 =head1 NAME
@@ -36,11 +36,17 @@ Constructor method.
 =cut
 
 sub create {
-    my $self = shift->new;
+    my $self  = shift->new;
+    my $model = shift;
 
-    my $controller = TpdaQrt::Wx::Controller->new();
+    $self->{_view} = TpdaQrt::Wx::View->new(
+        $model, undef, -1, 'TpdaQrt::wxPerl',
+        [ -1, -1 ],
+        [ -1, -1 ],
+        wxDEFAULT_FRAME_STYLE,
+    );
 
-    $controller->start();
+    $self->{_view}->Show(1);
 
     return $self;
 }

@@ -1,4 +1,4 @@
-package Tpda3::Tk::TB;
+package TpdaQrt::Tk::TB;
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ Tk::Widget->Construct('TB');
 
 =head1 NAME
 
-Tpda3::Tk::TB - Create a toolbar
+TpdaQrt::Tk::TB - Create a toolbar
 
 =head1 VERSION
 
@@ -22,7 +22,7 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use Tpda3::Tk::TB;
+    use TpdaQrt::Tk::TB;
 
 =head1 METHODS
 
@@ -232,4 +232,4 @@ by the Free Software Foundation.
 
 =cut
 
-1;    # End of Tpda3::Tk::TB
+1;    # End of TpdaQrt::Tk::TB

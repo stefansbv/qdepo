@@ -5,61 +5,97 @@
 toolbar:
   tb_cn:
     id:      1001
-    type:    item_normal
-    icon:    connectyes16.gif
+    type:    _item_normal
+    icon:    connectyes16
     tooltip: Connect
     help:    Connect to the database
     sep:     after
+    state:
+      idle: normal
+      edit: normal
+      sele: normal
   tb_sv:
     id:      1002
-    type:    item_normal
-    icon:    filesave16.gif
+    type:    _item_normal
+    icon:    filesave16
     tooltip: Save
     help:    Save query definition file
     sep:     none
+    state:
+      idle: disabled
+      edit: normal
+      sele: disabled
   tb_rf:
     id:      1003
-    type:    item_normal
-    icon:    actreload16.gif
+    type:    _item_normal
+    icon:    actreload16
     tooltip: Reload
     help:    Refresh data
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_ad:
     id:      1004
-    type:    item_normal
-    icon:    actitemadd16.gif
+    type:    _item_normal
+    icon:    actitemadd16
     tooltip: Add report
     help:    Create new query definition file
     sep:     none
+    state:
+      idle: normal
+      edit: disabled
+      sele: normal
   tb_rm:
     id:      1005
-    type:    item_normal
-    icon:    actitemdelete16.gif
+    type:    _item_normal
+    icon:    actitemdelete16
     tooltip: Remove
     help:    Remove query definition file
     sep:     none
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_ed:
     id:      1006
-    type:    item_check
-    icon:    edit16.gif
+    type:    _item_check
+    icon:    edit16
     tooltip: Edit
     help:    Edit mode on/off
     sep:     after
+    state:
+      idle: disabled
+      edit: normal
+      sele: normal
   tb_ls:
     id:      1007
-    type:    item_list
+    type:    _item_list
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_go:
     id:      1008
-    type:    item_normal
-    icon:    navforward16.gif
+    type:    _item_normal
+    icon:    navforward16
     tooltip: Run
     help:    Run export
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_qt:
     id:      1009
-    type:    item_normal
-    icon:    actexit16.gif
+    type:    _item_normal
+    icon:    actexit16
     tooltip: Quit
     help:    Quit the application
     sep:     none
+    state:
+      idle: normal
+      edit: disabled
+      sele: normal

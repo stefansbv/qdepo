@@ -8,8 +8,8 @@ use Tk;
 use Tk::Font;
 use Tk::DialogBox;
 
-use TpdaQrt::Utils;
 use TpdaQrt::Config;
+use TpdaQrt::Utils;
 use TpdaQrt::Model;
 use TpdaQrt::Tk::View;
 
@@ -68,11 +68,10 @@ sub new {
     my $view = TpdaQrt::Tk::View->new($model);
 
     my $self = {
-        _model   => $model,
-        _view    => $view,
-        # _nbook   => $view->get_notebook,
-        # _toolbar => $view->get_toolbar,
-        # _list    => $view->get_listcontrol,
+        _model => $model,
+        _app   => $view,                         # an alias as for Wx ...
+        _view  => $view,
+        _cfg   => TpdaQrt::Config->instance(),
     };
 
     bless $self, $class;

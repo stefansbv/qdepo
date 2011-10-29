@@ -7,7 +7,10 @@ use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
+use TpdaQrt::Config;
+#use TpdaQrt::Utils;
 use TpdaQrt::Model;
+use TpdaQrt::Wx::App;
 use TpdaQrt::Wx::View;
 
 =head1 NAME
@@ -42,26 +45,17 @@ Constructor method.
 =cut
 
 sub new {
-    my ( $class, $app ) = @_;
+    my $class = shift;
 
     my $model = TpdaQrt::Model->new();
 
-    my $view = TpdaQrt::Wx::View->new(
-        $model,
-        undef,
-        -1,
-        'TPDA - Query Repository Tool',
-        [ -1, -1 ],
-        [ -1, -1 ],
-        wxDEFAULT_FRAME_STYLE,
-    );
+    my $app = TpdaQrt::Wx::App->create($model);
 
     my $self = {
-        _model   => $model,
-        _view    => $view,
-        _nbook   => $view->get_notebook,
-        _toolbar => $view->get_toolbar,
-        _list    => $view->get_listcontrol,
+        _model  => $model,
+        _app    => $app,
+        _view   => $app->{_view},
+        _cfg    => TpdaQrt::Config->instance(),
     };
 
     bless $self, $class;
@@ -85,8 +79,6 @@ TODO: make a more general method
 sub start {
     my ($self, ) = @_;
 
-    $self->_view->list_populate_all();
-
     $self->_view->log_config_options();
 
     # Connect to database at start
@@ -95,13 +87,75 @@ sub start {
     my $default_choice = $self->_view->get_choice_default();
     $self->_model->set_choice("0:$default_choice");
 
-    $self->_model->set_idlemode();
-    $self->toggle_controls;
+    $self->set_app_mode('idle');
+
+    $self->_view->list_populate_all();
+
+    $self->set_app_mode('sele');
 
     return;
 }
 
-=head2 _set_event_handlers
+=head2 set_app_mode
+
+Set application mode
+
+=cut
+
+sub set_app_mode {
+    my ( $self, $mode ) = @_;
+
+    if ( $mode eq 'sele' ) {
+        my $item_no = $self->_view->get_list_max_index();
+
+        # Set mode to 'idle' if no items
+        $mode = 'idle' if $item_no <= 0;
+    }
+
+    $self->_model->set_mode($mode);
+
+    my %method_for = (
+        idle => 'on_screen_mode_idle',
+        edit => 'on_screen_mode_edit',
+        sele => 'on_screen_mode_sele',
+    );
+
+    $self->toggle_interface_controls;
+
+    if ( my $method_name = $method_for{$mode} ) {
+        $self->$method_name();
+    }
+
+    return 1;
+}
+
+sub on_screen_mode_idle {
+    my $self = shift;
+    print " on_screen_mode_idle\n";
+    return;
+}
+
+sub on_screen_mode_edit {
+    my $self = shift;
+
+    print " on_screen_mode_edit\n";
+    # $self->screen_write( undef, 'clear' );    # Empty the main controls
+
+    # #    $self->control_tmatrix_write();
+    # $self->controls_state_set('off');
+    # $self->_log->trace("Mode has changed to 'idle'");
+
+    return;
+}
+
+sub on_screen_mode_sele {
+    my $self = shift;
+
+    return;
+}
+
+
+=head2 closeWin
 
 Close the application window
 
@@ -113,7 +167,7 @@ my $closeWin = sub {
     $self->Destroy();
 };
 
-=head2 _set_event_handlers
+=head2 about
 
 The About dialog
 
@@ -135,18 +189,6 @@ my $about = sub {
 
 =head2 _set_event_handlers
 
-The exit sub
-
-=cut
-
-my $exit = sub {
-    my ( $self, $event ) = @_;
-
-    $self->Close( 1 );
-};
-
-=head2 _set_event_handlers
-
 Setup event handlers
 
 =cut
@@ -156,80 +198,94 @@ sub _set_event_handlers {
 
     #- Menu
     EVT_MENU $self->_view, wxID_ABOUT, $about; # Change icons !!!
+
     EVT_MENU $self->_view, wxID_HELP, $about;
-    EVT_MENU $self->_view, wxID_EXIT,  $exit;
+
+    EVT_MENU $self->_view, wxID_EXIT,
+        sub {
+            $self->_view->on_quit;
+        };
 
     #- Toolbar
 
     # TODO: Simplify using 'GetId' to get the id of the window
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_cn'), sub {
-        if ($self->_model->is_connected ) {
-            $self->_view->dialog_popup( 'Info', 'Already connected!' );
-        }
-        else {
-            $self->_model->db_connect;
-        }
-    };
-
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rf'), sub {
-        $self->_model->on_item_selected(@_);
-    };
-
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_ad'), sub {
-        my $rec = $self->_model->report_add();
-        $self->_view->list_populate_item($rec);
-    };
-
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_rm'), sub {
-        my $msg = 'Delete query definition file?';
-        if ( $self->_view->action_confirmed($msg) ) {
-            my $file_fqn = $self->_view->list_remove_item();
-            if ($file_fqn) {
-                $self->_model->report_remove($file_fqn);
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_cn')->GetId,
+        sub {
+            if ($self->_model->is_connected ) {
+                $self->_view->dialog_popup( 'Info', 'Already connected!' );
             }
-        }
-        else {
-            $self->_view->log_msg("II delete canceled");
-        }
-    };
+            else {
+                $self->_model->db_connect;
+            }
+        };
+
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf')->GetId,
+        sub {
+            $self->_model->on_item_selected(@_);
+        };
+
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad')->GetId,
+        sub {
+            my $rec = $self->_model->report_add();
+            $self->_view->list_populate_item($rec);
+        };
+
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm')->GetId,
+        sub {
+            my $msg = 'Delete query definition file?';
+            if ( $self->_view->action_confirmed($msg) ) {
+                my $file_fqn = $self->_view->list_remove_item();
+                if ($file_fqn) {
+                    $self->_model->report_remove($file_fqn);
+                }
+            }
+            else {
+                $self->_view->log_msg("II delete canceled");
+            }
+        };
 
     # Disable editmode when save
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_sv'), sub {
-        if ($self->_model->is_editmode) {
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
+        sub {
+        if ( $self->_model->is_mode('edit') ) {
             $self->_view->save_query_def();
-            $self->_model->set_idlemode;
-            $self->toggle_controls;
+            $self->set_app_mode('sele');
         }
-    };
+        };
 
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_ed'), sub {
-        $self->_model->is_editmode
-            ? $self->_model->set_idlemode
-            : $self->_model->set_editmode;
-        $self->toggle_controls;
-    };
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
+        sub {
+        $self->_model->is_mode('edit')
+            ? $self->set_app_mode('sele')
+            : $self->set_app_mode('edit');
+        };
 
     #- Choice
-    EVT_CHOICE $self->_view, $self->_view->get_toolbar_btn_id('tb_ls'), sub {
-        my $choice = $_[1]->GetSelection;
-        my $text   = $_[1]->GetString;
-        $self->_model->set_choice("$choice:$text");
-    };
+    EVT_CHOICE $self->_view, $self->_view->get_toolbar_btn('tb_ls')->GetId,
+        sub {
+            my $choice = $_[1]->GetSelection;
+            my $text   = $_[1]->GetString;
+            $self->_model->set_choice("$choice:$text");
+        };
 
     #- Run
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_go'), sub {
-        if ($self->_model->is_connected ) {
-            $self->_view->progress_dialog('Export data');
-            $self->_view->process_sql();
-        }
-        else {
-            $self->_view->dialog_popup( 'Error', 'Not connected!' );
-        }
-    };
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_go')->GetId,
+        sub {
+            if ($self->_model->is_connected ) {
+                $self->_view->progress_dialog('Export data');
+                $self->_view->process_sql();
+            }
+            else {
+                $self->_view->dialog_popup( 'Error', 'Not connected!' );
+            }
+        };
 
-    #- Quit
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn_id('tb_qt'), $exit;
+    #-- Quit
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_qt')->GetId,
+        sub {
+            $self->_view->on_quit;
+        };
 
     #- List controll
     EVT_LIST_ITEM_SELECTED $self->_view, $self->{_list}, sub {
@@ -238,6 +294,15 @@ sub _set_event_handlers {
 
     #- Frame
     EVT_CLOSE $self->_view, $closeWin;
+
+    #-- Make some key bindings
+
+    #-- Quit Ctrl-q
+    # $self->_view->bind(
+    #     '<Control-q>' => sub {
+    #         $self->_view->on_quit;
+    #     }
+    # );
 }
 
 =head2 _model
@@ -264,97 +329,85 @@ sub _view {
     return $self->{_view};
 }
 
-=head2 toggle_controls
+=head2 toggle_interface_controls
 
-Toggle controls appropriate for diferent states of the application
+Toggle controls (tool bar buttons) appropriate for different states of
+the application.
 
 =cut
 
-sub toggle_controls {
+sub toggle_interface_controls {
     my $self = shift;
 
-    my $is_edit = $self->_model->is_editmode ? 1 : 0;
+    my ( $toolbars, $attribs ) = $self->{_view}->toolbar_names();
 
-    # Tool buttons states
-    my $states = {
-        tb_cn => !$is_edit,
-        tb_sv => $is_edit,
-        tb_rf => !$is_edit,
-        tb_ad => !$is_edit,
-        tb_rm => !$is_edit,
-        tb_ls => !$is_edit,
-        tb_go => !$is_edit,
-        tb_qt => !$is_edit,
-    };
+    my $mode = $self->_model->get_appmode();
 
-    foreach my $btn ( keys %{$states} ) {
-        $self->toggle_controls_tb( $btn, $states->{$btn} );
+    foreach my $name ( @{$toolbars} ) {
+        my $status = $attribs->{$name}{state}{$mode};
+        $self->_view->enable_tool( $name, $status );
     }
 
-    # List control
-    $self->{_list}->Enable(!$is_edit);
-
-    # Controls by page Enabled in edit mode
-    foreach my $page ( qw(para list conf sql ) ) {
-        $self->toggle_controls_page( $page, $is_edit );
-    }
+    return;
 }
 
-=head2 toggle_controls_tb
+#     # List control
+#     $self->{_list}->Enable(!$is_edit);
 
-Toggle the toolbar buttons state
+#     # Controls by page Enabled in edit mode
+#     foreach my $page ( qw(para list conf sql ) ) {
+#         $self->toggle_controls_page( $page, $is_edit );
+#     }
+# }
+
+# =head2 toggle_controls_page
+
+# Toggle the controls on page
+
+# =cut
+
+# sub toggle_controls_page {
+#     my ($self, $page, $is_edit) = @_;
+
+#     my $get = 'get_controls_'.$page;
+#     my $controls = $self->_view->$get();
+
+#     foreach my $control ( @{$controls} ) {
+#         foreach my $name ( keys %{$control} ) {
+
+#             my $state = $control->{$name}->[1];  # normal | disabled
+#             my $color = $control->{$name}->[2];  # name
+
+#             # Controls state are defined in View as strings
+#             # Here we need to transform them to 0|1
+#             my $editable;
+#             if (!$is_edit) {
+#                 $editable = 0;
+#                 $color = 'lightgrey'; # Default color for disabled ctrl
+#             }
+#             else {
+#                 $editable = $state eq 'normal' ? 1 : 0;
+#             }
+
+#             if ($page ne 'sql') {
+#                 $control->{$name}->[0]->SetEditable($editable);
+#             }
+#             else {
+#                 $control->{$name}->[0]->Enable($editable);
+#             }
+
+#             $control->{$name}->[0]->SetBackgroundColour(
+#                 Wx::Colour->new( $color ),
+#             );
+#         }
+#     }
+# }
+
+=head2 dialog_progress
+
+Progress dialog.
 
 =cut
-
-sub toggle_controls_tb {
-    my ( $self, $btn_name, $status ) = @_;
-
-    my $tb_btn = $self->_view->get_toolbar_btn_id($btn_name);
-    $self->{_toolbar}->EnableTool( $tb_btn, $status );
-}
-
-=head2 toggle_controls_page
-
-Toggle the controls on page
-
-=cut
-
-sub toggle_controls_page {
-    my ($self, $page, $is_edit) = @_;
-
-    my $get = 'get_controls_'.$page;
-    my $controls = $self->_view->$get();
-
-    foreach my $control ( @{$controls} ) {
-        foreach my $name ( keys %{$control} ) {
-
-            my $state = $control->{$name}->[1];  # normal | disabled
-            my $color = $control->{$name}->[2];  # name
-
-            # Controls state are defined in View as strings
-            # Here we need to transform them to 0|1
-            my $editable;
-            if (!$is_edit) {
-                $editable = 0;
-                $color = 'lightgrey'; # Default color for disabled ctrl
-            }
-            else {
-                $editable = $state eq 'normal' ? 1 : 0;
-            }
-
-            if ($page ne 'sql') {
-                $control->{$name}->[0]->SetEditable($editable);
-            }
-            else {
-                $control->{$name}->[0]->Enable($editable);
-            }
-
-            $control->{$name}->[0]->SetBackgroundColour(
-                Wx::Colour->new( $color ),
-            );
-        }
-    }
-}
 
 sub dialog_progress {
     my ($self, $event, $max) = @_;

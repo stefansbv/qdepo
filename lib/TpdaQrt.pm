@@ -4,8 +4,7 @@ use 5.008005;
 use strict;
 use warnings;
 
-# use TpdaQrt::Config;
-# use TpdaQrt::Wx::App;
+use TpdaQrt::Config;
 
 =head1 NAME
 
@@ -58,8 +57,6 @@ sub _init {
     my ( $self, $args ) = @_;
 
     my $cfg = TpdaQrt::Config->instance($args);
-
-    # $self->{gui} = TpdaQrt::Wx::App->create();
 
     my $widgetset = $cfg->widgetset();
 

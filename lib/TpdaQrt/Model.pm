@@ -49,7 +49,7 @@ sub new {
         _stdout      => TpdaQrt::Observable->new(),
         _exception   => TpdaQrt::Observable->new(),
         _itemchanged => TpdaQrt::Observable->new(),
-        _editmode    => TpdaQrt::Observable->new(),
+        _appmode     => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
         _progress    => TpdaQrt::Observable->new(),
     };
@@ -143,6 +143,63 @@ sub get_stdout_observable {
     my $self = shift;
 
     return $self->{_stdout};
+}
+
+
+=head2 set_mode
+
+Set mode
+
+=cut
+
+sub set_mode {
+    my ( $self, $mode ) = @_;
+
+    $self->get_appmode_observable->set($mode);
+
+    return;
+}
+
+=head2 is_mode
+
+Return true if is mode
+
+=cut
+
+sub is_mode {
+    my ( $self, $ck_mode ) = @_;
+
+    my $mode = $self->get_appmode_observable->get;
+
+    return unless $mode;
+
+    return 1 if $mode eq $ck_mode;
+
+    return;
+}
+
+=head2 get_appmode_observable
+
+Return add mode observable status
+
+=cut
+
+sub get_appmode_observable {
+    my $self = shift;
+
+    return $self->{_appmode};
+}
+
+=head2 get_appmode
+
+Return application mode
+
+=cut
+
+sub get_appmode {
+    my $self = shift;
+
+    return $self->get_appmode_observable->get;
 }
 
 =head2 message
@@ -319,72 +376,6 @@ sub get_itemchanged_observable {
     my $self = shift;
 
     return $self->{_itemchanged};
-}
-
-=head2 set_editmode
-
-Set edit mode
-
-=cut
-
-sub set_editmode {
-    my $self = shift;
-
-    if ( !$self->is_editmode ) {
-        $self->get_editmode_observable->set(1);
-    }
-    if ( $self->is_editmode ) {
-        $self->message('edit', 1);
-        # $self->message_log('II Edit mode');
-    }
-    else{
-        $self->message('idle', 1);
-        # $self->message_log('II Idle mode');
-    }
-}
-
-=head2 set_idlemode
-
-Set idle mode
-
-=cut
-
-sub set_idlemode {
-    my $self = shift;
-
-    if ( $self->is_editmode ) {
-        $self->get_editmode_observable->set(0);
-    }
-    if ( $self->is_editmode ) {
-        $self->message('edit', 1);
-    }
-    else {
-        $self->message('idle', 1);
-    }
-}
-
-=head2 is_editmode
-
-Return true if is edit mode
-
-=cut
-
-sub is_editmode {
-    my $self = shift;
-
-    return $self->get_editmode_observable->get;
-}
-
-=head2 get_editmode_observable
-
-Return edit mode observable status
-
-=cut
-
-sub get_editmode_observable {
-    my $self = shift;
-
-    return $self->{_editmode};
 }
 
 =head2 save_query_def

@@ -8,7 +8,7 @@ use Try::Tiny;
 
 =head1 NAME
 
-Tpda3::Db::Connection::Sqlite - Connect to a PostgreSQL database.
+TpdaQrt::Db::Connection::Sqlite - Connect to a PostgreSQL database.
 
 =head1 VERSION
 
@@ -20,9 +20,9 @@ our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-    use Tpda3::Db::Connection::Sqlite;
+    use TpdaQrt::Db::Connection::Sqlite;
 
-    my $db = Tpda3::Db::Connection::Sqlite->new();
+    my $db = TpdaQrt::Db::Connection::Sqlite->new();
 
     $db->db_connect($connection);
 

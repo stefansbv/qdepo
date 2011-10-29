@@ -6,7 +6,7 @@ use Carp;
 
 use POSIX qw (floor);
 
-use Log::Log4perl qw(get_logger);
+#use Log::Log4perl qw(get_logger);
 
 use File::Spec::Functions qw(abs2rel catfile);
 use Tk;
@@ -74,7 +74,7 @@ sub new {
     # }
 
     #-- Menu
-    # $self->_create_menu();
+    #$self->_create_menu();
     # $self->_create_app_menu();
 
     #-- ToolBar
