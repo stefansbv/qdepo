@@ -5,7 +5,7 @@
 ---
 general:
   # Query definition files extension
-  qdfexte: qdf
+  widgetset: Tk
 paths:
   # Connections config dir
   connections: db

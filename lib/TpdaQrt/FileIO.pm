@@ -149,7 +149,7 @@ sub get_file_list {
     my $cfg = TpdaQrt::Config->instance();
 
     my $qdfpath = $cfg->qdfpath;
-    my $qdfexte = $cfg->qdfexte;
+    my $qdfexte = 'qdf';
     if ( !-d $qdfpath ) {
         my $msg = qq{\nWrong path for '$qdfexte' files:\n $qdfpath!\n};
         $msg   .= qq{\nConfiguration error, try to fix with\n\n};

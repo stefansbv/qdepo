@@ -85,7 +85,6 @@ TODO: make a more general method
 sub start {
     my ($self, ) = @_;
 
-
     $self->_view->list_populate_all();
 
     $self->_view->log_config_options();
@@ -98,6 +97,8 @@ sub start {
 
     $self->_model->set_idlemode();
     $self->toggle_controls;
+
+    return;
 }
 
 =head2 _set_event_handlers

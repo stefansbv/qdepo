@@ -1,7 +1,7 @@
 package TpdaQrt::Config;
 
-use warnings;
 use strict;
+use warnings;
 
 use File::HomeDir;
 use File::UserConfig;
@@ -17,11 +17,11 @@ TpdaQrt::Config - Tpda TpdaQrt configuration module
 
 =head1 VERSION
 
-Version 0.10
+Version 0.15
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.15';
 
 =head1 SYNOPSIS
 
@@ -97,6 +97,7 @@ sub _config_main_load {
 
     my $configpath = File::UserConfig->new(
         dist     => 'TpdaQrt',
+        sharedir => 'share',
     )->configdir;
 
     # Main config file name, load
@@ -108,14 +109,14 @@ sub _config_main_load {
 
     # Misc
     my $main_hr = {
-        cfgpath => $configpath,
-        qdfexte => $maincfg->{general}{qdfexte},
-        icons   => catdir( $configpath, $maincfg->{paths}{icons} ),
-        qdftmpl => catdir( $configpath, $maincfg->{paths}{qdftmpl} ),
-        contmpl => catdir( $configpath, $maincfg->{paths}{contmpl} ),
-        conpath => catdir( $configpath, $maincfg->{paths}{connections} ),
-        confile => $maincfg->{configs}{connection},
-        cfother => $maincfg->{other},
+        cfgpath   => $configpath,
+        widgetset => $maincfg->{general}{widgetset},
+        icons     => catdir( $configpath, $maincfg->{paths}{icons} ),
+        qdftmpl   => catdir( $configpath, $maincfg->{paths}{qdftmpl} ),
+        contmpl   => catdir( $configpath, $maincfg->{paths}{contmpl} ),
+        conpath   => catdir( $configpath, $maincfg->{paths}{connections} ),
+        confile   => $maincfg->{configs}{connection},
+        cfother   => $maincfg->{other},
     };
 
     # Setup when GUI runtime
