@@ -8,7 +8,6 @@ use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
 use TpdaQrt::Config;
-#use TpdaQrt::Utils;
 use TpdaQrt::Model;
 use TpdaQrt::Wx::App;
 use TpdaQrt::Wx::View;
@@ -17,7 +16,6 @@ use TpdaQrt::Wx::View;
 
 TpdaQrt::Wx::Controller - The Controller
 
-
 =head1 VERSION
 
 Version 0.05
@@ -25,7 +23,6 @@ Version 0.05
 =cut
 
 our $VERSION = '0.05';
-
 
 =head1 SYNOPSIS
 
@@ -154,19 +151,6 @@ sub on_screen_mode_sele {
     return;
 }
 
-
-=head2 closeWin
-
-Close the application window
-
-=cut
-
-my $closeWin = sub {
-    my ( $self, $event ) = @_;
-
-    $self->Destroy();
-};
-
 =head2 about
 
 The About dialog
@@ -208,8 +192,7 @@ sub _set_event_handlers {
 
     #- Toolbar
 
-    # TODO: Simplify using 'GetId' to get the id of the window
-
+    #-- Connect
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_cn')->GetId,
         sub {
             if ($self->_model->is_connected ) {
@@ -220,17 +203,20 @@ sub _set_event_handlers {
             }
         };
 
+    #-- Refresh
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf')->GetId,
         sub {
             $self->_model->on_item_selected(@_);
         };
 
+    #-- Add report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad')->GetId,
         sub {
             my $rec = $self->_model->report_add();
             $self->_view->list_populate_item($rec);
         };
 
+    #-- Remove report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm')->GetId,
         sub {
             my $msg = 'Delete query definition file?';
@@ -245,7 +231,7 @@ sub _set_event_handlers {
             }
         };
 
-    # Disable editmode when save
+    #-- Save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
         sub {
         if ( $self->_model->is_mode('edit') ) {
@@ -254,6 +240,7 @@ sub _set_event_handlers {
         }
         };
 
+    #-- Edit
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
         sub {
         $self->_model->is_mode('edit')
@@ -292,8 +279,11 @@ sub _set_event_handlers {
         $self->_model->on_item_selected(@_);
     };
 
-    #- Frame
-    EVT_CLOSE $self->_view, $closeWin;
+    #- Frame : Deep recursion on subroutine "TpdaQrt::Wx::View::on_quit"
+    # EVT_CLOSE $self->_view,
+    #     sub {
+    #         $self->_view->on_quit;
+    #     };
 
     #-- Make some key bindings
 

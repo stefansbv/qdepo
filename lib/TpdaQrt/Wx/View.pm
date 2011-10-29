@@ -3,8 +3,6 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
@@ -123,16 +121,6 @@ Define the model callbacks
 sub _set_model_callbacks {
     my $self = shift;
 
-    #    my $tb = $self->get_toolbar();
-    #-
-    # my $co = $self->_model->get_connection_observable;
-    # $co->add_callback(
-    #     sub {
-    #         #$tb->ToggleTool( $self->get_toolbar_btn('tb_cn')->GetId, $_[0] );
-    #         $self->{_tb}->toggle_tool_check( 'tb_cn', $_[0] );
-    #     }
-    # );
-
     my $co = $self->_model->get_connection_observable;
     $co->add_callback(
         sub {
@@ -140,7 +128,6 @@ sub _set_model_callbacks {
         }
     );
 
-    #--
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
     $apm->add_callback( sub { $self->update_gui_components(); } );
@@ -158,6 +145,8 @@ sub _set_model_callbacks {
 
     my $pr = $self->_model->get_progress_observable;
     $pr->add_callback( sub{ $self->progress_update( @_ ) } );
+
+    return;
 }
 
 =head2 update_gui_components
@@ -419,6 +408,8 @@ sub create_report_page {
     $repo_main_sz->AddGrowableCol(0);
 
     $self->{_nb}{p1}->SetSizer($repo_main_sz);
+
+    return;
 }
 
 =head2 create_para_page
