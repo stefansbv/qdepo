@@ -1036,10 +1036,10 @@ sub _create_notebook {
 
     #- Panels
 
-    $self->create_notebook_panel( 'p1', 'Query list' );
+    $self->create_notebook_panel( 'p1', 'Query List' );
     $self->create_notebook_panel( 'p2', 'Parameters' );
-    $self->create_notebook_panel( 'p3', 'SQL' );
-    $self->create_notebook_panel( 'p4', 'Info' );
+    $self->create_notebook_panel( 'p3', 'SQL Query' );
+    $self->create_notebook_panel( 'p4', 'Log Info' );
 
     $self->{_nb}->pack(
         -side   => 'top',
