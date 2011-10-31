@@ -28,10 +28,6 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-    use TpdaQrt::Wx::Notebook;
-
-    $self->{_nb} = TpdaQrt::Wx::Notebook->new( $gui );
-
 =head1 METHODS
 
 =head2 new
@@ -166,7 +162,7 @@ sub update_gui_components {
 
     if ($mode eq 'edit') {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
-        $self->toggle_sql_replace();
+        $self->_model->toggle_sql_replace();
     }
     else {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
@@ -863,7 +859,10 @@ Set item data from list control
 
 sub set_list_data {
     my ($self, $item, $data_href) = @_;
+
     $self->get_listcontrol->SetItemData( $item, $data_href );
+
+    return;
 }
 
 =head2 get_list_data
@@ -874,6 +873,7 @@ Return item data from list control
 
 sub get_list_data {
     my ($self, $item) = @_;
+
     return $self->get_listcontrol->GetItemData( $item );
 }
 
@@ -1091,8 +1091,8 @@ sub controls_populate {
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
-    my $cfg  = TpdaQrt::Config->instance();
-    my $qdfpath =$cfg->cfgpath;
+    my $cfg     = TpdaQrt::Config->instance();
+    my $qdfpath = $cfg->qdfpath;
 
     #-- Header
     # Write in the control the filename, remove path config path
@@ -1103,14 +1103,14 @@ sub controls_populate {
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
-    my $params = $self->params_data_to_hash( $ddata_ref->{parameters} );
+    my $params = $self->_model->params_data_to_hash( $ddata_ref->{parameters} );
     $self->controls_write_page('para', $params );
 
     #-- SQL
     $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
 
     #--- Highlight SQL parameters
-    $self->toggle_sql_replace();
+    $self->_model->toggle_sql_replace();
 }
 
 =head2 toggle_sql_replace
@@ -1292,29 +1292,6 @@ sub process_sql {
     }
 }
 
-=head2 params_data_to_hash
-
-Transform data in simple hash reference format
-
-TODO: Move this to model?
-
-=cut
-
-sub params_data_to_hash {
-    my ($self, $params) = @_;
-
-    my $parameters;
-    foreach my $parameter ( @{ $params->{parameter} } ) {
-        my $id = $parameter->{id};
-        if ($id) {
-            $parameters->{"value$id"} = $parameter->{value};
-            $parameters->{"descr$id"} = $parameter->{descr};
-        }
-    }
-
-    return $parameters;
-}
-
 =head2 string_replace_pos
 
 Replace string pos
@@ -1388,13 +1365,14 @@ sub control_set_value {
 
     return unless defined $value;
 
-    my $ctrl = $self->get_control_by_name($name);
+    my $control = $self->get_control_by_name($name);
 
-    $ctrl->ClearAll;
-    $ctrl->AppendText($value);
-    $ctrl->AppendText( "\n" );
-    $ctrl->Colourise( 0, $ctrl->GetTextLength );
+    $control->ClearAll;
+    $control->AppendText($value);
+    $control->AppendText( "\n" );
+    $control->Colourise( 0, $ctrl->GetTextLength );
 
+    return;
 }
 
 =head2 control_set_value

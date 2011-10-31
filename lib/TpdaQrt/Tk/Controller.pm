@@ -86,6 +86,8 @@ sub start {
 
     $self->set_app_mode('sele');
 
+    $self->_model->on_item_selected();
+
     return;
 }
 
@@ -295,6 +297,13 @@ sub _set_event_handlers {
     #-- Execute run - F9
     $self->_view->bind(
         '<F9>' => sub {
+        }
+    );
+
+    #- List controll
+    $self->_view->get_listcontrol->bindRows(
+        '<Button-1>', sub {
+            $self->_model->on_item_selected();
         }
     );
 

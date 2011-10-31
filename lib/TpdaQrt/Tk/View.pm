@@ -3,6 +3,8 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -27,10 +29,6 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-    use TpdaQrt::Tk::Notebook;
-
-    $self->{_nb} = TpdaQrt::Tk::Notebook->new( $gui );
-
 =head1 METHODS
 
 =head2 new
@@ -51,7 +49,11 @@ sub new {
 
     $self->{_cfg} = TpdaQrt::Config->instance();
 
+    $self->{_lds} = {};                     # init list data structure
+
     $self->title(" TpdaQrt ");
+
+    $self->change_look();
 
     #-- Menu
     $self->_create_menu();
@@ -76,6 +78,8 @@ sub new {
 
     #--- Front Tab (page)
     $self->create_report_page();
+
+    $self->_set_model_callbacks();
 
     return $self;
 }
@@ -132,14 +136,15 @@ sub _set_model_callbacks {
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
-    my $xo = $self->_model->get_exception_observable;
-    $xo->add_callback( sub{ $self->log_msg( @_ ) } );
+    # my $xo = $self->_model->get_exception_observable;
+    # $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
-    my $pr = $self->_model->get_progress_observable;
-    $pr->add_callback( sub{ $self->progress_update( @_ ) } );
+    # my $pr = $self->_model->get_progress_observable;
+    # $pr->add_callback( sub{ $self->progress_update( @_ ) } );
 
     return;
 }
+
 =head2 update_gui_components
 
 When the application status (mode) changes, update gui components.
@@ -384,25 +389,6 @@ sub _create_statusbar {
         -background => 'lightyellow',
     );
 
-    # Progress
-    $self->{progres} = 0;
-    $self->{_sb}{pr} = $sb->addProgressBar(
-        -length     => 100,
-        -from       => 0,
-        -to         => 100,
-        -variable   => \$self->{progres},
-        -foreground => 'blue',
-    );
-
-    # Second label for modified status
-    $self->{_sb}{ss} = $sb->addLabel(
-        -width      => 3,
-        -relief     => 'sunken',
-        -anchor     => 'center',
-        -side       => 'right',
-        -background => 'lightyellow',
-    );
-
     # Mode
     $self->{_sb}{md} = $sb->addLabel(
         -width      => 4,
@@ -466,13 +452,24 @@ sub create_report_page {
         -textwidth          => 10,
         -highlightthickness => 2,
         -width              => 0,
-        -selectmode         => 'browse',
+        -selectmode         => 'single',
         -relief             => 'sunken',
-        -columns            => [
-            [ -text => '#', -textwidth => 10, ],
-            [ -text => 'Query name', -textwidth => 40, ],
-        ],
     );
+
+    # Header
+    $self->{_list}->columnInsert( 'end', -text => '#' );
+    $self->{_list}->columnGet(0)->Subwidget("heading")
+        ->configure( -background => 'tan' );
+    $self->{_list}->columnGet(0)->Subwidget("heading")
+        ->configure( -width => 5 );
+    $self->{_list}->columnGet(0)
+        ->configure( -comparecommand => sub { $_[0] <=> $_[1] } );
+
+    $self->{_list}->columnInsert( 'end', -text => 'Raport' );
+    $self->{_list}->columnGet(1)->Subwidget("heading")
+        ->configure( -background => 'tan' );
+    $self->{_list}->columnGet(1)->Subwidget("heading")
+        ->configure( -width => 48 );
 
     $self->{_list}->pack( -expand => 1, -fill => 'both' );
 
@@ -500,12 +497,12 @@ sub create_report_page {
         -top     => [ %0, 0 ],
         -left    => [ %0, 5 ],
     );
-    my $etitle = $frame_mid->Entry(
+    $self->{title} = $frame_mid->Entry(
         -width              => 40,
         -disabledbackground => $bg,
         -disabledforeground => 'black',
     );
-    $etitle->form(
+    $self->{title}->form(
         -top  => [ '&', $ltitle, 0 ],
         -left => [ %0, $f1d ],
     );
@@ -517,12 +514,12 @@ sub create_report_page {
         -top  => [ $ltitle, 8 ],
         -left => [ %0, 5 ],
     );
-    my $efilename = $frame_mid->Entry(
+    $self->{filename} = $frame_mid->Entry(
         -width              => 40,
         -disabledbackground => $bg,
         -disabledforeground => 'black',
     );
-    $efilename->form(
+    $self->{filename}->form(
         -top  => [ '&', $lfilename, 0 ],
         -left => [ %0, $f1d ],
     );
@@ -534,12 +531,12 @@ sub create_report_page {
         -top  => [ $lfilename, 8 ],
         -left => [ %0, 5 ],
     );
-    my $eoutput = $frame_mid->Entry(
+    $self->{output} = $frame_mid->Entry(
         -width              => 40,
         -disabledbackground => $bg,
         -disabledforeground => 'black',
     );
-    $eoutput->form(
+    $self->{output}->form(
         -top  => [ '&', $loutput, 0 ],
         -left => [ %0, $f1d ],
     );
@@ -551,12 +548,12 @@ sub create_report_page {
         -top  => [ $loutput, 8 ],
         -left => [ %0,       5 ],
     );
-    my $etemplate = $frame_mid->Entry(
+    $self->{template} = $frame_mid->Entry(
         -width              => 40,
         -disabledbackground => $bg,
         -disabledforeground => 'black',
     );
-    $etemplate->form(
+    $self->{template}->form(
         -top       => [ '&', $ltemplate, 0 ],
         -left      => [ %0,  $f1d ],
         -padbottom => 5,
@@ -577,7 +574,7 @@ sub create_report_page {
 
     #-- description
 
-    my $tdescription = $frame_bot->Scrolled(
+    $self->{description} = $frame_bot->Scrolled(
         'Text',
         -width      => 40,
         -height     => 3,
@@ -585,7 +582,7 @@ sub create_report_page {
         -scrollbars => 'e',
         -background => 'white',
     );
-    $tdescription->pack(
+    $self->{description}->pack(
         -expand => 1,
         -fill   => 'both',
         -padx   => 5,
@@ -665,24 +662,24 @@ sub create_para_page {
 
     #-- descr1
 
-    my $edescr1 = $frame_top->Entry(
+    $self->{descr1} = $frame_top->Entry(
         -width              => 30,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $edescr1->grid(
+    $self->{descr1}->grid(
         -row    => 1,
         -column => 1,
     );
 
     #-- value1
 
-    my $evalue1 = $frame_top->Entry(
+    $self->{value1} = $frame_top->Entry(
         -width              => 20,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $evalue1->grid(
+    $self->{value1}->grid(
         -row    => 1,
         -column => 2,
     );
@@ -699,24 +696,24 @@ sub create_para_page {
 
     #-- descr2
 
-    my $edescr2 = $frame_top->Entry(
+    $self->{descr2} = $frame_top->Entry(
         -width              => 30,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $edescr2->grid(
+    $self->{descr2}->grid(
         -row    => 2,
         -column => 1,
     );
 
     #-- value2
 
-    my $evalue2 = $frame_top->Entry(
+    $self->{value2} = $frame_top->Entry(
         -width              => 20,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $evalue2->grid(
+    $self->{value2}->grid(
         -row    => 2,
         -column => 2,
     );
@@ -733,24 +730,24 @@ sub create_para_page {
 
     #-- descr3
 
-    my $edescr3 = $frame_top->Entry(
+    $self->{descr3} = $frame_top->Entry(
         -width              => 30,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $edescr3->grid(
+    $self->{descr3}->grid(
         -row    => 3,
         -column => 1,
     );
 
     #-- value3
 
-    my $evalue3 = $frame_top->Entry(
+    $self->{value3} = $frame_top->Entry(
         -width              => 20,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $evalue3->grid(
+    $self->{value3}->grid(
         -row    => 3,
         -column => 2,
     );
@@ -767,24 +764,24 @@ sub create_para_page {
 
     #-- descr4
 
-    my $edescr4 = $frame_top->Entry(
+    $self->{descr4} = $frame_top->Entry(
         -width              => 30,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $edescr4->grid(
+    $self->{descr4}->grid(
         -row    => 4,
         -column => 1,
     );
 
     #-- value4
 
-    my $evalue4 = $frame_top->Entry(
+    $self->{value4} = $frame_top->Entry(
         -width              => 20,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $evalue4->grid(
+    $self->{value4}->grid(
         -row    => 4,
         -column => 2,
     );
@@ -801,24 +798,24 @@ sub create_para_page {
 
     #-- descr5
 
-    my $edescr5 = $frame_top->Entry(
+    $self->{descr5} = $frame_top->Entry(
         -width              => 30,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $edescr5->grid(
+    $self->{descr5}->grid(
         -row    => 5,
         -column => 1,
     );
 
     #-- value5
 
-    my $evalue5 = $frame_top->Entry(
+    $self->{value5} = $frame_top->Entry(
         -width              => 20,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
-    $evalue5->grid(
+    $self->{value5}->grid(
         -row    => 5,
         -column => 2,
     );
@@ -852,7 +849,7 @@ sub create_sql_page {
 
     #-- sqltext
 
-    my $esqltext = $frame_top->Scrolled(
+    $self->{sql} = $frame_top->Scrolled(
         'Text',
         -width      => 40,
         -height     => 3,
@@ -860,7 +857,7 @@ sub create_sql_page {
         -scrollbars => 'soe',
         -background => 'white',
     );
-    $esqltext->pack(
+    $self->{sql}->pack(
         -expand => 1,
         -fill   => 'both',
         -padx   => 5,
@@ -1184,7 +1181,7 @@ sub toggle_status_cn {
 
     if ($status) {
         $self->set_status( 'connectyes16', 'cn' );
-        $self->set_status( $self->_cfg->connection->{dbname},
+        $self->set_status( $self->_cfg->conninfo->{dbname},
             'db', 'darkgreen' );
     }
     else {
@@ -1219,78 +1216,6 @@ sub get_listcontrol {
     my $self = shift;
 
     return $self->{_list};
-}
-
-=head2 make_list_header
-
-Prepare the header for list in the List tab.
-
-=cut
-
-sub make_list_header {
-    my ( $self, $header_look, $header_cols, $fields ) = @_;
-
-    #- Delete existing columns
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->columnDelete( 0, 'end' );
-
-    #- Make header
-    $self->{lookup} = [];
-    my $colcnt = 0;
-
-    #-- For lookup columns
-
-    foreach my $col ( @{$header_look} ) {
-        $self->list_header( $fields->{$col}, $colcnt );
-
-        # Save index of columns to return
-        push @{ $self->{lookup} }, $colcnt;
-
-        $colcnt++;
-    }
-
-    #-- For the rest of the columns
-
-    foreach my $col ( @{$header_cols} ) {
-        $self->list_header( $fields->{$col}, $colcnt );
-        $colcnt++;
-    }
-
-    return;
-}
-
-=head2 list_header
-
-Make header for the list in the List tab.
-
-=cut
-
-sub list_header {
-    my ( $self, $col, $colcnt ) = @_;
-
-    # Label
-    $self->get_listcontrol->columnInsert( 'end', -text => $col->{label} );
-
-    # Background
-    $self->get_listcontrol->columnGet($colcnt)->Subwidget('heading')
-        ->configure( -background => 'tan' );
-
-    # Width
-    $self->get_listcontrol->columnGet($colcnt)->Subwidget('heading')
-        ->configure( -width => $col->{width} );
-
-    # Sort order, (A)lpha is default
-    if ( defined $col->{order} ) {
-        if ( $col->{order} eq 'N' ) {
-            $self->get_listcontrol->columnGet($colcnt)
-                ->configure( -comparecommand => sub { $_[0] <=> $_[1] } );
-        }
-    }
-    else {
-        print "WW: No sort option for '$col'\n";
-    }
-
-    return;
 }
 
 =head2 list_item_clear_all
@@ -1513,7 +1438,10 @@ Set item data from list control
 
 sub set_list_data {
     my ($self, $item, $data_href) = @_;
-    $self->get_listcontrol->SetItemData( $item, $data_href );
+
+    $self->{_lds}{$item} = $data_href;
+
+    return;
 }
 
 =head2 get_list_data
@@ -1524,7 +1452,8 @@ Return item data from list control
 
 sub get_list_data {
     my ($self, $item) = @_;
-    return $self->get_listcontrol->GetItemData( $item );
+
+    return $self->{_lds}{$item};
 }
 
 sub list_item_clear {
@@ -1599,7 +1528,7 @@ sub list_populate_all {
         my $title = $titles->{$indice}[1];
         my $file  = $titles->{$indice}[2];
         # print "$nrcrt -> $title\n";
-        $self->list_item_insert( $nrcrt, $title, $file );
+        $self->list_item_insert( $indice, $nrcrt, $title, $file );
     }
 
     # Set item 0 selected on start
@@ -1619,7 +1548,7 @@ sub list_populate_item {
 
     my $idx = $self->get_list_max_index();
 
-    $self->list_item_insert( $idx + 1, $rec->{title}, $rec->{file} );
+    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
 
     $self->list_item_select_last();
 }
@@ -1631,13 +1560,13 @@ Insert item in list control
 =cut
 
 sub list_item_insert {
-    my ( $self, $nrcrt, $title, $file ) = @_;
+    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
 
     # Remember, always sort by index before insert!
     $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
 
     # Set data
-    # $self->set_list_data($indice, $file );
+    $self->set_list_data($indice, $file );
 
     return;
 }
@@ -1676,6 +1605,339 @@ sub get_choice_default {
     my $self = shift;
 
     return $self->{_tb}->get_choice_options(0);
+}
+
+=head2 controls_populate
+
+Populate controls with data from XML
+
+=cut
+
+sub controls_populate {
+    my $self = shift;
+
+    my ($ddata_ref, $file_fqn) = $self->get_detail_data();
+
+    my $cfg     = TpdaQrt::Config->instance();
+    my $qdfpath = $cfg->qdfpath;
+
+    # print Dumper( $ddata_ref, $file_fqn );
+
+    #-- Header
+
+    # Write in the control the filename, remove path config path
+    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
+
+    # # Add real path to control
+    $ddata_ref->{header}{filename} = $file_rel;
+    $self->controls_write_page('list', $ddata_ref->{header} );
+
+    # #-- Parameters
+    my $params = $self->_model->params_data_to_hash( $ddata_ref->{parameters} );
+    $self->controls_write_page('para', $params );
+
+    # #-- SQL
+    # $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
+    $self->controls_write_page('sql', $ddata_ref->{body} );
+
+    # #--- Highlight SQL parameters
+    $self->toggle_sql_replace();
+}
+
+=head2 controls_write_page
+
+Write all controls on page with data
+
+=cut
+
+sub controls_write_page {
+    my ($self, $page, $data) = @_;
+
+    # Get controls name and object from $page
+    my $get = 'get_controls_'.$page;
+    my $controls = $self->$get();
+
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
+
+            my $value = $data->{$name};
+
+            # Cleanup value
+            if ( defined $value ) {
+                $value =~ s/\n$//mg;    # Multiline
+            }
+            else {
+                $value = q{};           # Empty
+            }
+
+            $self->control_write( $control, $name, $value, );
+        }
+    }
+
+    return;
+}
+
+=head2 control_write
+
+Run the appropriate sub according to control (entry widget) type.
+
+=cut
+
+sub control_write {
+    my ($self, $control, $name, $value, $state) = @_;
+
+    my $ctrltype = $control->{$name}[3];
+
+    my $sub_name = qq{control_write_$ctrltype};
+    if ( $self->can($sub_name) ) {
+        $self->$sub_name($control->{$name}[0], $value, $state);
+    }
+    else {
+        print "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
+    }
+
+    return;
+}
+
+
+=head2 control_set_value
+
+Set new value for a controll.
+
+=cut
+
+sub control_set_value {
+    my ($self, $name, $value) = @_;
+
+    return unless defined $value;
+
+    my $control = $self->get_control_by_name($name);
+
+    $control->delete( '1.0', 'end' );
+    $control->insert( '1.0', $value ) if $value;
+
+    return;
+}
+
+=head2 control_write_e
+
+Write to a Tk::Entry widget.  If I<$value> not true, than only delete.
+
+=cut
+
+sub control_write_e {
+    my ( $self, $control, $value, $state ) = @_;
+
+    $state = $state || $control->cget ('-state');
+
+    $control->configure( -state => 'normal' );
+
+    $control->delete( 0, 'end' );
+    $control->insert( 0, $value ) if $value;
+
+    $control->configure( -state => $state );
+
+    return;
+}
+
+=head2 control_write_t
+
+Write to a Tk::Text widget.  If I<$value> not true, than only delete.
+
+=cut
+
+sub control_write_t {
+    my ( $self, $control, $value, $state ) = @_;
+
+    $state = $state || $control->cget ('-state');
+
+    $value = q{} unless defined $value;    # Empty
+
+    $control->delete( '1.0', 'end' );
+    $control->insert( '1.0', $value ) if $value;
+
+    $control->configure( -state => $state );
+
+    return;
+}
+
+=head2 get_controls_list
+
+Return a AoH with information regarding the controls from the list page.
+
+=cut
+
+sub get_controls_list {
+    my $self = shift;
+
+    return [
+        { title    => [ $self->{title},    'normal',   'white',     'e' ] },
+        { filename => [ $self->{filename}, 'disabled', 'lightgrey', 'e' ] },
+        { output   => [ $self->{output},   'normal',   'white',     'e' ] },
+        { template => [ $self->{template}, 'normal',   'white',     'e' ] },
+        { description => [ $self->{description}, 'normal', 'white', 't' ] },
+    ];
+}
+
+=head2 get_controls_para
+
+Return a AoH with information regarding the controls from the parameters page.
+
+=cut
+
+sub get_controls_para {
+    my $self = shift;
+
+    return [
+        { descr1 => [ $self->{descr1}, 'normal', 'white', 'e' ] },
+        { value1 => [ $self->{value1}, 'normal', 'white', 'e' ] },
+        { descr2 => [ $self->{descr2}, 'normal', 'white', 'e' ] },
+        { value2 => [ $self->{value2}, 'normal', 'white', 'e' ] },
+        { descr3 => [ $self->{descr3}, 'normal', 'white', 'e' ] },
+        { value3 => [ $self->{value3}, 'normal', 'white', 'e' ] },
+        { descr4 => [ $self->{descr4}, 'normal', 'white', 'e' ] },
+        { value4 => [ $self->{value4}, 'normal', 'white', 'e' ] },
+        { descr5 => [ $self->{descr5}, 'normal', 'white', 'e' ] },
+        { value5 => [ $self->{value5}, 'normal', 'white', 'e' ] },
+    ];
+}
+
+=head2 get_controls_sql
+
+Return a AoH with information regarding the controls from the SQL page.
+
+=cut
+
+sub get_controls_sql {
+    my $self = shift;
+
+    return [
+        { sql => [ $self->{sql}, 'normal'  , 'white', 't' ] },
+    ];
+}
+
+=head2 get_controls_conf
+
+Return a AoH with information regarding the controls from the
+configurations page.
+
+None at this time.
+
+=cut
+
+sub get_controls_conf {
+    my $self = shift;
+
+    return [];
+}
+
+=head2 get_control_by_name
+
+Return the control instance by name.
+
+=cut
+
+sub get_control_by_name {
+    my ($self, $name) = @_;
+
+    return $self->{$name},
+}
+
+sub change_look {
+    my $self = shift;
+
+    # Operating system
+    my ( $os, $fontglob, $fonttext );
+    if ( $^O eq 'MSWin32' ) {
+        $os = 'win32';
+
+        # Default fonts
+        $fontglob = '{MS Sans Serif} 8';
+        $fonttext = '{Courier New} 8';
+    }
+    else {
+        $os = 'linux';
+
+        # New fonts
+        $fontglob = '{MS Sans Serif} 10';
+        $fonttext = '{Courier New} 11';
+    }
+
+    # Change the font and fg color
+    $self->optionAdd("*font", $fontglob, "userDefault");
+    # $self->optionAdd("*importantText*foreground", "red", "userDefault");
+    $self->optionAdd("*importantText*font", $fonttext, "userDefault");
+
+    # Change the background color and troughcolor for some widgets:
+    for (qw(Entry MListbox Text)) {
+        $self->optionAdd("*$_.background", "white", "userDefault");
+    }
+
+    return;
+}
+
+=head2 toggle_sql_replace
+
+Toggle sql replace
+
+=cut
+
+sub toggle_sql_replace {
+    my $self = shift;
+
+    #- Detail data
+    my ( $ddata, $file_fqn ) = $self->get_detail_data();
+
+    #-- Parameters
+    my $params = $self->_model->params_data_to_hash( $ddata->{parameters} );
+
+    if ( $self->_model->is_mode('edit') ) {
+        $self->control_set_value( 'sql', $ddata->{body}{sql} );
+    }
+    else {
+        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
+    }
+}
+
+=head2 control_replace_sql_text
+
+Replace sql text control
+
+=cut
+
+sub control_replace_sql_text {
+    my ($self, $sqltext, $params) = @_;
+
+    my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
+
+    # Write new text to control
+    $self->control_set_value('sql', $newtext);
+}
+
+=head2 string_replace_pos
+
+Replace string pos
+
+=cut
+
+sub string_replace_pos {
+    my ($self, $text, $params) = @_;
+
+    my @strpos;
+
+    while (my ($key, $value) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Replace  text and return the strpos
+        $text =~ s/($key)/$value/pm;
+        my $pos = $-[0];
+        push(@strpos, [ $pos, $key, $value ]);
+    }
+
+    # Sorted by $pos
+    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
+
+    return ($text, \@sortedpos);
 }
 
 =head1 AUTHOR

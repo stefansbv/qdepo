@@ -588,6 +588,29 @@ sub get_choice_observable {
     return $self->{_choice};
 }
 
+=head2 params_data_to_hash
+
+Transform data in simple hash reference format
+
+TODO: Move this to model?
+
+=cut
+
+sub params_data_to_hash {
+    my ($self, $params) = @_;
+
+    my $parameters;
+    foreach my $parameter ( @{ $params->{parameter} } ) {
+        my $id = $parameter->{id};
+        if ($id) {
+            $parameters->{"value$id"} = $parameter->{value};
+            $parameters->{"descr$id"} = $parameter->{descr};
+        }
+    }
+
+    return $parameters;
+}
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>

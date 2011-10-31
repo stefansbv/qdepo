@@ -275,7 +275,7 @@ sub _set_event_handlers {
         };
 
     #- List controll
-    EVT_LIST_ITEM_SELECTED $self->_view, $self->{_list}, sub {
+    EVT_LIST_ITEM_SELECTED $self->_view, $self->_view->get_listcontrol, sub {
         $self->_model->on_item_selected(@_);
     };
 
