@@ -168,22 +168,6 @@ sub get_toolbar_btn {
     return $self->{$name};
 }
 
-=head2 make_bitmap
-
-Create and return a bitmap object, of any type.
-
-TODO: Put (replace) full path to the iconfile to attribs
-
-=cut
-
-sub make_bitmap {
-    my ( $self, $ico_path, $icon ) = @_;
-
-    my $bmp = Wx::Bitmap->new( $ico_path . "/$icon.gif", wxBITMAP_TYPE_ANY, );
-
-    return $bmp;
-}
-
 =head2 get_choice_options
 
 Return all options or the name of the option with index
@@ -255,6 +239,22 @@ sub toggle_tool_check {
     $self->ToggleTool( $tb_btn_id, $state );
 
     return;
+}
+
+=head2 make_bitmap
+
+Create and return a bitmap object, of any type.
+
+TODO: Put (replace) full path to the iconfile to attribs
+
+=cut
+
+sub make_bitmap {
+    my ( $self, $ico_path, $icon ) = @_;
+
+    my $bmp = Wx::Bitmap->new( $ico_path . "/$icon.gif", wxBITMAP_TYPE_ANY, );
+
+    return $bmp;
 }
 
 =head1 AUTHOR

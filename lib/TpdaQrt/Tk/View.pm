@@ -1308,55 +1308,55 @@ sub list_item_clear_all {
     return;
 }
 
-=head2 list_populate
+# =head2 list_populate
 
-Populate list with data from query result.
+# Populate list with data from query result.
 
-=cut
+# =cut
 
-sub list_populate {
-    my ( $self, $ary_ref ) = @_;
+# sub list_populate {
+#     my ( $self, $ary_ref ) = @_;
 
-    my $row_count;
+#     my $row_count;
 
-    if ( Exists( $self->get_listcontrol ) ) {
-        eval { $row_count = $self->get_listcontrol->size(); };
-        if ($@) {
-            warn "Error: $@";
-            $row_count = 0;
-        }
-    }
-    else {
-        warn "No MList!\n";
-        return;
-    }
+#     if ( Exists( $self->get_listcontrol ) ) {
+#         eval { $row_count = $self->get_listcontrol->size(); };
+#         if ($@) {
+#             warn "Error: $@";
+#             $row_count = 0;
+#         }
+#     }
+#     else {
+#         warn "No MList!\n";
+#         return;
+#     }
 
-    my $record_count = scalar @{$ary_ref};
+#     my $record_count = scalar @{$ary_ref};
 
-    # Data
-    foreach my $record ( @{$ary_ref} ) {
-        $self->get_listcontrol->insert( 'end', $record );
-        $self->get_listcontrol->see('end');
-        $row_count++;
-#        $self->set_status( "$row_count records fetched", 'ms' );
-        $self->get_listcontrol->update;
+#     # Data
+#     foreach my $record ( @{$ary_ref} ) {
+#         $self->get_listcontrol->insert( 'end', $record );
+#         $self->get_listcontrol->see('end');
+#         $row_count++;
+# #        $self->set_status( "$row_count records fetched", 'ms' );
+#         $self->get_listcontrol->update;
 
-        # Progress bar
-        my $p = floor( $row_count * 10 / $record_count ) * 10;
-        if ( $p % 10 == 0 ) { $self->{progres} = $p; }
-    }
+#         # Progress bar
+#         my $p = floor( $row_count * 10 / $record_count ) * 10;
+#         if ( $p % 10 == 0 ) { $self->{progres} = $p; }
+#     }
 
-#    $self->set_status( "$row_count records listed", 'ms' );
+# #    $self->set_status( "$row_count records listed", 'ms' );
 
-    # Activate and select last
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->activate('end');
-    $self->get_listcontrol->selectionSet('end');
-    $self->get_listcontrol->see('active');
-    $self->{progres} = 0;
+#     # Activate and select last
+#     $self->get_listcontrol->selectionClear( 0, 'end' );
+#     $self->get_listcontrol->activate('end');
+#     $self->get_listcontrol->selectionSet('end');
+#     $self->get_listcontrol->see('active');
+#     $self->{progres} = 0;
 
-    return $record_count;
-}
+#     return $record_count;
+# }
 
 =head2 list_raise
 
@@ -1454,60 +1454,87 @@ sub list_read_selected {
     return \@returned;
 }
 
-=head2 list_remove_selected
+=head2 list_remove_item
 
-Remove the selected row from the list.
-
-First it compares the Pk and the Fk values from the screen, with the
-selected row contents in the list.
+Remove item from list control and select the first item
 
 =cut
 
-sub list_remove_selected {
-    my ( $self, $pk_val, $fk_val ) = @_;
+sub list_remove_item {
+    my $self = shift;
 
-    my $sel = $self->list_read_selected();
-    if ( !ref $sel ) {
-        print "EE: Nothing selected!, use brute force? :)\n";
-        return;
-    }
+    my $sel_item = $self->get_list_selected_index();
+    my $file_fqn = $self->get_list_data($sel_item);
 
-    my $fk_idx = $self->{lookup}[1];
+    # Remove from list
+    $self->list_item_clear($sel_item);
 
-    my $found;
-    if ( $sel->[0] eq $pk_val ) {
+    # Set item 0 selected
+    $self->list_item_select_first();
 
-        # Check fk, if defined
-        if ( defined $fk_idx ) {
-            $found = 1 if $sel->[1] eq $fk_val;
-        }
-        else {
-            $found = 1;
-        }
-    }
-    else {
-        print "EE: No matching list row!\n";
-        return;
-    }
+    return $file_fqn;
+}
 
-    #- OK, found, delete from list
+=head2 get_detail_data
+
+Return detail data from the selected list control item
+
+=cut
+
+sub get_detail_data {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->get_list_data($sel_item);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+
+    return ( $ddata_ref, $file_fqn, $sel_item );
+}
+
+sub get_list_selected_index {
+    my $self = shift;
 
     my @selected;
     eval { @selected = $self->get_listcontrol->curselection(); };
     if ($@) {
         warn "Error: $@";
-
-        # $self->refresh_sb( 'll', 'No record selected' );
         return;
     }
     else {
-        my $indecs = pop @selected;    # first row in case of multiselect
-        if ( defined $indecs ) {
-            $self->get_listcontrol->delete($indecs);
-        }
-        else {
-            print "EE: Nothing selected!\n";
-        }
+        return pop @selected;    # first row in case of multiselect
+    }
+}
+
+=head2 set_list_data
+
+Set item data from list control
+
+=cut
+
+sub set_list_data {
+    my ($self, $item, $data_href) = @_;
+    $self->get_listcontrol->SetItemData( $item, $data_href );
+}
+
+=head2 get_list_data
+
+Return item data from list control
+
+=cut
+
+sub get_list_data {
+    my ($self, $item) = @_;
+    return $self->get_listcontrol->GetItemData( $item );
+}
+
+sub list_item_clear {
+    my ($self, $indecs) = @_;
+
+    if ( defined $indecs ) {
+        $self->get_listcontrol->delete($indecs);
+    }
+    else {
+        print "EE: Nothing selected!\n";
     }
 
     return;
@@ -1572,7 +1599,7 @@ sub list_populate_all {
         my $title = $titles->{$indice}[1];
         my $file  = $titles->{$indice}[2];
         # print "$nrcrt -> $title\n";
-        $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
+        $self->list_item_insert( $nrcrt, $title, $file );
     }
 
     # Set item 0 selected on start
@@ -1581,16 +1608,74 @@ sub list_populate_all {
     return;
 }
 
+=head2 list_populate_item
+
+Add new item in list control and select the last item.
+
+=cut
+
+sub list_populate_item {
+    my ( $self, $rec ) = @_;
+
+    my $idx = $self->get_list_max_index();
+
+    $self->list_item_insert( $idx + 1, $rec->{title}, $rec->{file} );
+
+    $self->list_item_select_last();
+}
+
+=head2 list_item_insert
+
+Insert item in list control
+
+=cut
+
+sub list_item_insert {
+    my ( $self, $nrcrt, $title, $file ) = @_;
+
+    # Remember, always sort by index before insert!
+    $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
+
+    # Set data
+    # $self->set_list_data($indice, $file );
+
+    return;
+}
+
 sub list_item_select_first {
     my $self = shift;
 
-    # Activate and select last
+    # Activate and select first
     $self->get_listcontrol->selectionClear( 0, 'end' );
     $self->get_listcontrol->activate(0);
     $self->get_listcontrol->selectionSet(0);
     $self->get_listcontrol->see('active');
 
     return;
+}
+
+sub list_item_select_last {
+    my $self = shift;
+
+    # Activate and select last
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->activate('end');
+    $self->get_listcontrol->selectionSet('end');
+    $self->get_listcontrol->see('active');
+
+    return;
+}
+
+=head2 get_choice_default
+
+Return the choice default option, the first element in the array.
+
+=cut
+
+sub get_choice_default {
+    my $self = shift;
+
+    return $self->{_tb}->get_choice_options(0);
 }
 
 =head1 AUTHOR

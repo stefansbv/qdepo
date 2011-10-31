@@ -24,6 +24,25 @@ our $VERSION = '0.01';
 
     use TpdaQrt::Tk::TB;
 
+    $tb = $self->TB();
+
+    $tb->make_toolbar_buttons( $buttons, $attribs );
+
+Where the parameters are for example:
+
+    $buttons = ['tb1', 'tb2'];       # array ref of the names in order
+
+    $attribs = {                     # attributes
+        tb_name => {
+            id      => 1001,
+            type    => '_item_normal',
+            icon    => 'connectyes16',
+            tooltip => 'Connect',
+            help    => 'Connect to the database',
+            sep     => 'after',
+        },
+    };
+
 =head1 METHODS
 
 =head2 Populate
@@ -60,15 +79,12 @@ sub make_toolbar_buttons {
 
         # Initial state disabled, except quit and attach button
         next if $name eq 'tb_qt';
-        next if $name eq 'tb_at';
+        next if $name eq 'tb_at';            # not used
 
         # Skip buttons from Help window
-        next if $name eq 'tb3gd';
-        next if $name eq 'tb3gp';
-        next if $name eq 'tb3qt';
-        # And from RepMan window
-        next if $name eq 'tb4pr';
-        next if $name eq 'tb4qt';
+        next if $name eq 'tb3gd';            # not used
+        next if $name eq 'tb3gp';            # not used
+        next if $name eq 'tb3qt';            # not used
 
         $self->enable_tool( $name, 'disabled' );
     }
@@ -150,6 +166,12 @@ sub _item_check {
     return;
 }
 
+=head2 _item_list
+
+Create a list toolbar button, based on Optionmenu.
+
+=cut
+
 sub _item_list {
     my ( $self, $name, $attribs ) = @_;
 
@@ -178,6 +200,23 @@ sub get_toolbar_btn {
     my ( $self, $name ) = @_;
 
     return $self->{$name};
+}
+
+=head2 get_choice_options
+
+Return all options or the name of the option with index
+
+=cut
+
+sub get_choice_options {
+    my ( $self, $index ) = @_;
+
+    if ( defined $index ) {
+        return $self->{options}[$index];
+    }
+    else {
+        return $self->{options};
+    }
 }
 
 =head2 enable_tool

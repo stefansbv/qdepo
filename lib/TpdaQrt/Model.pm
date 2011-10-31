@@ -504,7 +504,7 @@ sub report_add {
 
     my $cfg = TpdaQrt::Config->instance();
 
-    my $src_fqn = $cfg->qdftmpl;
+    my $src_fqn = $cfg->qdftemplate;
     my $dst_fqn = catfile($cfg->qdfpath, $newqdf);
 
     # print " $src_fqn -> $dst_fqn\n";

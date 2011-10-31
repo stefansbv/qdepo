@@ -77,8 +77,8 @@ sub start {
     # Connect to database at start
     $self->_model->db_connect();
 
-    # my $default_choice = $self->_view->get_choice_default();
-    # $self->_model->set_choice("0:$default_choice");
+    my $default_choice = $self->_view->get_choice_default();
+    $self->_model->set_choice("0:$default_choice");
 
     $self->set_app_mode('idle');
 
@@ -113,7 +113,7 @@ sub set_app_mode {
         sele => 'on_screen_mode_sele',
     );
 
-#    $self->toggle_interface_controls;
+    $self->toggle_interface_controls;
 
     if ( my $method_name = $method_for{$mode} ) {
         $self->$method_name();
@@ -248,9 +248,9 @@ sub _set_event_handlers {
     #- Choice
     $self->_view->get_toolbar_btn('tb_ls')->bind(
         '<ButtonRelease-1>' => sub {
-            my $choice = $_[1]->GetSelection;
-            my $text   = $_[1]->GetString;
-            $self->_model->set_choice("$choice:$text");
+            # my $choice = $_[1]->GetSelection;
+            # my $text   = $_[1]->GetString;
+            # $self->_model->set_choice("$choice:$text");
         }
     );
 

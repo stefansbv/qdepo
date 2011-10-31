@@ -1508,6 +1508,8 @@ Quit.
 sub on_quit {
     my $self = shift;
 
+    print "Closing ...\n";
+
     $self->Close(1);
 
     return;
