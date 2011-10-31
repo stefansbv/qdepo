@@ -453,7 +453,7 @@ sub create_report_page {
     my $self = shift;
 
     # Frame box
-    my $frm_box = $self->{_nb}{rec}->LabFrame(
+    my $frm_box = $self->{_nb}{p1}->LabFrame(
         -foreground => 'blue',
         -label      => 'Search results',
         -labelside  => 'acrosstop'
@@ -478,7 +478,7 @@ sub create_report_page {
 
     #--- Frame_Mid
 
-    my $frame_mid = $self->{_nb}{rec}->LabFrame(
+    my $frame_mid = $self->{_nb}{p1}->LabFrame(
         -label      => 'Frame_Mid',
         -labelside  => 'acrosstop',
         -foreground => 'blue',
@@ -564,7 +564,7 @@ sub create_report_page {
 
     #--- Frame_Bot
 
-    my $frame_bot = $self->{_nb}{rec}->LabFrame(
+    my $frame_bot = $self->{_nb}{p1}->LabFrame(
         -label      => 'Frame_Bot',
         -labelside  => 'acrosstop',
         -foreground => 'blue',
@@ -602,10 +602,228 @@ Create the parameters page (tab) on the notebook
 =cut
 
 sub create_para_page {
-
     my $self = shift;
 
+    #--- Frame Top0
+
+    my $frame_top0 = $self->{_nb}{p2}->LabFrame(
+        -label      => 'Frame_top',
+        -labelside  => 'acrosstop',
+        -foreground => 'blue',
+    );
+    $frame_top0->pack(
+        -expand => 0,
+        -fill   => 'x',
+    );
+
+    #--- Frame Top
+
+    my $frame_top = $frame_top0->Frame();
+    $frame_top->pack(
+        -side   => 'top',
+        -expand => 1,
+        -fill   => 'x',
+    );
+
     #-- Controls
+
+    my $bg  = $self->cget('-background');
+    my $f1d = 90;
+
+    #-- Label
+
+    my $para_tit_lbl1 = $frame_top->Label( -text => 'Label' );
+    $para_tit_lbl1->grid(
+        -row    => 0,
+        -column => 0,
+    );
+
+
+    #-- Description
+
+    my $para_tit_lbl2 = $frame_top->Label( -text => 'Description' );
+    $para_tit_lbl2->grid(
+        -row    => 0,
+        -column => 1,
+    );
+
+    #-- Value
+
+    my $para_tit_lbl3 = $frame_top->Label( -text => 'Value' );
+    $para_tit_lbl3->grid(
+        -row    => 0,
+        -column => 2,
+    );
+
+    #-- $para_lbl1
+
+    my $para_lbl1 = $frame_top->Label( -text => 'value1' );
+    $para_lbl1->grid(
+        -row    => 1,
+        -column => 0,
+    );
+
+    #-- descr1
+
+    my $edescr1 = $frame_top->Entry(
+        -width              => 30,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $edescr1->grid(
+        -row    => 1,
+        -column => 1,
+    );
+
+    #-- value1
+
+    my $evalue1 = $frame_top->Entry(
+        -width              => 20,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $evalue1->grid(
+        -row    => 1,
+        -column => 2,
+    );
+
+    #-- 2
+
+    #-- $para_lbl2
+
+    my $para_lbl2 = $frame_top->Label( -text => 'value2' );
+    $para_lbl2->grid(
+        -row    => 2,
+        -column => 0,
+    );
+
+    #-- descr2
+
+    my $edescr2 = $frame_top->Entry(
+        -width              => 30,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $edescr2->grid(
+        -row    => 2,
+        -column => 1,
+    );
+
+    #-- value2
+
+    my $evalue2 = $frame_top->Entry(
+        -width              => 20,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $evalue2->grid(
+        -row    => 2,
+        -column => 2,
+    );
+
+    #-- 3
+
+    #-- $para_lbl3
+
+    my $para_lbl3 = $frame_top->Label( -text => 'value3' );
+    $para_lbl3->grid(
+        -row    => 3,
+        -column => 0,
+    );
+
+    #-- descr3
+
+    my $edescr3 = $frame_top->Entry(
+        -width              => 30,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $edescr3->grid(
+        -row    => 3,
+        -column => 1,
+    );
+
+    #-- value3
+
+    my $evalue3 = $frame_top->Entry(
+        -width              => 20,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $evalue3->grid(
+        -row    => 3,
+        -column => 2,
+    );
+
+    #-- 4
+
+    #-- $para_lbl4
+
+    my $para_lbl4 = $frame_top->Label( -text => 'value4' );
+    $para_lbl4->grid(
+        -row    => 4,
+        -column => 0,
+    );
+
+    #-- descr4
+
+    my $edescr4 = $frame_top->Entry(
+        -width              => 30,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $edescr4->grid(
+        -row    => 4,
+        -column => 1,
+    );
+
+    #-- value4
+
+    my $evalue4 = $frame_top->Entry(
+        -width              => 20,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $evalue4->grid(
+        -row    => 4,
+        -column => 2,
+    );
+
+    #-- 5
+
+    #-- $para_lbl5
+
+    my $para_lbl5 = $frame_top->Label( -text => 'value5' );
+    $para_lbl5->grid(
+        -row    => 5,
+        -column => 0,
+    );
+
+    #-- descr5
+
+    my $edescr5 = $frame_top->Entry(
+        -width              => 30,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $edescr5->grid(
+        -row    => 5,
+        -column => 1,
+    );
+
+    #-- value5
+
+    my $evalue5 = $frame_top->Entry(
+        -width              => 20,
+        -disabledbackground => $self->{bg},
+        -disabledforeground => 'black',
+    );
+    $evalue5->grid(
+        -row    => 5,
+        -column => 2,
+    );
+
+    return;
 }
 
 =head2 create_sql_page
@@ -619,27 +837,81 @@ sub create_sql_page {
 
     #--- SQL Tab (page)
 
-    #-- Controls
+    #--- Frame_Top
+
+    my $frame_top = $self->{_nb}{p3}->LabFrame(
+        -label      => 'SQL',
+        -labelside  => 'acrosstop',
+        -foreground => 'blue',
+    );
+    $frame_top->pack(
+        -side   => 'left',
+        -expand => 1,
+        -fill   => 'both',
+    );
+
+    #-- sqltext
+
+    my $esqltext = $frame_top->Scrolled(
+        'Text',
+        -width      => 40,
+        -height     => 3,
+        -wrap       => 'word',
+        -scrollbars => 'soe',
+        -background => 'white',
+    );
+    $esqltext->pack(
+        -expand => 1,
+        -fill   => 'both',
+        -padx   => 5,
+        -pady   => 5,
+    );
+
+    return;
 }
 
 =head2 create_config_page
 
-Create the configuration info page (tab) on the notebook.
-
-Using the MySQL lexer for very basic syntax highlighting. This was
-chosen because permits the definition of 3 custom lists. For this
-purpose three key word lists are defined with a keyword in each. B<EE>
-is for error, B<II> for information and B<WW> for warning. Words in
-the lists must be lower case.
+Create the Log info page (tab) on the notebook.
 
 =cut
 
 sub create_config_page {
     my $self = shift;
 
-    #-- Controls
+    #--- Info Tab (page)
 
-    #- Log text control
+    #--- Frame_Top
+
+    my $frame_top = $self->{_nb}{p4}->LabFrame(
+        -label      => 'Log',
+        -labelside  => 'acrosstop',
+        -foreground => 'blue',
+    );
+    $frame_top->pack(
+        -side   => 'left',
+        -expand => 1,
+        -fill   => 'both',
+    );
+
+    #-- logtext
+
+    my $elogtext = $frame_top->Scrolled(
+        'Text',
+        -width      => 40,
+        -height     => 3,
+        -wrap       => 'word',
+        -scrollbars => 'soe',
+        -background => 'white',
+    );
+    $elogtext->pack(
+        -expand => 1,
+        -fill   => 'both',
+        -padx   => 5,
+        -pady   => 5,
+    );
+
+    return;
 }
 
 =head2 dialog_popup
@@ -750,7 +1022,7 @@ Create the NoteBook and panes.
 sub _create_notebook {
     my $self = shift;
 
-    #- NoteBook
+    #- Tk::NoteBook
 
     $self->{_nb} = $self->NoteBook()->pack(
         -side   => 'top',
@@ -764,8 +1036,10 @@ sub _create_notebook {
 
     #- Panels
 
-    $self->create_notebook_panel( 'rec', 'Record' );
-    $self->create_notebook_panel( 'lst', 'List' );
+    $self->create_notebook_panel( 'p1', 'Query list' );
+    $self->create_notebook_panel( 'p2', 'Parameters' );
+    $self->create_notebook_panel( 'p3', 'SQL' );
+    $self->create_notebook_panel( 'p4', 'Info' );
 
     $self->{_nb}->pack(
         -side   => 'top',
@@ -776,7 +1050,7 @@ sub _create_notebook {
     );
 
     # Initialize
-    $self->{_nb}->raise('rec');
+    $self->{_nb}->raise('p1');
 
     return;
 }
@@ -1099,13 +1373,13 @@ sub list_raise {
     return;
 }
 
-=head2 has_list_records
+=head2 get_list_max_index
 
-Return number of records from list.
+Return the max index from the list control
 
 =cut
 
-sub has_list_records {
+sub get_list_max_index {
     my $self = shift;
 
     my $row_count;
@@ -1297,13 +1571,24 @@ sub list_populate_all {
         my $nrcrt = $titles->{$indice}[0];
         my $title = $titles->{$indice}[1];
         my $file  = $titles->{$indice}[2];
-        print "$nrcrt -> $title\n";
-#        $self->list_item_insert($indice, $nrcrt, $title, $file);
- #       $self->get_listcontrol->insert( 'end', $record );
+        # print "$nrcrt -> $title\n";
+        $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
     }
 
     # Set item 0 selected on start
     $self->list_item_select_first();
+
+    return;
+}
+
+sub list_item_select_first {
+    my $self = shift;
+
+    # Activate and select last
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->activate(0);
+    $self->get_listcontrol->selectionSet(0);
+    $self->get_listcontrol->see('active');
 
     return;
 }

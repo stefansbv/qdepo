@@ -98,12 +98,12 @@ Set application mode
 sub set_app_mode {
     my ( $self, $mode ) = @_;
 
-    # if ( $mode eq 'sele' ) {
-    #     my $item_no = $self->_view->get_list_max_index();
+    if ( $mode eq 'sele' ) {
+        my $item_no = $self->_view->get_list_max_index();
 
-    #     # Set mode to 'idle' if no items
-    #     $mode = 'idle' if $item_no <= 0;
-    # }
+        # Set mode to 'idle' if no items
+        $mode = 'idle' if $item_no <= 0;
+    }
 
     $self->_model->set_mode($mode);
 
