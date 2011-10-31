@@ -49,6 +49,10 @@ Make main toolbar buttons.
 sub make_toolbar_buttons {
     my ( $self, $toolbars, $attribs ) = @_;
 
+    # Options for Wx::Choice from the ToolBar
+    # Default is Excel with idx = 0
+    $self->{options} = [ 'ODF', 'Calc', 'CSV', 'Excel' ];
+
     # Create buttons in ID order; use sub defined by 'type'
     foreach my $name ( @{$toolbars} ) {
         my $type = $attribs->{$name}{type};
@@ -154,6 +158,8 @@ sub _item_list {
     $self->{$name} = $self->ToolOptionmenu(
         -indicatoron => 0,
         -tip         => $attribs->{tooltip},
+        -options     => $self->{options},
+
         # -command     => $callback,
     );
 

@@ -63,6 +63,8 @@ sub create_path {
             }
         }
     }
+
+    return;
 }
 
 =head2 create_conn_cfg_tree

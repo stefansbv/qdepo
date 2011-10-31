@@ -59,7 +59,7 @@ if ( $man or $help or $version or $#ARGV >= 0 ) {
     if ($help)    { tpda_qrt_version(); pod2usage(1); }
 }
 
-my $cfgname = shift;         # Runtime configuration name or database name
+my $cfname = shift;         # Runtime configuration name or database name
 
 #- Options
 my $opts = {};
@@ -81,12 +81,12 @@ if ( defined $list xor $init ) {
 }
 
 # Check connection configuration name option last
-if ( $cfgname ) {
+if ( $cfname ) {
 
     # Other options
     $opts->{user} = $user;
     $opts->{pass} = $pass;
-    $opts->{cfgname} = $cfgname;
+    $opts->{cfname} = $cfname;
 
     # Go and run the app
     TpdaQrt->new( $opts )->run;

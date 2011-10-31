@@ -234,18 +234,18 @@ sub _set_event_handlers {
     #-- Save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
         sub {
-        if ( $self->_model->is_mode('edit') ) {
-            $self->_view->save_query_def();
-            $self->set_app_mode('sele');
-        }
+            if ( $self->_model->is_mode('edit') ) {
+                $self->_view->save_query_def();
+                $self->set_app_mode('sele');
+            }
         };
 
     #-- Edit
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
         sub {
-        $self->_model->is_mode('edit')
-            ? $self->set_app_mode('sele')
-            : $self->set_app_mode('edit');
+            $self->_model->is_mode('edit')
+                ? $self->set_app_mode('sele')
+                : $self->set_app_mode('edit');
         };
 
     #- Choice

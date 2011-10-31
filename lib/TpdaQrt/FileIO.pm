@@ -156,7 +156,7 @@ sub get_file_list {
         $msg   .= qq{ qrt -init };
         $msg   .= $cfg->cfgname . qq{\n\n};
         $msg   .= qq{then edit: };
-        $msg   .=  $cfg->cfgconnf . qq{\n};
+        $msg   .=  $cfg->cfgconnfile . qq{\n};
         print $msg;
         die;
     }

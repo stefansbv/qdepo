@@ -1,0 +1,76 @@
+# tpda3
+# Menubar interface configuration
+# Don't change, unless you know what you are doing!
+# The application menu Id's start at 5000
+---
+menubar:
+  menu_app:
+    id:    5001
+    label: App
+    underline: 0
+    popup:
+      1:
+        name: mn_fm
+        label: Toggle find mode
+        underline: 0
+        sep: none
+        key: F7
+      2:
+        name: mn_fe
+        label: Execute search
+        underline: 0
+        sep: none
+        key: F8
+      3:
+        name: mn_fc
+        label: Execute count
+        underline: 0
+        sep: none
+        key: F9
+      4:
+        name: mn_pr
+        label: Preview report
+        underline: 0
+        sep: before
+        key: Alt-p
+      5:
+        name: mn_qt
+        label: Quit
+        underline: 1
+        sep: before
+        key: Ctrl+Q
+  menu_tool:
+    id:    5002
+    label: Tools
+    underline: 0
+    popup:
+      1:
+        name: mn_er
+        label: Edit reports data
+        underline: 0
+        sep: none
+        key: Alt-e
+      2:
+        name: mn_sg
+        label: Save window geometry
+        underline: 12
+        sep: none
+        key: Alt-g
+
+  menu_help:
+    id:    5003
+    label: Help
+    underline: 0
+    popup:
+      1:
+        name: mn_gd
+        label: Guide
+        underline: 0
+        sep: none
+        key: ~
+      2:
+        name: mn_ab
+        label: About
+        underline: 0
+        sep: none
+        key: ~

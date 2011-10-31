@@ -57,7 +57,7 @@ sub new {
 
     bless $self, $class;
 
-#    $self->_set_event_handlers();
+    $self->_set_event_handlers();
 
     return $self;
 }
@@ -82,7 +82,7 @@ sub start {
 
     $self->set_app_mode('idle');
 
-#    $self->_view->list_populate_all();
+    $self->_view->list_populate_all();
 
     $self->set_app_mode('sele');
 
@@ -156,8 +156,6 @@ Setup event handlers for the interface.
 sub _set_event_handlers {
     my $self = shift;
 
-    $self->_log->trace('Setup event handlers');
-
     #- Base menu
 
     #-- Exit
@@ -192,18 +190,20 @@ sub _set_event_handlers {
             else {
                 $self->_model->db_connect;
             }
+
+            $self->_model->on_item_selected(@_);
         }
     );
 
     #-- Refresh
-    $self->_view->get_toolbar_btn('tb_fm')->bind(
+    $self->_view->get_toolbar_btn('tb_rf')->bind(
         '<ButtonRelease-1>' => sub {
             $self->_model->on_item_selected(@_);
         }
     );
 
     #-- Add report
-    $self->_view->get_toolbar_btn('tb_fe')->bind(
+    $self->_view->get_toolbar_btn('tb_ad')->bind(
         '<ButtonRelease-1>' => sub {
             my $rec = $self->_model->report_add();
             $self->_view->list_populate_item($rec);
@@ -211,7 +211,7 @@ sub _set_event_handlers {
     );
 
     #-- Remove report
-    $self->_view->get_toolbar_btn('tb_fc')->bind(
+    $self->_view->get_toolbar_btn('tb_rm')->bind(
         '<ButtonRelease-1>' => sub {
             my $msg = 'Delete query definition file?';
             if ( $self->_view->action_confirmed($msg) ) {
@@ -227,7 +227,7 @@ sub _set_event_handlers {
     );
 
     #-- Save
-    $self->_view->get_toolbar_btn('tb_pr')->bind(
+    $self->_view->get_toolbar_btn('tb_sv')->bind(
         '<ButtonRelease-1>' => sub {
             if ( $self->_model->is_mode('edit') ) {
                 $self->_view->save_query_def();
@@ -237,7 +237,7 @@ sub _set_event_handlers {
     );
 
     #-- Edit
-    $self->_view->get_toolbar_btn('tb_gr')->bind(
+    $self->_view->get_toolbar_btn('tb_ed')->bind(
         '<ButtonRelease-1>' => sub {
             $self->_model->is_mode('edit')
                 ? $self->set_app_mode('sele')
@@ -246,7 +246,7 @@ sub _set_event_handlers {
     );
 
     #- Choice
-    $self->_view->get_toolbar_btn('tb_tn')->bind(
+    $self->_view->get_toolbar_btn('tb_ls')->bind(
         '<ButtonRelease-1>' => sub {
             my $choice = $_[1]->GetSelection;
             my $text   = $_[1]->GetString;
@@ -255,9 +255,9 @@ sub _set_event_handlers {
     );
 
     #- Run
-    $self->_view->get_toolbar_btn('tb_sv')->bind(
+    $self->_view->get_toolbar_btn('tb_go')->bind(
         '<ButtonRelease-1>' => sub {
-            if ( $self->_model->is_connected ) {
+            if ($self->_model->is_connected ) {
                 $self->_view->progress_dialog('Export data');
                 $self->_view->process_sql();
             }
@@ -279,7 +279,6 @@ sub _set_event_handlers {
     #-- Quit Ctrl-q
     $self->_view->bind(
         '<Control-q>' => sub {
-            return if !defined $self->ask_to_save;
             $self->_view->on_quit;
         }
     );

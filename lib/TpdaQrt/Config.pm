@@ -3,6 +3,9 @@ package TpdaQrt::Config;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
+use Hash::Merge qw(merge);
 use File::HomeDir;
 use File::UserConfig;
 use File::Spec::Functions;
@@ -54,10 +57,10 @@ sub _new_instance {
 
     # Load configuration and create accessors
     $self->_config_main_load($args);
-    if ( $args->{cfgname} ) {
+    if ( $args->{cfname} ) {
         # If no config name don't bother to load this
         $self->_config_conn_load($args);
-        $self->_config_other_load();
+        $self->_config_interface_load();
     }
 
     return $self;
@@ -100,32 +103,45 @@ sub _config_main_load {
         sharedir => 'share',
     )->configdir;
 
-    # Main config file name, load
-    my $main_qfn = catfile( $configpath, $args->{cfgmain} );
-
-    my $msg = qq{\nConfiguration error: \n Can't read 'main.yml'};
-    $msg   .= qq{\n  from '$main_qfn'!};
-    my $maincfg = $self->_config_file_load($main_qfn, $msg);
-
-    # Misc
-    my $main_hr = {
-        cfgpath   => $configpath,
-        widgetset => $maincfg->{general}{widgetset},
-        icons     => catdir( $configpath, $maincfg->{paths}{icons} ),
-        qdftmpl   => catdir( $configpath, $maincfg->{paths}{qdftmpl} ),
-        contmpl   => catdir( $configpath, $maincfg->{paths}{contmpl} ),
-        conpath   => catdir( $configpath, $maincfg->{paths}{connections} ),
-        confile   => $maincfg->{configs}{connection},
-        cfother   => $maincfg->{other},
+    my $base_methods_hr = {
+        cfpath => $configpath,
+        cfdb   => catdir( $configpath, 'db' ),
+        user   => $args->{user},                   # make accessors for user
+        pass   => $args->{pass},                   # and pass
     };
 
-    # Setup when GUI runtime
-    if ( $args->{cfgname} ) {
-        $main_hr->{cfgname} = $args->{cfgname};
-        $main_hr->{qdfpath} =
-            catdir( $configpath, $maincfg->{paths}{connections},
-                    $args->{cfgname}, 'qdf', );
+    # Merge args hashref
+    my $methods_new = merge($base_methods_hr, $args);
+
+    $self->_make_accessors($methods_new);
+
+    # Main config file name, load
+    my $main_fqn = catfile( $configpath, $args->{cfgmain} );
+
+    my $msg = qq{\nConfiguration error: \n Can't read 'main.conf'};
+    $msg .= qq{\n  from '$main_fqn'!};
+    my $maincfg = $self->_config_file_load( $main_fqn, $msg );
+
+    my $main_hr = {
+        widgetset => $maincfg->{interface}{widgetset},    # Wx or Tk
+        ymltoolbar =>
+            catfile( $configpath, $maincfg->{interface}{path}{toolbar} ),
+        ymlmenubar =>
+            catfile( $configpath, $maincfg->{interface}{path}{menubar} ),
+        icons => catdir( $configpath, $maincfg->{resource}{icons} ),
+        ymlconnection =>
+            catdir( $configpath, $maincfg->{templates}{connection} ),
+        qdftemplate => catfile( $configpath, $maincfg->{templates}{qdf} ),
+    };
+
+    if ( $self->can('cfname') ) {
+        my $cfname = $self->cfname;
+        $main_hr->{connfile}
+            = catfile( $self->cfdb, $cfname, 'etc', 'connection.yml' );
+        $main_hr->{qdfpath} = catdir( $self->cfdb, $cfname, 'qdf' );
     }
+
+    my @accessor = keys %{$main_hr};
 
     $self->_make_accessors($main_hr);
 
@@ -139,7 +155,7 @@ some miscellaneous info from the main configuration file.
 
 The B<connection> configuration is special.  More than one connection
 configuration is allowed and the name of the used connection is known
-only at runtime from the I<cfgname> argument.
+only at runtime from the I<cfname> argument.
 
 Load the connection configuration file.  This is treated separately
 because the path is only known at runtime.
@@ -150,24 +166,22 @@ sub _config_conn_load {
     my ( $self, $args ) = @_;
 
     # Connection
-    my $cfgconn_f = $self->conn_cfg_filename($self->cfgname);
+    my $conn_file = $self->connfile;
 
     my $msg = qq{\nConfiguration error, to fix, run\n\n};
     $msg   .= qq{ tpda-qrt -init };
-    $msg   .= $self->cfgname . qq{\n\n};
-    $msg   .= qq{then edit: $cfgconn_f\n};
-    my $cfg_data = $self->_config_file_load($cfgconn_f, $msg);
+    $msg   .= $self->cfname . qq{\n\n};
+    $msg   .= qq{then edit: $conn_file\n};
+    my $cfg_data = $self->_config_file_load($conn_file, $msg);
 
-    $cfg_data->{cfgconnf} = $cfgconn_f; # Accessor for connection file
-    $cfg_data->{conninfo}{user} = $args->{user};
-    $cfg_data->{conninfo}{pass} = $args->{pass};
+    $cfg_data->{cfgconnfile} = $conn_file; # accessor for connection file
 
     $self->_make_accessors($cfg_data);
 
     return;
 }
 
-=head2 _config_other_load
+=head2 _config_interface_load
 
 Process the main configuration file and automaticaly load all the
 other defined configuration files.  That means if we add a YAML
@@ -176,19 +190,15 @@ at restart.
 
 =cut
 
-sub _config_other_load {
+sub _config_interface_load {
     my $self = shift;
 
-    foreach my $sec ( keys %{ $self->cfother } ) {
-        next if $sec eq 'connection';
+    my $cfg_toolbar = $self->_config_file_load($self->ymltoolbar);
+    my $cfg_menubar = $self->_config_file_load($self->ymlmenubar);
 
-        my $cfg_file = catfile( $self->cfgpath, $self->cfother->{$sec} );
-        my $msg = qq{\nConfiguration error: \n Can't read configurations};
-        $msg   .= qq{\n  from '$cfg_file'!};
-        my $cfg_data = $self->_config_file_load($cfg_file, $msg);
+    my $methods = merge($cfg_toolbar, $cfg_menubar);
 
-        $self->_make_accessors($cfg_data);
-    }
+    $self->_make_accessors($methods);
 
     return;
 }
@@ -201,11 +211,13 @@ structure.  Die, if can't read file.
 =cut
 
 sub _config_file_load {
-    my ($self, $yaml_file, $message) = @_;
+    my ($self, $yaml_file) = @_;
 
     # print "YAML file: $yaml_file\n";
     if (! -f $yaml_file) {
-        print "$message\n";
+        my $msg = qq{\nConfiguration error: \n Can't read configurations};
+        $msg   .= qq{\n  from '$yaml_file'!};
+        print "$msg\n";
         die;
     }
 
@@ -221,8 +233,8 @@ List all existing connection configurations.
 sub list_configs {
     my $self = shift;
 
-    my $conpath = $self->conpath;
-    my $conn_list = TpdaQrt::Config::Utils->find_subdirs($conpath);
+    my $dbpath = $self->cfdb;
+    my $conn_list = TpdaQrt::Config::Utils->find_subdirs($dbpath);
 
     print "Connection configurations:\n";
     foreach my $cfg_name ( @{$conn_list} ) {
@@ -232,7 +244,7 @@ sub list_configs {
             print "  > $cfg_name\n";
         }
     }
-    print " in '$conpath'\n";
+    print " in '$dbpath'\n";
 }
 
 =head2 init_configs
@@ -245,9 +257,9 @@ configuration file from template.
 sub init_configs {
     my ( $self, $conn_name ) = @_;
 
-    my $conn_tmpl = $self->contmpl;
-    my $conn_path = catfile( $self->conpath, $conn_name, 'etc' );
-    my $conn_qdfp = catfile( $self->conpath, $conn_name, 'qdf' );
+    my $conn_tmpl = $self->ymlconnection;
+    my $conn_path = catdir( $self->cfpath, 'db', $conn_name, 'etc' );
+    my $conn_qdfp = catdir( $self->cfpath, 'db', $conn_name, 'qdf' );
     my $conn_file = $self->conn_cfg_filename($conn_name);
 
     if ( -f $conn_file ) {
@@ -269,9 +281,9 @@ Return full path to connection file.
 =cut
 
 sub conn_cfg_filename {
-    my ($self, $cfgname) = @_;
+    my ($self, $cfname) = @_;
 
-    return catfile($self->conpath, $cfgname, 'etc', $self->confile );
+    return catfile($self->cfpath, 'db', $cfname, 'etc', 'connection.yml');
 }
 
 =head1 AUTHOR

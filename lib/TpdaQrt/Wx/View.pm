@@ -973,7 +973,7 @@ sub list_item_clear {
 
 =head2 list_item_clear_all
 
-Delete all list control items
+Delete all list control items.
 
 =cut
 

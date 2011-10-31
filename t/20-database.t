@@ -14,7 +14,7 @@ use lib qw( lib ../lib );
 use TpdaQrt::Config;
 
 my $args = {
-    cfgname => 'test',
+    cfname  => 'test',
     cfgmain => 'etc/main.yml',
     user    => undef,
     pass    => undef,

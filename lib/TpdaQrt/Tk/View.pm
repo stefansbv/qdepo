@@ -177,29 +177,117 @@ sub _create_menu {
 
     #- Menu bar
 
-    my $menu = $self->Menu();
+    $self->{_menu} = $self->Menu();
 
-    $self->configure( -menu => $menu );
+    # Get MenuBar atributes
 
-    my $menu_app = $menu->cascade(
-        -label   => 'App',
-        -tearoff => 0,
-    );
+    my $attribs = $self->_cfg->menubar;
 
-    my $menu_help = $menu->cascade(
-        -label     => 'Help',
-        -tearoff   => 0,
-        -menuitems => [
-            [   command  => 'Help',
-                -command => \&helpcontents,
-            ],
-            [   command  => 'About',
-                -command => \&about,
-            ],
-        ]
-    );
+    $self->make_menus($attribs);
+
+    $self->configure( -menu => $self->{_menu} );
 
     return;
+}
+
+=head2 make_menus
+
+Make menus
+
+=cut
+
+sub make_menus {
+    my ( $self, $attribs, $position ) = @_;
+
+    $position = 1 if !$position;
+    my $menus = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    #- Create menus
+    foreach my $menu_name ( @{$menus} ) {
+
+        $self->{_menu}{$menu_name} = $self->{_menu}->Menu( -tearoff => 0 );
+
+        my @popups
+            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
+        foreach my $id (@popups) {
+            $self->make_popup_item(
+                $self->{_menu}{$menu_name},
+                $attribs->{$menu_name}{popup}{$id},
+            );
+        }
+
+        $self->{_menu}->insert(
+            $position,
+            'cascade',
+            -menu      => $self->{_menu}{$menu_name},
+            -label     => $attribs->{$menu_name}{label},
+            -underline => $attribs->{$menu_name}{underline},
+        );
+
+        $position++;
+    }
+
+    return;
+}
+
+=head2 get_app_menus_list
+
+Get application menus list, needed for binding the command to load the
+screen.  We only need the name of the popup which is also the name of
+the screen (and also the name of the module).
+
+=cut
+
+sub get_app_menus_list {
+    my $self = shift;
+
+    my $attribs = $self->_cfg->appmenubar;
+    my $menus   = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    my @menulist;
+    foreach my $menu_name ( @{$menus} ) {
+        my @popups
+            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
+        foreach my $item (@popups) {
+            push @menulist, $attribs->{$menu_name}{popup}{$item}{name};
+        }
+    }
+
+    return \@menulist;
+}
+
+=head2 make_popup_item
+
+Make popup item
+
+=cut
+
+sub make_popup_item {
+    my ( $self, $menu, $item ) = @_;
+
+    $menu->add('separator') if $item->{sep} eq 'before';
+
+    $self->{_menu}{ $item->{name} } = $menu->command(
+        -label       => $item->{label},
+        -accelerator => $item->{key},
+        -underline   => $item->{underline},
+    );
+
+    $menu->add('separator') if $item->{sep} eq 'after';
+
+    return;
+}
+
+=head2 get_menu_popup_item
+
+Return a menu popup by name
+
+=cut
+
+sub get_menu_popup_item {
+    my ( $self, $name ) = @_;
+
+    return $self->{_menu}{$name};
 }
 
 =head2 get_menubar
@@ -402,8 +490,6 @@ sub create_report_page {
 
     #-- Controls
 
-    # $self->{title}
-
     my $bg  = $self->cget('-background');
     my $f1d = 90;
 
@@ -458,21 +544,21 @@ sub create_report_page {
         -left => [ %0, $f1d ],
     );
 
-    #-- sheet
+    #-- template
 
-    my $lsheet = $frame_mid->Label( -text => 'Sheet' );
-    $lsheet->form(
+    my $ltemplate = $frame_mid->Label( -text => 'Template' );
+    $ltemplate->form(
         -top  => [ $loutput, 8 ],
-        -left => [ %0, 5 ],
+        -left => [ %0,       5 ],
     );
-    my $esheet = $frame_mid->Entry(
+    my $etemplate = $frame_mid->Entry(
         -width              => 40,
         -disabledbackground => $bg,
         -disabledforeground => 'black',
     );
-    $esheet->form(
-        -top  => [ '&', $lsheet, 0 ],
-        -left => [ %0, $f1d ],
+    $etemplate->form(
+        -top       => [ '&', $ltemplate, 0 ],
+        -left      => [ %0,  $f1d ],
         -padbottom => 5,
     );
 
@@ -849,41 +935,16 @@ sub on_quit {
     return;
 }
 
-=head2 w_geometry
-
-Return window geometry
-
-=cut
-
-sub get_geometry {
-    my $self = shift;
-
-    my $wsys = $self->windowingsystem;
-    my $name = $self->name;
-    my $geom = $self->geometry;
-
-    # All dimensions are in pixels.
-    my $sh = $self->screenheight;
-    my $sw = $self->screenwidth;
-
-    print "\nSystem   = $wsys\n";
-    print "Name     = $name\n";
-    print "Geometry = $geom\n";
-    print "Screen   = $sw x $sh\n";
-
-    return $geom;
-}
-
-=head2 get_recordlist
+=head2 get_listcontrol
 
 Return the record list handler
 
 =cut
 
-sub get_recordlist {
+sub get_listcontrol {
     my $self = shift;
 
-    return $self->{_rc};
+    return $self->{_list};
 }
 
 =head2 make_list_header
@@ -896,8 +957,8 @@ sub make_list_header {
     my ( $self, $header_look, $header_cols, $fields ) = @_;
 
     #- Delete existing columns
-    $self->get_recordlist->selectionClear( 0, 'end' );
-    $self->get_recordlist->columnDelete( 0, 'end' );
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->columnDelete( 0, 'end' );
 
     #- Make header
     $self->{lookup} = [];
@@ -934,20 +995,20 @@ sub list_header {
     my ( $self, $col, $colcnt ) = @_;
 
     # Label
-    $self->get_recordlist->columnInsert( 'end', -text => $col->{label} );
+    $self->get_listcontrol->columnInsert( 'end', -text => $col->{label} );
 
     # Background
-    $self->get_recordlist->columnGet($colcnt)->Subwidget('heading')
+    $self->get_listcontrol->columnGet($colcnt)->Subwidget('heading')
         ->configure( -background => 'tan' );
 
     # Width
-    $self->get_recordlist->columnGet($colcnt)->Subwidget('heading')
+    $self->get_listcontrol->columnGet($colcnt)->Subwidget('heading')
         ->configure( -width => $col->{width} );
 
     # Sort order, (A)lpha is default
     if ( defined $col->{order} ) {
         if ( $col->{order} eq 'N' ) {
-            $self->get_recordlist->columnGet($colcnt)
+            $self->get_listcontrol->columnGet($colcnt)
                 ->configure( -comparecommand => sub { $_[0] <=> $_[1] } );
         }
     }
@@ -958,17 +1019,17 @@ sub list_header {
     return;
 }
 
-=head2 list_init
+=head2 list_item_clear_all
 
-Delete the rows of the list.
+Delete all list control items
 
 =cut
 
-sub list_init {
+sub list_item_clear_all {
     my $self = shift;
 
-    $self->get_recordlist->selectionClear( 0, 'end' );
-    $self->get_recordlist->delete( 0, 'end' );
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->delete( 0, 'end' );
 
     return;
 }
@@ -984,8 +1045,8 @@ sub list_populate {
 
     my $row_count;
 
-    if ( Exists( $self->get_recordlist ) ) {
-        eval { $row_count = $self->get_recordlist->size(); };
+    if ( Exists( $self->get_listcontrol ) ) {
+        eval { $row_count = $self->get_listcontrol->size(); };
         if ($@) {
             warn "Error: $@";
             $row_count = 0;
@@ -1000,11 +1061,11 @@ sub list_populate {
 
     # Data
     foreach my $record ( @{$ary_ref} ) {
-        $self->get_recordlist->insert( 'end', $record );
-        $self->get_recordlist->see('end');
+        $self->get_listcontrol->insert( 'end', $record );
+        $self->get_listcontrol->see('end');
         $row_count++;
 #        $self->set_status( "$row_count records fetched", 'ms' );
-        $self->get_recordlist->update;
+        $self->get_listcontrol->update;
 
         # Progress bar
         my $p = floor( $row_count * 10 / $record_count ) * 10;
@@ -1014,10 +1075,10 @@ sub list_populate {
 #    $self->set_status( "$row_count records listed", 'ms' );
 
     # Activate and select last
-    $self->get_recordlist->selectionClear( 0, 'end' );
-    $self->get_recordlist->activate('end');
-    $self->get_recordlist->selectionSet('end');
-    $self->get_recordlist->see('active');
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->activate('end');
+    $self->get_listcontrol->selectionSet('end');
+    $self->get_listcontrol->see('active');
     $self->{progres} = 0;
 
     return $record_count;
@@ -1033,7 +1094,7 @@ sub list_raise {
     my $self = shift;
 
     $self->{_nb}->raise('lst');
-    $self->get_recordlist->focus;
+    $self->get_listcontrol->focus;
 
     return;
 }
@@ -1049,8 +1110,8 @@ sub has_list_records {
 
     my $row_count;
 
-    if ( Exists( $self->get_recordlist ) ) {
-        eval { $row_count = $self->get_recordlist->size(); };
+    if ( Exists( $self->get_listcontrol ) ) {
+        eval { $row_count = $self->get_listcontrol->size(); };
         if ($@) {
             warn "Error: $@";
             $row_count = 0;
@@ -1082,7 +1143,7 @@ sub list_read_selected {
     my @selected;
     my $indecs;
 
-    eval { @selected = $self->get_recordlist->curselection(); };
+    eval { @selected = $self->get_listcontrol->curselection(); };
     if ($@) {
         warn "Error: $@";
 
@@ -1095,17 +1156,17 @@ sub list_read_selected {
 
             # Activate the last row
             $indecs = 'end';
-            $self->get_recordlist->selectionClear( 0, 'end' );
-            $self->get_recordlist->activate($indecs);
-            $self->get_recordlist->selectionSet($indecs);
-            $self->get_recordlist->see('active');
+            $self->get_listcontrol->selectionClear( 0, 'end' );
+            $self->get_listcontrol->activate($indecs);
+            $self->get_listcontrol->selectionSet($indecs);
+            $self->get_listcontrol->see('active');
         }
     }
 
     # In scalar context, getRow returns the value of column 0
     my @idxs = @{ $self->{lookup} };    # indices for Pk and Fk cols
     my @returned;
-    eval { @returned = ( $self->get_recordlist->getRow($indecs) )[@idxs]; };
+    eval { @returned = ( $self->get_listcontrol->getRow($indecs) )[@idxs]; };
     if ($@) {
         warn "Error: $@";
 
@@ -1158,7 +1219,7 @@ sub list_remove_selected {
     #- OK, found, delete from list
 
     my @selected;
-    eval { @selected = $self->get_recordlist->curselection(); };
+    eval { @selected = $self->get_listcontrol->curselection(); };
     if ($@) {
         warn "Error: $@";
 
@@ -1168,7 +1229,7 @@ sub list_remove_selected {
     else {
         my $indecs = pop @selected;    # first row in case of multiselect
         if ( defined $indecs ) {
-            $self->get_recordlist->delete($indecs);
+            $self->get_listcontrol->delete($indecs);
         }
         else {
             print "EE: Nothing selected!\n";
@@ -1192,7 +1253,7 @@ sub list_locate {
     my $fk_idx = $self->{lookup}[1];
     my $idx;
 
-    my @returned = $self->get_recordlist->get( 0, 'end' );
+    my @returned = $self->get_listcontrol->get( 0, 'end' );
     my $i = 0;
     foreach my $rec (@returned) {
         if ( $rec->[$pk_idx] eq $pk_val ) {
@@ -1214,6 +1275,37 @@ sub list_locate {
     }
 
     return $idx;
+}
+
+=head2 list_populate_all
+
+Populate all other pages except the configuration page
+
+=cut
+
+sub list_populate_all {
+    my $self = shift;
+
+    my $titles = $self->_model->get_list_data();
+
+    # Clear list
+    $self->list_item_clear_all();
+
+    # Populate list in sorted order
+    my @titles = sort { $a <=> $b } keys %{$titles};
+    foreach my $indice ( @titles ) {
+        my $nrcrt = $titles->{$indice}[0];
+        my $title = $titles->{$indice}[1];
+        my $file  = $titles->{$indice}[2];
+        print "$nrcrt -> $title\n";
+#        $self->list_item_insert($indice, $nrcrt, $title, $file);
+ #       $self->get_listcontrol->insert( 'end', $record );
+    }
+
+    # Set item 0 selected on start
+    $self->list_item_select_first();
+
+    return;
 }
 
 =head1 AUTHOR
