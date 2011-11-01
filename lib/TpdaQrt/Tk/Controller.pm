@@ -231,7 +231,7 @@ sub _set_event_handlers {
     #-- Save
     $self->_view->get_toolbar_btn('tb_sv')->bind(
         '<ButtonRelease-1>' => sub {
-            if ( $self->_model->is_mode('edit') ) {
+            if ( $self->_model->is_appmode('edit') ) {
                 $self->_view->save_query_def();
                 $self->set_app_mode('sele');
             }
@@ -241,7 +241,7 @@ sub _set_event_handlers {
     #-- Edit
     $self->_view->get_toolbar_btn('tb_ed')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->is_mode('edit')
+            $self->_model->is_appmode('edit')
                 ? $self->set_app_mode('sele')
                 : $self->set_app_mode('edit');
         }
@@ -288,7 +288,7 @@ sub _set_event_handlers {
     #-- Reload - F5
     $self->_view->bind(
         '<F5>' => sub {
-            $self->_model->is_mode('edit')
+            $self->_model->is_appmode('edit')
                 ? $self->record_reload()
                 : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
         }

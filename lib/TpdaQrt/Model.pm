@@ -3,6 +3,8 @@ package TpdaQrt::Model;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
@@ -160,13 +162,13 @@ sub set_mode {
     return;
 }
 
-=head2 is_mode
+=head2 is_appmode
 
-Return true if is mode
+Return true if application mode is $ck_mode.
 
 =cut
 
-sub is_mode {
+sub is_appmode {
     my ( $self, $ck_mode ) = @_;
 
     my $mode = $self->get_appmode_observable->get;
@@ -388,9 +390,9 @@ sub save_query_def {
     my ($self, $file_fqn, $head, $para, $body) = @_;
 
     # Transform records to match data in xml format
-    $head = $self->transform_data($head);
-    $para = $self->transform_para($para);
-    $body = $self->transform_data($body);
+    $head = TpdaQrt::Utils->transform_data($head);
+    $para = TpdaQrt::Utils->transform_para($para);
+    $body = TpdaQrt::Utils->transform_data($body);
 
     # Asemble data
     my $record = {
@@ -404,54 +406,6 @@ sub save_query_def {
     $self->message_log('II Saved');
 
     return $head->{title};
-}
-
-=head2 transform_data
-
-Transform data to be suitable to save in XML format
-
-=cut
-
-sub transform_data {
-    my ($self, $record) = @_;
-
-    my $rec;
-
-    foreach my $item ( @{$record} ) {
-        while (my ($key, $value) = each ( %{$item} ) ) {
-            $rec->{$key} = $value;
-        }
-    }
-
-    return $rec;
-}
-
-=head2 transform_para
-
-Transform parameters data to be suitable to save in XML format
-
-=cut
-
-sub transform_para {
-    my ($self, $record) = @_;
-
-    my (@aoh, $rec);
-
-    foreach my $item ( @{$record} ) {
-        while (my ($key, $value) = each ( %{$item} ) ) {
-            if ($key =~ m{descr([0-9])} ) {
-                $rec = {};      # new record
-                $rec->{descr} = $value;
-            }
-            if ($key =~ m{value([0-9])} ) {
-                $rec->{id} = $1;
-                $rec->{value} = $value;
-                push(@aoh, $rec);
-            }
-        }
-    }
-
-    return \@aoh;
 }
 
 =head2 report_add
@@ -588,28 +542,6 @@ sub get_choice_observable {
     return $self->{_choice};
 }
 
-=head2 params_data_to_hash
-
-Transform data in simple hash reference format
-
-TODO: Move this to model?
-
-=cut
-
-sub params_data_to_hash {
-    my ($self, $params) = @_;
-
-    my $parameters;
-    foreach my $parameter ( @{ $params->{parameter} } ) {
-        my $id = $parameter->{id};
-        if ($id) {
-            $parameters->{"value$id"} = $parameter->{value};
-            $parameters->{"descr$id"} = $parameter->{descr};
-        }
-    }
-
-    return $parameters;
-}
 
 =head1 AUTHOR
 

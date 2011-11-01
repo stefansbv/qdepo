@@ -1416,6 +1416,22 @@ sub get_detail_data {
     return ( $ddata_ref, $file_fqn, $sel_item );
 }
 
+
+=head2 set_list_text
+
+Set text item from list control row and col
+
+=cut
+
+sub set_list_text {
+    my ($self, $row, $col, $text) = @_;
+
+    $self->{_list}->selectionClear(0, 'end');
+    $self->{_list}->insert($row, [ $row+1, $text ]);
+
+    return;
+}
+
 sub get_list_selected_index {
     my $self = shift;
 
@@ -1633,7 +1649,7 @@ sub controls_populate {
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     # #-- Parameters
-    my $params = $self->_model->params_data_to_hash( $ddata_ref->{parameters} );
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
     $self->controls_write_page('para', $params );
 
     # #-- SQL
@@ -1860,7 +1876,7 @@ sub change_look {
 
         # New fonts
         $fontglob = '{MS Sans Serif} 10';
-        $fonttext = '{Courier New} 11';
+        $fonttext = '{Terminus} 11';         # Courier New
     }
 
     # Change the font and fg color
@@ -1889,9 +1905,9 @@ sub toggle_sql_replace {
     my ( $ddata, $file_fqn ) = $self->get_detail_data();
 
     #-- Parameters
-    my $params = $self->_model->params_data_to_hash( $ddata->{parameters} );
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
 
-    if ( $self->_model->is_mode('edit') ) {
+    if ( $self->_model->is_appmode('edit') ) {
         $self->control_set_value( 'sql', $ddata->{body}{sql} );
     }
     else {

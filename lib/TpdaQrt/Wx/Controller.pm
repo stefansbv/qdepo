@@ -234,7 +234,7 @@ sub _set_event_handlers {
     #-- Save
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
         sub {
-            if ( $self->_model->is_mode('edit') ) {
+            if ( $self->_model->is_appmode('edit') ) {
                 $self->_view->save_query_def();
                 $self->set_app_mode('sele');
             }
@@ -243,7 +243,7 @@ sub _set_event_handlers {
     #-- Edit
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
         sub {
-            $self->_model->is_mode('edit')
+            $self->_model->is_appmode('edit')
                 ? $self->set_app_mode('sele')
                 : $self->set_app_mode('edit');
         };

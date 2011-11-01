@@ -11,6 +11,7 @@ use Wx::STC;
 use TpdaQrt::Config;
 use TpdaQrt::Wx::Notebook;
 use TpdaQrt::Wx::ToolBar;
+use TpdaQrt::Utils;
 
 use base 'Wx::Frame';
 
@@ -162,7 +163,8 @@ sub update_gui_components {
 
     if ($mode eq 'edit') {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
-        $self->_model->toggle_sql_replace();
+        #$self->_model->toggle_sql_replace();
+        $self->toggle_sql_replace();
     }
     else {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
@@ -848,7 +850,10 @@ Set text item from list control row and col
 
 sub set_list_text {
     my ($self, $row, $col, $text) = @_;
+
     $self->get_listcontrol->SetItemText( $row, $col, $text );
+
+    return;
 }
 
 =head2 set_list_data
@@ -1103,14 +1108,15 @@ sub controls_populate {
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
-    my $params = $self->_model->params_data_to_hash( $ddata_ref->{parameters} );
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
     $self->controls_write_page('para', $params );
 
     #-- SQL
     $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
 
     #--- Highlight SQL parameters
-    $self->_model->toggle_sql_replace();
+    # $self->_model->toggle_sql_replace();
+    $self->toggle_sql_replace();
 }
 
 =head2 toggle_sql_replace
@@ -1126,9 +1132,9 @@ sub toggle_sql_replace {
     my ( $ddata, $file_fqn ) = $self->get_detail_data();
 
     #-- Parameters
-    my $params = $self->params_data_to_hash( $ddata->{parameters} );
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
 
-    if ( $self->_model->is_mode('edit') ) {
+    if ( $self->_model->is_appmode('edit') ) {
         $self->control_set_value( 'sql', $ddata->{body}{sql} );
     }
     else {
@@ -1370,7 +1376,7 @@ sub control_set_value {
     $control->ClearAll;
     $control->AppendText($value);
     $control->AppendText( "\n" );
-    $control->Colourise( 0, $ctrl->GetTextLength );
+    $control->Colourise( 0, $control->GetTextLength );
 
     return;
 }
