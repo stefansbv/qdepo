@@ -54,6 +54,7 @@ sub new {
         _appmode     => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
         _progress    => TpdaQrt::Observable->new(),
+        _lds         => {},                 # list data structure
     };
 
     $self->{fio} = TpdaQrt::FileIO->new();
@@ -278,30 +279,60 @@ sub on_item_selected {
     $self->get_itemchanged_observable->set( 1 );
 }
 
-=head2 get_list_data
+=head2 load_qdf_data
 
-Get the titles from all the QDF files
+Load the titles and file names from all the QDF files.
 
 =cut
 
-sub get_list_data {
+sub load_qdf_data {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
 
-    my $indice = 0;
+    my $indecs = 0;
     my $titles = {};
 
     # Format titles
     foreach my $rec ( @{$data_ref} ) {
         if (ref $rec) {
-            my $nrcrt = $indice + 1;
-            $titles->{$indice} = [ $nrcrt, $rec->{title}, $rec->{file} ];
-            $indice++;
+            # my $nrcrt = $indecs + 1;
+            # $titles->{$indecs} = [ $nrcrt, $rec->{title}, $rec->{file} ];
+
+            # Store records
+            $self->{_lds}{$indecs} = $rec;
+            $self->{_lds}{$indecs}{nrcrt} = $indecs + 1;
+
+            $indecs++;
         }
     }
 
-    return $titles;
+    return;
+}
+
+sub get_qdf_data {
+    my ($self, $item) = @_;
+
+    if ($item) {
+        return $self->{_lds}{$item};
+    }
+    else {
+        return $self->{_lds};
+    }
+}
+
+sub get_qdf_data_file {
+    my ($self, $item) = @_;
+
+    return $self->{_lds}{$item}{file};
+}
+
+sub set_qdf_data {
+    my ($self, $item, $data_href) = @_;
+
+    $self->{_lds}{$item} = $data_href;
+
+    return;
 }
 
 =head2 run_export

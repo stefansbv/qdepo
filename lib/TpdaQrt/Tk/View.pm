@@ -3,17 +3,16 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
     LabFrame );
 
-use base 'Tk::MainWindow';
-
 use TpdaQrt::Config;
 use TpdaQrt::Tk::TB;    # ToolBar
+use TpdaQrt::Utils;
+
+use base 'Tk::MainWindow';
 
 =head1 NAME
 
@@ -49,35 +48,22 @@ sub new {
 
     $self->{_cfg} = TpdaQrt::Config->instance();
 
-    $self->{_lds} = {};                     # init list data structure
-
     $self->title(" TpdaQrt ");
 
     $self->change_look();
 
-    #-- Menu
+    #-- GUI components
+
     $self->_create_menu();
-
-    #-- ToolBar
     $self->_create_toolbar();
-
-    #-- Statusbar
     $self->_create_statusbar();
-
-    #-- Notebook
     $self->_create_notebook();
+    $self->_create_para_page();
+    $self->_create_sql_page();
+    $self->_create_config_page();
+    $self->_create_report_page();
 
-    #--- Parameters Tab (page) Panel
-    $self->create_para_page();
-
-    #--- SQL Tab (page)
-    $self->create_sql_page();
-
-    #--- Configs Tab (page)
-    $self->create_config_page();
-
-    #--- Front Tab (page)
-    $self->create_report_page();
+    #-- GUI actions
 
     $self->_set_model_callbacks();
 
@@ -118,11 +104,7 @@ sub _set_model_callbacks {
     my $self = shift;
 
     my $co = $self->_model->get_connection_observable;
-    $co->add_callback(
-        sub {
-            $self->toggle_status_cn( $_[0] );
-        }
-    );
+    $co->add_callback( sub { $self->toggle_status_cn( $_[0] ); } );
 
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
@@ -130,14 +112,13 @@ sub _set_model_callbacks {
 
     #--
     my $upd = $self->_model->get_itemchanged_observable;
-    $upd->add_callback(
-        sub { $self->controls_populate(); } );
+    $upd->add_callback( sub { $self->controls_populate(); } );
 
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
-    # my $xo = $self->_model->get_exception_observable;
-    # $xo->add_callback( sub{ $self->log_msg( @_ ) } );
+    my $xo = $self->_model->get_exception_observable;
+    $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
     # my $pr = $self->_model->get_progress_observable;
     # $pr->add_callback( sub{ $self->progress_update( @_ ) } );
@@ -429,13 +410,13 @@ sub get_notebook {
     }
 }
 
-=head2 create_report_page
+=head2 _create_report_page
 
 Create the report page (tab) on the notebook
 
 =cut
 
-sub create_report_page {
+sub _create_report_page {
     my $self = shift;
 
     # Frame box
@@ -592,13 +573,13 @@ sub create_report_page {
     return;
 }
 
-=head2 create_para_page
+=head2 _create_para_page
 
 Create the parameters page (tab) on the notebook
 
 =cut
 
-sub create_para_page {
+sub _create_para_page {
     my $self = shift;
 
     #--- Frame Top0
@@ -823,13 +804,13 @@ sub create_para_page {
     return;
 }
 
-=head2 create_sql_page
+=head2 _create_sql_page
 
 Create the SQL page (tab) on the notebook
 
 =cut
 
-sub create_sql_page {
+sub _create_sql_page {
     my $self = shift;
 
     #--- SQL Tab (page)
@@ -847,7 +828,7 @@ sub create_sql_page {
         -fill   => 'both',
     );
 
-    #-- sqltext
+    #-- SQL text
 
     $self->{sql} = $frame_top->Scrolled(
         'Text',
@@ -867,13 +848,13 @@ sub create_sql_page {
     return;
 }
 
-=head2 create_config_page
+=head2 _create_config_page
 
 Create the Log info page (tab) on the notebook.
 
 =cut
 
-sub create_config_page {
+sub _create_config_page {
     my $self = shift;
 
     #--- Info Tab (page)
@@ -891,9 +872,9 @@ sub create_config_page {
         -fill   => 'both',
     );
 
-    #-- logtext
+    #-- Log text
 
-    my $elogtext = $frame_top->Scrolled(
+    $self->{log} = $frame_top->Scrolled(
         'Text',
         -width      => 40,
         -height     => 3,
@@ -901,7 +882,7 @@ sub create_config_page {
         -scrollbars => 'soe',
         -background => 'white',
     );
-    $elogtext->pack(
+    $self->{log}->pack(
         -expand => 1,
         -fill   => 'both',
         -padx   => 5,
@@ -940,6 +921,474 @@ sub get_toolbar_btn {
     my ( $self, $name ) = @_;
 
     return $self->{_tb}->get_toolbar_btn($name);
+}
+
+=head2 get_choice_default
+
+Return the choice default option, the first element in the array.
+
+=cut
+
+sub get_choice_default {
+    my $self = shift;
+
+    return $self->{_tb}->get_choice_options(0);
+}
+
+=head2 get_listcontrol
+
+Return the record list handler
+
+=cut
+
+sub get_listcontrol {
+    my $self = shift;
+
+    return $self->{_list};
+}
+
+=head2 get_controls_list
+
+Return a AoH with information regarding the controls from the list page.
+
+=cut
+
+sub get_controls_list {
+    my $self = shift;
+
+    return [
+        { title    => [ $self->{title},    'normal',   'white',     'e' ] },
+        { filename => [ $self->{filename}, 'disabled', 'lightgrey', 'e' ] },
+        { output   => [ $self->{output},   'normal',   'white',     'e' ] },
+        { template => [ $self->{template}, 'normal',   'white',     'e' ] },
+        { description => [ $self->{description}, 'normal', 'white', 't' ] },
+    ];
+}
+
+=head2 get_controls_para
+
+Return a AoH with information regarding the controls from the parameters page.
+
+=cut
+
+sub get_controls_para {
+    my $self = shift;
+
+    return [
+        { descr1 => [ $self->{descr1}, 'normal', 'white', 'e' ] },
+        { value1 => [ $self->{value1}, 'normal', 'white', 'e' ] },
+        { descr2 => [ $self->{descr2}, 'normal', 'white', 'e' ] },
+        { value2 => [ $self->{value2}, 'normal', 'white', 'e' ] },
+        { descr3 => [ $self->{descr3}, 'normal', 'white', 'e' ] },
+        { value3 => [ $self->{value3}, 'normal', 'white', 'e' ] },
+        { descr4 => [ $self->{descr4}, 'normal', 'white', 'e' ] },
+        { value4 => [ $self->{value4}, 'normal', 'white', 'e' ] },
+        { descr5 => [ $self->{descr5}, 'normal', 'white', 'e' ] },
+        { value5 => [ $self->{value5}, 'normal', 'white', 'e' ] },
+    ];
+}
+
+=head2 get_controls_sql
+
+Return a AoH with information regarding the controls from the SQL page.
+
+=cut
+
+sub get_controls_sql {
+    my $self = shift;
+
+    return [
+        { sql => [ $self->{sql}, 'normal'  , 'white', 't' ] },
+    ];
+}
+
+=head2 get_controls_conf
+
+Return a AoH with information regarding the controls from the
+configurations page.
+
+None at this time.
+
+=cut
+
+sub get_controls_conf {
+    my $self = shift;
+
+    return [];
+}
+
+=head2 get_control_by_name
+
+Return the control instance by name.
+
+=cut
+
+sub get_control_by_name {
+    my ($self, $name) = @_;
+
+    return $self->{$name};
+}
+
+=head2 set_list_text
+
+Set text item from list control row and col
+
+=cut
+
+sub set_list_text {
+    my ($self, $row, $col, $text) = @_;
+
+    $self->{_list}->selectionClear(0, 'end');
+    $self->{_list}->insert($row, [ $row+1, $text ]);
+
+    return;
+}
+
+=head2 list_item_select_first
+
+Select the first item in list.
+
+=cut
+
+sub list_item_select_first {
+    my $self = shift;
+
+    # Activate and select first
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->activate(0);
+    $self->get_listcontrol->selectionSet(0);
+    $self->get_listcontrol->see('active');
+
+    return;
+}
+
+=head2 list_item_select_last
+
+Select the last item in list.
+
+=cut
+
+sub list_item_select_last {
+    my $self = shift;
+
+    # Activate and select last
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->activate('end');
+    $self->get_listcontrol->selectionSet('end');
+    $self->get_listcontrol->see('active');
+
+    return;
+}
+
+=head2 get_list_max_index
+
+Return the max index from the list control
+
+=cut
+
+sub get_list_max_index {
+    my $self = shift;
+
+    my $row_count;
+
+    if ( Exists( $self->get_listcontrol ) ) {
+        eval { $row_count = $self->get_listcontrol->size(); };
+        if ($@) {
+            warn "Error: $@";
+            $row_count = 0;
+        }
+    }
+    else {
+        warn "Error, List doesn't exists?\n";
+        $row_count = 0;
+    }
+
+    return $row_count;
+}
+
+=head2 get_list_selected_index
+
+Return the selected index from the list control.
+
+=cut
+
+sub get_list_selected_index {
+    my $self = shift;
+
+    my @selected;
+    eval { @selected = $self->get_listcontrol->curselection(); };
+    if ($@) {
+        warn "Error: $@";
+        return;
+    }
+    else {
+        return pop @selected;    # first row in case of multiselect
+    }
+}
+
+
+=head2 list_item_insert
+
+Insert item in list control
+
+=cut
+
+sub list_item_insert {
+    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
+
+    # Remember, always sort by index before insert!
+    $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
+
+    return;
+}
+
+=head2 list_item_clear
+
+Delete list control item.
+
+=cut
+
+sub list_item_clear {
+    my ($self, $indecs) = @_;
+
+    if ( defined $indecs ) {
+        $self->get_listcontrol->delete($indecs);
+    }
+    else {
+        print "EE: Nothing selected!\n";
+    }
+
+    return;
+}
+
+=head2 list_item_clear_all
+
+Delete all list control items.
+
+=cut
+
+sub list_item_clear_all {
+    my $self = shift;
+
+    $self->get_listcontrol->selectionClear( 0, 'end' );
+    $self->get_listcontrol->delete( 0, 'end' );
+
+    return;
+}
+
+=head2 log_config_options
+
+Log configuration options with data from the Config module
+
+=cut
+
+sub log_config_options {
+    my $self = shift;
+
+    my $cfg  = TpdaQrt::Config->instance();
+    my $path = $cfg->output;
+
+    while ( my ( $key, $value ) = each( %{$path} ) ) {
+        $self->log_msg("II Config: '$key' set to '$value'");
+    }
+}
+
+=head2 list_populate_all
+
+Populate all other pages except the configuration page
+
+=cut
+
+sub list_populate_all {
+    my $self = shift;
+
+    my $indices = $self->_model->get_qdf_data();
+
+    # Populate list in sorted order
+    my @indices = sort { $a <=> $b } keys %{$indices};
+
+    # Clear list
+    $self->list_item_clear_all();
+
+    foreach my $idx ( @indices ) {
+        my $nrcrt = $indices->{$idx}{nrcrt};
+        my $title = $indices->{$idx}{title};
+        my $file  = $indices->{$idx}{file};
+        # print "$nrcrt -> $title\n";
+        $self->list_item_insert($idx, $nrcrt, $title, $file);
+    }
+
+    # Set item 0 selected on start
+    $self->list_item_select_first();
+
+    return;
+}
+
+=head2 list_populate_item
+
+Add new item in list control and select the last item.
+
+=cut
+
+sub list_populate_item {
+    my ( $self, $rec ) = @_;
+
+    my $idx = $self->get_list_max_index();
+
+    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
+
+    $self->list_item_select_last();
+}
+
+=head2 list_remove_item
+
+Remove item from list control and select the first item
+
+=cut
+
+sub list_remove_item {
+    my $self = shift;
+
+    my $sel_item = $self->get_list_selected_index();
+    my $file_fqn = $self->_model->get_qdf_data_file($sel_item);
+
+    # Remove from list
+    $self->list_item_clear($sel_item);
+
+    # Set item 0 selected
+    $self->list_item_select_first();
+
+    return $file_fqn;
+}
+
+=head2 get_detail_data
+
+Return detail data from the selected list control item
+
+=cut
+
+sub get_detail_data {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+
+    return ( $ddata_ref, $file_fqn, $sel_item );
+}
+
+=head2 controls_populate
+
+Populate controls with data from XML
+
+=cut
+
+sub controls_populate {
+    my $self = shift;
+
+    my ($ddata_ref, $file_fqn) = $self->get_detail_data();
+
+    my $cfg     = TpdaQrt::Config->instance();
+    my $qdfpath = $cfg->qdfpath;
+
+    # print Dumper( $ddata_ref, $file_fqn );
+
+    #-- Header
+
+    # Write in the control the filename, remove path config path
+    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
+
+    # # Add real path to control
+    $ddata_ref->{header}{filename} = $file_rel;
+    $self->controls_write_page('list', $ddata_ref->{header} );
+
+    # #-- Parameters
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
+    $self->controls_write_page('para', $params );
+
+    # #-- SQL
+    # $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
+    $self->controls_write_page('sql', $ddata_ref->{body} );
+
+    # #--- Highlight SQL parameters
+    $self->toggle_sql_replace();
+}
+
+
+=head2 toggle_sql_replace
+
+Toggle sql replace
+
+=cut
+
+sub toggle_sql_replace {
+    my $self = shift;
+
+    #- Detail data
+    my ( $ddata, $file_fqn ) = $self->get_detail_data();
+
+    #-- Parameters
+    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
+
+    if ( $self->_model->is_appmode('edit') ) {
+        $self->control_set_value( 'sql', $ddata->{body}{sql} );
+    }
+    else {
+        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
+    }
+}
+
+=head2 control_replace_sql_text
+
+Replace sql text control
+
+=cut
+
+sub control_replace_sql_text {
+    my ($self, $sqltext, $params) = @_;
+
+    my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
+
+    # Write new text to control
+    $self->control_set_value('sql', $newtext);
+}
+
+=head2 log_msg
+
+Set log message
+
+=cut
+
+sub log_msg {
+    my ( $self, $message ) = @_;
+
+    $self->control_append_value( 'log', $message );
+}
+
+=head2 string_replace_pos
+
+Replace string pos
+
+=cut
+
+sub string_replace_pos {
+    my ($self, $text, $params) = @_;
+
+    my @strpos;
+
+    while (my ($key, $value) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Replace  text and return the strpos
+        $text =~ s/($key)/$value/pm;
+        my $pos = $-[0];
+        push(@strpos, [ $pos, $key, $value ]);
+    }
+
+    # Sorted by $pos
+    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
+
+    return ($text, \@sortedpos);
 }
 
 =head2 status_message
@@ -1033,10 +1482,10 @@ sub _create_notebook {
 
     #- Panels
 
-    $self->create_notebook_panel( 'p1', 'Query List' );
-    $self->create_notebook_panel( 'p2', 'Parameters' );
-    $self->create_notebook_panel( 'p3', 'SQL Query' );
-    $self->create_notebook_panel( 'p4', 'Log Info' );
+    $self->_create_notebook_panel( 'p1', 'Query List' );
+    $self->_create_notebook_panel( 'p2', 'Parameters' );
+    $self->_create_notebook_panel( 'p3', 'SQL Query' );
+    $self->_create_notebook_panel( 'p4', 'Log Info' );
 
     $self->{_nb}->pack(
         -side   => 'top',
@@ -1052,13 +1501,13 @@ sub _create_notebook {
     return;
 }
 
-=head2 create_notebook_panel
+=head2 _create_notebook_panel
 
 Create a NoteBook panel
 
 =cut
 
-sub create_notebook_panel {
+sub _create_notebook_panel {
     my ( $self, $panel, $label ) = @_;
 
     $self->{_nb}{$panel} = $self->{_nb}->add(
@@ -1066,57 +1515,6 @@ sub create_notebook_panel {
         -label     => $label,
         -underline => 0,
     );
-
-    return;
-}
-
-=head2 get_nb_current_page
-
-Return the current page of the Tk::NoteBook widget.
-
-=cut
-
-sub get_nb_current_page {
-    my $self = shift;
-
-    my $nb = $self->get_notebook;
-
-    return unless ref $nb;
-
-    return $nb->raised();
-}
-
-sub set_nb_current {
-    my ( $self, $page ) = @_;
-
-    $self->{nb_prev} = $self->{nb_curr};    # previous tab name
-    $self->{nb_curr} = $page;               # current tab name
-
-    return;
-}
-
-=head2 get_nb_previous_page
-
-NOTE: $nb->info('focusprev') doesn't work.
-
-=cut
-
-sub get_nb_previous_page {
-    my $self = shift;
-
-    return $self->{nb_prev};
-}
-
-=head2 nb_set_page_state
-
-Enable/disable notebook pages.
-
-=cut
-
-sub nb_set_page_state {
-    my ($self, $page, $state) = @_;
-
-    $self->get_notebook()->pageconfigure( $page, -state => $state );
 
     return;
 }
@@ -1206,124 +1604,6 @@ sub on_quit {
     return;
 }
 
-=head2 get_listcontrol
-
-Return the record list handler
-
-=cut
-
-sub get_listcontrol {
-    my $self = shift;
-
-    return $self->{_list};
-}
-
-=head2 list_item_clear_all
-
-Delete all list control items
-
-=cut
-
-sub list_item_clear_all {
-    my $self = shift;
-
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->delete( 0, 'end' );
-
-    return;
-}
-
-# =head2 list_populate
-
-# Populate list with data from query result.
-
-# =cut
-
-# sub list_populate {
-#     my ( $self, $ary_ref ) = @_;
-
-#     my $row_count;
-
-#     if ( Exists( $self->get_listcontrol ) ) {
-#         eval { $row_count = $self->get_listcontrol->size(); };
-#         if ($@) {
-#             warn "Error: $@";
-#             $row_count = 0;
-#         }
-#     }
-#     else {
-#         warn "No MList!\n";
-#         return;
-#     }
-
-#     my $record_count = scalar @{$ary_ref};
-
-#     # Data
-#     foreach my $record ( @{$ary_ref} ) {
-#         $self->get_listcontrol->insert( 'end', $record );
-#         $self->get_listcontrol->see('end');
-#         $row_count++;
-# #        $self->set_status( "$row_count records fetched", 'ms' );
-#         $self->get_listcontrol->update;
-
-#         # Progress bar
-#         my $p = floor( $row_count * 10 / $record_count ) * 10;
-#         if ( $p % 10 == 0 ) { $self->{progres} = $p; }
-#     }
-
-# #    $self->set_status( "$row_count records listed", 'ms' );
-
-#     # Activate and select last
-#     $self->get_listcontrol->selectionClear( 0, 'end' );
-#     $self->get_listcontrol->activate('end');
-#     $self->get_listcontrol->selectionSet('end');
-#     $self->get_listcontrol->see('active');
-#     $self->{progres} = 0;
-
-#     return $record_count;
-# }
-
-=head2 list_raise
-
-Raise I<List> tab and set focus to list.
-
-=cut
-
-sub list_raise {
-    my $self = shift;
-
-    $self->{_nb}->raise('lst');
-    $self->get_listcontrol->focus;
-
-    return;
-}
-
-=head2 get_list_max_index
-
-Return the max index from the list control
-
-=cut
-
-sub get_list_max_index {
-    my $self = shift;
-
-    my $row_count;
-
-    if ( Exists( $self->get_listcontrol ) ) {
-        eval { $row_count = $self->get_listcontrol->size(); };
-        if ($@) {
-            warn "Error: $@";
-            $row_count = 0;
-        }
-    }
-    else {
-        warn "Error, List doesn't exists?\n";
-        $row_count = 0;
-    }
-
-    return $row_count;
-}
-
 =head2 list_read_selected
 
 Read and return selected row (column 0) from list
@@ -1377,287 +1657,6 @@ sub list_read_selected {
     }
 
     return \@returned;
-}
-
-=head2 list_remove_item
-
-Remove item from list control and select the first item
-
-=cut
-
-sub list_remove_item {
-    my $self = shift;
-
-    my $sel_item = $self->get_list_selected_index();
-    my $file_fqn = $self->get_list_data($sel_item);
-
-    # Remove from list
-    $self->list_item_clear($sel_item);
-
-    # Set item 0 selected
-    $self->list_item_select_first();
-
-    return $file_fqn;
-}
-
-=head2 get_detail_data
-
-Return detail data from the selected list control item
-
-=cut
-
-sub get_detail_data {
-    my $self = shift;
-
-    my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->get_list_data($sel_item);
-    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
-
-    return ( $ddata_ref, $file_fqn, $sel_item );
-}
-
-
-=head2 set_list_text
-
-Set text item from list control row and col
-
-=cut
-
-sub set_list_text {
-    my ($self, $row, $col, $text) = @_;
-
-    $self->{_list}->selectionClear(0, 'end');
-    $self->{_list}->insert($row, [ $row+1, $text ]);
-
-    return;
-}
-
-sub get_list_selected_index {
-    my $self = shift;
-
-    my @selected;
-    eval { @selected = $self->get_listcontrol->curselection(); };
-    if ($@) {
-        warn "Error: $@";
-        return;
-    }
-    else {
-        return pop @selected;    # first row in case of multiselect
-    }
-}
-
-=head2 set_list_data
-
-Set item data from list control
-
-=cut
-
-sub set_list_data {
-    my ($self, $item, $data_href) = @_;
-
-    $self->{_lds}{$item} = $data_href;
-
-    return;
-}
-
-=head2 get_list_data
-
-Return item data from list control
-
-=cut
-
-sub get_list_data {
-    my ($self, $item) = @_;
-
-    return $self->{_lds}{$item};
-}
-
-sub list_item_clear {
-    my ($self, $indecs) = @_;
-
-    if ( defined $indecs ) {
-        $self->get_listcontrol->delete($indecs);
-    }
-    else {
-        print "EE: Nothing selected!\n";
-    }
-
-    return;
-}
-
-=head2 list_locate
-
-This should be never needed and is not used.  Using brute force to
-locate the record in the list. ;)
-
-=cut
-
-sub list_locate {
-    my ( $self, $pk_val, $fk_val ) = @_;
-
-    my $pk_idx = $self->{lookup}[0];    # indices for Pk and Fk cols
-    my $fk_idx = $self->{lookup}[1];
-    my $idx;
-
-    my @returned = $self->get_listcontrol->get( 0, 'end' );
-    my $i = 0;
-    foreach my $rec (@returned) {
-        if ( $rec->[$pk_idx] eq $pk_val ) {
-
-            # Check fk, if defined
-            if ( defined $fk_idx ) {
-                if ( $rec->[$fk_idx] eq $fk_val ) {
-                    $idx = $i;
-                    last;    # found!
-                }
-            }
-            else {
-                $idx = $i;
-                last;        # found!
-            }
-        }
-
-        $i++;
-    }
-
-    return $idx;
-}
-
-=head2 list_populate_all
-
-Populate all other pages except the configuration page
-
-=cut
-
-sub list_populate_all {
-    my $self = shift;
-
-    my $titles = $self->_model->get_list_data();
-
-    # Clear list
-    $self->list_item_clear_all();
-
-    # Populate list in sorted order
-    my @titles = sort { $a <=> $b } keys %{$titles};
-    foreach my $indice ( @titles ) {
-        my $nrcrt = $titles->{$indice}[0];
-        my $title = $titles->{$indice}[1];
-        my $file  = $titles->{$indice}[2];
-        # print "$nrcrt -> $title\n";
-        $self->list_item_insert( $indice, $nrcrt, $title, $file );
-    }
-
-    # Set item 0 selected on start
-    $self->list_item_select_first();
-
-    return;
-}
-
-=head2 list_populate_item
-
-Add new item in list control and select the last item.
-
-=cut
-
-sub list_populate_item {
-    my ( $self, $rec ) = @_;
-
-    my $idx = $self->get_list_max_index();
-
-    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
-
-    $self->list_item_select_last();
-}
-
-=head2 list_item_insert
-
-Insert item in list control
-
-=cut
-
-sub list_item_insert {
-    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
-
-    # Remember, always sort by index before insert!
-    $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
-
-    # Set data
-    $self->set_list_data($indice, $file );
-
-    return;
-}
-
-sub list_item_select_first {
-    my $self = shift;
-
-    # Activate and select first
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->activate(0);
-    $self->get_listcontrol->selectionSet(0);
-    $self->get_listcontrol->see('active');
-
-    return;
-}
-
-sub list_item_select_last {
-    my $self = shift;
-
-    # Activate and select last
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->activate('end');
-    $self->get_listcontrol->selectionSet('end');
-    $self->get_listcontrol->see('active');
-
-    return;
-}
-
-=head2 get_choice_default
-
-Return the choice default option, the first element in the array.
-
-=cut
-
-sub get_choice_default {
-    my $self = shift;
-
-    return $self->{_tb}->get_choice_options(0);
-}
-
-=head2 controls_populate
-
-Populate controls with data from XML
-
-=cut
-
-sub controls_populate {
-    my $self = shift;
-
-    my ($ddata_ref, $file_fqn) = $self->get_detail_data();
-
-    my $cfg     = TpdaQrt::Config->instance();
-    my $qdfpath = $cfg->qdfpath;
-
-    # print Dumper( $ddata_ref, $file_fqn );
-
-    #-- Header
-
-    # Write in the control the filename, remove path config path
-    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
-
-    # # Add real path to control
-    $ddata_ref->{header}{filename} = $file_rel;
-    $self->controls_write_page('list', $ddata_ref->{header} );
-
-    # #-- Parameters
-    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
-    $self->controls_write_page('para', $params );
-
-    # #-- SQL
-    # $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
-    $self->controls_write_page('sql', $ddata_ref->{body} );
-
-    # #--- Highlight SQL parameters
-    $self->toggle_sql_replace();
 }
 
 =head2 controls_write_page
@@ -1715,7 +1714,6 @@ sub control_write {
     return;
 }
 
-
 =head2 control_set_value
 
 Set new value for a controll.
@@ -1731,6 +1729,25 @@ sub control_set_value {
 
     $control->delete( '1.0', 'end' );
     $control->insert( '1.0', $value ) if $value;
+
+    return;
+}
+
+=head2 control_append_value
+
+Append new value to a Text control.
+
+=cut
+
+sub control_append_value {
+    my ($self, $name, $value) = @_;
+
+    my $control = $self->get_control_by_name($name);
+
+    if ($value) {
+        $control->insert( 'end', $value );
+        $control->insert( 'end', "\n" );
+    }
 
     return;
 }
@@ -1777,88 +1794,6 @@ sub control_write_t {
     return;
 }
 
-=head2 get_controls_list
-
-Return a AoH with information regarding the controls from the list page.
-
-=cut
-
-sub get_controls_list {
-    my $self = shift;
-
-    return [
-        { title    => [ $self->{title},    'normal',   'white',     'e' ] },
-        { filename => [ $self->{filename}, 'disabled', 'lightgrey', 'e' ] },
-        { output   => [ $self->{output},   'normal',   'white',     'e' ] },
-        { template => [ $self->{template}, 'normal',   'white',     'e' ] },
-        { description => [ $self->{description}, 'normal', 'white', 't' ] },
-    ];
-}
-
-=head2 get_controls_para
-
-Return a AoH with information regarding the controls from the parameters page.
-
-=cut
-
-sub get_controls_para {
-    my $self = shift;
-
-    return [
-        { descr1 => [ $self->{descr1}, 'normal', 'white', 'e' ] },
-        { value1 => [ $self->{value1}, 'normal', 'white', 'e' ] },
-        { descr2 => [ $self->{descr2}, 'normal', 'white', 'e' ] },
-        { value2 => [ $self->{value2}, 'normal', 'white', 'e' ] },
-        { descr3 => [ $self->{descr3}, 'normal', 'white', 'e' ] },
-        { value3 => [ $self->{value3}, 'normal', 'white', 'e' ] },
-        { descr4 => [ $self->{descr4}, 'normal', 'white', 'e' ] },
-        { value4 => [ $self->{value4}, 'normal', 'white', 'e' ] },
-        { descr5 => [ $self->{descr5}, 'normal', 'white', 'e' ] },
-        { value5 => [ $self->{value5}, 'normal', 'white', 'e' ] },
-    ];
-}
-
-=head2 get_controls_sql
-
-Return a AoH with information regarding the controls from the SQL page.
-
-=cut
-
-sub get_controls_sql {
-    my $self = shift;
-
-    return [
-        { sql => [ $self->{sql}, 'normal'  , 'white', 't' ] },
-    ];
-}
-
-=head2 get_controls_conf
-
-Return a AoH with information regarding the controls from the
-configurations page.
-
-None at this time.
-
-=cut
-
-sub get_controls_conf {
-    my $self = shift;
-
-    return [];
-}
-
-=head2 get_control_by_name
-
-Return the control instance by name.
-
-=cut
-
-sub get_control_by_name {
-    my ($self, $name) = @_;
-
-    return $self->{$name},
-}
-
 sub change_look {
     my $self = shift;
 
@@ -1890,70 +1825,6 @@ sub change_look {
     }
 
     return;
-}
-
-=head2 toggle_sql_replace
-
-Toggle sql replace
-
-=cut
-
-sub toggle_sql_replace {
-    my $self = shift;
-
-    #- Detail data
-    my ( $ddata, $file_fqn ) = $self->get_detail_data();
-
-    #-- Parameters
-    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
-
-    if ( $self->_model->is_appmode('edit') ) {
-        $self->control_set_value( 'sql', $ddata->{body}{sql} );
-    }
-    else {
-        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
-    }
-}
-
-=head2 control_replace_sql_text
-
-Replace sql text control
-
-=cut
-
-sub control_replace_sql_text {
-    my ($self, $sqltext, $params) = @_;
-
-    my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
-
-    # Write new text to control
-    $self->control_set_value('sql', $newtext);
-}
-
-=head2 string_replace_pos
-
-Replace string pos
-
-=cut
-
-sub string_replace_pos {
-    my ($self, $text, $params) = @_;
-
-    my @strpos;
-
-    while (my ($key, $value) = each ( %{$params} ) ) {
-        next unless $key =~ m{value[0-9]}; # Skip 'descr'
-
-        # Replace  text and return the strpos
-        $text =~ s/($key)/$value/pm;
-        my $pos = $-[0];
-        push(@strpos, [ $pos, $key, $value ]);
-    }
-
-    # Sorted by $pos
-    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
-
-    return ($text, \@sortedpos);
 }
 
 =head1 AUTHOR

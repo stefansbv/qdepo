@@ -86,6 +86,8 @@ sub start {
 
     $self->set_app_mode('idle');
 
+    $self->_model->load_qdf_data();
+
     $self->_view->list_populate_all();
 
     $self->set_app_mode('sele');

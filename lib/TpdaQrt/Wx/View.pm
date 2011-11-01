@@ -54,29 +54,18 @@ sub new {
     $self->SetMinSize( Wx::Size->new( 425, 597 ) );
     $self->SetIcon( Wx::GetWxPerlIcon() );
 
-    #-- Menu
-    $self->create_menu();
+    #-- GUI components
 
-    #-- ToolBar
+    $self->_create_menu();
     $self->_create_toolbar();
-
-    #-- Statusbar
-    $self->create_statusbar();
-
-    #-- Notebook
+    $self->_create_statusbar();
     $self->{_nb} = TpdaQrt::Wx::Notebook->new( $self );
+    $self->_create_para_page();
+    $self->_create_sql_page();
+    $self->_create_config_page();
+    $self->_create_report_page();
 
-    #--- Parameters Tab (page) Panel
-    $self->create_para_page();
-
-    #--- SQL Tab (page)
-    $self->create_sql_page();
-
-    #--- Configs Tab (page)
-    $self->create_config_page();
-
-    #--- Front Tab (page)
-    $self->create_report_page();
+    #-- GUI actions
 
     $self->_set_model_callbacks();
 
@@ -173,29 +162,134 @@ sub update_gui_components {
     return;
 }
 
-=head2 create_menu
+=head2 _create_menu
 
-Create the menu
+Create the menubar and the menus. Menus are defined in configuration
+files.
 
 =cut
 
-sub create_menu {
+sub _create_menu {
     my $self = shift;
 
     my $menu = Wx::MenuBar->new;
 
     $self->{_menu} = $menu;
 
-    my $menu_app = Wx::Menu->new;
-    $menu_app->Append( wxID_EXIT, "E&xit\tAlt+X" );
-    $menu->Append( $menu_app, "&App" );
-
-    my $menu_help = Wx::Menu->new();
-    $menu_help->AppendString( wxID_HELP, "&Contents...", q{} );
-    $menu_help->AppendString( wxID_ABOUT, "&About", q{} );
-    $menu->Append( $menu_help, "&Help" );
+    $self->make_menus( $self->_cfg->menubar );
 
     $self->SetMenuBar($menu);
+
+    return;
+}
+
+=head2 make_menus
+
+Make menus.
+
+=cut
+
+sub make_menus {
+    my ( $self, $attribs, $position ) = @_;
+
+    $position = $position ||= 0;    # default
+
+    my $menus = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    #- Create menus
+    foreach my $menu_name ( @{$menus} ) {
+
+        $self->{$menu_name} = Wx::Menu->new();
+
+        my @popups
+            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
+        foreach my $id (@popups) {
+            $self->make_popup_item(
+                $self->{$menu_name},
+                $attribs->{$menu_name}{popup}{$id},
+                $attribs->{$menu_name}{id} . $id,    # menu Id
+            );
+        }
+
+        $self->{_menu}->Insert(
+            $position,
+            $self->{$menu_name},
+            TpdaQrt::Utils->ins_underline_mark(
+                $attribs->{$menu_name}{label},
+                $attribs->{$menu_name}{underline}
+            ),
+        );
+
+        $position++;
+    }
+
+    return;
+}
+
+=head2 get_app_menus_list
+
+Get application menus list, needed for binding the command to load the
+screen.  We only need the name of the popup which is also the name of
+the screen (and also the name of the module).
+
+=cut
+
+sub get_app_menus_list {
+    my $self = shift;
+
+    my $attribs = $self->_cfg->appmenubar;
+    my $menus   = TpdaQrt::Utils->sort_hash_by_id($attribs);
+
+    my @menulist;
+    foreach my $menu_name ( @{$menus} ) {
+        my @popups
+            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
+        foreach my $item (@popups) {
+            push @menulist, $attribs->{$menu_name}{popup}{$item}{name};
+        }
+    }
+
+    return \@menulist;
+}
+
+=head2 make_popup_item
+
+Make popup item
+
+=cut
+
+sub make_popup_item {
+    my ( $self, $menu, $item, $id ) = @_;
+
+    $menu->AppendSeparator() if $item->{sep} eq 'before';
+
+    # Preserve some default Id's used by Wx
+    $id = wxID_ABOUT if $item->{name} eq q{mn_ab};
+    $id = wxID_EXIT  if $item->{name} eq q{mn_qt};
+
+    my $label = $item->{label};
+    $label .= "\t" . $item->{key} if $item->{key};    # add shortcut key
+
+    $self->{ $item->{name} }
+        = $menu->Append( $id,
+        TpdaQrt::Utils->ins_underline_mark( $label, $item->{underline}, ),
+        );
+
+    $menu->AppendSeparator() if $item->{sep} eq 'after';
+
+    return;
+}
+
+=head2 get_menu_popup_item
+
+Return a menu popup by name
+
+=cut
+
+sub get_menu_popup_item {
+    my ( $self, $name ) = @_;
+
+    return $self->{$name};
 }
 
 =head2 get_menubar
@@ -206,6 +300,7 @@ Return the menu bar handler
 
 sub get_menubar {
     my $self = shift;
+
     return $self->{_menu};
 }
 
@@ -269,13 +364,13 @@ sub enable_tool {
     return;
 }
 
-=head2 create_statusbar
+=head2 _create_statusbar
 
 Create the status bar
 
 =cut
 
-sub create_statusbar {
+sub _create_statusbar {
     my $self = shift;
 
     my $sb = $self->CreateStatusBar( 3 );
@@ -308,13 +403,13 @@ sub get_notebook {
     return $self->{_nb};
 }
 
-=head2 create_report_page
+=head2 _create_report_page
 
 Create the report page (tab) on the notebook
 
 =cut
 
-sub create_report_page {
+sub _create_report_page {
     my $self = shift;
 
     $self->{_list} = Wx::Perl::ListCtrl->new(
@@ -410,13 +505,13 @@ sub create_report_page {
     return;
 }
 
-=head2 create_para_page
+=head2 _create_para_page
 
 Create the parameters page (tab) on the notebook
 
 =cut
 
-sub create_para_page {
+sub _create_para_page {
 
     my $self = shift;
 
@@ -502,13 +597,13 @@ sub create_para_page {
     $self->{_nb}{p2}->SetSizer( $para_main_sz );
 }
 
-=head2 create_sql_page
+=head2 _create_sql_page
 
 Create the SQL page (tab) on the notebook
 
 =cut
 
-sub create_sql_page {
+sub _create_sql_page {
     my $self = shift;
 
     #--- SQL Tab (page)
@@ -580,7 +675,7 @@ transaction union upper user where with year} );
     $self->{_nb}{p3}->SetSizer( $sql_main_sz );
 }
 
-=head2 create_config_page
+=head2 _create_config_page
 
 Create the configuration info page (tab) on the notebook.
 
@@ -592,7 +687,7 @@ the lists must be lower case.
 
 =cut
 
-sub create_config_page {
+sub _create_config_page {
     my $self = shift;
 
     #-- Controls
@@ -827,7 +922,7 @@ Return the control instance by name.
 sub get_control_by_name {
     my ($self, $name) = @_;
 
-    return $self->{$name},
+    return $self->{$name};
 }
 
 =head2 get_list_text
@@ -856,35 +951,9 @@ sub set_list_text {
     return;
 }
 
-=head2 set_list_data
-
-Set item data from list control
-
-=cut
-
-sub set_list_data {
-    my ($self, $item, $data_href) = @_;
-
-    $self->get_listcontrol->SetItemData( $item, $data_href );
-
-    return;
-}
-
-=head2 get_list_data
-
-Return item data from list control
-
-=cut
-
-sub get_list_data {
-    my ($self, $item) = @_;
-
-    return $self->get_listcontrol->GetItemData( $item );
-}
-
 =head2 list_item_select_first
 
-Select the first item in list
+Select the first item in list.
 
 =cut
 
@@ -927,7 +996,7 @@ sub get_list_max_index {
 
 =head2 get_list_selected_index
 
-Return the selected index from the list control
+Return the selected index from the list control.
 
 =cut
 
@@ -950,8 +1019,8 @@ sub list_item_insert {
     $self->list_string_item_insert($indice);
     $self->set_list_text($indice, 0, $nrcrt);
     $self->set_list_text($indice, 1, $title);
-    # Set data
-    $self->set_list_data($indice, $file );
+
+    return;
 }
 
 =head2 list_string_item_insert
@@ -967,7 +1036,7 @@ sub list_string_item_insert {
 
 =head2 list_item_clear
 
-Delete list control item
+Delete list control item.
 
 =cut
 
@@ -1013,19 +1082,20 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    my $titles = $self->_model->get_list_data();
+    my $indices = $self->_model->get_qdf_data();
+
+    # Populate list in sorted order
+    my @indices = sort { $a <=> $b } keys %{$indices};
 
     # Clear list
     $self->list_item_clear_all();
 
-    # Populate list in sorted order
-    my @titles = sort { $a <=> $b } keys %{$titles};
-    foreach my $indice ( @titles ) {
-        my $nrcrt = $titles->{$indice}[0];
-        my $title = $titles->{$indice}[1];
-        my $file  = $titles->{$indice}[2];
+    foreach my $idx ( @indices ) {
+        my $nrcrt = $indices->{$idx}{nrcrt};
+        my $title = $indices->{$idx}{title};
+        my $file  = $indices->{$idx}{file};
         # print "$nrcrt -> $title\n";
-        $self->list_item_insert($indice, $nrcrt, $title, $file);
+        $self->list_item_insert($idx, $nrcrt, $title, $file);
     }
 
     # Set item 0 selected on start
@@ -1058,7 +1128,7 @@ sub list_remove_item {
     my $self = shift;
 
     my $sel_item = $self->get_list_selected_index();
-    my $file_fqn = $self->get_list_data($sel_item);
+    my $file_fqn = $self->_model->get_qdf_data_file($sel_item);
 
     # Remove from list
     $self->list_item_clear($sel_item);
@@ -1079,7 +1149,7 @@ sub get_detail_data {
     my $self = shift;
 
     my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->get_list_data($sel_item);
+    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
     my $ddata_ref = $self->_model->get_detail_data($file_fqn);
 
     return ( $ddata_ref, $file_fqn, $sel_item );
@@ -1155,81 +1225,6 @@ sub control_replace_sql_text {
 
     # Write new text to control
     $self->control_set_value('sql', $newtext);
-}
-
-# =head2 status_msg
-
-# Set status message
-
-# =cut
-
-# sub status_msg {
-#     my ( $self, $msg ) = @_;
-
-#     my ( $text, $sb_id ) = split ':', $msg; # Work around until I learn how
-#                                             # to pass other parameters ;)
-
-#     $sb_id = 0 if $sb_id !~ m{[0-9]}; # Fix for when file name contains ':'
-#     $self->get_statusbar()->SetStatusText( $text, $sb_id );
-# }
-
-=head2 set_status
-
-Set status message.
-
-Color is ignored for wxPerl.
-
-=cut
-
-sub set_status {
-    my ( $self, $text, $sb_id, $color ) = @_;
-
-    my $sb = $self->get_statusbar();
-
-    if ( $sb_id eq q{db} ) {
-
-        # Database name
-        $sb->PushStatusText( $text, 2 ) if defined $text;
-    }
-    elsif ( $sb_id eq q{ms} ) {
-
-        # Messages
-        $sb->PushStatusText( $text, 0 ) if defined $text;
-    }
-    else {
-
-        # App status
-        # my $cw = $self->GetCharWidth();
-        # my $ln = length $text;
-        # my $cn = () = $text =~ m{i|l}g;
-        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
-        # $pl = ceil $pl / $cw;
-        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
-        # $text = sprintf( "%*s", $pl, $text );
-        $sb->PushStatusText( $text, 1 ) if defined $text;
-    }
-
-    return;
-}
-
-=head2 toggle_status_cn
-
-Toggle the icon in the status bar
-
-=cut
-
-sub toggle_status_cn {
-    my ( $self, $status ) = @_;
-
-    if ($status) {
-        #$self->set_status( $self->_cfg->connection->{dbname}, 'db', '' );
-        $self->set_status( 'dbnamehere', 'db', '' );
-    }
-    else {
-        $self->set_status( '', 'db' );
-    }
-
-    return;
 }
 
 =head2 dialog_msg
@@ -1381,9 +1376,9 @@ sub control_set_value {
     return;
 }
 
-=head2 control_set_value
+=head2 control_append_value
 
-Set new value for a controll
+Append new value for a control.
 
 =cut
 
@@ -1392,11 +1387,11 @@ sub control_append_value {
 
     return unless defined $value;
 
-    my $ctrl = $self->get_control_by_name($name);
+    my $control = $self->get_control_by_name($name);
 
-    $ctrl->AppendText($value);
-    $ctrl->AppendText( "\n" );
-    $ctrl->Colourise( 0, $ctrl->GetTextLength );
+    $control->AppendText($value);
+    $control->AppendText( "\n" );
+    $control->Colourise( 0, $control->GetTextLength );
 }
 
 =head2 controls_write_page
@@ -1495,6 +1490,67 @@ sub on_quit {
     print "Closing ...\n";
 
     $self->Close(1);
+
+    return;
+}
+
+=head2 set_status
+
+Set status message.
+
+Color is ignored for wxPerl.
+
+=cut
+
+sub set_status {
+    my ( $self, $text, $sb_id, $color ) = @_;
+
+    my $sb = $self->get_statusbar();
+
+    if ( $sb_id eq q{db} ) {
+
+        # Database name
+        $sb->PushStatusText( $text, 2 ) if defined $text;
+    }
+    elsif ( $sb_id eq q{ms} ) {
+
+        # Messages
+        $sb->PushStatusText( $text, 0 ) if defined $text;
+    }
+    else {
+
+        # App status
+        # my $cw = $self->GetCharWidth();
+        # my $ln = length $text;
+        # my $cn = () = $text =~ m{i|l}g;
+        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
+        # $pl = ceil $pl / $cw;
+        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
+        # $text = sprintf( "%*s", $pl, $text );
+        $sb->PushStatusText( $text, 1 ) if defined $text;
+    }
+
+    return;
+}
+
+=head2 toggle_status_cn
+
+Toggle the icon in the status bar
+
+=cut
+
+sub toggle_status_cn {
+    my ( $self, $status ) = @_;
+
+    if ($status) {
+        $self->set_status( 'connectyes16', 'cn' );
+        $self->set_status( $self->_cfg->conninfo->{dbname},
+            'db', 'darkgreen' );
+    }
+    else {
+        $self->set_status( 'connectno16', 'cn' );
+        $self->set_status( '',            'db' );
+    }
 
     return;
 }
