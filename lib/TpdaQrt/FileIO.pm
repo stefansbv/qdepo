@@ -2,6 +2,8 @@ package TpdaQrt::FileIO;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use File::Find::Rule;
@@ -51,7 +53,6 @@ Process an XML file's tag.
 =cut
 
 sub _process_file {
-
     my ($self, $qdf_file, $tag_name) = @_;
 
     if (! defined $qdf_file) {
@@ -89,13 +90,18 @@ sub _process_all_files {
 
     my $qdf_ref = $self->get_file_list();
 
-    if (! defined $qdf_ref) {
+    my $qdf_files_no;
+    if (ref $qdf_ref) {
+        $qdf_files_no = scalar @{$qdf_ref};
+    }
+    else {
         print "No query definition files.\n";
         return;
     }
 
     print "\nReading XML files...\n";
-    print scalar @{$qdf_ref}, " query definition files found.\n";
+
+    print " $qdf_files_no QDFs found.\n";
 
     my @qdfdata;
     foreach my $qdf_file ( @{$qdf_ref} ) {

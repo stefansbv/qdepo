@@ -8,6 +8,7 @@ use Data::Dumper;
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
+use List::Util qw(max);
 
 use TpdaQrt::Config;
 use TpdaQrt::FileIO;
@@ -281,7 +282,8 @@ sub on_item_selected {
 
 =head2 load_qdf_data
 
-Load the titles and file names from all the QDF files.
+Load the titles and file names from all the QDF files and store in
+data structure used to fill the List control.
 
 =cut
 
@@ -296,8 +298,6 @@ sub load_qdf_data {
     # Format titles
     foreach my $rec ( @{$data_ref} ) {
         if (ref $rec) {
-            # my $nrcrt = $indecs + 1;
-            # $titles->{$indecs} = [ $nrcrt, $rec->{title}, $rec->{file} ];
 
             # Store records
             $self->{_lds}{$indecs} = $rec;
@@ -310,10 +310,36 @@ sub load_qdf_data {
     return;
 }
 
+=head2 set_qdf_data
+
+Insert new record in data structure.
+
+=cut
+
+sub set_qdf_data {
+    my ($self, $data_href) = @_;
+
+    my @items = keys %{ $self->{_lds} };
+
+    my $new_item = scalar @items == 0 ? 0 : max @items + 1;
+
+    $data_href->{nrcrt} = $new_item + 1;
+
+    $self->{_lds}{$new_item} = $data_href;
+
+    return {$new_item => $data_href};
+}
+
+=head2 get_qdf_data
+
+Get data from List data structure, for single item or all.
+
+=cut
+
 sub get_qdf_data {
     my ($self, $item) = @_;
 
-    if ($item) {
+    if (defined $item) {
         return $self->{_lds}{$item};
     }
     else {
@@ -324,15 +350,9 @@ sub get_qdf_data {
 sub get_qdf_data_file {
     my ($self, $item) = @_;
 
+    return unless defined $item;
+
     return $self->{_lds}{$item}{file};
-}
-
-sub set_qdf_data {
-    my ($self, $item, $data_href) = @_;
-
-    $self->{_lds}{$item} = $data_href;
-
-    return;
 }
 
 =head2 run_export
@@ -374,7 +394,7 @@ sub run_export {
     );
 
     if ($out) {
-        $self->message("'$out' generated");
+        $self->message("Output generated");
         $self->message_log("II '$out' generated");
     }
     else {
@@ -418,7 +438,9 @@ Save current query definition data from controls
 =cut
 
 sub save_query_def {
-    my ($self, $file_fqn, $head, $para, $body) = @_;
+    my ($self, $item, $head, $para, $body) = @_;
+
+    my $file_fqn = $self->get_qdf_data_file($item);
 
     # Transform records to match data in xml format
     $head = TpdaQrt::Utils->transform_data($head);
@@ -436,7 +458,7 @@ sub save_query_def {
 
     $self->message_log('II Saved');
 
-    return $head->{title};
+    return;
 }
 
 =head2 report_add
@@ -507,11 +529,15 @@ sub report_add {
         # Add title and file name in list
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
+        $data_ref = $self->set_qdf_data($data_ref);
+
         return $data_ref;
     }
     else {
         warn "File exists! ($dst_fqn)\n";
         $self->message_log("WW File exists! ($dst_fqn)");
+
+        return;
     }
 }
 
@@ -524,12 +550,20 @@ B<.bak> extension, so it can be I<manualy> recovered.
 =cut
 
 sub report_remove {
-    my ($self, $file_fqn) = @_;
+    my ($self, $item) = @_;
 
-    # Move file to backup
+    my $file_fqn = $self->get_qdf_data_file($item);
+
+    unless (-f $file_fqn) {
+        $self->message_log("EE '$file_fqn' not found!");
+        return;
+    }
+
+    # Rename file as backup
     my $file_bak_fqn = "$file_fqn.bak";
     if ( move($file_fqn, $file_bak_fqn) ) {
         $self->message_log("WW '$file_fqn' deleted");
+        return 1;
     }
 
     return;

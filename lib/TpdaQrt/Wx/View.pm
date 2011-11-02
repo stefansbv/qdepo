@@ -108,11 +108,7 @@ sub _set_model_callbacks {
     my $self = shift;
 
     my $co = $self->_model->get_connection_observable;
-    $co->add_callback(
-        sub {
-            $self->toggle_status_cn( $_[0] );
-        }
-    );
+    $co->add_callback( sub { $self->toggle_status_cn( $_[0] ); } );
 
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
@@ -120,8 +116,7 @@ sub _set_model_callbacks {
 
     #--
     my $upd = $self->_model->get_itemchanged_observable;
-    $upd->add_callback(
-        sub { $self->controls_populate(); } );
+    $upd->add_callback( sub { $self->controls_populate(); } );
 
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
@@ -152,7 +147,6 @@ sub update_gui_components {
 
     if ($mode eq 'edit') {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
-        #$self->_model->toggle_sql_replace();
         $self->toggle_sql_replace();
     }
     else {
@@ -341,8 +335,6 @@ sub toolbar_names {
     # Get ToolBar button atributes
     my $attribs = $self->_cfg->toolbar;
 
-    # TODO: Change the config file so we don't need this sorting anymore
-    # or better keep them sorted and ready to use in config
     my $toolbars = TpdaQrt::Utils->sort_hash_by_id($attribs);
 
     return ( $toolbars, $attribs );
@@ -1031,7 +1023,10 @@ Insert string item in list control
 
 sub list_string_item_insert {
     my ($self, $indice) = @_;
+
     $self->get_listcontrol->InsertStringItem( $indice, 'dummy' );
+
+    return;
 }
 
 =head2 list_item_clear
@@ -1042,7 +1037,12 @@ Delete list control item.
 
 sub list_item_clear {
     my ($self, $item) = @_;
+
     $self->get_listcontrol->DeleteItem($item);
+
+    $self->_model->remove_qdf_data($item);
+
+    return;
 }
 
 =head2 list_item_clear_all
@@ -1053,6 +1053,7 @@ Delete all list control items.
 
 sub list_item_clear_all {
     my ($self) = @_;
+
     $self->get_listcontrol->DeleteAllItems;
 }
 
@@ -1084,6 +1085,8 @@ sub list_populate_all {
 
     my $indices = $self->_model->get_qdf_data();
 
+    return unless scalar keys %{$indices};
+
     # Populate list in sorted order
     my @indices = sort { $a <=> $b } keys %{$indices};
 
@@ -1101,21 +1104,27 @@ sub list_populate_all {
     # Set item 0 selected on start
     $self->list_item_select_first();
 
+    $self->_model->on_item_selected();       # initialize model data
+
     return;
 }
 
 =head2 list_populate_item
 
-Add new item in list control and select the last item
+Add new item in list control and select the last item.
 
 =cut
 
 sub list_populate_item {
-    my ( $self, $rec ) = @_;
+    my ( $self, $idx, $rec ) = @_;
 
-    my $idx = $self->get_list_max_index();
+    # my $idx = $self->get_list_max_index();
+
     $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
+
     $self->list_item_select_last();
+
+    return;
 }
 
 =head2 list_remove_item
@@ -1139,22 +1148,6 @@ sub list_remove_item {
     return $file_fqn;
 }
 
-=head2 get_detail_data
-
-Return detail data from the selected list control item
-
-=cut
-
-sub get_detail_data {
-    my $self = shift;
-
-    my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
-    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
-
-    return ( $ddata_ref, $file_fqn, $sel_item );
-}
-
 =head2 controls_populate
 
 Populate controls with data from XML
@@ -1165,6 +1158,8 @@ sub controls_populate {
     my $self = shift;
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
+
+    return unless ref $ddata_ref and $file_fqn;
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
@@ -1199,17 +1194,22 @@ sub toggle_sql_replace {
     my $self = shift;
 
     #- Detail data
-    my ( $ddata, $file_fqn ) = $self->get_detail_data();
+    my ( $ddata_ref, $file_fqn ) = $self->get_detail_data();
+
+    return unless ref $ddata_ref and $file_fqn;
 
     #-- Parameters
-    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
+    my $params
+        = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
 
     if ( $self->_model->is_appmode('edit') ) {
-        $self->control_set_value( 'sql', $ddata->{body}{sql} );
+        $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
     }
     else {
-        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
+        $self->control_replace_sql_text( $ddata_ref->{body}{sql}, $params );
     }
+
+    return;
 }
 
 =head2 control_replace_sql_text
@@ -1454,28 +1454,6 @@ sub controls_read_page {
     }
 
     return \@records;
-}
-
-=head2 save_query_def
-
-Save query definition file
-
-=cut
-
-sub save_query_def {
-    my $self = shift;
-
-    my (undef, $file_fqn, $item) = $self->get_detail_data();
-
-    my $head = $self->controls_read_page('list');
-    my $para = $self->controls_read_page('para');
-    my $body = $self->controls_read_page('sql');
-
-    my $new_title =
-      $self->_model->save_query_def( $file_fqn, $head, $para, $body );
-
-    # Update title in list
-    $self->set_list_text( $item, 1, $new_title );
 }
 
 =head2 on_quit

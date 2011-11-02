@@ -3,6 +3,8 @@ package TpdaQrt::Wx::Controller;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
@@ -208,14 +210,17 @@ sub _set_event_handlers {
     #-- Refresh
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf')->GetId,
         sub {
-            $self->_model->on_item_selected(@_);
+            $self->_model->on_item_selected();
         };
 
     #-- Add report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad')->GetId,
         sub {
             my $rec = $self->_model->report_add();
-            $self->_view->list_populate_item($rec);
+            my $idx = $self->_view->get_list_max_index();
+            $rec->{nrcrt} = $idx + 1;
+            $self->_model->set_qdf_data( $idx, $rec );
+            $self->_view->list_populate_item( $idx, $rec );
         };
 
     #-- Remove report
@@ -237,7 +242,7 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
         sub {
             if ( $self->_model->is_appmode('edit') ) {
-                $self->_view->save_query_def();
+                $self->save_query_def();
                 $self->set_app_mode('sele');
             }
         };
@@ -278,7 +283,7 @@ sub _set_event_handlers {
 
     #- List controll
     EVT_LIST_ITEM_SELECTED $self->_view, $self->_view->get_listcontrol, sub {
-        $self->_model->on_item_selected(@_);
+        $self->_model->on_item_selected();
     };
 
     #- Frame : Deep recursion on subroutine "TpdaQrt::Wx::View::on_quit"
@@ -340,17 +345,16 @@ sub toggle_interface_controls {
         $self->_view->enable_tool( $name, $status );
     }
 
+    # List control
+    $self->{_list}->Enable( !$is_edit );
+
+    # Controls by page Enabled in edit mode
+    foreach my $page (qw(para list conf sql )) {
+        $self->toggle_controls_page( $page, $is_edit );
+    }
+
     return;
 }
-
-#     # List control
-#     $self->{_list}->Enable(!$is_edit);
-
-#     # Controls by page Enabled in edit mode
-#     foreach my $page ( qw(para list conf sql ) ) {
-#         $self->toggle_controls_page( $page, $is_edit );
-#     }
-# }
 
 # =head2 toggle_controls_page
 
@@ -422,6 +426,44 @@ sub dialog_progress {
     $dialog->Destroy;
 
     return;
+}
+
+=head2 get_detail_data
+
+Return detail data from the selected list control item
+
+=cut
+
+sub get_detail_data {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+
+    return ( $ddata_ref, $file_fqn, $sel_item );
+}
+
+=head2 save_query_def
+
+Save query definition file
+
+=cut
+
+sub save_query_def {
+    my $self = shift;
+
+    my (undef, $file_fqn, $item) = $self->get_detail_data();
+
+    my $head = $self->controls_read_page('list');
+    my $para = $self->controls_read_page('para');
+    my $body = $self->controls_read_page('sql');
+
+    my $new_title =
+      $self->_model->save_query_def( $file_fqn, $head, $para, $body );
+
+    # Update title in list
+    $self->set_list_text( $item, 1, $new_title );
 }
 
 =head1 AUTHOR

@@ -3,6 +3,8 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -49,6 +51,8 @@ sub new {
     $self->{_cfg} = TpdaQrt::Config->instance();
 
     $self->title(" TpdaQrt ");
+
+    $self->{bg} = $self->cget('-background');
 
     $self->change_look();
 
@@ -120,8 +124,9 @@ sub _set_model_callbacks {
     my $xo = $self->_model->get_exception_observable;
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
-    # my $pr = $self->_model->get_progress_observable;
+    my $pr = $self->_model->get_progress_observable;
     # $pr->add_callback( sub{ $self->progress_update( @_ ) } );
+    $pr->add_callback( sub{ $self->{progress} = $_[0]; print $_[0] } );
 
     return;
 }
@@ -317,8 +322,6 @@ sub toolbar_names {
     # Get ToolBar button atributes
     my $attribs = $self->_cfg->toolbar;
 
-    # TODO: Change the config file so we don't need this sorting anymore
-    # or better keep them sorted and ready to use in config
     my $toolbars = TpdaQrt::Utils->sort_hash_by_id($attribs);
 
     return ( $toolbars, $attribs );
@@ -370,6 +373,16 @@ sub _create_statusbar {
         -background => 'lightyellow',
     );
 
+    # Progress
+    $self->{progress} = 0;
+    $self->{_sb}{pr} = $sb->addProgressBar(
+        -length     => 100,
+        -from       => 0,
+        -to         => 100,
+        -variable   => \$self->{progress},
+        -foreground => 'blue',
+    );
+
     # Mode
     $self->{_sb}{md} = $sb->addLabel(
         -width      => 4,
@@ -393,6 +406,7 @@ sub get_statusbar {
 
     return $self->{_sb}{$sb_id};
 }
+
 =head2 get_notebook
 
 Return the notebook handler
@@ -468,7 +482,7 @@ sub _create_report_page {
 
     #-- Controls
 
-    my $bg  = $self->cget('-background');
+
     my $f1d = 90;
 
     #-- title
@@ -480,7 +494,7 @@ sub _create_report_page {
     );
     $self->{title} = $frame_mid->Entry(
         -width              => 40,
-        -disabledbackground => $bg,
+        -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{title}->form(
@@ -497,7 +511,7 @@ sub _create_report_page {
     );
     $self->{filename} = $frame_mid->Entry(
         -width              => 40,
-        -disabledbackground => $bg,
+        -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{filename}->form(
@@ -514,7 +528,7 @@ sub _create_report_page {
     );
     $self->{output} = $frame_mid->Entry(
         -width              => 40,
-        -disabledbackground => $bg,
+        -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{output}->form(
@@ -531,7 +545,7 @@ sub _create_report_page {
     );
     $self->{template} = $frame_mid->Entry(
         -width              => 40,
-        -disabledbackground => $bg,
+        -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{template}->form(
@@ -605,7 +619,6 @@ sub _create_para_page {
 
     #-- Controls
 
-    my $bg  = $self->cget('-background');
     my $f1d = 90;
 
     #-- Label
@@ -881,6 +894,7 @@ sub _create_config_page {
         -wrap       => 'word',
         -scrollbars => 'soe',
         -background => 'white',
+        -state      => 'disabled',
     );
     $self->{log}->pack(
         -expand => 1,
@@ -958,7 +972,7 @@ sub get_controls_list {
 
     return [
         { title    => [ $self->{title},    'normal',   'white',     'e' ] },
-        { filename => [ $self->{filename}, 'disabled', 'lightgrey', 'e' ] },
+        { filename => [ $self->{filename}, 'disabled', $self->{bg}, 'e' ] },
         { output   => [ $self->{output},   'normal',   'white',     'e' ] },
         { template => [ $self->{template}, 'normal',   'white',     'e' ] },
         { description => [ $self->{description}, 'normal', 'white', 't' ] },
@@ -1059,6 +1073,8 @@ sub list_item_select_first {
     $self->get_listcontrol->selectionSet(0);
     $self->get_listcontrol->see('active');
 
+    $self->_model->on_item_selected();
+
     return;
 }
 
@@ -1076,6 +1092,8 @@ sub list_item_select_last {
     $self->get_listcontrol->activate('end');
     $self->get_listcontrol->selectionSet('end');
     $self->get_listcontrol->see('active');
+
+    $self->_model->on_item_selected();
 
     return;
 }
@@ -1126,7 +1144,6 @@ sub get_list_selected_index {
     }
 }
 
-
 =head2 list_item_insert
 
 Insert item in list control
@@ -1134,10 +1151,36 @@ Insert item in list control
 =cut
 
 sub list_item_insert {
-    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
+    my ( $self, $nrcrt, $title ) = @_;
 
-    # Remember, always sort by index before insert!
-    $self->get_listcontrol->insert( 'end', [$nrcrt, $title] );
+    my $list = $self->get_listcontrol();
+
+    $list->insert( 'end', [$nrcrt, $title] );
+
+    return;
+}
+
+=head2 list_item_edit
+
+Edit and existing item. If undef is passed for nrcrt or title, keep
+the existing value.
+
+=cut
+
+sub list_item_edit {
+    my ( $self, $indice, $nrcrt, $title ) = @_;
+
+    my $list = $self->get_listcontrol();
+
+    my @row = $list->getRow($indice);
+
+    $nrcrt = $row[0] if not defined $nrcrt;
+    $title = $row[1] if not defined $title;
+
+    $list->delete($indice);
+    $list->insert( $indice, [$nrcrt, $title] );
+    $list->selectionClear(0, 'end');
+    $list->selectionSet($indice);
 
     return;
 }
@@ -1152,7 +1195,7 @@ sub list_item_clear {
     my ($self, $indecs) = @_;
 
     if ( defined $indecs ) {
-        $self->get_listcontrol->delete($indecs);
+ $self->get_listcontrol->delete($indecs);
     }
     else {
         print "EE: Nothing selected!\n";
@@ -1204,6 +1247,8 @@ sub list_populate_all {
 
     my $indices = $self->_model->get_qdf_data();
 
+    return unless scalar keys %{$indices};
+
     # Populate list in sorted order
     my @indices = sort { $a <=> $b } keys %{$indices};
 
@@ -1215,7 +1260,7 @@ sub list_populate_all {
         my $title = $indices->{$idx}{title};
         my $file  = $indices->{$idx}{file};
         # print "$nrcrt -> $title\n";
-        $self->list_item_insert($idx, $nrcrt, $title, $file);
+        $self->list_item_insert($nrcrt, $title);
     }
 
     # Set item 0 selected on start
@@ -1233,32 +1278,35 @@ Add new item in list control and select the last item.
 sub list_populate_item {
     my ( $self, $rec ) = @_;
 
-    my $idx = $self->get_list_max_index();
+    my ($idx) = keys %{$rec};
+    my $r     = $rec->{$idx};
 
-    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
+    $self->list_item_insert( $r->{nrcrt}, $r->{title} );
 
     $self->list_item_select_last();
+
+    return;
 }
 
-=head2 list_remove_item
+=head2 list_mark_item
 
-Remove item from list control and select the first item
+Remove item from list control and select the first item.
 
 =cut
 
-sub list_remove_item {
+sub list_mark_item {
     my $self = shift;
 
-    my $sel_item = $self->get_list_selected_index();
-    my $file_fqn = $self->_model->get_qdf_data_file($sel_item);
+    my $item = $self->get_list_selected_index();
 
-    # Remove from list
-    $self->list_item_clear($sel_item);
+    my $rec = $self->_model->get_qdf_data($item);
 
-    # Set item 0 selected
-    $self->list_item_select_first();
+    my $nrcrt = $rec->{nrcrt};
+    $nrcrt = "$nrcrt D";
 
-    return $file_fqn;
+    $self->list_item_edit( $item, $nrcrt );
+
+    return;
 }
 
 =head2 get_detail_data
@@ -1279,7 +1327,7 @@ sub get_detail_data {
 
 =head2 controls_populate
 
-Populate controls with data from XML
+Populate controls with data from QDF (XML).
 
 =cut
 
@@ -1288,29 +1336,28 @@ sub controls_populate {
 
     my ($ddata_ref, $file_fqn) = $self->get_detail_data();
 
+    return unless ref $ddata_ref and $file_fqn;
+
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
 
-    # print Dumper( $ddata_ref, $file_fqn );
 
-    #-- Header
-
-    # Write in the control the filename, remove path config path
+    # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
 
-    # # Add real path to control
+    #-- Header
     $ddata_ref->{header}{filename} = $file_rel;
     $self->controls_write_page('list', $ddata_ref->{header} );
 
-    # #-- Parameters
+    #-- Parameters
     my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
     $self->controls_write_page('para', $params );
 
-    # #-- SQL
+    #-- SQL
     # $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
     $self->controls_write_page('sql', $ddata_ref->{body} );
 
-    # #--- Highlight SQL parameters
+    #--- Highlight SQL parameters
     $self->toggle_sql_replace();
 }
 
@@ -1325,17 +1372,22 @@ sub toggle_sql_replace {
     my $self = shift;
 
     #- Detail data
-    my ( $ddata, $file_fqn ) = $self->get_detail_data();
+    my ( $ddata_ref, $file_fqn ) = $self->get_detail_data();
+
+    return unless ref $ddata_ref and $file_fqn;
 
     #-- Parameters
-    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata->{parameters} );
+    my $params
+        = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
 
     if ( $self->_model->is_appmode('edit') ) {
-        $self->control_set_value( 'sql', $ddata->{body}{sql} );
+        $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
     }
     else {
-        $self->control_replace_sql_text( $ddata->{body}{sql}, $params );
+        $self->control_replace_sql_text( $ddata_ref->{body}{sql}, $params );
     }
+
+    return;
 }
 
 =head2 control_replace_sql_text
@@ -1714,44 +1766,6 @@ sub control_write {
     return;
 }
 
-=head2 control_set_value
-
-Set new value for a controll.
-
-=cut
-
-sub control_set_value {
-    my ($self, $name, $value) = @_;
-
-    return unless defined $value;
-
-    my $control = $self->get_control_by_name($name);
-
-    $control->delete( '1.0', 'end' );
-    $control->insert( '1.0', $value ) if $value;
-
-    return;
-}
-
-=head2 control_append_value
-
-Append new value to a Text control.
-
-=cut
-
-sub control_append_value {
-    my ($self, $name, $value) = @_;
-
-    my $control = $self->get_control_by_name($name);
-
-    if ($value) {
-        $control->insert( 'end', $value );
-        $control->insert( 'end', "\n" );
-    }
-
-    return;
-}
-
 =head2 control_write_e
 
 Write to a Tk::Entry widget.  If I<$value> not true, than only delete.
@@ -1784,7 +1798,9 @@ sub control_write_t {
 
     $state = $state || $control->cget ('-state');
 
-    $value = q{} unless defined $value;    # Empty
+    $value = q{} unless defined $value;    # empty
+
+    $control->configure( -state => 'normal' );
 
     $control->delete( '1.0', 'end' );
     $control->insert( '1.0', $value ) if $value;
@@ -1792,6 +1808,132 @@ sub control_write_t {
     $control->configure( -state => $state );
 
     return;
+}
+
+=head2 control_set_value
+
+Set new value for a controll.
+
+=cut
+
+sub control_set_value {
+    my ($self, $name, $value) = @_;
+
+    return unless defined $value;
+
+    my $control = $self->get_control_by_name($name);
+
+    $control->delete( '1.0', 'end' );
+    $control->insert( '1.0', $value ) if $value;
+
+    return;
+}
+
+=head2 control_append_value
+
+Append new value to a Text control.
+
+=cut
+
+sub control_append_value {
+    my ($self, $name, $value) = @_;
+
+    my $control = $self->get_control_by_name($name);
+    my $state   = $control->cget ('-state');
+
+    $control->configure( -state => 'normal' );
+
+    if ($value) {
+        $control->insert( 'end', $value );
+        $control->insert( 'end', "\n" );
+    }
+
+    $control->configure( -state => $state );
+
+    return;
+}
+
+=head2 controls_read_page
+
+Read all controls from page and return an array reference.
+
+=cut
+
+sub controls_read_page {
+    my ( $self, $page ) = @_;
+
+    # Get controls name and object from $page
+    my $get      = 'get_controls_' . $page;
+    my $controls = $self->$get();
+    my @records;
+
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
+            my $value = $self->control_read($control, $name);
+            push(@records, { $name => $value } ) if ($name and $value);
+        }
+    }
+
+    return \@records;
+}
+
+=head2 control_read
+
+Run the appropriate sub according to control (entry widget) type.
+
+=cut
+
+sub control_read {
+    my ($self, $control, $name) = @_;
+
+    my $ctrltype = $control->{$name}[3];
+
+    my $sub_name = qq{control_read_$ctrltype};
+    my $value;
+    if ( $self->can($sub_name) ) {
+        $value = $self->$sub_name($control->{$name}[0]);
+    }
+    else {
+        print "WW: No '$ctrltype' ctrl type for reading '$name'!\n";
+    }
+
+    return $value;
+}
+
+=head2 control_read_e
+
+Read contents of a Tk::Entry control.
+
+=cut
+
+sub control_read_e {
+    my ( $self, $control ) = @_;
+
+    my $value = $control->get;
+
+    if ( $value =~ /\S+/ ) {
+        $value = TpdaQrt::Utils->trim($value); # trim spaces
+    }
+
+    return $value;
+}
+
+=head2 control_read_t
+
+Read contents of a Tk::Text control.
+
+=cut
+
+sub control_read_t {
+    my ( $self, $control ) = @_;
+
+    my $value = $control->get( '0.0', 'end' );
+
+    if ( $value =~ /\S+/ ) {
+        $value = TpdaQrt::Utils->trim($value); # trim spaces
+    }
+
+    return $value;
 }
 
 sub change_look {
@@ -1825,6 +1967,75 @@ sub change_look {
     }
 
     return;
+}
+
+# sub progress_update {
+#     my ($self, $count) = @_;
+
+#     return if !$count;
+
+#     print "P: ";
+#     $self->{progress} = $count;
+#     print $self->{progress}, "%\n";
+
+#     return;
+# }
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my ($data, $file_fqn, $item) = $self->get_detail_data();
+
+    my ($bind, $sqltext) = $self->string_replace_for_run(
+        $data->{body}{sql},
+        $data->{parameters},
+    );
+
+    if ($bind and $sqltext) {
+        $self->_model->run_export(
+            $data->{header}{output}, $bind, $sqltext);
+    }
+}
+
+=head2 string_replace_for_run
+
+Prepare sql text string for execution.  Replace the 'valueN' string
+with with '?'.  Create an array of parameter values, used for binding.
+
+Need to check if number of parameters match number of 'valueN' strings
+in SQL statement text and print an error if not.
+
+=cut
+
+sub string_replace_for_run {
+    my ( $self, $sqltext, $params ) = @_;
+
+    my @bind;
+    foreach my $rec ( @{ $params->{parameter} } ) {
+        my $value = $rec->{value};
+        my $p_num = $rec->{id};         # Parameter number for bind_param
+        my $var   = 'value' . $p_num;
+        unless ( $sqltext =~ s/($var)/\?/pm ) {
+            $self->log_msg("EE Parameter mismatch, to few parameters in SQL");
+            return;
+        }
+
+        push( @bind, [ $p_num, $value ] );
+    }
+
+    # Check for remaining not substituted 'value[0-9]' in SQL
+    if ( $sqltext =~ m{(value[0-9])}pm ) {
+        $self->log_msg("EE Parameter mismatch, to many parameters in SQL");
+        return;
+    }
+
+    return ( \@bind, $sqltext );
 }
 
 =head1 AUTHOR

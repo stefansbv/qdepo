@@ -2,6 +2,8 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use Tk;
@@ -88,8 +90,6 @@ sub start {
 
     $self->set_app_mode('sele');
 
-    $self->_model->on_item_selected();
-
     return;
 }
 
@@ -128,19 +128,13 @@ sub set_app_mode {
 
 sub on_screen_mode_idle {
     my $self = shift;
-    print " on_screen_mode_idle\n";
+
     return;
 }
 
 sub on_screen_mode_edit {
     my $self = shift;
 
-    print " on_screen_mode_edit\n";
-    # $self->screen_write( undef, 'clear' );    # Empty the main controls
-
-    # #    $self->control_tmatrix_write();
-    # $self->controls_state_set('off');
-    # $self->_log->trace("Mode has changed to 'idle'");
 
     return;
 }
@@ -194,15 +188,13 @@ sub _set_event_handlers {
             else {
                 $self->_model->db_connect;
             }
-
-            $self->_model->on_item_selected(@_);
         }
     );
 
     #-- Refresh
     $self->_view->get_toolbar_btn('tb_rf')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->on_item_selected(@_);
+            $self->_model->on_item_selected();
         }
     );
 
@@ -211,22 +203,14 @@ sub _set_event_handlers {
         '<ButtonRelease-1>' => sub {
             my $rec = $self->_model->report_add();
             $self->_view->list_populate_item($rec);
+            $self->set_app_mode('edit');
         }
     );
 
     #-- Remove report
     $self->_view->get_toolbar_btn('tb_rm')->bind(
         '<ButtonRelease-1>' => sub {
-            my $msg = 'Delete query definition file?';
-            if ( $self->_view->action_confirmed($msg) ) {
-                my $file_fqn = $self->_view->list_remove_item();
-                if ($file_fqn) {
-                    $self->_model->report_remove($file_fqn);
-                }
-            }
-            else {
-                $self->_view->log_msg("II delete canceled");
-            }
+            $self->_view->list_mark_item();
         }
     );
 
@@ -234,7 +218,7 @@ sub _set_event_handlers {
     $self->_view->get_toolbar_btn('tb_sv')->bind(
         '<ButtonRelease-1>' => sub {
             if ( $self->_model->is_appmode('edit') ) {
-                $self->_view->save_query_def();
+                $self->save_query_def();
                 $self->set_app_mode('sele');
             }
         }
@@ -262,7 +246,6 @@ sub _set_event_handlers {
     $self->_view->get_toolbar_btn('tb_go')->bind(
         '<ButtonRelease-1>' => sub {
             if ($self->_model->is_connected ) {
-                $self->_view->progress_dialog('Export data');
                 $self->_view->process_sql();
             }
             else {
@@ -355,86 +338,77 @@ sub toggle_interface_controls {
         $self->_view->enable_tool( $name, $status );
     }
 
+    my $is_edit = $self->_model->is_appmode('edit') ? 1 : 0;
+
+    # Toggle List control
+    my $list = $self->_view->get_listcontrol();
+    if ($is_edit) {
+        # $list->configure(-state => 'disabled'); doesn't work!
+    }
+    else {
+        # $list->configure(-state => 'normal');
+    }
+
+    # Controls by page Enabled in edit mode
+    foreach my $page ( qw(para list conf sql ) ) {
+        $self->toggle_controls_page( $page, $is_edit );
+    }
+
     return;
 }
 
-#     # List control
-#     $self->{_list}->Enable(!$is_edit);
+=head2 toggle_controls_page
 
-#     # Controls by page Enabled in edit mode
-#     foreach my $page ( qw(para list conf sql ) ) {
-#         $self->toggle_controls_page( $page, $is_edit );
-#     }
-# }
-
-# =head2 toggle_controls_page
-
-# Toggle the controls on page
-
-# =cut
-
-# sub toggle_controls_page {
-#     my ($self, $page, $is_edit) = @_;
-
-#     my $get = 'get_controls_'.$page;
-#     my $controls = $self->_view->$get();
-
-#     foreach my $control ( @{$controls} ) {
-#         foreach my $name ( keys %{$control} ) {
-
-#             my $state = $control->{$name}->[1];  # normal | disabled
-#             my $color = $control->{$name}->[2];  # name
-
-#             # Controls state are defined in View as strings
-#             # Here we need to transform them to 0|1
-#             my $editable;
-#             if (!$is_edit) {
-#                 $editable = 0;
-#                 $color = 'lightgrey'; # Default color for disabled ctrl
-#             }
-#             else {
-#                 $editable = $state eq 'normal' ? 1 : 0;
-#             }
-
-#             if ($page ne 'sql') {
-#                 $control->{$name}->[0]->SetEditable($editable);
-#             }
-#             else {
-#                 $control->{$name}->[0]->Enable($editable);
-#             }
-
-#             $control->{$name}->[0]->SetBackgroundColour(
-#                 Wx::Colour->new( $color ),
-#             );
-#         }
-#     }
-# }
-
-=head2 dialog_progress
-
-Progress dialog.
+Toggle the controls on page
 
 =cut
 
-sub dialog_progress {
-    my ($self, $event, $max) = @_;
+sub toggle_controls_page {
+    my ($self, $page, $is_edit) = @_;
 
-    # my $dialog = Wx::ProgressDialog->new(
-    #     'Progress dialog example',
-    #     'An example',
-    #     $max,
-    #     $self,
-    #     wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_ELAPSED_TIME
-    #         | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
-    # );
+    my $get = 'get_controls_'.$page;
+    my $controls = $self->_view->$get();
 
-    # my $usercontinue = 1;
-    # foreach (1 .. $max) {
-    #     $usercontinue = $dialog->Update($_);
-    #     last if $usercontinue == 0;
-    # }
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
 
-    # $dialog->Destroy;
+            my ($state, $color);
+            if ($is_edit) {
+                $state = $control->{$name}->[1];  # normal | disabled
+                $color = $control->{$name}->[2];  # name
+            }
+            else {
+                $state = 'disabled';
+            }
+
+            $control->{$name}[0]->configure(-state      => $state);
+            $control->{$name}[0]->configure(-background => $color) if $color;
+        }
+    }
+}
+
+=head2 save_query_def
+
+Save query definition file
+
+=cut
+
+sub save_query_def {
+    my $self = shift;
+
+    my $item = $self->_view->get_list_selected_index();
+
+    my $head = $self->_view->controls_read_page('list');
+    my $para = $self->_view->controls_read_page('para');
+    my $body = $self->_view->controls_read_page('sql');
+
+    $self->_model->save_query_def( $item, $head, $para, $body );
+
+    # Update title in list
+
+    my $title = $head->[0]{title};
+
+    $self->_view->list_item_edit( $item, undef, $title );
 
     return;
 }
