@@ -3,8 +3,6 @@ package TpdaQrt::Wx::Controller;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
@@ -33,7 +31,6 @@ our $VERSION = '0.05';
     my $controller = TpdaQrt::Wx::Controller->new();
 
     $controller->start();
-
 
 =head1 METHODS
 
@@ -132,19 +129,12 @@ sub set_app_mode {
 
 sub on_screen_mode_idle {
     my $self = shift;
-    print " on_screen_mode_idle\n";
+
     return;
 }
 
 sub on_screen_mode_edit {
     my $self = shift;
-
-    print " on_screen_mode_edit\n";
-    # $self->screen_write( undef, 'clear' );    # Empty the main controls
-
-    # #    $self->control_tmatrix_write();
-    # $self->controls_state_set('off');
-    # $self->_log->trace("Mode has changed to 'idle'");
 
     return;
 }
@@ -177,7 +167,7 @@ my $about = sub {
 
 =head2 _set_event_handlers
 
-Setup event handlers
+Setup event handlers for the interface.
 
 =cut
 
@@ -217,25 +207,14 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad')->GetId,
         sub {
             my $rec = $self->_model->report_add();
-            my $idx = $self->_view->get_list_max_index();
-            $rec->{nrcrt} = $idx + 1;
-            $self->_model->set_qdf_data( $idx, $rec );
-            $self->_view->list_populate_item( $idx, $rec );
+            $self->_view->list_populate_item($rec);
+            $self->set_app_mode('edit');
         };
 
     #-- Remove report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm')->GetId,
         sub {
-            my $msg = 'Delete query definition file?';
-            if ( $self->_view->action_confirmed($msg) ) {
-                my $file_fqn = $self->_view->list_remove_item();
-                if ($file_fqn) {
-                    $self->_model->report_remove($file_fqn);
-                }
-            }
-            else {
-                $self->_view->log_msg("II delete canceled");
-            }
+            $self->_view->list_mark_item();
         };
 
     #-- Save
@@ -345,8 +324,10 @@ sub toggle_interface_controls {
         $self->_view->enable_tool( $name, $status );
     }
 
-    # List control
-    $self->{_list}->Enable( !$is_edit );
+    my $is_edit = $self->_model->is_appmode('edit') ? 1 : 0;
+
+    # Toggle List control state
+    $self->_view->get_listcontrol()->Enable( !$is_edit );
 
     # Controls by page Enabled in edit mode
     foreach my $page (qw(para list conf sql )) {
@@ -356,48 +337,50 @@ sub toggle_interface_controls {
     return;
 }
 
-# =head2 toggle_controls_page
+=head2 toggle_controls_page
 
-# Toggle the controls on page
+Toggle the controls on page
 
-# =cut
+=cut
 
-# sub toggle_controls_page {
-#     my ($self, $page, $is_edit) = @_;
+sub toggle_controls_page {
+    my ($self, $page, $is_edit) = @_;
 
-#     my $get = 'get_controls_'.$page;
-#     my $controls = $self->_view->$get();
+    my $get = 'get_controls_'.$page;
+    my $controls = $self->_view->$get();
 
-#     foreach my $control ( @{$controls} ) {
-#         foreach my $name ( keys %{$control} ) {
+    foreach my $control ( @{$controls} ) {
+        foreach my $name ( keys %{$control} ) {
 
-#             my $state = $control->{$name}->[1];  # normal | disabled
-#             my $color = $control->{$name}->[2];  # name
+            my $state = $control->{$name}[1];  # normal | disabled
+            my $color = $control->{$name}[2];  # name
 
-#             # Controls state are defined in View as strings
-#             # Here we need to transform them to 0|1
-#             my $editable;
-#             if (!$is_edit) {
-#                 $editable = 0;
-#                 $color = 'lightgrey'; # Default color for disabled ctrl
-#             }
-#             else {
-#                 $editable = $state eq 'normal' ? 1 : 0;
-#             }
+            # Controls state are defined in View as strings
+            # Here we need to transform them to 0|1
+            my $editable;
+            if (!$is_edit) {
+                $editable = 0;
+                $color = 'lightgrey'; # Default color for disabled ctrl
+            }
+            else {
+                $editable = $state eq 'normal' ? 1 : 0;
+            }
 
-#             if ($page ne 'sql') {
-#                 $control->{$name}->[0]->SetEditable($editable);
-#             }
-#             else {
-#                 $control->{$name}->[0]->Enable($editable);
-#             }
+            if ($page ne 'sql') {
+                $control->{$name}[0]->SetEditable($editable);
+            }
+            else {
+                $control->{$name}->[0]->Enable($editable);
+            }
 
-#             $control->{$name}->[0]->SetBackgroundColour(
-#                 Wx::Colour->new( $color ),
-#             );
-#         }
-#     }
-# }
+            $control->{$name}->[0]->SetBackgroundColour(
+                Wx::Colour->new( $color ),
+            ) if $color;
+        }
+    }
+
+    return;
+}
 
 =head2 dialog_progress
 
@@ -428,22 +411,6 @@ sub dialog_progress {
     return;
 }
 
-=head2 get_detail_data
-
-Return detail data from the selected list control item
-
-=cut
-
-sub get_detail_data {
-    my $self = shift;
-
-    my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
-    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
-
-    return ( $ddata_ref, $file_fqn, $sel_item );
-}
-
 =head2 save_query_def
 
 Save query definition file
@@ -453,17 +420,20 @@ Save query definition file
 sub save_query_def {
     my $self = shift;
 
-    my (undef, $file_fqn, $item) = $self->get_detail_data();
+    my $item = $self->_view->get_list_selected_index();
 
-    my $head = $self->controls_read_page('list');
-    my $para = $self->controls_read_page('para');
-    my $body = $self->controls_read_page('sql');
+    my $head = $self->_view->controls_read_page('list');
+    my $para = $self->_view->controls_read_page('para');
+    my $body = $self->_view->controls_read_page('sql');
 
-    my $new_title =
-      $self->_model->save_query_def( $file_fqn, $head, $para, $body );
+    $self->_model->save_query_def( $item, $head, $para, $body );
+
+    my $title = $head->[0]{title};
 
     # Update title in list
-    $self->set_list_text( $item, 1, $new_title );
+    $self->_view->set_list_text( $item, 1, $title );
+
+    return;
 }
 
 =head1 AUTHOR

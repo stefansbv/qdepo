@@ -53,11 +53,11 @@ Connect to database
 sub db_connect {
     my ($self, $conf) = @_;
 
-    print "Connecting to the $conf->{driver} server\n";
-    print "Parameters:\n";
-    print "  => Database = $conf->{dbname}\n";
-    print "  => Host     = $conf->{host}\n";
-    print "  => User     = $conf->{user}\n";
+    # print "Connecting to the $conf->{driver} server\n";
+    # print "Parameters:\n";
+    # print "  => Database = $conf->{dbname}\n";
+    # print "  => Host     = $conf->{host}\n";
+    # print "  => User     = $conf->{user}\n";
 
     try {
         $self->{_dbh} = DBI->connect(

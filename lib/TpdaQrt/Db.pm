@@ -3,13 +3,15 @@ package TpdaQrt::Db;
 use strict;
 use warnings;
 
+# use Log::Log4perl qw(get_logger);
+
 use TpdaQrt::Db::Connection;
 
 use base qw(Class::Singleton);
 
 =head1 NAME
 
-TpdaQrt::Db - Tpda TpdaQrt database operations module
+TpdaQrt::Db - Database operations module
 
 =head1 VERSION
 
@@ -21,29 +23,32 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-Connect to a database.
+Create a new connection instance only once and use it many times.
 
     use TpdaQrt::Db;
 
-    my $db = TpdaQrt::Db->_new_instance();
+    my $dbi = TpdaQrt::Db->instance($args); # first time init
 
-    my $dbh = $db->dbh;
+    my $dbi = TpdaQrt::Db->instance();      # later, in other modules
 
+    my $dbh = $dbi->dbh;
 
 =head1 METHODS
 
-=head2 new
+=head2 _new_instance
 
-Constructor method.
+Constructor method, the first and only time a new instance is created.
+All parameters passed to the instance() method are forwarded to this
+method. (From I<Class::Singleton> docs).
 
 =cut
 
 sub _new_instance {
     my $class = shift;
 
-    my $dbh = TpdaQrt::Db::Connection->new;
+    my $conn = TpdaQrt::Db::Connection->new;
 
-    return bless { dbh => $dbh }, $class;
+    return bless { conn => $conn }, $class;
 }
 
 =head2 dbh
@@ -55,13 +60,36 @@ Return database handle.
 sub dbh {
     my $self = shift;
 
-    return $self->{dbh};
+    return $self->{conn}{dbh};
 }
+
+=head2 dbc
+
+Module instance
+
+=cut
+
+sub dbc {
+    my $self = shift;
+
+    return $self->{conn}{dbc};
+}
+
+=head2 DESTROY
+
+Destroy method.
+
+=cut
 
 sub DESTROY {
     my $self = shift;
 
-    $self->{dbh}->disconnect () if defined $self->{dbh};
+    if ( defined $self->{conn}{dbh} ) {
+        $self->{conn}{dbh}->disconnect;
+        print "Disconnected\n";
+    }
+
+    return;
 }
 
 =head1 AUTHOR
@@ -69,15 +97,6 @@ sub DESTROY {
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
 =head1 BUGS
-
-PostgreSQL: Transaction aborted because execute on disconnected handle
-at lib/TpdaQrt/Db.pm line 125.
-
-Similar for sqlite: Transaction aborted because DBD::SQLite::db
-prepare failed: attempt to prepare on inactive database handle at
-lib/TpdaQrt/Output.pm line 238.
-
-Appears at disconnect - reconect.
 
 Please report any bugs or feature requests to the author.
 
@@ -87,12 +106,22 @@ Inspired from PerlMonks node [id://609543] by GrandFather.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 - 2011 Stefan Suciu.
+Copyright 2010-2011 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
+the Free Software Foundation; version 2 dated June, 1991 or at your option
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+A copy of the GNU General Public License is available in the source tree;
+if not, write to the Free Software Foundation, Inc.,
+59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 =cut
 
-1; # End of TpdaQrt::Db
+1;    # End of TpdaQrt::Db

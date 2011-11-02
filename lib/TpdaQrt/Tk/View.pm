@@ -3,8 +3,6 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -72,6 +70,39 @@ sub new {
     $self->_set_model_callbacks();
 
     return $self;
+}
+
+sub change_look {
+    my $self = shift;
+
+    # Operating system
+    my ( $os, $fontglob, $fonttext );
+    if ( $^O eq 'MSWin32' ) {
+        $os = 'win32';
+
+        # Default fonts
+        $fontglob = '{MS Sans Serif} 8';
+        $fonttext = '{Courier New} 8';
+    }
+    else {
+        $os = 'linux';
+
+        # New fonts
+        $fontglob = '{MS Sans Serif} 10';
+        $fonttext = '{Terminus} 11';         # Courier New
+    }
+
+    # Change the font and fg color
+    $self->optionAdd("*font", $fontglob, "userDefault");
+    # $self->optionAdd("*importantText*foreground", "red", "userDefault");
+    $self->optionAdd("*importantText*font", $fonttext, "userDefault");
+
+    # Change the background color and troughcolor for some widgets:
+    for (qw(Entry MListbox Text)) {
+        $self->optionAdd("*$_.background", "white", "userDefault");
+    }
+
+    return;
 }
 
 =head2 _model
@@ -405,6 +436,66 @@ sub get_statusbar {
     my ( $self, $sb_id ) = @_;
 
     return $self->{_sb}{$sb_id};
+}
+
+=head2 _create_notebook
+
+Create the NoteBook and panes.
+
+=cut
+
+sub _create_notebook {
+    my $self = shift;
+
+    #- Tk::NoteBook
+
+    $self->{_nb} = $self->NoteBook()->pack(
+        -side   => 'top',
+        -padx   => 3,
+        -pady   => 3,
+        -ipadx  => 6,
+        -ipady  => 6,
+        -fill   => 'both',
+        -expand => 1,
+    );
+
+    #- Panels
+
+    $self->_create_notebook_panel( 'p1', 'Query List' );
+    $self->_create_notebook_panel( 'p2', 'Parameters' );
+    $self->_create_notebook_panel( 'p3', 'SQL Query' );
+    $self->_create_notebook_panel( 'p4', 'Log Info' );
+
+    $self->{_nb}->pack(
+        -side   => 'top',
+        -fill   => 'both',
+        -padx   => 5,
+        -pady   => 5,
+        -expand => 1,
+    );
+
+    # Initialize
+    $self->{_nb}->raise('p1');
+
+    return;
+}
+
+=head2 _create_notebook_panel
+
+Create a NoteBook panel
+
+=cut
+
+sub _create_notebook_panel {
+    my ( $self, $panel, $label ) = @_;
+
+    $self->{_nb}{$panel} = $self->{_nb}->add(
+        $panel,
+        -label     => $label,
+        -underline => 0,
+    );
+
+    return;
 }
 
 =head2 get_notebook
@@ -1153,9 +1244,7 @@ Insert item in list control
 sub list_item_insert {
     my ( $self, $nrcrt, $title ) = @_;
 
-    my $list = $self->get_listcontrol();
-
-    $list->insert( 'end', [$nrcrt, $title] );
+    $self->get_listcontrol()->insert( 'end', [$nrcrt, $title] );
 
     return;
 }
@@ -1191,18 +1280,18 @@ Delete list control item.
 
 =cut
 
-sub list_item_clear {
-    my ($self, $indecs) = @_;
+# sub list_item_clear {
+#     my ($self, $indecs) = @_;
 
-    if ( defined $indecs ) {
- $self->get_listcontrol->delete($indecs);
-    }
-    else {
-        print "EE: Nothing selected!\n";
-    }
+#     if ( defined $indecs ) {
+#         $self->get_listcontrol->delete($indecs);
+#     }
+#     else {
+#         print "EE: Nothing selected!\n";
+#     }
 
-    return;
-}
+#     return;
+# }
 
 =head2 list_item_clear_all
 
@@ -1259,7 +1348,7 @@ sub list_populate_all {
         my $nrcrt = $indices->{$idx}{nrcrt};
         my $title = $indices->{$idx}{title};
         my $file  = $indices->{$idx}{file};
-        # print "$nrcrt -> $title\n";
+
         $self->list_item_insert($nrcrt, $title);
     }
 
@@ -1341,7 +1430,6 @@ sub controls_populate {
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
 
-
     # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
 
@@ -1359,6 +1447,8 @@ sub controls_populate {
 
     #--- Highlight SQL parameters
     $self->toggle_sql_replace();
+
+    return;
 }
 
 
@@ -1443,42 +1533,6 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
-=head2 status_message
-
-Message types:
-
-=over
-
-=item error  message with I<darkred> color
-
-=item warn   message with I<yellow> color
-
-=item info   message with I<darkgreen> color
-
-=back
-
-=cut
-
-sub status_message {
-    my ($self, $text) = @_;
-
-    (my $type, $text) = split /#/, $text, 2;
-
-    my $color;
-  SWITCH: {
-        $type eq 'error' && do { $color = 'darkred';   last SWITCH; };
-        $type eq 'info'  && do { $color = 'darkgreen'; last SWITCH; };
-        $type eq 'warn'  && do { $color = 'orange';    last SWITCH; };
-
-        # Default
-        $color = 'red';
-    }
-
-    $self->set_status( $text, 'ms', $color );
-
-    return;
-}
-
 =head2 set_status
 
 Display message in the status bar.  Colour name can also be passed to
@@ -1494,15 +1548,6 @@ sub set_status {
     if ( $sb_id eq 'cn' ) {
         $sb->configure( -image => $text ) if defined $text;
     }
-    elsif ( $sb_id eq 'ss' ) {
-
-        #         _scrdata_rec       status text
-        my $str
-            = !defined $text ? ''
-            : $text          ? 'M'
-            :                  'S';
-        $sb->configure( -textvariable => \$str ) if defined $str;
-    }
     else {
         $sb->configure( -textvariable => \$text ) if defined $text;
         $sb->configure( -foreground   => $color ) if defined $color;
@@ -1511,62 +1556,24 @@ sub set_status {
     return;
 }
 
-=head2 _create_notebook
+=head2 toggle_status_cn
 
-Create the NoteBook and panes.
-
-=cut
-
-sub _create_notebook {
-    my $self = shift;
-
-    #- Tk::NoteBook
-
-    $self->{_nb} = $self->NoteBook()->pack(
-        -side   => 'top',
-        -padx   => 3,
-        -pady   => 3,
-        -ipadx  => 6,
-        -ipady  => 6,
-        -fill   => 'both',
-        -expand => 1,
-    );
-
-    #- Panels
-
-    $self->_create_notebook_panel( 'p1', 'Query List' );
-    $self->_create_notebook_panel( 'p2', 'Parameters' );
-    $self->_create_notebook_panel( 'p3', 'SQL Query' );
-    $self->_create_notebook_panel( 'p4', 'Log Info' );
-
-    $self->{_nb}->pack(
-        -side   => 'top',
-        -fill   => 'both',
-        -padx   => 5,
-        -pady   => 5,
-        -expand => 1,
-    );
-
-    # Initialize
-    $self->{_nb}->raise('p1');
-
-    return;
-}
-
-=head2 _create_notebook_panel
-
-Create a NoteBook panel
+Toggle the icon in the status bar
 
 =cut
 
-sub _create_notebook_panel {
-    my ( $self, $panel, $label ) = @_;
+sub toggle_status_cn {
+    my ( $self, $status ) = @_;
 
-    $self->{_nb}{$panel} = $self->{_nb}->add(
-        $panel,
-        -label     => $label,
-        -underline => 0,
-    );
+    if ($status) {
+        $self->set_status( 'connectyes16', 'cn' );
+        $self->set_status( $self->_cfg->conninfo->{dbname},
+            'db', 'darkgreen' );
+    }
+    else {
+        $self->set_status( 'connectno16', 'cn' );
+        $self->set_status( '',            'db' );
+    }
 
     return;
 }
@@ -1620,41 +1627,17 @@ sub define_dialogs {
     return;
 }
 
-=head2 toggle_status_cn
+# sub progress_update {
+#     my ($self, $count) = @_;
 
-Toggle the icon in the status bar
+#     return if !$count;
 
-=cut
+#     print "P: ";
+#     $self->{progress} = $count;
+#     print $self->{progress}, "%\n";
 
-sub toggle_status_cn {
-    my ( $self, $status ) = @_;
-
-    if ($status) {
-        $self->set_status( 'connectyes16', 'cn' );
-        $self->set_status( $self->_cfg->conninfo->{dbname},
-            'db', 'darkgreen' );
-    }
-    else {
-        $self->set_status( 'connectno16', 'cn' );
-        $self->set_status( '',            'db' );
-    }
-
-    return;
-}
-
-=head2 on_quit
-
-Destroy window on quit
-
-=cut
-
-sub on_quit {
-    my $self = shift;
-
-    $self->destroy();
-
-    return;
-}
+#     return;
+# }
 
 =head2 list_read_selected
 
@@ -1936,51 +1919,6 @@ sub control_read_t {
     return $value;
 }
 
-sub change_look {
-    my $self = shift;
-
-    # Operating system
-    my ( $os, $fontglob, $fonttext );
-    if ( $^O eq 'MSWin32' ) {
-        $os = 'win32';
-
-        # Default fonts
-        $fontglob = '{MS Sans Serif} 8';
-        $fonttext = '{Courier New} 8';
-    }
-    else {
-        $os = 'linux';
-
-        # New fonts
-        $fontglob = '{MS Sans Serif} 10';
-        $fonttext = '{Terminus} 11';         # Courier New
-    }
-
-    # Change the font and fg color
-    $self->optionAdd("*font", $fontglob, "userDefault");
-    # $self->optionAdd("*importantText*foreground", "red", "userDefault");
-    $self->optionAdd("*importantText*font", $fonttext, "userDefault");
-
-    # Change the background color and troughcolor for some widgets:
-    for (qw(Entry MListbox Text)) {
-        $self->optionAdd("*$_.background", "white", "userDefault");
-    }
-
-    return;
-}
-
-# sub progress_update {
-#     my ($self, $count) = @_;
-
-#     return if !$count;
-
-#     print "P: ";
-#     $self->{progress} = $count;
-#     print $self->{progress}, "%\n";
-
-#     return;
-# }
-
 =head2 process_sql
 
 Get the sql text string from the QDF file, prepare it for execution.
@@ -2036,6 +1974,20 @@ sub string_replace_for_run {
     }
 
     return ( \@bind, $sqltext );
+}
+
+=head2 on_quit
+
+Destroy window on quit
+
+=cut
+
+sub on_quit {
+    my $self = shift;
+
+    $self->destroy();
+
+    return;
 }
 
 =head1 AUTHOR

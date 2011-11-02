@@ -2,8 +2,6 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use Tk;
@@ -74,7 +72,7 @@ database.
 sub start {
     my $self = shift;
 
-#    $self->_view->log_config_options();
+    $self->_view->log_config_options();
 
     # Connect to database at start
     $self->_model->db_connect();
@@ -374,8 +372,8 @@ sub toggle_controls_page {
 
             my ($state, $color);
             if ($is_edit) {
-                $state = $control->{$name}->[1];  # normal | disabled
-                $color = $control->{$name}->[2];  # name
+                $state = $control->{$name}[1];  # normal | disabled
+                $color = $control->{$name}[2];  # name
             }
             else {
                 $state = 'disabled';
@@ -405,9 +403,7 @@ sub save_query_def {
     $self->_model->save_query_def( $item, $head, $para, $body );
 
     # Update title in list
-
     my $title = $head->[0]{title};
-
     $self->_view->list_item_edit( $item, undef, $title );
 
     return;

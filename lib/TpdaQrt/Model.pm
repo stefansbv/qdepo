@@ -3,8 +3,6 @@ package TpdaQrt::Model;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
@@ -19,7 +17,7 @@ use TpdaQrt::Utils;
 
 =head1 NAME
 
-TpdaQrt::Wx::Model - The Model
+TpdaQrt::Wx::Model - The Model.
 
 =head1 VERSION
 
@@ -102,13 +100,27 @@ sub _connect {
 
     # Is realy connected ?
     if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
-        $self->get_connection_observable->set( 1 ); # yes
+        $self->get_connection_observable->set(1);    # yes
         $self->message_log("II Connected to \"$dbname\" with '$driver'");
     }
     else {
-        $self->get_connection_observable->set( 0 ); # no ;)
-        $self->message_log("II Disconnected from '$dbname'");
+        $self->get_connection_observable->set(0);    # no ;)
+        $self->message_log("EE Connection to '$dbname' failed");
     }
+
+    # # Connect to database
+    # $self->{_dbh} = TpdaQrt::Db->instance->dbh;
+
+    # # Is realy connected ?
+    # if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
+    #     $self->get_connection_observable->set( 1 ); # yes
+    #     $self->message_log("II Connected to \"$dbname\" with '$driver'");
+    # }
+    # else {
+    #     $self->get_connection_observable->set( 0 ); # no ;)
+    #     $self->message_log("II Disconnected from '$dbname'");
+    # }
+    return;
 }
 
 =head2 is_connected
@@ -217,7 +229,9 @@ sub message {
 
     $sb_id = 0 if not defined $sb_id;
 
-    $self->get_stdout_observable->set( "$line:$sb_id" );
+    $self->get_stdout_observable->set($line);
+
+    return;
 }
 
 =head2 get_exception_observable
@@ -606,7 +620,6 @@ sub get_choice_observable {
 
     return $self->{_choice};
 }
-
 
 =head1 AUTHOR
 

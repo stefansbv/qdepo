@@ -43,9 +43,9 @@ sub new {
 
     my $self = bless {}, $class;
 
-    $self->{dbh} = $self->db_connect();
+    $self->db_connect();
 
-    return $self->{dbh};
+    return $self;
 }
 
 =head2 db_connect
@@ -60,9 +60,13 @@ sub db_connect {
 
     my $self = shift;
 
-    my $conninfo = TpdaQrt::Config->instance->conninfo;
+    my $inst = TpdaQrt::Config->instance;
+    my $conf = $inst->conninfo;
 
-    my $driver = $conninfo->{driver};
+    $conf->{user} = $inst->user;    # add user and pass to
+    $conf->{pass} = $inst->pass;    #  connection options
+
+    my $driver = $conf->{driver};
     my $db;
 
   SWITCH: for ( $driver ) {
@@ -92,21 +96,22 @@ sub db_connect {
         return;
     }
 
-    my $dbh = $db->db_connect($conninfo);
+    $self->{dbc} = $db;
+    $self->{dbh} = $db->db_connect($conf);
 
-    if (ref $dbh) {
+    if ( ref $self->{dbh} ) {
 
         # Some defaults
-        $dbh->{AutoCommit}         = 1; # disable transactions
-        $dbh->{RaiseError}         = 0; # non fatal, handled
-        $dbh->{PrintError}         = 0;
-        $dbh->{ShowErrorStatement} = 1;
-        $dbh->{HandleError}        = Exception::Class::DBI->handler;
-        $dbh->{LongReadLen}        = 512 * 1024;    # for BLOBs
-        $dbh->{FetchHashKeyName}   = 'NAME_lc';
+        $self->{dbh}->{AutoCommit} = 1; # disable transactions
+        $self->{dbh}->{RaiseError} = 0; # non fatal, handled
+        $self->{dbh}->{PrintError} = 0;
+        $self->{dbh}->{ShowErrorStatement} = 1;
+        $self->{dbh}->{HandleError} = Exception::Class::DBI->handler;
+        $self->{dbh}->{LongReadLen} = 524288;    # for BLOBs
+        $self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
     }
 
-    return $dbh;
+    return;
 }
 
 =head1 AUTHOR

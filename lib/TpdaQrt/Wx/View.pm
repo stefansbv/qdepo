@@ -3,6 +3,8 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
@@ -428,8 +430,8 @@ sub _create_report_page {
     $self->{output} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Sheet name', );
-    $self->{sheet} =
+    my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Template', );
+    $self->{template} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     $self->{description} =
@@ -467,7 +469,7 @@ sub _create_report_page {
     $repo_mid_fgs->Add( $self->{output},   0, wxEXPAND, 0 );
 
     $repo_mid_fgs->Add( $repo_lbl4, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{sheet},    0, wxEXPAND, 0 );
+    $repo_mid_fgs->Add( $self->{template},    0, wxEXPAND, 0 );
 
     # $repo_mid_fgs->AddGrowableRow( 1, 1 );
     $repo_mid_fgs->AddGrowableCol( 1, 1 );
@@ -805,11 +807,11 @@ Return the toolbar handler.
 
 =cut
 
-sub get_toolbar {
-    my $self = shift;
+# sub get_toolbar {
+#     my $self = shift;
 
-    return $self->{_tb};
-}
+#     return $self->{_tb};
+# }
 
 =head2 get_choice_default
 
@@ -845,11 +847,11 @@ sub get_controls_list {
     my $self = shift;
 
     return [
-        { title       => [ $self->{title}      , 'normal'  , 'white'     ] },
-        { filename    => [ $self->{filename}   , 'disabled', 'lightgrey' ] },
-        { output      => [ $self->{output}     , 'normal'  , 'white'     ] },
-        { sheet       => [ $self->{sheet}      , 'normal'  , 'white'     ] },
-        { description => [ $self->{description}, 'normal'  , 'white'     ] },
+        { title    => [ $self->{title},    'normal',   'white',     'e' ] },
+        { filename => [ $self->{filename}, 'disabled', $self->{bg}, 'e' ] },
+        { output   => [ $self->{output},   'normal',   'white',     'e' ] },
+        { template => [ $self->{template}, 'normal',   'white',     'e' ] },
+        { description => [ $self->{description}, 'normal', 'white', 't' ] },
     ];
 }
 
@@ -863,16 +865,16 @@ sub get_controls_para {
     my $self = shift;
 
     return [
-        { descr1 => [ $self->{descr1}, 'normal'  , 'white' ] },
-        { value1 => [ $self->{value1}, 'normal'  , 'white' ] },
-        { descr2 => [ $self->{descr2}, 'normal'  , 'white' ] },
-        { value2 => [ $self->{value2}, 'normal'  , 'white' ] },
-        { descr3 => [ $self->{descr3}, 'normal'  , 'white' ] },
-        { value3 => [ $self->{value3}, 'normal'  , 'white' ] },
-        { descr4 => [ $self->{descr4}, 'normal'  , 'white' ] },
-        { value4 => [ $self->{value4}, 'normal'  , 'white' ] },
-        { descr5 => [ $self->{descr5}, 'normal'  , 'white' ] },
-        { value5 => [ $self->{value5}, 'normal'  , 'white' ] },
+        { descr1 => [ $self->{descr1}, 'normal', 'white', 'e' ] },
+        { value1 => [ $self->{value1}, 'normal', 'white', 'e' ] },
+        { descr2 => [ $self->{descr2}, 'normal', 'white', 'e' ] },
+        { value2 => [ $self->{value2}, 'normal', 'white', 'e' ] },
+        { descr3 => [ $self->{descr3}, 'normal', 'white', 'e' ] },
+        { value3 => [ $self->{value3}, 'normal', 'white', 'e' ] },
+        { descr4 => [ $self->{descr4}, 'normal', 'white', 'e' ] },
+        { value4 => [ $self->{value4}, 'normal', 'white', 'e' ] },
+        { descr5 => [ $self->{descr5}, 'normal', 'white', 'e' ] },
+        { value5 => [ $self->{value5}, 'normal', 'white', 'e' ] },
     ];
 }
 
@@ -886,7 +888,7 @@ sub get_controls_sql {
     my $self = shift;
 
     return [
-        { sql => [ $self->{sql}, 'normal'  , 'white' ] },
+        { sql => [ $self->{sql}, 'normal'  , 'white', 't' ] },
     ];
 }
 
@@ -923,11 +925,11 @@ Return text item from list control row and col
 
 =cut
 
-sub get_list_text {
-    my ($self, $row, $col) = @_;
+# sub get_list_text {
+#     my ($self, $row, $col) = @_;
 
-    return $self->get_listcontrol->GetItemText( $row, $col );
-}
+#     return $self->get_listcontrol->GetItemText( $row, $col );
+# }
 
 =head2 set_list_text
 
@@ -957,6 +959,10 @@ sub list_item_select_first {
     if ( $items_no > 0 ) {
         $self->get_listcontrol->Select(0, 1);
     }
+
+    $self->_model->on_item_selected();
+
+    return;
 }
 
 =head2 list_item_select_last
@@ -972,6 +978,10 @@ sub list_item_select_last {
     my $idx = $items_no - 1;
     $self->get_listcontrol->Select( $idx, 1 );
     $self->get_listcontrol->EnsureVisible($idx);
+
+    $self->_model->on_item_selected();
+
+    return;
 }
 
 =head2 get_list_max_index
@@ -1005,9 +1015,8 @@ Insert item in list control
 =cut
 
 sub list_item_insert {
-    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
+    my ( $self, $indice, $nrcrt, $title ) = @_;
 
-    # Remember, always sort by index before insert!
     $self->list_string_item_insert($indice);
     $self->set_list_text($indice, 0, $nrcrt);
     $self->set_list_text($indice, 1, $title);
@@ -1035,15 +1044,15 @@ Delete list control item.
 
 =cut
 
-sub list_item_clear {
-    my ($self, $item) = @_;
+# sub list_item_clear {
+#     my ($self, $item) = @_;
 
-    $self->get_listcontrol->DeleteItem($item);
+#     $self->get_listcontrol->DeleteItem($item);
 
-    $self->_model->remove_qdf_data($item);
+#     $self->_model->remove_qdf_data($item);
 
-    return;
-}
+#     return;
+# }
 
 =head2 list_item_clear_all
 
@@ -1097,14 +1106,12 @@ sub list_populate_all {
         my $nrcrt = $indices->{$idx}{nrcrt};
         my $title = $indices->{$idx}{title};
         my $file  = $indices->{$idx}{file};
-        # print "$nrcrt -> $title\n";
+
         $self->list_item_insert($idx, $nrcrt, $title, $file);
     }
 
     # Set item 0 selected on start
     $self->list_item_select_first();
-
-    $self->_model->on_item_selected();       # initialize model data
 
     return;
 }
@@ -1116,36 +1123,53 @@ Add new item in list control and select the last item.
 =cut
 
 sub list_populate_item {
-    my ( $self, $idx, $rec ) = @_;
+    my ( $self, $rec ) = @_;
 
-    # my $idx = $self->get_list_max_index();
+    my ($idx) = keys %{$rec};
+    my $r     = $rec->{$idx};
 
-    $self->list_item_insert( $idx, $idx + 1, $rec->{title}, $rec->{file} );
+    $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title} );
 
     $self->list_item_select_last();
 
     return;
 }
 
-=head2 list_remove_item
+=head2 list_mark_item
 
 Remove item from list control and select the first item
 
 =cut
 
-sub list_remove_item {
+sub list_mark_item {
     my $self = shift;
 
-    my $sel_item = $self->get_list_selected_index();
-    my $file_fqn = $self->_model->get_qdf_data_file($sel_item);
+    my $item = $self->get_list_selected_index();
 
-    # Remove from list
-    $self->list_item_clear($sel_item);
+    my $rec = $self->_model->get_qdf_data($item);
 
-    # Set item 0 selected
-    $self->list_item_select_first();
+    my $nrcrt = $rec->{nrcrt};
+    $nrcrt = "$nrcrt D";
 
-    return $file_fqn;
+    $self->set_list_text( $item, 0, $nrcrt );
+
+    return;
+}
+
+=head2 get_detail_data
+
+Return detail data from the selected list control item
+
+=cut
+
+sub get_detail_data {
+    my $self = shift;
+
+    my $sel_item  = $self->get_list_selected_index();
+    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
+    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
+
+    return ( $ddata_ref, $file_fqn, $sel_item );
 }
 
 =head2 controls_populate
@@ -1164,11 +1188,10 @@ sub controls_populate {
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
 
-    #-- Header
-    # Write in the control the filename, remove path config path
+    # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
 
-    # Add real path to control
+    #-- Header
     $ddata_ref->{header}{filename} = $file_rel;
     $self->controls_write_page('list', $ddata_ref->{header} );
 
@@ -1177,11 +1200,12 @@ sub controls_populate {
     $self->controls_write_page('para', $params );
 
     #-- SQL
-    $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
+    $self->controls_write_page('sql', $ddata_ref->{body} );
 
     #--- Highlight SQL parameters
-    # $self->_model->toggle_sql_replace();
     $self->toggle_sql_replace();
+
+    return;
 }
 
 =head2 toggle_sql_replace
@@ -1227,18 +1251,6 @@ sub control_replace_sql_text {
     $self->control_set_value('sql', $newtext);
 }
 
-=head2 dialog_msg
-
-Set dialog message
-
-=cut
-
-sub dialog_msg {
-    my ( $self, $message ) = @_;
-
-    $self->dialog_popup( 'Error', $message );
-}
-
 =head2 log_msg
 
 Set log message
@@ -1249,6 +1261,93 @@ sub log_msg {
     my ( $self, $message ) = @_;
 
     $self->control_append_value( 'log', $message );
+}
+=head2 string_replace_pos
+
+Replace string pos
+
+=cut
+
+sub string_replace_pos {
+
+    my ($self, $text, $params) = @_;
+
+    my @strpos;
+
+    while (my ($key, $value) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Replace  text and return the strpos
+        $text =~ s/($key)/$value/pm;
+        my $pos = $-[0];
+        push(@strpos, [ $pos, $key, $value ]);
+    }
+
+    # Sorted by $pos
+    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
+
+    return ($text, \@sortedpos);
+}
+
+=head2 set_status
+
+Set status message.
+
+Color is ignored for wxPerl.
+
+=cut
+
+sub set_status {
+    my ( $self, $text, $sb_id, $color ) = @_;
+
+    my $sb = $self->get_statusbar();
+
+    if ( $sb_id eq q{db} ) {
+
+        # Database name
+        $sb->PushStatusText( $text, 2 ) if defined $text;
+    }
+    elsif ( $sb_id eq q{ms} ) {
+
+        # Messages
+        $sb->PushStatusText( $text, 0 ) if defined $text;
+    }
+    else {
+
+        # App status
+        # my $cw = $self->GetCharWidth();
+        # my $ln = length $text;
+        # my $cn = () = $text =~ m{i|l}g;
+        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
+        # $pl = ceil $pl / $cw;
+        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
+        # $text = sprintf( "%*s", $pl, $text );
+        $sb->PushStatusText( $text, 1 ) if defined $text;
+    }
+
+    return;
+}
+
+=head2 toggle_status_cn
+
+Toggle the icon in the status bar
+
+=cut
+
+sub toggle_status_cn {
+    my ( $self, $status ) = @_;
+
+    if ($status) {
+        $self->set_status( 'connectyes16', 'cn' );
+        $self->set_status( $self->_cfg->conninfo->{dbname},
+            'db', 'darkgreen' );
+    }
+    else {
+        $self->set_status( 'connectno16', 'cn' );
+        $self->set_status( '',            'db' );
+    }
+
+    return;
 }
 
 sub progress_dialog {
@@ -1291,33 +1390,6 @@ sub process_sql {
         $self->_model->run_export(
             $data->{header}{output}, $bind, $sqltext);
     }
-}
-
-=head2 string_replace_pos
-
-Replace string pos
-
-=cut
-
-sub string_replace_pos {
-
-    my ($self, $text, $params) = @_;
-
-    my @strpos;
-
-    while (my ($key, $value) = each ( %{$params} ) ) {
-        next unless $key =~ m{value[0-9]}; # Skip 'descr'
-
-        # Replace  text and return the strpos
-        $text =~ s/($key)/$value/pm;
-        my $pos = $-[0];
-        push(@strpos, [ $pos, $key, $value ]);
-    }
-
-    # Sorted by $pos
-    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
-
-    return ($text, \@sortedpos);
 }
 
 =head2 string_replace_for_run
@@ -1420,9 +1492,62 @@ sub controls_write_page {
                 $value = q{};           # Empty
             }
 
-            $control->{$name}[0]->SetValue($value);
+            $self->control_write( $control, $name, $value, );
         }
     }
+}
+
+=head2 control_write
+
+Run the appropriate sub according to control (entry widget) type.
+
+=cut
+
+sub control_write {
+    my ($self, $control, $name, $value, $state) = @_;
+
+    my $ctrltype = $control->{$name}[3];
+
+    my $sub_name = qq{control_write_$ctrltype};
+    if ( $self->can($sub_name) ) {
+        $self->$sub_name($control->{$name}[0], $value, $state);
+    }
+    else {
+        print "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
+    }
+
+    return;
+}
+
+=head2 control_write_e
+
+Write to a Entry control.
+
+=cut
+
+sub control_write_e {
+    my ( $self, $control, $value ) = @_;
+
+    $control->Clear;
+    $control->SetValue($value) if $value;
+
+    return;
+}
+
+=head2 control_write_t
+
+Write to a Wx::StyledTextCtrl.
+
+=cut
+
+sub control_write_t {
+    my ( $self, $control, $value ) = @_;
+
+    $control->Clear;
+    $control->AppendText($value);
+    $control->AppendText("\n");
+
+    return;
 }
 
 =head2 controls_read_page
@@ -1468,67 +1593,6 @@ sub on_quit {
     print "Closing ...\n";
 
     $self->Close(1);
-
-    return;
-}
-
-=head2 set_status
-
-Set status message.
-
-Color is ignored for wxPerl.
-
-=cut
-
-sub set_status {
-    my ( $self, $text, $sb_id, $color ) = @_;
-
-    my $sb = $self->get_statusbar();
-
-    if ( $sb_id eq q{db} ) {
-
-        # Database name
-        $sb->PushStatusText( $text, 2 ) if defined $text;
-    }
-    elsif ( $sb_id eq q{ms} ) {
-
-        # Messages
-        $sb->PushStatusText( $text, 0 ) if defined $text;
-    }
-    else {
-
-        # App status
-        # my $cw = $self->GetCharWidth();
-        # my $ln = length $text;
-        # my $cn = () = $text =~ m{i|l}g;
-        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
-        # $pl = ceil $pl / $cw;
-        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
-        # $text = sprintf( "%*s", $pl, $text );
-        $sb->PushStatusText( $text, 1 ) if defined $text;
-    }
-
-    return;
-}
-
-=head2 toggle_status_cn
-
-Toggle the icon in the status bar
-
-=cut
-
-sub toggle_status_cn {
-    my ( $self, $status ) = @_;
-
-    if ($status) {
-        $self->set_status( 'connectyes16', 'cn' );
-        $self->set_status( $self->_cfg->conninfo->{dbname},
-            'db', 'darkgreen' );
-    }
-    else {
-        $self->set_status( 'connectno16', 'cn' );
-        $self->set_status( '',            'db' );
-    }
 
     return;
 }
