@@ -668,6 +668,33 @@ sub string_replace_for_run {
     return ( \@bind, $sqltext );
 }
 
+
+=head2 string_replace_pos
+
+Replace string pos
+
+=cut
+
+sub string_replace_pos {
+    my ($self, $text, $params) = @_;
+
+    my @strpos;
+
+    while (my ($key, $value) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+
+        # Replace  text and return the strpos
+        $text =~ s/($key)/$value/pm;
+        my $pos = $-[0];
+        push(@strpos, [ $pos, $key, $value ]);
+    }
+
+    # Sorted by $pos
+    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
+
+    return ($text, \@sortedpos);
+}
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>

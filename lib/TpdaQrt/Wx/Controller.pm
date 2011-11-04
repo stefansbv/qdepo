@@ -136,11 +136,15 @@ sub on_screen_mode_idle {
 sub on_screen_mode_edit {
     my $self = shift;
 
+    $self->_view->toggle_sql_replace('edit');
+
     return;
 }
 
 sub on_screen_mode_sele {
     my $self = shift;
+
+    $self->_view->toggle_sql_replace('sele');
 
     return;
 }

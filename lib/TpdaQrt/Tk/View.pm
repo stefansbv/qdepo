@@ -3,6 +3,8 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -210,7 +212,6 @@ sub update_gui_components {
 
     if ($mode eq 'edit') {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
-        $self->toggle_sql_replace();
     }
     else {
         $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
@@ -1463,15 +1464,11 @@ sub controls_populate {
     $self->controls_write_page('list', $ddata_ref->{header} );
 
     #-- Parameters
-    my $params = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
-    $self->controls_write_page('para', $params );
+    my $para = TpdaQrt::Utils->params_to_hash( $ddata_ref->{parameters} );
+    $self->controls_write_page('para', $para );
 
     #-- SQL
-    # $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
     $self->controls_write_page('sql', $ddata_ref->{body} );
-
-    #--- Highlight SQL parameters
-    $self->toggle_sql_replace();
 
     return;
 }
@@ -1483,23 +1480,17 @@ Toggle sql replace
 =cut
 
 sub toggle_sql_replace {
-    my $self = shift;
+    my ($self, $mode) = @_;
 
-    #- Detail data
     my $item = $self->get_list_selected_index();
-    my ( $ddata_ref, $file_fqn ) = $self->_model->get_detail_data($item);
+    my ($data) = $self->_model->get_detail_data($item);
 
-    return unless ref $ddata_ref and $file_fqn;
-
-    #-- Parameters
-    my $params
-        = TpdaQrt::Utils->params_data_to_hash( $ddata_ref->{parameters} );
-
-    if ( $self->_model->is_appmode('edit') ) {
-        $self->control_set_value( 'sql', $ddata_ref->{body}{sql} );
+    if ($mode eq 'edit') {
+        $self->control_set_value( 'sql', $data->{body}{sql} );
     }
-    else {
-        $self->control_replace_sql_text( $ddata_ref->{body}{sql}, $params );
+    elsif ($mode eq 'sele') {
+        my $para = TpdaQrt::Utils->params_to_hash( $data->{parameters} );
+        $self->control_replace_sql_text( $data->{body}{sql}, $para );
     }
 
     return;
@@ -1514,7 +1505,7 @@ Replace sql text control
 sub control_replace_sql_text {
     my ($self, $sqltext, $params) = @_;
 
-    my ($newtext, $positions) = $self->string_replace_pos($sqltext, $params);
+    my ($newtext) = $self->_model->string_replace_pos($sqltext, $params);
 
     # Write new text to control
     $self->control_set_value('sql', $newtext);
@@ -1530,32 +1521,6 @@ sub log_msg {
     my ( $self, $message ) = @_;
 
     $self->control_append_value( 'log', $message );
-}
-
-=head2 string_replace_pos
-
-Replace string pos
-
-=cut
-
-sub string_replace_pos {
-    my ($self, $text, $params) = @_;
-
-    my @strpos;
-
-    while (my ($key, $value) = each ( %{$params} ) ) {
-        next unless $key =~ m{value[0-9]}; # Skip 'descr'
-
-        # Replace  text and return the strpos
-        $text =~ s/($key)/$value/pm;
-        my $pos = $-[0];
-        push(@strpos, [ $pos, $key, $value ]);
-    }
-
-    # Sorted by $pos
-    my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
-
-    return ($text, \@sortedpos);
 }
 
 =head2 set_status
@@ -1769,9 +1734,9 @@ Write to a Tk::Entry widget.  If I<$value> not true, than only delete.
 =cut
 
 sub control_write_e {
-    my ( $self, $control, $value, $state ) = @_;
+    my ( $self, $control, $value ) = @_;
 
-    $state = $state || $control->cget ('-state');
+    my $state = $control->cget ('-state');
 
     $control->configure( -state => 'normal' );
 
@@ -1790,9 +1755,9 @@ Write to a Tk::Text widget.  If I<$value> not true, than only delete.
 =cut
 
 sub control_write_t {
-    my ( $self, $control, $value, $state ) = @_;
+    my ( $self, $control, $value ) = @_;
 
-    $state = $state || $control->cget ('-state');
+    my $state = $control->cget ('-state');
 
     $value = q{} unless defined $value;    # empty
 
@@ -1819,8 +1784,7 @@ sub control_set_value {
 
     my $control = $self->get_control_by_name($name);
 
-    $control->delete( '1.0', 'end' );
-    $control->insert( '1.0', $value ) if $value;
+    $self->control_write_t($control, $value);
 
     return;
 }

@@ -66,7 +66,7 @@ sub sort_hash_by_id {
     return \@attribs;
 }
 
-=head2 params_data_to_hash
+=head2 params_to_hash
 
 Transform data in simple hash reference format
 
@@ -74,7 +74,7 @@ TODO: Move this to model?
 
 =cut
 
-sub params_data_to_hash {
+sub params_to_hash {
     my ($self, $params) = @_;
 
     my $parameters;
