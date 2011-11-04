@@ -61,12 +61,12 @@ sub _create_doc {
     my $csv_o = Text::CSV_XS->new(
         {
             'sep_char'     => ';',
-            'always_quote' => 1,
+            'always_quote' => 0,
             'binary'       => 1
         }
     );
 
-    open $self->{csv_fh}, '>', $self->{csv_file}
+    open $self->{csv_fh}, '>:encoding(utf8)', $self->{csv_file}
         or croak "Can't open file ", $self->{csv_file}, ": $!";
 
     return $csv_o;
