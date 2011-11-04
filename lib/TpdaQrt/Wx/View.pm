@@ -801,18 +801,6 @@ sub get_toolbar_btn {
     return $self->{_tb}->get_toolbar_btn($name);
 }
 
-=head2 get_toolbar
-
-Return the toolbar handler.
-
-=cut
-
-# sub get_toolbar {
-#     my $self = shift;
-
-#     return $self->{_tb};
-# }
-
 =head2 get_choice_default
 
 Return the choice default option, the first element in the array.

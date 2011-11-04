@@ -397,8 +397,9 @@ sub run_export {
         return;
     }
 
-    my $choice = $self->get_choice();
-    my (undef, $option) = split(':', $choice);
+    #my $choice = $self->get_choice();
+    #my (undef, $option) = split(':', $choice);
+    my $option = $self->get_choice();
 
     my $out_fqn = catfile($outpath, $outfile);
 
@@ -422,6 +423,8 @@ sub run_export {
         $self->message("No output file generated");
         $self->message_log("EE No output file generated");
     }
+
+    $self->progress_update(0); # reset
 
     return;
 }

@@ -181,8 +181,6 @@ sub _item_list {
         -indicatoron => 0,
         -tip         => $attribs->{tooltip},
         -options     => $self->{options},
-
-        # -command     => $callback,
     );
 
     $self->separator if $attribs->{sep} =~ m{after};

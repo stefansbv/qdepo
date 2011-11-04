@@ -105,6 +105,33 @@ sub change_look {
     return;
 }
 
+=head2 w_geometry
+
+Return window geometry
+
+=cut
+
+sub get_geometry {
+    my $self = shift;
+
+    $self->update;
+
+    my $wsys = $self->windowingsystem;
+    my $name = $self->name;
+    my $geom = $self->geometry;
+
+    # All dimensions are in pixels.
+    my $sh = $self->screenheight;
+    my $sw = $self->screenwidth;
+
+    # print "\nSystem   = $wsys\n";
+    # print "Name     = $name\n";
+    # print "Geometry = $geom\n";
+    # print "Screen   = $sw x $sh\n";
+
+    return $geom;
+}
+
 =head2 _model
 
 Return model instance
@@ -159,8 +186,7 @@ sub _set_model_callbacks {
     $pr->add_callback(
         sub {
             $self->{progress} = $_[0];
-            print "$_[0] ";
-            $self->set_status( $_[0], 'ms' ); # doen't work!
+            print "$_[0]% ";
         }
     );
 
@@ -532,7 +558,7 @@ sub _create_report_page {
     # Frame box
     my $frm_box = $self->{_nb}{p1}->LabFrame(
         -foreground => 'blue',
-        -label      => 'Search results',
+        -label      => 'Query list',
         -labelside  => 'acrosstop'
     )->pack( -expand => 1, -fill => 'both' );
 
@@ -540,11 +566,12 @@ sub _create_report_page {
         'MListbox',
         -scrollbars         => 'osoe',
         -background         => 'white',
-        -textwidth          => 10,
+        -textwidth          => 5,
         -highlightthickness => 2,
-        -width              => 0,
         -selectmode         => 'single',
         -relief             => 'sunken',
+        -height             => 5,
+        -sortable           => 0,
     );
 
     # Header
@@ -553,43 +580,43 @@ sub _create_report_page {
         ->configure( -background => 'tan' );
     $self->{_list}->columnGet(0)->Subwidget("heading")
         ->configure( -width => 5 );
-    $self->{_list}->columnGet(0)
-        ->configure( -comparecommand => sub { $_[0] <=> $_[1] } );
 
     $self->{_list}->columnInsert( 'end', -text => 'Raport' );
     $self->{_list}->columnGet(1)->Subwidget("heading")
         ->configure( -background => 'tan' );
     $self->{_list}->columnGet(1)->Subwidget("heading")
-        ->configure( -width => 48 );
+        ->configure( -width => 45 );
 
     $self->{_list}->pack( -expand => 1, -fill => 'both' );
 
     #--- Frame_Mid
 
     my $frame_mid = $self->{_nb}{p1}->LabFrame(
-        -label      => 'Frame_Mid',
+        -label      => 'Header',
         -labelside  => 'acrosstop',
         -foreground => 'blue',
     );
     $frame_mid->pack(
-        -expand => 1,
-        -fill   => 'x',
+        -expand => 0,
+        -fill   => 'both',
     );
 
     #-- Controls
 
-
     my $f1d = 90;
+    my $cw  = 38;               # controls width
 
     #-- title
 
     my $ltitle = $frame_mid->Label( -text => 'Title' );
     $ltitle->form(
         -top     => [ %0, 0 ],
-        -left    => [ %0, 5 ],
+        -left    => [ %0, 0 ],
+        -padleft => 5,
     );
+
     $self->{title} = $frame_mid->Entry(
-        -width              => 40,
+        -width              => $cw,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
@@ -602,11 +629,13 @@ sub _create_report_page {
 
     my $lfilename = $frame_mid->Label( -text => 'File name' );
     $lfilename->form(
-        -top  => [ $ltitle, 8 ],
-        -left => [ %0, 5 ],
+        -top     => [ $ltitle, 8 ],
+        -left    => [ %0,      0 ],
+        -padleft => 5,
     );
+
     $self->{filename} = $frame_mid->Entry(
-        -width              => 40,
+        -width              => $cw,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
@@ -619,11 +648,13 @@ sub _create_report_page {
 
     my $loutput = $frame_mid->Label( -text => 'Output' );
     $loutput->form(
-        -top  => [ $lfilename, 8 ],
-        -left => [ %0, 5 ],
+        -top     => [ $lfilename, 8 ],
+        -left    => [ %0,         0 ],
+        -padleft => 5,
     );
+
     $self->{output} = $frame_mid->Entry(
-        -width              => 40,
+        -width              => $cw,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
@@ -636,11 +667,13 @@ sub _create_report_page {
 
     my $ltemplate = $frame_mid->Label( -text => 'Template' );
     $ltemplate->form(
-        -top  => [ $loutput, 8 ],
-        -left => [ %0,       5 ],
+        -top     => [ $loutput, 8 ],
+        -left    => [ %0,       0 ],
+        -padleft => 5,
     );
+
     $self->{template} = $frame_mid->Entry(
-        -width              => 40,
+        -width              => $cw,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
@@ -653,21 +686,20 @@ sub _create_report_page {
     #--- Frame_Bot
 
     my $frame_bot = $self->{_nb}{p1}->LabFrame(
-        -label      => 'Frame_Bot',
+        -label      => 'Description',
         -labelside  => 'acrosstop',
         -foreground => 'blue',
     );
     $frame_bot->pack(
-        -side   => 'left',
-        -expand => 1,
-        -fill   => 'x',
+        -expand => 0,
+        -fill   => 'both',
     );
 
     #-- description
 
     $self->{description} = $frame_bot->Scrolled(
         'Text',
-        -width      => 40,
+        -width      => 10,
         -height     => 3,
         -wrap       => 'word',
         -scrollbars => 'e',
@@ -695,7 +727,7 @@ sub _create_para_page {
     #--- Frame Top0
 
     my $frame_top0 = $self->{_nb}{p2}->LabFrame(
-        -label      => 'Frame_top',
+        -label      => 'Parameters',
         -labelside  => 'acrosstop',
         -foreground => 'blue',
     );
@@ -715,7 +747,9 @@ sub _create_para_page {
 
     #-- Controls
 
-    my $f1d = 90;
+    # my $f1d = 90;
+    my $cwd = 25;               # description controls width
+    my $cwv = 15;               # value controls width
 
     #-- Label
 
@@ -748,30 +782,34 @@ sub _create_para_page {
     $para_lbl1->grid(
         -row    => 1,
         -column => 0,
+        -padx   => 5,
+        -pady   => 5,
     );
 
     #-- descr1
 
     $self->{descr1} = $frame_top->Entry(
-        -width              => 30,
+        -width              => $cwd,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{descr1}->grid(
         -row    => 1,
         -column => 1,
+        -pady   => 5,
     );
 
     #-- value1
 
     $self->{value1} = $frame_top->Entry(
-        -width              => 20,
+        -width              => $cwv,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{value1}->grid(
         -row    => 1,
         -column => 2,
+        -pady   => 5,
     );
 
     #-- 2
@@ -782,30 +820,34 @@ sub _create_para_page {
     $para_lbl2->grid(
         -row    => 2,
         -column => 0,
+        -padx   => 5,
+        -pady   => 5,
     );
 
     #-- descr2
 
     $self->{descr2} = $frame_top->Entry(
-        -width              => 30,
+        -width              => $cwd,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{descr2}->grid(
         -row    => 2,
         -column => 1,
+        -pady   => 5,
     );
 
     #-- value2
 
     $self->{value2} = $frame_top->Entry(
-        -width              => 20,
+        -width              => $cwv,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{value2}->grid(
         -row    => 2,
         -column => 2,
+        -pady   => 5,
     );
 
     #-- 3
@@ -816,30 +858,34 @@ sub _create_para_page {
     $para_lbl3->grid(
         -row    => 3,
         -column => 0,
+        -padx   => 5,
+        -pady   => 5,
     );
 
     #-- descr3
 
     $self->{descr3} = $frame_top->Entry(
-        -width              => 30,
+        -width              => $cwd,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{descr3}->grid(
         -row    => 3,
         -column => 1,
+        -pady   => 5,
     );
 
     #-- value3
 
     $self->{value3} = $frame_top->Entry(
-        -width              => 20,
+        -width              => $cwv,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{value3}->grid(
         -row    => 3,
         -column => 2,
+        -pady   => 5,
     );
 
     #-- 4
@@ -850,30 +896,34 @@ sub _create_para_page {
     $para_lbl4->grid(
         -row    => 4,
         -column => 0,
+        -padx   => 5,
+        -pady   => 5,
     );
 
     #-- descr4
 
     $self->{descr4} = $frame_top->Entry(
-        -width              => 30,
+        -width              => $cwd,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{descr4}->grid(
         -row    => 4,
         -column => 1,
+        -pady   => 5,
     );
 
     #-- value4
 
     $self->{value4} = $frame_top->Entry(
-        -width              => 20,
+        -width              => $cwv,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{value4}->grid(
         -row    => 4,
         -column => 2,
+        -pady   => 5,
     );
 
     #-- 5
@@ -884,30 +934,34 @@ sub _create_para_page {
     $para_lbl5->grid(
         -row    => 5,
         -column => 0,
+        -padx   => 5,
+        -pady   => 5,
     );
 
     #-- descr5
 
     $self->{descr5} = $frame_top->Entry(
-        -width              => 30,
+        -width              => $cwd,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{descr5}->grid(
         -row    => 5,
         -column => 1,
+        -pady   => 5,
     );
 
     #-- value5
 
     $self->{value5} = $frame_top->Entry(
-        -width              => 20,
+        -width              => $cwv,
         -disabledbackground => $self->{bg},
         -disabledforeground => 'black',
     );
     $self->{value5}->grid(
         -row    => 5,
         -column => 2,
+        -pady   => 5,
     );
 
     return;

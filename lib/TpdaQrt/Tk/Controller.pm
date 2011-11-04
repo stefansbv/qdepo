@@ -2,6 +2,8 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use Tk;
@@ -78,7 +80,7 @@ sub start {
     $self->_model->db_connect();
 
     my $default_choice = $self->_view->get_choice_default();
-    $self->_model->set_choice("0:$default_choice");
+    $self->_model->set_choice($default_choice);
 
     $self->set_app_mode('idle');
 
@@ -87,6 +89,30 @@ sub start {
     $self->_view->list_populate_all();
 
     $self->set_app_mode('sele');
+
+    $self->fix_geometry;
+
+    return;
+}
+
+=head2 fix_geometry
+
+Add 4px to the width of the window to better fit the MListbox.
+
+=cut
+
+sub fix_geometry {
+    my $self = shift;
+
+    my $geom = $self->_view->get_geometry;
+
+    my ($width) = $geom =~ m{(\d+)x};
+
+    $width += 4;
+
+    $geom =~ s{(\d+)x}{${width}x};
+
+    $self->_view->geometry($geom);
 
     return;
 }
@@ -232,11 +258,10 @@ sub _set_event_handlers {
     );
 
     #- Choice
-    $self->_view->get_toolbar_btn('tb_ls')->bind(
-        '<ButtonRelease-1>' => sub {
-            # my $choice = $_[1]->GetSelection;
-            # my $text   = $_[1]->GetString;
-            # $self->_model->set_choice("$choice:$text");
+    $self->_view->get_toolbar_btn('tb_ls')->configure(
+        -command => sub {
+            my $text = $_[0];
+            $self->_model->set_choice($text);
         }
     );
 

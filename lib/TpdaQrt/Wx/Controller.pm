@@ -81,7 +81,7 @@ sub start {
     $self->_model->db_connect();
 
     my $default_choice = $self->_view->get_choice_default();
-    $self->_model->set_choice("0:$default_choice");
+    $self->_model->set_choice($default_choice);
 
     $self->set_app_mode('idle');
 
@@ -237,9 +237,8 @@ sub _set_event_handlers {
     #- Choice
     EVT_CHOICE $self->_view, $self->_view->get_toolbar_btn('tb_ls')->GetId,
         sub {
-            my $choice = $_[1]->GetSelection;
-            my $text   = $_[1]->GetString;
-            $self->_model->set_choice("$choice:$text");
+            my $text = $_[1]->GetString;
+            $self->_model->set_choice($text);
         };
 
     #- Run
