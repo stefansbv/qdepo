@@ -3,15 +3,15 @@
 # Don't touch!, not for users ;)
 ---
 toolbar:
-  tb_cn:
+  tb_ed:
     id:      1001
-    type:    _item_normal
-    icon:    connectyes16
-    tooltip: Connect
-    help:    Connect to the database
-    sep:     after
+    type:    _item_check
+    icon:    edit16
+    tooltip: Edit
+    help:    Edit mode on/off
+    sep:     none
     state:
-      idle: normal
+      idle: disabled
       edit: normal
       sele: normal
   tb_sv:
@@ -20,24 +20,13 @@ toolbar:
     icon:    filesave16
     tooltip: Save
     help:    Save query definition file
-    sep:     none
+    sep:     after
     state:
       idle: disabled
       edit: normal
       sele: disabled
-  tb_rf:
-    id:      1003
-    type:    _item_normal
-    icon:    actreload16
-    tooltip: Reload
-    help:    Refresh data
-    sep:     after
-    state:
-      idle: disabled
-      edit: disabled
-      sele: normal
   tb_ad:
-    id:      1004
+    id:      1003
     type:    _item_normal
     icon:    actitemadd16
     tooltip: Add report
@@ -48,29 +37,18 @@ toolbar:
       edit: disabled
       sele: normal
   tb_rm:
-    id:      1005
+    id:      1004
     type:    _item_normal
     icon:    actitemdelete16
     tooltip: Remove
     help:    Remove query definition file
-    sep:     none
+    sep:     after
     state:
       idle: disabled
       edit: disabled
       sele: normal
-  tb_ed:
-    id:      1006
-    type:    _item_check
-    icon:    edit16
-    tooltip: Edit
-    help:    Edit mode on/off
-    sep:     after
-    state:
-      idle: disabled
-      edit: normal
-      sele: normal
   tb_ls:
-    id:      1007
+    id:      1005
     type:    _item_list
     sep:     after
     state:
@@ -78,7 +56,7 @@ toolbar:
       edit: disabled
       sele: normal
   tb_go:
-    id:      1008
+    id:      1006
     type:    _item_normal
     icon:    navforward16
     tooltip: Run
@@ -89,7 +67,7 @@ toolbar:
       edit: disabled
       sele: normal
   tb_qt:
-    id:      1009
+    id:      1007
     type:    _item_normal
     icon:    actexit16
     tooltip: Quit

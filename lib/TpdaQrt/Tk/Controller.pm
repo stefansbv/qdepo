@@ -203,22 +203,22 @@ sub _set_event_handlers {
 
     #- Toolbar
 
-    #-- Connect
-    $self->_view->get_toolbar_btn('tb_cn')->bind(
+    #-- Edit
+    $self->_view->get_toolbar_btn('tb_ed')->bind(
         '<ButtonRelease-1>' => sub {
-            if ($self->_model->is_connected ) {
-                $self->_view->dialog_popup( 'Info', 'Already connected!' );
-            }
-            else {
-                $self->_model->db_connect;
-            }
+            $self->_model->is_appmode('edit')
+                ? $self->set_app_mode('sele')
+                : $self->set_app_mode('edit');
         }
     );
 
-    #-- Refresh
-    $self->_view->get_toolbar_btn('tb_rf')->bind(
+    #-- Save
+    $self->_view->get_toolbar_btn('tb_sv')->bind(
         '<ButtonRelease-1>' => sub {
-            $self->_model->on_item_selected();
+            if ( $self->_model->is_appmode('edit') ) {
+                $self->save_query_def();
+                $self->set_app_mode('sele');
+            }
         }
     );
 
@@ -235,25 +235,6 @@ sub _set_event_handlers {
     $self->_view->get_toolbar_btn('tb_rm')->bind(
         '<ButtonRelease-1>' => sub {
             $self->_view->list_mark_item();
-        }
-    );
-
-    #-- Save
-    $self->_view->get_toolbar_btn('tb_sv')->bind(
-        '<ButtonRelease-1>' => sub {
-            if ( $self->_model->is_appmode('edit') ) {
-                $self->save_query_def();
-                $self->set_app_mode('sele');
-            }
-        }
-    );
-
-    #-- Edit
-    $self->_view->get_toolbar_btn('tb_ed')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_model->is_appmode('edit')
-                ? $self->set_app_mode('sele')
-                : $self->set_app_mode('edit');
         }
     );
 

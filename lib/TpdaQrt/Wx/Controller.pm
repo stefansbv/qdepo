@@ -186,21 +186,21 @@ sub _set_event_handlers {
 
     #- Toolbar
 
-    #-- Connect
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_cn')->GetId,
+    #-- Edit
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
         sub {
-            if ($self->_model->is_connected ) {
-                $self->_view->dialog_popup( 'Info', 'Already connected!' );
-            }
-            else {
-                $self->_model->db_connect;
-            }
+            $self->_model->is_appmode('edit')
+                ? $self->set_app_mode('sele')
+                : $self->set_app_mode('edit');
         };
 
-    #-- Refresh
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rf')->GetId,
+    #-- Save
+    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
         sub {
-            $self->_model->on_item_selected();
+            if ( $self->_model->is_appmode('edit') ) {
+                $self->save_query_def();
+                $self->set_app_mode('sele');
+            }
         };
 
     #-- Add report
@@ -215,23 +215,6 @@ sub _set_event_handlers {
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm')->GetId,
         sub {
             $self->_view->list_mark_item();
-        };
-
-    #-- Save
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_sv')->GetId,
-        sub {
-            if ( $self->_model->is_appmode('edit') ) {
-                $self->save_query_def();
-                $self->set_app_mode('sele');
-            }
-        };
-
-    #-- Edit
-    EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ed')->GetId,
-        sub {
-            $self->_model->is_appmode('edit')
-                ? $self->set_app_mode('sele')
-                : $self->set_app_mode('edit');
         };
 
     #- Choice
