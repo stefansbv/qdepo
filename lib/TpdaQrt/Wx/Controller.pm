@@ -247,7 +247,7 @@ sub _set_event_handlers {
         sub {
             if ($self->_model->is_connected ) {
                 $self->_view->progress_dialog('Export data');
-                $self->_view->process_sql();
+                $self->process_sql();
             }
             else {
                 $self->_view->dialog_popup( 'Error', 'Not connected!' );
@@ -432,6 +432,23 @@ sub save_query_def {
 
     # Update title in list
     $self->_view->set_list_text( $item, 1, $title );
+
+    return;
+}
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item   = $self->_view->get_list_selected_index();
+    my ($data) = $self->_model->get_detail_data($item);
+
+    $self->_model->run_export($data);
 
     return;
 }

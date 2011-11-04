@@ -1156,22 +1156,6 @@ sub list_mark_item {
     return;
 }
 
-=head2 get_detail_data
-
-Return detail data from the selected list control item
-
-=cut
-
-sub get_detail_data {
-    my $self = shift;
-
-    my $sel_item  = $self->get_list_selected_index();
-    my $file_fqn  = $self->_model->get_qdf_data_file($sel_item);
-    my $ddata_ref = $self->_model->get_detail_data($file_fqn);
-
-    return ( $ddata_ref, $file_fqn, $sel_item );
-}
-
 =head2 controls_populate
 
 Populate controls with data from XML
@@ -1181,7 +1165,8 @@ Populate controls with data from XML
 sub controls_populate {
     my $self = shift;
 
-    my ($ddata_ref, $file_fqn) = $self->get_detail_data();
+    my $item = $self->get_list_selected_index();
+    my ($ddata_ref, $file_fqn) = $self->_model->get_detail_data($item);
 
     return unless ref $ddata_ref and $file_fqn;
 
@@ -1218,7 +1203,8 @@ sub toggle_sql_replace {
     my $self = shift;
 
     #- Detail data
-    my ( $ddata_ref, $file_fqn ) = $self->get_detail_data();
+    my $item = $self->get_list_selected_index();
+    my ($ddata_ref, $file_fqn) = $self->_model->get_detail_data($item);
 
     return unless ref $ddata_ref and $file_fqn;
 
@@ -1368,63 +1354,6 @@ sub progress_update {
     $self->{progress}->update($count) if defined $self->{progress};
 
     return;
-}
-
-=head2 process_sql
-
-Get the sql text string from the QDF file, prepare it for execution.
-
-=cut
-
-sub process_sql {
-    my $self = shift;
-
-    my ($data, $file_fqn, $item) = $self->get_detail_data();
-
-    my ($bind, $sqltext) = $self->string_replace_for_run(
-        $data->{body}{sql},
-        $data->{parameters},
-    );
-
-    if ($bind and $sqltext) {
-        $self->_model->run_export(
-            $data->{header}{output}, $bind, $sqltext);
-    }
-}
-
-=head2 string_replace_for_run
-
-Prepare sql text string for execution.  Replace the 'valueN' string
-with with '?'.  Create an array of parameter values, used for binding.
-
-Need to check if number of parameters match number of 'valueN' strings
-in SQL statement text and print an error if not.
-
-=cut
-
-sub string_replace_for_run {
-    my ( $self, $sqltext, $params ) = @_;
-
-    my @bind;
-    foreach my $rec ( @{ $params->{parameter} } ) {
-        my $value = $rec->{value};
-        my $p_num = $rec->{id};         # Parameter number for bind_param
-        my $var   = 'value' . $p_num;
-        unless ( $sqltext =~ s/($var)/\?/pm ) {
-            $self->log_msg("EE Parameter mismatch, to few parameters in SQL");
-            return;
-        }
-
-        push( @bind, [ $p_num, $value ] );
-    }
-
-    # Check for remaining not substituted 'value[0-9]' in SQL
-    if ( $sqltext =~ m{(value[0-9])}pm ) {
-        $self->log_msg("EE Parameter mismatch, to many parameters in SQL");
-        return;
-    }
-
-    return ( \@bind, $sqltext );
 }
 
 =head2 control_set_value

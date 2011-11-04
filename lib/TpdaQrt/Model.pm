@@ -378,7 +378,14 @@ TODO: Check if exists and selected at least one qdf in list
 =cut
 
 sub run_export {
-    my ($self, $outfile, $bind, $sqltext) = @_;
+    my ($self, $data) = @_;
+
+    my ($bind, $sqltext) = $self->string_replace_for_run(
+        $data->{body}{sql},
+        $data->{parameters},
+    );
+
+    my $outfile = $data->{header}{output};
 
     $self->message_log('II Running data export ...');
 
@@ -426,11 +433,13 @@ Get all contents from the selected QDF title (file)
 =cut
 
 sub get_detail_data {
-    my ($self, $file_fqn) = @_;
+    my ($self, $item) = @_;
+
+    my $file_fqn  = $self->get_qdf_data_file($item);
 
     my $ddata_ref = $self->{fio}->get_details($file_fqn);
 
-    return $ddata_ref;
+    return ( $ddata_ref, $file_fqn );
 }
 
 =head2 get_itemchanged_observable
@@ -619,6 +628,41 @@ sub get_choice_observable {
     my $self = shift;
 
     return $self->{_choice};
+}
+
+=head2 string_replace_for_run
+
+Prepare sql text string for execution.  Replace the 'valueN' string
+with with '?'.  Create an array of parameter values, used for binding.
+
+Need to check if number of parameters match number of 'valueN' strings
+in SQL statement text and print an error if not.
+
+=cut
+
+sub string_replace_for_run {
+    my ( $self, $sqltext, $params ) = @_;
+
+    my @bind;
+    foreach my $rec ( @{ $params->{parameter} } ) {
+        my $value = $rec->{value};
+        my $p_num = $rec->{id};         # Parameter number for bind_param
+        my $var   = 'value' . $p_num;
+        unless ( $sqltext =~ s/($var)/\?/pm ) {
+            $self->log_msg("EE Parameter mismatch, to few parameters in SQL");
+            return;
+        }
+
+        push( @bind, [ $p_num, $value ] );
+    }
+
+    # Check for remaining not substituted 'value[0-9]' in SQL
+    if ( $sqltext =~ m{(value[0-9])}pm ) {
+        $self->log_msg("EE Parameter mismatch, to many parameters in SQL");
+        return;
+    }
+
+    return ( \@bind, $sqltext );
 }
 
 =head1 AUTHOR

@@ -243,12 +243,9 @@ sub _set_event_handlers {
     #- Run
     $self->_view->get_toolbar_btn('tb_go')->bind(
         '<ButtonRelease-1>' => sub {
-            if ($self->_model->is_connected ) {
-                $self->_view->process_sql();
-            }
-            else {
-                $self->_view->dialog_popup( 'Error', 'Not connected!' );
-            }
+            $self->_model->is_connected
+                ? $self->process_sql
+                : $self->_view->set_status( 'Not connected', 'ms', 'red' );
         }
     );
 
@@ -405,6 +402,23 @@ sub save_query_def {
     # Update title in list
     my $title = $head->[0]{title};
     $self->_view->list_item_edit( $item, undef, $title );
+
+    return;
+}
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item   = $self->_view->get_list_selected_index();
+    my ($data) = $self->_model->get_detail_data($item);
+
+    $self->_model->run_export($data);
 
     return;
 }
