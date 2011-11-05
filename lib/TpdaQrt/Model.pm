@@ -325,6 +325,36 @@ sub load_qdf_data {
     return;
 }
 
+=head2 get_qdf_data
+
+Return the titles and file names from all the QDF files to fill the
+List control. Th Wx List control has a feature to store data in the
+controls, so we don't need a data structure in the Model.
+
+=cut
+
+sub get_qdf_data_wx {
+    my $self = shift;
+
+    my $data_ref = $self->{fio}->get_titles();
+
+    my $indecs = 0;
+    my $titles = {};
+
+    # Format titles
+    foreach my $rec ( @{$data_ref} ) {
+        if (ref $rec) {
+
+            # Make records
+            $titles->{$indecs} = $rec;
+            $titles->{$indecs}{nrcrt} = $indecs + 1;
+            $indecs++;
+        }
+    }
+
+    return $titles;
+}
+
 =head2 set_qdf_data
 
 Insert new record in data structure.
@@ -343,6 +373,14 @@ sub set_qdf_data {
     $self->{_lds}{$new_item} = $data_href;
 
     return {$new_item => $data_href};
+}
+
+sub make_qdf_data {
+    my ($self, $data, $new_item) = @_;
+
+    $data->{nrcrt} = $new_item + 1;
+
+    return {$new_item => $data};
 }
 
 =head2 get_qdf_data
@@ -432,18 +470,18 @@ sub run_export {
 
 =head2 get_detail_data
 
-Get all contents from the selected QDF title (file)
+Get all contents from the selected QDF title (file).
 
 =cut
 
 sub get_detail_data {
-    my ($self, $item) = @_;
+    my ($self, $item, $file) = @_;
 
-    my $file_fqn  = $self->get_qdf_data_file($item);
+    $file ||= $self->get_qdf_data_file($item);
 
-    my $ddata_ref = $self->{fio}->get_details($file_fqn);
+    my $ddata_ref = $self->{fio}->get_details($file);
 
-    return ( $ddata_ref, $file_fqn );
+    return ( $ddata_ref, $file );
 }
 
 =head2 get_itemchanged_observable
@@ -495,7 +533,7 @@ Create new QDF file from template
 =cut
 
 sub report_add {
-    my $self = shift;
+    my ($self, $max_item) = @_;
 
     my $reports_ref = $self->{fio}->get_file_list();
 
@@ -556,7 +594,12 @@ sub report_add {
         # Add title and file name in list
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
-        $data_ref = $self->set_qdf_data($data_ref);
+        if ($max_item) {
+            $data_ref = $self->make_qdf_data($data_ref, $max_item)
+        }
+        else {
+            $data_ref = $self->set_qdf_data($data_ref);
+        }
 
         print Dumper( $data_ref);
         return $data_ref;

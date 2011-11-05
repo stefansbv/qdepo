@@ -988,13 +988,27 @@ Insert item in list control
 =cut
 
 sub list_item_insert {
-    my ( $self, $indice, $nrcrt, $title ) = @_;
+    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
 
     $self->list_string_item_insert($indice);
     $self->set_list_text($indice, 0, $nrcrt);
     $self->set_list_text($indice, 1, $title);
 
+    $self->set_list_data($indice, $file );   # set data
+
     return;
+}
+
+sub set_list_data {
+    my ($self, $item, $data) = @_;
+
+    $self->get_listcontrol->SetItemData( $item, $data );
+}
+
+sub get_list_data {
+    my ($self, $item) = @_;
+
+    return $self->get_listcontrol->GetItemData( $item );
 }
 
 =head2 list_string_item_insert
@@ -1049,7 +1063,7 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    my $indices = $self->_model->get_qdf_data();
+    my $indices = $self->_model->get_qdf_data_wx();
 
     return unless scalar keys %{$indices};
 
@@ -1082,30 +1096,9 @@ sub list_populate_item {
     my ($idx) = keys %{$rec};
     my $r     = $rec->{$idx};
 
-    $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title} );
+    $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title}, $r->{file} );
 
     $self->list_item_select_last();          # ???
-
-    return;
-}
-
-=head2 list_mark_item
-
-Remove item from list control and select the first item
-
-=cut
-
-sub list_mark_item {
-    my $self = shift;
-
-    my $item = $self->get_list_selected_index();
-
-    my $rec = $self->_model->get_qdf_data($item);
-
-    my $nrcrt = $rec->{nrcrt};
-    $nrcrt = "$nrcrt D";
-
-    $self->set_list_text( $item, 0, $nrcrt );
 
     return;
 }
@@ -1122,7 +1115,8 @@ sub controls_populate {
     print "controls_populate:\n";
 
     my $item = $self->get_list_selected_index();
-    my ($data, $file) = $self->_model->get_detail_data($item);
+    my $file = $self->get_list_data($item);
+    my ($data, $file) = $self->_model->get_detail_data($item, $file);
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
@@ -1160,7 +1154,8 @@ Toggle sql replace
     print " toggle_sql_replace:\n \t$package, $line, $subroutine\n";
 
     my $item = $self->get_list_selected_index();
-    my ($data) = $self->_model->get_detail_data($item);
+    my $file = $self->get_list_data($item);
+    my ($data) = $self->_model->get_detail_data($item, $file);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );

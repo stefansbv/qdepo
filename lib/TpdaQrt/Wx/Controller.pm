@@ -85,8 +85,6 @@ sub start {
 
     $self->set_app_mode('idle');
 
-    $self->_model->load_qdf_data();
-
     $self->_view->list_populate_all();
 
     $self->_view->list_item_select_first();
@@ -212,7 +210,8 @@ sub _set_event_handlers {
     #-- Add report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_ad')->GetId,
         sub {
-            my $rec = $self->_model->report_add();
+            my $max_item = $self->_view->get_list_max_index();
+            my $rec = $self->_model->report_add($max_item);
             $self->_view->list_populate_item($rec);
             $self->set_app_mode('edit');
         };
