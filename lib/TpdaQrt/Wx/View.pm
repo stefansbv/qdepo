@@ -1025,6 +1025,17 @@ sub list_string_item_insert {
     return;
 }
 
+=head2 list_item_clear
+
+Delete list control item
+
+=cut
+
+sub list_item_clear {
+    my ($self, $item) = @_;
+    $self->get_listcontrol->DeleteItem($item);
+}
+
 =head2 list_item_clear_all
 
 Delete all list control items.
@@ -1035,6 +1046,27 @@ sub list_item_clear_all {
     my ($self) = @_;
 
     $self->get_listcontrol->DeleteAllItems;
+}
+
+=head2 list_remove_item
+
+Remove item from list control and select the first item
+
+=cut
+
+sub list_remove_item {
+    my $self = shift;
+
+    my $item = $self->get_list_selected_index();
+    my $file = $self->get_list_data($item);
+
+    # Remove from list
+    $self->list_item_clear($item);
+
+    # Set item 0 selected
+    $self->list_item_select_first();
+
+    return $file;
 }
 
 =head2 log_config_options
@@ -1116,7 +1148,7 @@ sub controls_populate {
 
     my $item = $self->get_list_selected_index();
     my $file = $self->get_list_data($item);
-    my ($data, $file) = $self->_model->get_detail_data($item, $file);
+    my ($data) = $self->_model->get_detail_data($item, $file);
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;

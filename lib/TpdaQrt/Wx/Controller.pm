@@ -219,7 +219,16 @@ sub _set_event_handlers {
     #-- Remove report
     EVT_TOOL $self->_view, $self->_view->get_toolbar_btn('tb_rm')->GetId,
         sub {
-            $self->_view->list_mark_item();
+            my $msg = 'Delete query definition file?';
+            if ( $self->_view->action_confirmed($msg) ) {
+                my $file = $self->_view->list_remove_item();
+                if ($file) {
+                    $self->_model->report_remove($file);
+                }
+            }
+            else {
+                $self->_view->log_msg("II delete canceled");
+            }
         };
 
     #- Choice
@@ -413,7 +422,9 @@ sub save_query_def {
     my $para = $self->_view->controls_read_page('para');
     my $body = $self->_view->controls_read_page('sql');
 
-    $self->_model->save_query_def( $item, $head, $para, $body );
+    my $file = $self->_view->get_list_data($item);
+
+    $self->_model->save_query_def( $item, $head, $para, $body, $file );
 
     my $title = $head->[0]{title};
 

@@ -3,8 +3,6 @@ package TpdaQrt::Model;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
@@ -503,9 +501,9 @@ Save current query definition data from controls
 =cut
 
 sub save_query_def {
-    my ($self, $item, $head, $para, $body) = @_;
+    my ($self, $item, $head, $para, $body, $file) = @_;
 
-    my $file_fqn = $self->get_qdf_data_file($item);
+    $file ||= $self->get_qdf_data_file($item);
 
     # Transform records to match data in xml format
     $head = TpdaQrt::Utils->transform_data($head);
@@ -519,7 +517,7 @@ sub save_query_def {
         body       => $body,
     };
 
-    $self->{fio}->xml_update($file_fqn, $record);
+    $self->{fio}->xml_update($file, $record);
 
     $self->message_log('II Saved');
 
@@ -594,14 +592,13 @@ sub report_add {
         # Add title and file name in list
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
-        if ($max_item) {
+        if (defined $max_item) {
             $data_ref = $self->make_qdf_data($data_ref, $max_item)
         }
         else {
             $data_ref = $self->set_qdf_data($data_ref);
         }
 
-        print Dumper( $data_ref);
         return $data_ref;
     }
     else {
@@ -621,19 +618,19 @@ B<.bak> extension, so it can be I<manualy> recovered.
 =cut
 
 sub report_remove {
-    my ($self, $item) = @_;
+    my ($self, $file) = @_;                  # $item
 
-    my $file_fqn = $self->get_qdf_data_file($item);
+    # my $file_fqn = $self->get_qdf_data_file($item);
 
-    unless (-f $file_fqn) {
-        $self->message_log("EE '$file_fqn' not found!");
+    unless (-f $file) {
+        $self->message_log("EE '$file' not found!");
         return;
     }
 
     # Rename file as backup
-    my $file_bak_fqn = "$file_fqn.bak";
-    if ( move($file_fqn, $file_bak_fqn) ) {
-        $self->message_log("WW '$file_fqn' deleted");
+    my $file_bak = "$file.bak";
+    if ( move($file, $file_bak) ) {
+        $self->message_log("WW '$file' deleted");
         return 1;
     }
 
