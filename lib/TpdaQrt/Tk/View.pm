@@ -1728,7 +1728,10 @@ sub control_write_t {
     $control->configure( -state => 'normal' );
 
     $control->delete( '1.0', 'end' ) unless $is_append;
-    $control->insert( '1.0', $value ) if $value;
+    if ($value) {
+        $control->insert( 'end', $value );
+        $control->insert( 'end', "\n" ) if $is_append;
+    }
 
     $control->configure( -state => $state );
 
