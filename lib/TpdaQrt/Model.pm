@@ -434,8 +434,6 @@ sub run_export {
         return;
     }
 
-    #my $choice = $self->get_choice();
-    #my (undef, $option) = split(':', $choice);
     my $option = $self->get_choice();
 
     my $out_fqn = catfile($outpath, $outfile);

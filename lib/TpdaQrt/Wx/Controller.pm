@@ -444,7 +444,8 @@ sub process_sql {
     my $self = shift;
 
     my $item   = $self->_view->get_list_selected_index();
-    my ($data) = $self->_model->get_detail_data($item);
+    my $file   = $self->_view->get_list_data($item);
+    my ($data) = $self->_model->get_detail_data($item, $file);
 
     $self->_model->run_export($data);
 
