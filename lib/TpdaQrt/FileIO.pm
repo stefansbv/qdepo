@@ -167,8 +167,10 @@ sub get_file_list {
         die;
     }
 
-    # Report definition files can be arranged in subdirs; recursive find
+    # QDFs can NOT be arranged in subdirs
     my @rapoarte = File::Find::Rule
+        ->mindepth(1)
+        ->maxdepth(1)
         ->name( qq{*.$qdfexte} )
         ->file
         ->nonempty
