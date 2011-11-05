@@ -3,10 +3,11 @@ package TpdaQrt::Model;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
-use List::Util qw(max);
 
 use TpdaQrt::Config;
 use TpdaQrt::FileIO;
@@ -284,7 +285,7 @@ sub get_progress_observable {
 
 =head2 on_item_selected
 
-On list item selection make the event observable
+On list item selection make the event observable.
 
 =cut
 
@@ -333,9 +334,9 @@ Insert new record in data structure.
 sub set_qdf_data {
     my ($self, $data_href) = @_;
 
-    my @items = keys %{ $self->{_lds} };
+    my @items = sort keys %{ $self->{_lds} };
 
-    my $new_item = scalar @items == 0 ? 0 : max @items + 1;
+    my $new_item = scalar @items == 0 ? 0 : $#items + 1;
 
     $data_href->{nrcrt} = $new_item + 1;
 
@@ -557,6 +558,7 @@ sub report_add {
 
         $data_ref = $self->set_qdf_data($data_ref);
 
+        print Dumper( $data_ref);
         return $data_ref;
     }
     else {

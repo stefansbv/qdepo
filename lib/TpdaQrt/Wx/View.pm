@@ -3,8 +3,6 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Perl::ListCtrl;
@@ -114,11 +112,15 @@ sub _set_model_callbacks {
 
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
-    $apm->add_callback( sub { $self->update_gui_components(); } );
+    $apm->add_callback( sub { $self->update_gui_components } );
 
-    #--
     my $upd = $self->_model->get_itemchanged_observable;
-    $upd->add_callback( sub { $self->controls_populate(); } );
+    $upd->add_callback(
+        sub {
+            $self->controls_populate;
+            $self->toggle_sql_replace;
+        }
+    );
 
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
@@ -143,7 +145,7 @@ module.
 sub update_gui_components {
     my $self = shift;
 
-    my $mode = $self->_model->get_appmode();
+    my $mode = $self->_model->get_appmode;
 
     $self->set_status( $mode, 'md' );    # update statusbar
 
@@ -838,7 +840,7 @@ sub get_controls_list {
         { filename => [ $self->{filename}, 'disabled', $self->{bg}, 'e' ] },
         { output   => [ $self->{output},   'normal',   'white',     'e' ] },
         { template => [ $self->{template}, 'normal',   'white',     'e' ] },
-        { description => [ $self->{description}, 'normal', 'white', 't' ] },
+        { description => [ $self->{description}, 'normal', 'white', 'e' ] },
     ];
 }
 
@@ -875,7 +877,7 @@ sub get_controls_sql {
     my $self = shift;
 
     return [
-        { sql => [ $self->{sql}, 'normal'  , 'white', 't' ] },
+        { sql => [ $self->{sql}, 'normal'  , 'white', 's' ] },
     ];
 }
 
@@ -906,18 +908,6 @@ sub get_control_by_name {
     return $self->{$name};
 }
 
-=head2 get_list_text
-
-Return text item from list control row and col
-
-=cut
-
-# sub get_list_text {
-#     my ($self, $row, $col) = @_;
-
-#     return $self->get_listcontrol->GetItemText( $row, $col );
-# }
-
 =head2 set_list_text
 
 Set text item from list control row and col
@@ -947,8 +937,6 @@ sub list_item_select_first {
         $self->get_listcontrol->Select(0, 1);
     }
 
-    $self->_model->on_item_selected();
-
     return;
 }
 
@@ -965,8 +953,6 @@ sub list_item_select_last {
     my $idx = $items_no - 1;
     $self->get_listcontrol->Select( $idx, 1 );
     $self->get_listcontrol->EnsureVisible($idx);
-
-    $self->_model->on_item_selected();
 
     return;
 }
@@ -1025,22 +1011,6 @@ sub list_string_item_insert {
     return;
 }
 
-=head2 list_item_clear
-
-Delete list control item.
-
-=cut
-
-# sub list_item_clear {
-#     my ($self, $item) = @_;
-
-#     $self->get_listcontrol->DeleteItem($item);
-
-#     $self->_model->remove_qdf_data($item);
-
-#     return;
-# }
-
 =head2 list_item_clear_all
 
 Delete all list control items.
@@ -1097,9 +1067,6 @@ sub list_populate_all {
         $self->list_item_insert($idx, $nrcrt, $title, $file);
     }
 
-    # Set item 0 selected on start
-    $self->list_item_select_first();
-
     return;
 }
 
@@ -1117,7 +1084,7 @@ sub list_populate_item {
 
     $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title} );
 
-    $self->list_item_select_last();
+    $self->list_item_select_last();          # ???
 
     return;
 }
@@ -1152,27 +1119,27 @@ Populate controls with data from XML
 sub controls_populate {
     my $self = shift;
 
-    my $item = $self->get_list_selected_index();
-    my ($ddata_ref, $file_fqn) = $self->_model->get_detail_data($item);
+    print "controls_populate:\n";
 
-    return unless ref $ddata_ref and $file_fqn;
+    my $item = $self->get_list_selected_index();
+    my ($data, $file) = $self->_model->get_detail_data($item);
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
 
     # Just filename, remove path config path
-    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
+    my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;
 
     #-- Header
-    $ddata_ref->{header}{filename} = $file_rel;
-    $self->controls_write_page('list', $ddata_ref->{header} );
+    $data->{header}{filename} = $file_rel;
+    $self->controls_write_page('list', $data->{header} );
 
     #-- Parameters
-    my $para = TpdaQrt::Utils->params_to_hash( $ddata_ref->{parameters} );
+    my $para = TpdaQrt::Utils->params_to_hash( $data->{parameters} );
     $self->controls_write_page('para', $para );
 
     #-- SQL
-    $self->controls_write_page('sql', $ddata_ref->{body} );
+    $self->controls_write_page('sql', $data->{body} );
 
     return;
 }
@@ -1185,6 +1152,12 @@ Toggle sql replace
 
  sub toggle_sql_replace {
     my ($self, $mode) = @_;
+
+    $mode ||= $self->_model->get_appmode;
+
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print " toggle_sql_replace:\n \t$package, $line, $subroutine\n";
 
     my $item = $self->get_list_selected_index();
     my ($data) = $self->_model->get_detail_data($item);
@@ -1224,7 +1197,11 @@ Set log message
 sub log_msg {
     my ( $self, $message ) = @_;
 
-    $self->control_append_value( 'log', $message );
+    my $control = $self->get_control_by_name('log');
+
+    $self->control_write_s( $control, $message, 'append' );
+
+    return;
 }
 
 =head2 set_status
@@ -1317,34 +1294,13 @@ Set new value for a controll
 sub control_set_value {
     my ($self, $name, $value) = @_;
 
-    return unless defined $value;
+    $value ||= q{};                 # empty
 
     my $control = $self->get_control_by_name($name);
 
-    $control->ClearAll;
-    $control->AppendText($value);
-    $control->AppendText( "\n" );
-    $control->Colourise( 0, $control->GetTextLength );
+    $self->control_write_s($control, $value);
 
     return;
-}
-
-=head2 control_append_value
-
-Append new value for a control.
-
-=cut
-
-sub control_append_value {
-    my ($self, $name, $value) = @_;
-
-    return unless defined $value;
-
-    my $control = $self->get_control_by_name($name);
-
-    $control->AppendText($value);
-    $control->AppendText( "\n" );
-    $control->Colourise( 0, $control->GetTextLength );
 }
 
 =head2 controls_write_page
@@ -1376,6 +1332,8 @@ sub controls_write_page {
             $self->control_write( $control, $name, $value, );
         }
     }
+
+    return;
 }
 
 =head2 control_write
@@ -1415,18 +1373,21 @@ sub control_write_e {
     return;
 }
 
-=head2 control_write_t
+=head2 control_write_s
 
 Write to a Wx::StyledTextCtrl.
 
 =cut
 
-sub control_write_t {
-    my ( $self, $control, $value ) = @_;
+sub control_write_s {
+    my ( $self, $control, $value, $is_append ) = @_;
 
-    $control->Clear;
+    $value ||= q{};                 # empty
+
+    $control->ClearAll unless $is_append;
     $control->AppendText($value);
     $control->AppendText("\n");
+    $control->Colourise( 0, $control->GetTextLength );
 
     return;
 }

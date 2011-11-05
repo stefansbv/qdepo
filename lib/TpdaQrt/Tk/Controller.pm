@@ -2,8 +2,6 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Carp;
 
 use Tk;
@@ -88,6 +86,8 @@ sub start {
 
     $self->_view->list_populate_all();
 
+    $self->_view->list_item_select_first();
+    $self->_model->on_item_selected();
     $self->set_app_mode('sele');
 
     $self->fix_geometry;
@@ -426,6 +426,8 @@ sub process_sql {
 
     my $item   = $self->_view->get_list_selected_index();
     my ($data) = $self->_model->get_detail_data($item);
+
+    $self->_view->set_status( '', 'ms'); # clear messages
 
     $self->_model->run_export($data);
 

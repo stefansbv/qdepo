@@ -89,6 +89,8 @@ sub start {
 
     $self->_view->list_populate_all();
 
+    $self->_view->list_item_select_first();
+    $self->_model->on_item_selected();
     $self->set_app_mode('sele');
 
     return;

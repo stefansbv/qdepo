@@ -3,8 +3,6 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -172,11 +170,15 @@ sub _set_model_callbacks {
 
     # When the status changes, update gui components
     my $apm = $self->_model->get_appmode_observable;
-    $apm->add_callback( sub { $self->update_gui_components(); } );
+    $apm->add_callback( sub { $self->update_gui_components } );
 
-    #--
     my $upd = $self->_model->get_itemchanged_observable;
-    $upd->add_callback( sub { $self->controls_populate(); } );
+    $upd->add_callback(
+        sub {
+            $self->controls_populate;
+            $self->toggle_sql_replace;
+        }
+    );
 
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
@@ -188,7 +190,7 @@ sub _set_model_callbacks {
     $pr->add_callback(
         sub {
             $self->{progress} = $_[0];
-            print "$_[0]% ";
+            $self->update;
         }
     );
 
@@ -206,7 +208,7 @@ module.
 sub update_gui_components {
     my $self = shift;
 
-    my $mode = $self->_model->get_appmode();
+    my $mode = $self->_model->get_appmode;
 
     $self->set_status( $mode, 'md' );    # update statusbar
 
@@ -229,11 +231,7 @@ Create the menu
 sub _create_menu {
     my $self = shift;
 
-    #- Menu bar
-
     $self->{_menu} = $self->Menu();
-
-    # Get MenuBar atributes
 
     my $attribs = $self->_cfg->menubar;
 
@@ -1224,8 +1222,6 @@ sub list_item_select_first {
     $self->get_listcontrol->selectionSet(0);
     $self->get_listcontrol->see('active');
 
-    $self->_model->on_item_selected();
-
     return;
 }
 
@@ -1243,8 +1239,6 @@ sub list_item_select_last {
     $self->get_listcontrol->activate('end');
     $self->get_listcontrol->selectionSet('end');
     $self->get_listcontrol->see('active');
-
-    $self->_model->on_item_selected();
 
     return;
 }
@@ -1393,9 +1387,6 @@ sub list_populate_all {
         $self->list_item_insert($nrcrt, $title);
     }
 
-    # Set item 0 selected on start
-    $self->list_item_select_first();
-
     return;
 }
 
@@ -1413,7 +1404,7 @@ sub list_populate_item {
 
     $self->list_item_insert( $r->{nrcrt}, $r->{title} );
 
-    $self->list_item_select_last();
+    $self->list_item_select_last(); # ???
 
     return;
 }
@@ -1448,27 +1439,27 @@ Populate controls with data from QDF (XML).
 sub controls_populate {
     my $self = shift;
 
-    my $item = $self->get_list_selected_index();
-    my ($ddata_ref, $file_fqn) = $self->_model->get_detail_data($item);
+    print "controls_populate:\n";
 
-    return unless ref $ddata_ref and $file_fqn;
+    my $item = $self->get_list_selected_index();
+    my ($data, $file) = $self->_model->get_detail_data($item);
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
 
     # Just filename, remove path config path
-    my $file_rel = File::Spec->abs2rel( $file_fqn, $qdfpath ) ;
+    my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;
 
     #-- Header
-    $ddata_ref->{header}{filename} = $file_rel;
-    $self->controls_write_page('list', $ddata_ref->{header} );
+    $data->{header}{filename} = $file_rel;
+    $self->controls_write_page('list', $data->{header} );
 
     #-- Parameters
-    my $para = TpdaQrt::Utils->params_to_hash( $ddata_ref->{parameters} );
+    my $para = TpdaQrt::Utils->params_to_hash( $data->{parameters} );
     $self->controls_write_page('para', $para );
 
     #-- SQL
-    $self->controls_write_page('sql', $ddata_ref->{body} );
+    $self->controls_write_page('sql', $data->{body} );
 
     return;
 }
@@ -1481,6 +1472,12 @@ Toggle sql replace
 
 sub toggle_sql_replace {
     my ($self, $mode) = @_;
+
+    $mode ||= $self->_model->get_appmode;
+
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print " toggle_sql_replace:\n \t$package, $line, $subroutine\n";
 
     my $item = $self->get_list_selected_index();
     my ($data) = $self->_model->get_detail_data($item);
@@ -1520,7 +1517,11 @@ Set log message
 sub log_msg {
     my ( $self, $message ) = @_;
 
-    $self->control_append_value( 'log', $message );
+    my $control = $self->get_control_by_name('log');
+
+    $self->control_write_t( $control, $message, 'append' );
+
+    return;
 }
 
 =head2 set_status
@@ -1617,59 +1618,22 @@ sub define_dialogs {
     return;
 }
 
-=head2 list_read_selected
+=head2 control_set_value
 
-Read and return selected row (column 0) from list
+Set new value for a controll.
 
 =cut
 
-sub list_read_selected {
-    my $self = shift;
+sub control_set_value {
+    my ($self, $name, $value) = @_;
 
-    if ( !$self->has_list_records ) {
+    $value ||= q{};                 # empty
 
-        # No records
-        return;
-    }
+    my $control = $self->get_control_by_name($name);
 
-    my @selected;
-    my $indecs;
+    $self->control_write_t($control, $value);
 
-    eval { @selected = $self->get_listcontrol->curselection(); };
-    if ($@) {
-        warn "Error: $@";
-
-        # $self->refresh_sb( 'll', 'No record selected' );
-        return;
-    }
-    else {
-        $indecs = pop @selected;    # first row in case of multiselect
-        if ( !defined $indecs ) {
-
-            # Activate the last row
-            $indecs = 'end';
-            $self->get_listcontrol->selectionClear( 0, 'end' );
-            $self->get_listcontrol->activate($indecs);
-            $self->get_listcontrol->selectionSet($indecs);
-            $self->get_listcontrol->see('active');
-        }
-    }
-
-    # In scalar context, getRow returns the value of column 0
-    my @idxs = @{ $self->{lookup} };    # indices for Pk and Fk cols
-    my @returned;
-    eval { @returned = ( $self->get_listcontrol->getRow($indecs) )[@idxs]; };
-    if ($@) {
-        warn "Error: $@";
-
-        # $self->refresh_sb( 'll', 'No record selected!' );
-        return;
-    }
-    else {
-        @returned = TpdaQrt::Utils->trim(@returned) if @returned;
-    }
-
-    return \@returned;
+    return;
 }
 
 =head2 controls_write_page
@@ -1755,7 +1719,7 @@ Write to a Tk::Text widget.  If I<$value> not true, than only delete.
 =cut
 
 sub control_write_t {
-    my ( $self, $control, $value ) = @_;
+    my ( $self, $control, $value, $is_append ) = @_;
 
     my $state = $control->cget ('-state');
 
@@ -1763,7 +1727,7 @@ sub control_write_t {
 
     $control->configure( -state => 'normal' );
 
-    $control->delete( '1.0', 'end' );
+    $control->delete( '1.0', 'end' ) unless $is_append;
     $control->insert( '1.0', $value ) if $value;
 
     $control->configure( -state => $state );
@@ -1771,46 +1735,59 @@ sub control_write_t {
     return;
 }
 
-=head2 control_set_value
+=head2 list_read_selected
 
-Set new value for a controll.
-
-=cut
-
-sub control_set_value {
-    my ($self, $name, $value) = @_;
-
-    return unless defined $value;
-
-    my $control = $self->get_control_by_name($name);
-
-    $self->control_write_t($control, $value);
-
-    return;
-}
-
-=head2 control_append_value
-
-Append new value to a Text control.
+Read and return selected row (column 0) from list
 
 =cut
 
-sub control_append_value {
-    my ($self, $name, $value) = @_;
+sub list_read_selected {
+    my $self = shift;
 
-    my $control = $self->get_control_by_name($name);
-    my $state   = $control->cget ('-state');
+    if ( !$self->has_list_records ) {
 
-    $control->configure( -state => 'normal' );
-
-    if ($value) {
-        $control->insert( 'end', $value );
-        $control->insert( 'end', "\n" );
+        # No records
+        return;
     }
 
-    $control->configure( -state => $state );
+    my @selected;
+    my $indecs;
 
-    return;
+    eval { @selected = $self->get_listcontrol->curselection(); };
+    if ($@) {
+        warn "Error: $@";
+
+        # $self->refresh_sb( 'll', 'No record selected' );
+        return;
+    }
+    else {
+        $indecs = pop @selected;    # first row in case of multiselect
+        if ( !defined $indecs ) {
+
+            # Activate the last row
+            $indecs = 'end';
+            $self->get_listcontrol->selectionClear( 0, 'end' );
+            $self->get_listcontrol->activate($indecs);
+            $self->get_listcontrol->selectionSet($indecs);
+            $self->get_listcontrol->see('active');
+        }
+    }
+
+    # In scalar context, getRow returns the value of column 0
+    my @idxs = @{ $self->{lookup} };    # indices for Pk and Fk cols
+    my @returned;
+    eval { @returned = ( $self->get_listcontrol->getRow($indecs) )[@idxs]; };
+    if ($@) {
+        warn "Error: $@";
+
+        # $self->refresh_sb( 'll', 'No record selected!' );
+        return;
+    }
+    else {
+        @returned = TpdaQrt::Utils->trim(@returned) if @returned;
+    }
+
+    return \@returned;
 }
 
 =head2 controls_read_page
