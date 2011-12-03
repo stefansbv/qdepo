@@ -6,8 +6,6 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Test::More tests => 11;
 
 use lib qw( lib ../lib );
@@ -38,12 +36,12 @@ is( $c1, $c2, 'both instances are the same object' );
 # Configuration: etc/main.yml
 
 # interface::widgetset: Tk
-ok( $c1->widgetset =~ m{Tk},
+ok( $c1->widgetset =~ m{Tk|Wx}i,
     'interface has expected config value for "widgetset"'
     )
     or diag( '"widgetset" defined as "'
         . $c1->widgetset
-        . '" and not "Wx" in config' );
+        . '" and not "Wx or Tk" in config' );
 
 # interface::path::toolbar YML file
 ok( -f $c1->ymltoolbar, '"toolbar.yml" file exists' )

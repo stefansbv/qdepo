@@ -58,8 +58,6 @@ sub new {
 
     $self->_set_event_handlers;
 
-    $self->_view->Show( 1 );
-
     return $self;
 }
 
