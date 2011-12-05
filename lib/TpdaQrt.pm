@@ -104,6 +104,21 @@ sub run {
     return;
 }
 
+=head1 DESCRIPTION
+
+TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
+and query repository management. Queries are saved in XML files and
+can be edited and parametrized.
+
+Currently supported export formats: CSV, Excel, OpenOffice Calc.
+Database management systems support: Firebird, PostgreSQL, MySQL and
+SQLite.
+
+The idea for this project, was born from the necessity to run, monthly,
+the same queries against two small databases, with a couple of
+parameters changed at every run, and get the data in spreadsheet
+format for further processing.
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
@@ -113,6 +128,34 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 None known.
 
 Please report any bugs or feature requests to the author.
+
+=head1 ACKNOWLEDGMENTS
+
+The implementation of the MVC pattern is (heavily) based on the
+implementation from the Cipres project:
+
+To the author: Rutger Vos, 17/Aug/2006
+        http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen \
+             /cipres/framework/perl/cipres/lib/Cipres/
+
+Thank You!
+
+Also a big Thank You! to:
+
+The Open Source movement, and all the authors, contributors and
+community behind this great projects:
+ Perl and Perl modules
+ Padre the Perl IDE
+ Firebird and Flamerobin
+ Postgresql
+ GNU/Linux
+ MySQL
+ SQLite
+ [[http://www.perlmonks.org/][Perl Monks]] (the best Perl support site)
+and of course Sourceforge for hosting this project :)
+
+and last but least, to Herbert Breunung for his guidance, hints and
+for his Kephra project a very good source of inspiration.
 
 =head1 LICENSE AND COPYRIGHT
 
