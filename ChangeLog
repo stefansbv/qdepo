@@ -1,3 +1,62 @@
+2011-12-05    <stefan>
+
+	* Release v0.30
+
+2011-12-05     <stefan>
+
+	* Integrate original README in POD. Experiment with Dist::Zilla.
+
+2011-12-03     <stefan>
+
+	* Cleanup
+
+2011-11-05     <stefan>
+
+	* Only level 1 subdirs for qdf files is supported.  Fix log info
+	output. Fix export from Wx. Restore Wx feature to remove report
+	directly. Back to using the Lists data structure to store the file
+	name in Wx. Almost the desired sequence of events :)
+
+2011-11-04     <stefan>
+
+	* Fix parameters replace in SQL. Fix utf8 in CSV output. Remove
+	icons for connect and refresh. Implement change output option and
+	fix layout for Tk. Refactor generate output.
+
+2011-11-02     <stefan>
+
+	* Refactor DB connection. Refactor Tk interface.
+
+2011-11-01     <stefan>
+
+	* Refactor list data model and sync Wx and Tk implementation. Move
+	and rename some functions.
+
+2011-10-31     <stefan>
+
+	* Crude implementation of the Tk front-end. Synchronize Tk with Wx
+	(methods for lists). Update menu data, change label for
+	Pages. Fill pages with controls. Refactor config.
+
+2011-10-29     <stefan>
+
+	* First page in Tk. Small tweaks in Wx. Ignore .db files. Changes
+	adapted from Tpda3. Initial import - Tk
+
+2011-10-23     <stefan>
+
+	* Updated gitignore. Add test for ODF output. Add progress dialog
+	module ;) Fix UTF8 problem; Add progress dialog. New output doc
+	format.
+
+2011-05-17     <stefan>
+
+	* Check if output path exist and show a message if not
+
+2011-05-08     <stefan>
+
+	* Added required module
+
 2011-01-12    <stefan>
 
 	* New default icon set; Added extension to icon file names in the
