@@ -15,11 +15,11 @@ TpdaQrt::Db - Database operations module
 
 =head1 VERSION
 
-Version 0.02
+Version 0.24
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.24';
 
 =head1 SYNOPSIS
 

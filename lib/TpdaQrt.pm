@@ -8,15 +8,15 @@ use TpdaQrt::Config;
 
 =head1 NAME
 
-TpdaQrt::Db - Tpda TpdaQrt database operations module
+TPDA - Query Repository Tool.
 
 =head1 VERSION
 
-Version 0.31
+Version 0.32
 
 =cut
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 =head1 SYNOPSIS
 
@@ -109,6 +109,8 @@ sub run {
 TPDA - Query Repository Tool - a wxPerl GUI tool for data exporting
 and query repository management. Queries are saved in XML files and
 can be edited and parametrized.
+
+New: Support for PerlTk.
 
 Currently supported export formats: CSV, Excel, OpenOffice Calc.
 Database management systems support: Firebird, PostgreSQL, MySQL and

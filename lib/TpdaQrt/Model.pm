@@ -20,11 +20,11 @@ TpdaQrt::Wx::Model - The Model.
 
 =head1 VERSION
 
-Version 0.08
+Version 0.79
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.79';
 
 =head1 SYNOPSIS
 

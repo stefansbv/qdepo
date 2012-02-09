@@ -15,11 +15,11 @@ TpdaQrt::Output - Export from database to various formats.
 
 =head1 VERSION
 
-Version 0.10
+Version 0.15
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.15';
 
 =head1 SYNOPSIS
 

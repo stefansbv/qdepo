@@ -12,11 +12,11 @@ TpdaQrt::Db::Connection::Postgresql - Connect to a PostgreSQL database.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.19
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.19';
 
 =head1 SYNOPSIS
 
