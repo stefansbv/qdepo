@@ -94,13 +94,16 @@ sub generate_output_excel {
         return;
     }
 
-    try {
-        require TpdaQrt::Output::Excel;
-    }
+    $self->{model}->message_log("II Generating output file '$outfile'");
+    try { require TpdaQrt::Output::Excel; }
     catch {
         $self->{model}->message_log("EE Spreadsheet::WriteExcel not available!");
         return;
     };
+
+    my $rows_cnt = $self->count_rows($sql, $bind);
+
+    #--- Select
 
     my $xls = TpdaQrt::Output::Excel->new($outfile);
 
@@ -124,13 +127,27 @@ sub generate_output_excel {
 
         $row++;
 
+        $self->{model}->message("$rows_cnt total rows");
+
+        $self->{model}->progress_update(0);
+        my $pv = 0;
+
         while ( my @rezultat = $sth->fetchrow_array() ) {
             my $fmt_name = 's_format'; # Default to string format
                                        # other formats support TODO
             $xls->create_row($row, \@rezultat, $fmt_name);
 
             $row++;
+
+            # Progress bar
+            my $p = floor ($row * 100 / $rows_cnt);
+            next if $pv == $p;
+
+            $self->{model}->progress_update($p);
+            $pv = $p;
         }
+
+        $self->{model}->progress_update(100); # finish
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
@@ -150,7 +167,6 @@ Generate output in CSV format.
 =cut
 
 sub generate_output_csv {
-
     my ($self, $sql, $bind, $outfile) = @_;
 
     # File name
@@ -162,13 +178,15 @@ sub generate_output_csv {
         return;
     }
 
-    try {
-        require TpdaQrt::Output::Csv;
-    }
+    $self->{model}->message_log("II Generating output file '$outfile'");
+
+    try { require TpdaQrt::Output::Csv; }
     catch {
         $self->{model}->message_log("EE Text::CSV_XS not available!");
         return;
     };
+
+    my $rows_cnt = $self->count_rows($sql, $bind);
 
     my $csv = TpdaQrt::Output::Csv->new($outfile);
 
@@ -185,9 +203,22 @@ sub generate_output_csv {
         # Header
         $csv->create_row( $sth->{NAME} );
 
+        my $row = 1;
+        my $pv  = 0;
         while ( my @rezultat = $sth->fetchrow_array() ) {
             $csv->create_row(\@rezultat);
+
+            $row++;
+
+            # Progress bar
+            my $p = floor ($row * 100 / $rows_cnt);
+            next if $pv == $p;
+
+            $self->{model}->progress_update($p);
+            $pv = $p;
         }
+
+        $self->{model}->progress_update(100); # finish
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
