@@ -157,7 +157,7 @@ my $about = sub {
     my ( $self, $event ) = @_;
 
     Wx::MessageBox(
-        "TPDA - Query Repository Tool v0.11\n(C) 2010 - 2011 Stefan Suciu\n\n"
+        "TPDA - Query Repository Tool v0.11\n(C) 2010-2012 Stefan Suciu\n\n"
             . " - WxPerl $Wx::VERSION\n"
             . " - " . Wx::wxVERSION_STRING,
         "About TPDA-QRT",
@@ -462,7 +462,7 @@ Please report any bugs or feature requests to the author.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 - 2011 Stefan Suciu.
+Copyright 2010-2012 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

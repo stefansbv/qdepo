@@ -143,7 +143,7 @@ Padre development team. Thank You.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 Stefan Suciu.
+Copyright 2011-2012 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
