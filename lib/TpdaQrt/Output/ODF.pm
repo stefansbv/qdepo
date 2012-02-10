@@ -1,8 +1,8 @@
 package TpdaQrt::Output::ODF;
 
+use 5.010_000;                   # minimum version nedeed by ODF::lpOD
 use strict;
 use warnings;
-use 5.010_000;
 use Carp;
 
 use ODF::lpOD;
@@ -18,7 +18,7 @@ Version 0.02
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -46,6 +46,9 @@ sub new {
     $self->{doc_cols} = shift;
 
     $self->{doc} = undef;
+
+    $self->{lenghts}  = [];     # Array to hold max lenghts for each col
+    $self->{max_len}  = 30;     # Max column width
 
     $self->_create_doc('Sheet');
 
@@ -90,9 +93,9 @@ sub create_row {
     for ( my $col = 0 ; $col < $self->{doc_cols} ; $col++ ) {
         my $data = encode('utf-8', $data->[$col]);
         $self->{sheet}->get_cell($row,$col)->set_value($data);
-        # if (defined $data) {
-        #     $self->store_max_len( $col, length $data );
-        # }
+        if (defined $data) {
+            $self->store_max_len( $col, length $data );
+        }
     }
 
     return;
@@ -108,7 +111,7 @@ sub create_done {
     my ($self, ) = @_;
 
     # Set columns width
-    # $self->set_cols_width();
+    $self->set_cols_width();
 
     $self->{doc}->save(target => $self->{doc_file});
 
@@ -131,7 +134,7 @@ sub init_lengths {
 
     @{$self->{lenghts}} = map { defined $_ ? length($_) : 0 } @{$fields};
 
-    return;
+    return scalar @{$self->{lenghts}};       # for test
 }
 
 =head2 store_max_len
@@ -143,7 +146,10 @@ Impose a maximum width and store max length.
 sub store_max_len {
     my ($self, $col, $len) = @_;
 
+    # Impose a maximum width
     $len = $self->{max_len} if $len > $self->{max_len};
+
+    # Store max
     ${ $self->{lenghts} }[$col] = $len if ${ $self->{lenghts} }[$col] < $len;
 
     return;
@@ -162,8 +168,33 @@ sub set_cols_width {
     my $cols = scalar @{ $self->{lenghts} };
 
     for ( my $col = 0 ; $col < $cols; $col++ ) {
-        $self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
+        #$self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
+        $self->set_col_style($col, ${ $self->{lenghts} }[$col]);
     }
+
+    return;
+}
+
+=head2 set_col_style
+
+Set column width.
+
+TODO: compute optimum width. Add other style attributes.
+
+=cut
+
+sub set_col_style {
+    my ( $self, $col, $width ) = @_;
+
+    $self->{doc}->insert_style(
+        odf_style->create(
+            'table column',
+            name  => "StylePour$col",
+            width => "${width}cm",
+        )
+    );
+
+    $self->{sheet}->get_column($col)->set_style("StylePour$col");
 
     return;
 }
@@ -174,7 +205,7 @@ Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
 
 =head1 BUGS
 
-None known.
+Unacceptably slow! Process 130 records in 4 minutes.
 
 Please report any bugs or feature requests to the author.
 

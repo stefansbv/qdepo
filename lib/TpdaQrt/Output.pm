@@ -15,11 +15,11 @@ TpdaQrt::Output - Export from database to various formats.
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =cut
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =head1 SYNOPSIS
 
@@ -247,7 +247,7 @@ sub generate_output_calc {
         my $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record
-        # $doc->init_lengths( $sth->{NAME} );
+        $doc->init_lengths( $sth->{NAME} );
 
         my $row = 0;
 
@@ -296,7 +296,6 @@ Generate output in ODF format.
 =cut
 
 sub generate_output_odf {
-
     my ($self, $sql, $bind, $outfile) = @_;
 
     # File name
@@ -337,7 +336,7 @@ sub generate_output_odf {
         my $doc = TpdaQrt::Output::ODF->new($outfile, $rows_cnt, $cols);
 
         # Initialize lengths record
-        # $doc->init_lengths( $sth->{NAME} );
+        $doc->init_lengths( $sth->{NAME} );
 
         my $row = 0;
 

@@ -12,11 +12,11 @@ TpdaQrt::Output::Excel - Export data in CSV format
 
 =head1 VERSION
 
-Version 0.13
+Version 0.14
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =head1 SYNOPSIS
 
@@ -62,7 +62,6 @@ configuration file?
 =cut
 
 sub _create_doc {
-
     my ( $self, $sheet_name ) = @_;
 
     # Create a new Excel workbook
@@ -142,7 +141,6 @@ Create a row of data; format not imlemented yet.
 =cut
 
 sub create_row {
-
     my ($self, $row, $fields, $fmt_name) = @_;
 
     my $cols = scalar @{$fields};
@@ -189,14 +187,11 @@ Init lengths record to avoid error when making comparisons.
 =cut
 
 sub init_lengths {
+    my ( $self, $fields ) = @_;
 
-    # Init lengths record to avoid error when making comparisons
+    @{ $self->{lenghts} } = map { defined $_ ? length($_) : 0 } @{$fields};
 
-    my ($self, $fields) = @_;
-
-    @{$self->{lenghts}} = map { defined $_ ? length($_) : 0 } @{$fields};
-
-    return;
+    return scalar @{$self->{lenghts}};       # for test
 }
 
 =head2 store_max_len
@@ -206,7 +201,6 @@ Impose a maximum width and store max length.
 =cut
 
 sub store_max_len {
-
     my ($self, $col, $len) = @_;
 
     # Impose a maximum width
@@ -225,7 +219,6 @@ Set the columns with.
 =cut
 
 sub set_cols_width {
-
     my ($self) = @_;
 
     my $cols = scalar @{ $self->{lenghts} };
