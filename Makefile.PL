@@ -26,7 +26,6 @@ requires 'File::HomeDir'         => '0.89';
 requires 'File::Spec::Functions' => '0';
 requires 'YAML::Tiny'            => '0';
 requires 'DBI'                   => '1.53';
-requires 'Exception::Class::DBI' => '1.00';
 requires 'DBD::SQLite'           => '1.29';
 requires 'XML::Twig'             => '3.26';
 requires 'Hash::Merge'           => '0';

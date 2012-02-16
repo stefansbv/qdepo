@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use DBI;
-use Exception::Class::DBI;
-
 use TpdaQrt::Config;
 
 =head1 NAME
@@ -106,7 +104,6 @@ sub db_connect {
         $self->{dbh}->{RaiseError} = 0; # non fatal, handled
         $self->{dbh}->{PrintError} = 0;
         $self->{dbh}->{ShowErrorStatement} = 1;
-        $self->{dbh}->{HandleError} = Exception::Class::DBI->handler;
         $self->{dbh}->{LongReadLen} = 524288;    # for BLOBs
         $self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
     }
