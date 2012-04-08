@@ -107,18 +107,6 @@ sub _connect {
         $self->message_log("EE Connection to '$dbname' failed");
     }
 
-    # # Connect to database
-    # $self->{_dbh} = TpdaQrt::Db->instance->dbh;
-
-    # # Is realy connected ?
-    # if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
-    #     $self->get_connection_observable->set( 1 ); # yes
-    #     $self->message_log("II Connected to \"$dbname\" with '$driver'");
-    # }
-    # else {
-    #     $self->get_connection_observable->set( 0 ); # no ;)
-    #     $self->message_log("II Disconnected from '$dbname'");
-    # }
     return;
 }
 
@@ -323,7 +311,7 @@ sub load_qdf_data {
     return;
 }
 
-=head2 get_qdf_data
+=head2 get_qdf_data_wx
 
 Return the titles and file names from all the QDF files to fill the
 List control. Th Wx List control has a feature to store data in the
@@ -733,6 +721,22 @@ sub string_replace_pos {
     my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
 
     return ($text, \@sortedpos);
+}
+
+=head2 get_exception
+
+Get exception message and then clear it.
+
+=cut
+
+sub get_exception {
+    my $self = shift;
+
+    my $exception = $self->get_exception_observable->get;
+
+    $self->get_exception_observable->set();  # clear
+
+    return $exception;
 }
 
 =head1 AUTHOR

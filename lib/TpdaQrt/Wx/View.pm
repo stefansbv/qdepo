@@ -5,6 +5,9 @@ use warnings;
 
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
+use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
+    EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED
+    EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
 use Wx::STC;
 
@@ -1464,6 +1467,87 @@ sub on_quit {
     $self->Close(1);
 
     return;
+}
+
+######################################################################
+
+#-- Event handlers
+
+sub event_handler_for_menu {
+    my ($self, $name, $calllback) = @_;
+
+    my $menu_id = $self->get_menu_popup_item($name)->GetId;
+
+    EVT_MENU $self, $menu_id, $calllback;
+
+    return;
+}
+
+sub event_handler_for_tb_button {
+    my ($self, $name, $calllback) = @_;
+
+    my $tb_id = $self->get_toolbar_btn($name)->GetId;
+
+    EVT_TOOL $self, $tb_id, $calllback;
+
+    return;
+}
+
+sub event_handler_for_tb_choice {
+    my ($self, $name, $calllback) = @_;
+
+    my $tb_id = $self->get_toolbar_btn($name)->GetId;
+
+    EVT_CHOICE $self, $tb_id, $calllback;
+
+    return;
+}
+
+sub event_handler_for_list {
+    my ($self, $calllback) = @_;
+
+    #- List controll
+    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol, $calllback;
+
+    return;
+}
+
+sub toggle_list_enable {
+    my ($self, $state) = @_;
+
+    $self->get_listcontrol()->Enable($state);
+
+    return;
+}
+
+sub set_editable {
+    my ( $self, $name, $state, $color ) = @_;
+
+    # Controls state are defined in View as strings
+    # Here we need to transform them to 0|1
+    my $editable;
+    if ($state) {
+        $editable = 0;
+        $color = 'lightgrey'; # Default color for disabled ctrl
+    }
+    else {
+        $editable = $state eq 'normal' ? 1 : 0;
+    }
+
+    my $control = $self->get_control_by_name($name);
+
+    if ( $name eq 'sql' ) {
+        # For Wx::StyledTextCtrl
+        $control->Enable($editable);
+    }
+    else {
+        # For Wx::TextCtrl
+        $control->SetEditable($editable);
+    }
+
+    $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
+
+    return ;
 }
 
 =head1 AUTHOR

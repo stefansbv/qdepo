@@ -6,6 +6,8 @@ use warnings;
 use Wx q(:everything);
 use base qw(Wx::App);
 
+require TpdaQrt::Wx::View;
+
 =head1 NAME
 
 TpdaQrt::Wx::App - Wx Perl application class
@@ -59,10 +61,9 @@ Override OnInit from WxPerl
 
 sub OnInit { 1 }
 
-
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

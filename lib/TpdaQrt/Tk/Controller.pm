@@ -5,13 +5,10 @@ use warnings;
 use Carp;
 
 use Tk;
-# use Tk::Font;
-# use Tk::DialogBox;
 
-use TpdaQrt::Config;
-use TpdaQrt::Utils;
-use TpdaQrt::Model;
-use TpdaQrt::Tk::View;
+require TpdaQrt::Tk::View;
+
+use base qw{TpdaQrt::Controller};
 
 =head1 NAME
 
@@ -42,57 +39,46 @@ Constructor method.
 =cut
 
 sub new {
-    my ( $class, $app ) = @_;
+    my $class = shift;
 
-    my $model = TpdaQrt::Model->new();
+    my $self = $class->SUPER::new();
 
-    my $view = TpdaQrt::Tk::View->new($model);
+    $self->_init;
 
-    my $self = {
-        _model => $model,
-        _app   => $view,                         # an alias as for Wx ...
-        _view  => $view,
-        _cfg   => TpdaQrt::Config->instance(),
-    };
-
-    bless $self, $class;
-
-    $self->_set_event_handlers();
+    $self->_set_event_handlers;
 
     return $self;
 }
 
-=head2 start
+=head2 _init
 
-Check if we have user and pass, if not, show dialog.  Connect to
-database.
+Init App.
 
 =cut
 
-sub start {
+sub _init {
     my $self = shift;
 
-    $self->_view->log_config_options();
-
-    # Connect to database at start
-    $self->_model->db_connect();
-
-    my $default_choice = $self->_view->get_choice_default();
-    $self->_model->set_choice($default_choice);
-
-    $self->set_app_mode('idle');
-
-    $self->_model->load_qdf_data();
-
-    $self->_view->list_populate_all();
-
-    $self->_view->list_item_select_first();
-    $self->_model->on_item_selected();
-    $self->set_app_mode('sele');
-
-    $self->fix_geometry;
+    my $view = TpdaQrt::Tk::View->new($self->_model);
+    $self->{_app}  = $view;                  # an alias as for Wx ...
+    $self->{_view} = $view;
 
     return;
+}
+
+=head2 dialog_login
+
+Login dialog.
+
+=cut
+
+sub dialog_login {
+    my $self = shift;
+
+    require TpdaQrt::Tk::Dialog::Login;
+    my $pd = TpdaQrt::Tk::Dialog::Login->new;
+
+    return $pd->login( $self->_view );
 }
 
 =head2 fix_geometry
@@ -113,323 +99,6 @@ sub fix_geometry {
     $geom =~ s{(\d+)x}{${width}x};
 
     $self->_view->geometry($geom);
-
-    return;
-}
-
-=head2 set_app_mode
-
-Set application mode
-
-=cut
-
-sub set_app_mode {
-    my ( $self, $mode ) = @_;
-
-    if ( $mode eq 'sele' ) {
-        my $item_no = $self->_view->get_list_max_index();
-
-        # Set mode to 'idle' if no items
-        $mode = 'idle' if $item_no <= 0;
-    }
-
-    $self->_model->set_mode($mode);
-
-    my %method_for = (
-        idle => 'on_screen_mode_idle',
-        edit => 'on_screen_mode_edit',
-        sele => 'on_screen_mode_sele',
-    );
-
-    $self->toggle_interface_controls;
-
-    if ( my $method_name = $method_for{$mode} ) {
-        $self->$method_name();
-    }
-
-    return 1;
-}
-
-sub on_screen_mode_idle {
-    my $self = shift;
-
-    return;
-}
-
-sub on_screen_mode_edit {
-    my $self = shift;
-
-    $self->_view->toggle_sql_replace('edit');
-
-    return;
-}
-
-sub on_screen_mode_sele {
-    my $self = shift;
-
-    $self->_view->toggle_sql_replace('sele');
-
-    return;
-}
-
-=head2 _set_event_handlers
-
-Setup event handlers for the interface.
-
-=cut
-
-sub _set_event_handlers {
-    my $self = shift;
-
-    #- Base menu
-
-    #-- Exit
-    $self->_view->get_menu_popup_item('mn_qt')->configure(
-        -command => sub {
-            $self->_view->on_quit;
-        }
-    );
-
-    #-- Help
-    $self->_view->get_menu_popup_item('mn_gd')->configure(
-        -command => sub {
-            $self->guide;
-        }
-    );
-
-    #-- About
-    $self->_view->get_menu_popup_item('mn_ab')->configure(
-        -command => sub {
-            $self->about;
-        }
-    );
-
-    #- Toolbar
-
-    #-- Edit
-    $self->_view->get_toolbar_btn('tb_ed')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_model->is_appmode('edit')
-                ? $self->set_app_mode('sele')
-                : $self->set_app_mode('edit');
-        }
-    );
-
-    #-- Save
-    $self->_view->get_toolbar_btn('tb_sv')->bind(
-        '<ButtonRelease-1>' => sub {
-            if ( $self->_model->is_appmode('edit') ) {
-                $self->save_query_def();
-                $self->set_app_mode('sele');
-            }
-        }
-    );
-
-    #-- Add report
-    $self->_view->get_toolbar_btn('tb_ad')->bind(
-        '<ButtonRelease-1>' => sub {
-            my $rec = $self->_model->report_add();
-            $self->_view->list_populate_item($rec);
-            $self->set_app_mode('edit');
-        }
-    );
-
-    #-- Remove report
-    $self->_view->get_toolbar_btn('tb_rm')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_view->list_mark_item();
-        }
-    );
-
-    #- Choice
-    $self->_view->get_toolbar_btn('tb_ls')->configure(
-        -command => sub {
-            my $text = $_[0];
-            $self->_model->set_choice($text);
-        }
-    );
-
-    #- Run
-    $self->_view->get_toolbar_btn('tb_go')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_model->is_connected
-                ? $self->process_sql
-                : $self->_view->set_status( 'Not connected', 'ms', 'red' );
-        }
-    );
-
-    #-- Quit
-    $self->_view->get_toolbar_btn('tb_qt')->bind(
-        '<ButtonRelease-1>' => sub {
-            $self->_view->on_quit;
-        }
-    );
-
-    #-- Make some key bindings
-
-    #-- Quit Ctrl-q
-    $self->_view->bind(
-        '<Control-q>' => sub {
-            $self->_view->on_quit;
-        }
-    );
-
-    #-- Reload - F5
-    $self->_view->bind(
-        '<F5>' => sub {
-            $self->_model->is_appmode('edit')
-                ? $self->record_reload()
-                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
-        }
-    );
-
-    #-- Execute run - F9
-    $self->_view->bind(
-        '<F9>' => sub {
-        }
-    );
-
-    #- List controll
-    $self->_view->get_listcontrol->bindRows(
-        '<Button-1>', sub {
-            $self->_model->on_item_selected();
-        }
-    );
-
-    return;
-}
-
-=head2 _model
-
-Return model instance variable
-
-=cut
-
-sub _model {
-    my $self = shift;
-
-    return $self->{_model};
-}
-
-=head2 _view
-
-Return view instance variable
-
-=cut
-
-sub _view {
-    my $self = shift;
-
-    return $self->{_view};
-}
-
-=head2 toggle_interface_controls
-
-Toggle controls (tool bar buttons) appropriate for different states of
-the application.
-
-=cut
-
-sub toggle_interface_controls {
-    my $self = shift;
-
-    my ( $toolbars, $attribs ) = $self->{_view}->toolbar_names();
-
-    my $mode = $self->_model->get_appmode();
-
-    foreach my $name ( @{$toolbars} ) {
-        my $status = $attribs->{$name}{state}{$mode};
-        $self->_view->enable_tool( $name, $status );
-    }
-
-    my $is_edit = $self->_model->is_appmode('edit') ? 1 : 0;
-
-    # Toggle List control
-    my $list = $self->_view->get_listcontrol();
-    if ($is_edit) {
-        # $list->configure(-state => 'disabled'); doesn't work!
-    }
-    else {
-        # $list->configure(-state => 'normal');
-    }
-
-    # Controls by page Enabled in edit mode
-    foreach my $page ( qw(para list conf sql ) ) {
-        $self->toggle_controls_page( $page, $is_edit );
-    }
-
-    return;
-}
-
-=head2 toggle_controls_page
-
-Toggle the controls on page
-
-=cut
-
-sub toggle_controls_page {
-    my ($self, $page, $is_edit) = @_;
-
-    my $get = 'get_controls_'.$page;
-    my $controls = $self->_view->$get();
-
-    foreach my $control ( @{$controls} ) {
-        foreach my $name ( keys %{$control} ) {
-
-            my ($state, $color);
-            if ($is_edit) {
-                $state = $control->{$name}[1];  # normal | disabled
-                $color = $control->{$name}[2];  # name
-            }
-            else {
-                $state = 'disabled';
-            }
-
-            $control->{$name}[0]->configure(-state      => $state);
-            $control->{$name}[0]->configure(-background => $color) if $color;
-        }
-    }
-}
-
-=head2 save_query_def
-
-Save query definition file
-
-=cut
-
-sub save_query_def {
-    my $self = shift;
-
-    my $item = $self->_view->get_list_selected_index();
-
-    my $head = $self->_view->controls_read_page('list');
-    my $para = $self->_view->controls_read_page('para');
-    my $body = $self->_view->controls_read_page('sql');
-
-    $self->_model->save_query_def( $item, $head, $para, $body );
-
-    # Update title in list
-    my $title = $head->[0]{title};
-    $self->_view->list_item_edit( $item, undef, $title );
-
-    return;
-}
-
-=head2 process_sql
-
-Get the sql text string from the QDF file, prepare it for execution.
-
-=cut
-
-sub process_sql {
-    my $self = shift;
-
-    my $item   = $self->_view->get_list_selected_index();
-    my ($data) = $self->_model->get_detail_data($item);
-
-    $self->_view->set_status( '', 'ms'); # clear messages
-
-    $self->_model->run_export($data);
 
     return;
 }

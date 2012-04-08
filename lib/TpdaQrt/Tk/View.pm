@@ -3,6 +3,8 @@ package TpdaQrt::Tk::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -1369,6 +1371,7 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
+    $self->_model->load_qdf_data();
     my $indices = $self->_model->get_qdf_data();
 
     return unless scalar keys %{$indices};
@@ -1888,6 +1891,80 @@ sub on_quit {
     $self->destroy();
 
     return;
+}
+
+=head2 event_handler_for_menu
+
+Event handlers.
+
+Configure callback for menu
+
+=cut
+
+sub event_handler_for_menu {
+    my ( $self, $name, $calllback ) = @_;
+
+    $self->get_menu_popup_item($name)->configure( -command => $calllback );
+
+    return;
+}
+
+=head2 event_handler_for_tb_button
+
+Event handlers.
+
+Configure callback for toolbar button.
+
+=cut
+
+sub event_handler_for_tb_button {
+    my ( $self, $name, $calllback ) = @_;
+
+    $self->get_toolbar_btn($name)->configure( -command => $calllback );
+
+    return;
+}
+
+=head2 event_handler_for_tb_choice
+
+Event handlers.
+
+Configure callback for toolbar choice button.
+
+=cut
+
+sub event_handler_for_tb_choice {
+    my ( $self, $name, $calllback ) = @_;
+
+    $self->get_toolbar_btn($name)->configure( -command => $calllback );
+
+    return;
+}
+
+sub toggle_list_enable {
+    my ($self, $state) = @_;
+
+    # Toggle List control
+    my $list = $self->get_listcontrol();
+    if ($state) {
+        # $list->configure(-state => 'disabled'); doesn't work!
+    }
+    else {
+        # $list->configure(-state => 'normal');
+    }
+
+    return;
+}
+
+sub set_editable {
+    my ( $self, $name, $state, $color ) = @_;
+
+    my $control = $self->get_control_by_name($name);
+
+    $control->configure( -state => $state );
+    $control->configure( -background => $color ) if $color;
+
+    return
 }
 
 =head1 AUTHOR

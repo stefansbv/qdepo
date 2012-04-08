@@ -1,10 +1,12 @@
 package TpdaQrt;
 
-use 5.008005;
+use 5.008009;
 use strict;
 use warnings;
 
-use TpdaQrt::Config;
+use Ouch;
+
+require TpdaQrt::Config;
 
 =head1 NAME
 
@@ -48,8 +50,8 @@ sub new {
 
 =head2 _init
 
-Initialize the configurations module and create the WxPerl
-application instance.
+Initialize the configurations module and create the PerlTk or the
+wxPerl application instance.
 
 =cut
 
@@ -61,8 +63,7 @@ sub _init {
     my $widgetset = $cfg->widgetset();
 
     unless ($widgetset) {
-        print "Required configuration not found: 'widgetset'\n";
-        exit;
+        ouch "ConfigError", "Required configuration not found: 'widgetset'";
     }
 
     if ( $widgetset =~ m{wx}ix ) {
@@ -78,11 +79,7 @@ sub _init {
         # $self->{_log}->info('Using Tk ...');
     }
     else {
-        warn "Unknown widget set!\n";
-
-        # $self->{_log}->debug('Unknown widget set!');
-
-        exit;
+        ouch "ConfigError", "Unknown widget set!: '$widgetset'";
     }
 
     $self->{gui}->start();    # stuff to run at start
@@ -123,7 +120,7 @@ format for further processing.
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 
