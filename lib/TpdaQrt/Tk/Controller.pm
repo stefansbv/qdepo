@@ -83,6 +83,15 @@ sub dialog_login {
     return $pd->login( $self->_view );
 }
 
+=head2 dialog_progress
+
+Progress dialog.
+
+=cut
+
+sub dialog_progress {
+}
+
 =head2 fix_geometry
 
 Add 4px to the width of the window to better fit the MListbox.
@@ -131,6 +140,25 @@ sub set_event_handlers_keys {
         '<F9>' => sub {
         }
     );
+
+    return;
+}
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item   = $self->_view->get_list_selected_index();
+    my ($data) = $self->_model->get_detail_data($item);
+
+    $self->_view->set_status( '', 'ms'); # clear messages
+
+    $self->_model->run_export($data);
 
     return;
 }

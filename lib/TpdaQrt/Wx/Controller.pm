@@ -150,6 +150,24 @@ sub dialog_progress {
     return;
 }
 
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item   = $self->_view->get_list_selected_index();
+    my $file   = $self->_view->get_list_data($item);
+    my ($data) = $self->_model->get_detail_data($item, $file);
+
+    $self->_model->run_export($data);
+
+    return;
+}
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefan@s2i2.ro> >>

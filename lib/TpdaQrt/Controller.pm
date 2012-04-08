@@ -107,7 +107,6 @@ Login dialog.
 =cut
 
 sub dialog_login {
-    my $self = shift;
 
     print 'dialog_login not implemented in ', __PACKAGE__, "\n";
 
@@ -270,7 +269,7 @@ sub _set_event_handlers {
         'tb_go',
         sub {
             if ($self->_model->is_connected ) {
-                $self->_view->progress_dialog('Export data');
+                $self->dialog_progress('Export data');
                 $self->process_sql();
             }
             else {
@@ -391,7 +390,6 @@ Progress dialog.
 =cut
 
 sub dialog_progress {
-    my ($self, $event, $max) = @_;
 
     print 'dialog_progress not implemented in ', __PACKAGE__, "\n";
 
@@ -432,13 +430,8 @@ Get the sql text string from the QDF file, prepare it for execution.
 =cut
 
 sub process_sql {
-    my $self = shift;
 
-    my $item   = $self->_view->get_list_selected_index();
-    my $file   = $self->_view->get_list_data($item);
-    my ($data) = $self->_model->get_detail_data($item, $file);
-
-    $self->_model->run_export($data);
+    print 'process_sql not implemented in ', __PACKAGE__, "\n";
 
     return;
 }
