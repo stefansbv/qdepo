@@ -259,7 +259,7 @@ sub _set_event_handlers {
     $self->_view->event_handler_for_tb_choice(
         'tb_ls',
         sub {
-            my $text = $_[1]->GetString;
+            my $text = $self->_view->get_choice('tb_ls');
             $self->_model->set_choice($text);
         }
     );

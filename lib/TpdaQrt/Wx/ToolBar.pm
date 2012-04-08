@@ -143,7 +143,6 @@ sub _item_list {
         [ -1,  -1 ],
         [ 100, -1 ],
         $self->{options},
-
         # wxCB_SORT,
     );
 

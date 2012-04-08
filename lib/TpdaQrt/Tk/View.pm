@@ -1100,6 +1100,20 @@ sub get_choice_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
+=head2 get_choice
+
+Return the selected choice.
+
+=cut
+
+sub get_choice {
+    my ($self, $name) = @_;
+
+    my $option_var =$self->get_toolbar_btn($name)->cget(-variable);
+
+    return ${$option_var};
+}
+
 =head2 get_listcontrol
 
 Return the record list handler

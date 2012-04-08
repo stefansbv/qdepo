@@ -817,6 +817,20 @@ sub get_choice_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
+=head2 get_choice
+
+Return the selected choice.
+
+=cut
+
+sub get_choice {
+    my ($self, $name) = @_;
+
+    my $idx = $self->get_toolbar_btn($name)->GetCurrentSelection;
+
+    return $self->{_tb}->get_choice_options($idx);
+}
+
 =head2 get_listcontrol
 
 Return the list control handler.
