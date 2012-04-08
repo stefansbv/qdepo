@@ -1442,8 +1442,6 @@ Populate controls with data from QDF (XML).
 sub controls_populate {
     my $self = shift;
 
-    print "controls_populate:\n";
-
     my $item = $self->get_list_selected_index();
     my ($data, $file) = $self->_model->get_detail_data($item);
 
@@ -1477,10 +1475,6 @@ sub toggle_sql_replace {
     my ($self, $mode) = @_;
 
     $mode ||= $self->_model->get_appmode;
-
-    # DEBUG
-    my ($package, $filename, $line, $subroutine) = caller(3);
-    print " toggle_sql_replace:\n \t$package, $line, $subroutine\n";
 
     my $item = $self->get_list_selected_index();
     my ($data) = $self->_model->get_detail_data($item);
@@ -1965,6 +1959,16 @@ sub set_editable {
     $control->configure( -background => $color ) if $color;
 
     return
+}
+
+sub event_handler_for_list {
+    my ($self, $calllback) = @_;
+
+    $self->get_listcontrol->bindRows(
+        '<Button-1>', $calllback,
+    );
+
+    return;
 }
 
 =head1 AUTHOR

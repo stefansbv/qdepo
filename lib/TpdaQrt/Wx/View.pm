@@ -1147,8 +1147,6 @@ Populate controls with data from XML
 sub controls_populate {
     my $self = shift;
 
-    # print "controls_populate:\n";
-
     my $item = $self->get_list_selected_index();
     my $file = $self->get_list_data($item);
     my ($data) = $self->_model->get_detail_data($item, $file);
@@ -1183,10 +1181,6 @@ Toggle sql replace
     my ($self, $mode) = @_;
 
     $mode ||= $self->_model->get_appmode;
-
-    # # DEBUG
-    # my ($package, $filename, $line, $subroutine) = caller(3);
-    # print " toggle_sql_replace:\n \t$package, $line, $subroutine\n";
 
     my $item = $self->get_list_selected_index();
     my $file = $self->get_list_data($item);

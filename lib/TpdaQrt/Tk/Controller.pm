@@ -45,7 +45,7 @@ sub new {
 
     $self->_init;
 
-    $self->_set_event_handlers;
+    $self->set_event_handlers_keys();
 
     return $self;
 }
@@ -62,6 +62,8 @@ sub _init {
     my $view = TpdaQrt::Tk::View->new($self->_model);
     $self->{_app}  = $view;                  # an alias as for Wx ...
     $self->{_view} = $view;
+
+    $self->fix_geometry;
 
     return;
 }
@@ -99,6 +101,36 @@ sub fix_geometry {
     $geom =~ s{(\d+)x}{${width}x};
 
     $self->_view->geometry($geom);
+
+    return;
+}
+
+sub set_event_handlers_keys {
+    my $self = shift;
+
+    #-- Make some key bindings
+
+    #-- Quit Ctrl-q
+    $self->_view->bind(
+        '<Control-q>' => sub {
+            $self->_view->on_quit;
+        }
+    );
+
+    #-- Reload - F5
+    $self->_view->bind(
+        '<F5>' => sub {
+            $self->_model->is_appmode('edit')
+                ? $self->record_reload()
+                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
+        }
+    );
+
+    #-- Execute run - F9
+    $self->_view->bind(
+        '<F9>' => sub {
+        }
+    );
 
     return;
 }

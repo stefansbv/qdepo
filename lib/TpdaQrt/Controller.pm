@@ -90,6 +90,7 @@ sub start {
     my $default_choice = $self->_view->get_choice_default();
     $self->_model->set_choice($default_choice);
 
+    $self->_set_event_handlers;
     $self->set_app_mode('idle');
     $self->_view->list_populate_all();
     $self->_view->list_item_select_first();

@@ -47,7 +47,7 @@ sub new {
 
     $self->_init;
 
-    $self->_set_event_handlers;
+    #$self->set_event_handlers_keys();
 
     return $self;
 }
