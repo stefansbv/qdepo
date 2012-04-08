@@ -70,7 +70,7 @@ sub make_toolbar_buttons {
 
     # Options for Wx::Choice from the ToolBar
     # Default is Excel with idx = 0
-    $self->{options} = [ 'ODF', 'Calc', 'CSV', 'Excel' ];
+    $self->{options} = [ 'Excel', 'ODF', 'Calc', 'CSV' ];
 
     # Create buttons in ID order; use sub defined by 'type'
     foreach my $name ( @{$toolbars} ) {

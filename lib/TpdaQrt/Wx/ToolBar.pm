@@ -48,7 +48,7 @@ sub new {
 
     # Options for Wx::Choice from the ToolBar
     # Default is Excel with idx = 0
-    $self->{options} = [ 'ODF', 'Calc', 'CSV', 'Excel' ];
+    $self->{options} = [ 'Excel', 'ODF', 'Calc', 'CSV' ];
 
     return $self;
 }
