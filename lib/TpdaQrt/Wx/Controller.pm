@@ -121,35 +121,6 @@ my $about = sub {
     );
 };
 
-=head2 dialog_progress
-
-Progress dialog.
-
-=cut
-
-sub dialog_progress {
-    my ($self, $event, $max) = @_;
-
-    my $dialog = Wx::ProgressDialog->new(
-        'Progress dialog example',
-        'An example',
-        $max,
-        $self,
-        wxPD_CAN_ABORT | wxPD_APP_MODAL | wxPD_ELAPSED_TIME
-            | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME
-    );
-
-    my $usercontinue = 1;
-    foreach (1 .. $max) {
-        $usercontinue = $dialog->Update($_);
-        last if $usercontinue == 0;
-    }
-
-    $dialog->Destroy;
-
-    return;
-}
-
 =head2 process_sql
 
 Get the sql text string from the QDF file, prepare it for execution.

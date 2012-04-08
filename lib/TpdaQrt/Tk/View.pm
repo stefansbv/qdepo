@@ -1971,6 +1971,16 @@ sub event_handler_for_list {
     return;
 }
 
+=head2 dialog_progress
+
+Progress dialog.
+
+=cut
+
+sub dialog_progress {
+    # empty
+}
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>

@@ -1289,7 +1289,7 @@ sub toggle_status_cn {
     return;
 }
 
-sub progress_dialog {
+sub dialog_progress {
     my ($self, $title, $max) = @_;
 
     require TpdaQrt::Wx::Progress;

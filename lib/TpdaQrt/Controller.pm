@@ -269,7 +269,7 @@ sub _set_event_handlers {
         'tb_go',
         sub {
             if ($self->_model->is_connected ) {
-                $self->dialog_progress('Export data');
+                $self->_view->dialog_progress('Export data');
                 $self->process_sql();
             }
             else {

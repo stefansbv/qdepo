@@ -83,15 +83,6 @@ sub dialog_login {
     return $pd->login( $self->_view );
 }
 
-=head2 dialog_progress
-
-Progress dialog.
-
-=cut
-
-sub dialog_progress {
-}
-
 =head2 fix_geometry
 
 Add 4px to the width of the window to better fit the MListbox.
