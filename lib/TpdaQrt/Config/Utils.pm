@@ -15,11 +15,11 @@ TpdaQrt::Config::Utils - Utility functions for config paths and files
 
 =head1 VERSION
 
-Version 0.10
+Version 0.33
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

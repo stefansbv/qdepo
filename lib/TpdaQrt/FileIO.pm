@@ -18,11 +18,11 @@ TpdaQrt::FileIO - Tpda TpdaQrt XML file operations module
 
 =head1 VERSION
 
-Version 0.39
+Version 0.33
 
 =cut
 
-our $VERSION = '0.39';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

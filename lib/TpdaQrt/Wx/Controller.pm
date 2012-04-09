@@ -18,11 +18,11 @@ TpdaQrt::Wx::Controller - The Controller
 
 =head1 VERSION
 
-Version 0.72
+Version 0.33
 
 =cut
 
-our $VERSION = '0.72';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

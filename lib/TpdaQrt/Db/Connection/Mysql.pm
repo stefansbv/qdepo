@@ -12,11 +12,11 @@ TpdaQrt::Db::Connection::Mysql - Connect to a MySQL database
 
 =head1 VERSION
 
-Version 0.09
+Version 0.33
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

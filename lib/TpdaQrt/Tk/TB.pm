@@ -14,11 +14,11 @@ TpdaQrt::Tk::TB - Create a toolbar
 
 =head1 VERSION
 
-Version 0.06
+Version 0.33
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

@@ -12,11 +12,11 @@ TpdaQrt::Output::Csv - Export data in CSV format
 
 =head1 VERSION
 
-Version 0.13
+Version 0.33
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

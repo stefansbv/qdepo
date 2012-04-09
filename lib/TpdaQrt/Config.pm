@@ -20,11 +20,11 @@ TpdaQrt::Config - Tpda TpdaQrt configuration module
 
 =head1 VERSION
 
-Version 0.45
+Version 0.33
 
 =cut
 
-our $VERSION = '0.45';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

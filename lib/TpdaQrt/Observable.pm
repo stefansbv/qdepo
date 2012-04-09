@@ -9,11 +9,11 @@ TpdaQrt::Observable - Obrserver patern implementation
 
 =head1 VERSION
 
-Version 0.12
+Version 0.33
 
 =cut
 
-our $VERSION = '0.12';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

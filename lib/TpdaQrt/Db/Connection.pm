@@ -12,11 +12,11 @@ TpdaQrt::Db::Connection - Connect to various databases.
 
 =head1 VERSION
 
-Version 0.28
+Version 0.33
 
 =cut
 
-our $VERSION = '0.28';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

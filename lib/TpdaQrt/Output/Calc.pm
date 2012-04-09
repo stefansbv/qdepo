@@ -13,11 +13,11 @@ TpdaQrt::Output::Calc - Export data in OppenOffice.org format
 
 =head1 VERSION
 
-Version 0.15
+Version 0.33
 
 =cut
 
-our $VERSION = '0.15';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

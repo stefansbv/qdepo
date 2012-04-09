@@ -12,11 +12,11 @@ TpdaQrt::Db::Connection::Firebird - Connect to a Firebird database.
 
 =head1 VERSION
 
-Version 0.23
+Version 0.33
 
 =cut
 
-our $VERSION = '0.23';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

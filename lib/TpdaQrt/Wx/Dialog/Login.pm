@@ -172,6 +172,10 @@ sub get_login {
 
 Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
+=head1 VERSION
+
+Version 0.33
+
 =head1 BUGS
 
 None known.

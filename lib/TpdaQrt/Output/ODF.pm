@@ -14,11 +14,11 @@ TpdaQrt::Output::ODF - Export data in ODF format
 
 =head1 VERSION
 
-Version 0.02
+Version 0.33
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.33';
 
 =head1 SYNOPSIS
 

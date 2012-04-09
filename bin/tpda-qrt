@@ -113,6 +113,10 @@ __END__
 
 tpda-qrt - TPDA - Query Repository Tool
 
+=head1 VERSION
+
+Version 0.33
+
 =head1 SYNOPSIS
 
 tpda-qrt -list
