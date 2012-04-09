@@ -53,6 +53,19 @@ sub new {
 
     $self->title(" TpdaQrt ");
 
+    #- Load resource file, if found
+
+    my $resource = $self->{_cfg}->xresource_file();
+    if ($resource) {
+        if ( -f $resource ) {
+            $model->message_log("II: Reading resource from '$resource'");
+            $self->optionReadfile( $resource, 'widgetDefault' );
+        }
+        else {
+            $model->message_log("II: Resource not found: '$resource'");
+        }
+    }
+
     $self->{bg} = $self->cget('-background');
 
     $self->change_look();
@@ -1482,27 +1495,6 @@ sub list_populate_item {
     $self->list_item_insert( $r->{nrcrt}, $r->{title} );
 
     $self->list_item_select('last'); # ???
-
-    return;
-}
-
-=head2 list_mark_item
-
-Remove item from list control and select the first item.
-
-=cut
-
-sub list_mark_item {
-    my $self = shift;
-
-    my $item = $self->get_list_selected_index();
-
-    my $rec = $self->_model->get_qdf_data($item);
-
-    my $nrcrt = $rec->{nrcrt};
-    $nrcrt = "$nrcrt D";
-
-    $self->list_item_edit( $item, $nrcrt );
 
     return;
 }

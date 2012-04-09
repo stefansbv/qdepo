@@ -2,7 +2,7 @@
 # Main configurations file
 ---
 interface:
-  widgetset: Tk
+  widgetset: Wx
   path:
     toolbar: etc/interfaces/toolbar.yml
     menubar: etc/interfaces/menubar.yml

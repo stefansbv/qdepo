@@ -780,11 +780,11 @@ sub action_confirmed {
     my ($answer) = Wx::MessageBox(
         $msg,
         'Confirm',
-        wxYES_NO,
+        wxYES_NO | wxCANCEL,
         undef,
     );
 
-    return $answer == wxID_YES ? 1 : 0;
+    return ( $answer == wxYES ) ? 1 : 0;
 }
 
 =head2 get_toolbar_btn
@@ -948,14 +948,14 @@ sub list_item_select {
 
     my $item
         = $what eq 'first' ? 0
-        : $what eq 'last'  ? $items_no - 1;
+        : $what eq 'last'  ? ($items_no - 1)
         :                    undef # default
         ;
 
     return unless defined $item;
 
-    $self->get_listcontrol->Select( $idx, 1 );
-    $self->get_listcontrol->EnsureVisible($idx);
+    $self->get_listcontrol->Select( $item, 1 );
+    $self->get_listcontrol->EnsureVisible($item);
 
     return;
 }

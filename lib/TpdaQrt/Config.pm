@@ -286,6 +286,18 @@ sub conn_cfg_filename {
     return catfile($self->cfpath, 'db', $cfname, 'etc', 'connection.yml');
 }
 
+=head2 xresource_file
+
+X resource file path.
+
+=cut
+
+sub xresource_file {
+    my $self = shift;
+
+    return catfile( $self->cfpath, 'etc', 'xresource.xrdb' );
+}
+
 =head1 AUTHOR
 
 Stefan Suciu, C<< <stefansbv at users . sourceforge . net> >>

@@ -133,6 +133,21 @@ sub set_event_handlers {
 
     $self->SUPER::set_event_handlers();
 
+    #-- Remove report
+    $self->_view->event_handler_for_tb_button(
+        'tb_rm',
+        sub {
+            my $msg = 'Delete query definition file?';
+            if ( $self->_view->action_confirmed($msg) ) {
+                my $data = $self->_view->list_remove_item();
+                $self->_model->report_remove($data->{file});
+            }
+            else {
+                $self->_view->log_msg("II delete canceled");
+            }
+        }
+    );
+
     #- Choice
     $self->_view->event_handler_for_tb_choice(
         'tb_ls',

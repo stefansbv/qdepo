@@ -85,7 +85,7 @@ sub start {
 
     if ($return_string eq 'shutdown') {
         print "Shuting down ...\n";
-        $self->_view->on_quit;
+        $self->on_quit;
         return;
     }
 
@@ -187,8 +187,7 @@ sub set_event_handlers {
     $self->_view->event_handler_for_menu(
         'mn_qt',
         sub {
-            return if !defined $self->ask_to_save;
-            $self->_view->on_quit;
+            $self->on_quit;
         }
     );
 
@@ -237,24 +236,8 @@ sub set_event_handlers {
         sub {
             my $max_item = $self->_view->get_list_max_index();
             my $rec = $self->_model->report_add($max_item);
-            print Dumper('Rec:', $rec);
             $self->_view->list_populate_item($rec);
             $self->set_app_mode('edit');
-        }
-    );
-
-    #-- Remove report
-    $self->_view->event_handler_for_tb_button(
-        'tb_rm',
-        sub {
-            my $msg = 'Delete query definition file?';
-            if ( $self->_view->action_confirmed($msg) ) {
-                my $data = $self->_view->list_remove_item();
-                $self->_model->report_remove($data->{file});
-            }
-            else {
-                $self->_view->log_msg("II delete canceled");
-            }
         }
     );
 
@@ -276,7 +259,7 @@ sub set_event_handlers {
     $self->_view->event_handler_for_tb_button(
         'tb_qt',
         sub {
-            $self->_view->on_quit;
+            $self->on_quit;
         }
     );
 
@@ -429,6 +412,14 @@ sub process_sql {
     my $item   = $self->_view->get_list_selected_index();
     my ($data) = $self->_model->get_detail_data($item);
     $self->_model->run_export($data);
+
+    return;
+}
+
+sub on_quit {
+    my $self = shift;
+
+    print 'dialog_progress not implemented in ', __PACKAGE__, "\n";
 
     return;
 }

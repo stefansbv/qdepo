@@ -283,36 +283,6 @@ sub on_item_selected {
     $self->get_itemchanged_observable->set( 1 );
 }
 
-=head2 load_qdf_data
-
-Load the titles and file names from all the QDF files and store in
-data structure used to fill the List control.
-
-=cut
-
-sub load_qdf_data {
-    my $self = shift;
-
-    my $data_ref = $self->{fio}->get_titles();
-
-    my $indecs = 0;
-    my $titles = {};
-
-    # Format titles
-    foreach my $rec ( @{$data_ref} ) {
-        if (ref $rec) {
-
-            # Store records
-            $self->{_lds}{$indecs} = $rec;
-            $self->{_lds}{$indecs}{nrcrt} = $indecs + 1;
-
-            $indecs++;
-        }
-    }
-
-    return;
-}
-
 =head2 get_qdf_data_wx
 
 Return the titles and file names from all the QDF files to fill the
@@ -343,6 +313,36 @@ sub get_qdf_data_wx {
     return $titles;
 }
 
+=head2 load_qdf_data
+
+Load the titles and file names from all the QDF files and store in
+data structure used to fill the List control.
+
+=cut
+
+sub load_qdf_data {
+    my $self = shift;
+
+    my $data_ref = $self->{fio}->get_titles();
+
+    my $indecs = 0;
+    my $titles = {};
+
+    # Format titles
+    foreach my $rec ( @{$data_ref} ) {
+        if (ref $rec) {
+
+            # Store records
+            $self->{_lds}{$indecs} = $rec;
+            $self->{_lds}{$indecs}{nrcrt} = $indecs + 1;
+
+            $indecs++;
+        }
+    }
+
+    return;
+}
+
 =head2 set_qdf_data
 
 Insert new record in data structure.
@@ -363,6 +363,12 @@ sub set_qdf_data {
     return {$new_item => $data_href};
 }
 
+=head2 make_qdf_data
+
+Create data structure attached to the List, Tk only.
+
+=cut
+
 sub make_qdf_data {
     my ($self, $data, $new_item) = @_;
 
@@ -375,18 +381,39 @@ sub make_qdf_data {
 
 Get data from List data structure, for single item or all.
 
+Toggle delete mark on items if $toggle_mark paramter is true.
+
 =cut
 
 sub get_qdf_data {
-    my ($self, $item) = @_;
+    my ( $self, $item, $toggle_mark ) = @_;
 
-    if (defined $item) {
-        return $self->{_lds}{$item};
+    my $data;
+    if ( defined $item ) {
+        if ($toggle_mark) {
+            if ( exists $self->{_lds}{$item}{mark} ) {
+                $self->{_lds}{$item}{mark} == 1
+                    ? ($self->{_lds}{$item}{mark} = 0)
+                    : ($self->{_lds}{$item}{mark} = 1);
+            }
+            else {
+                $self->{_lds}{$item}{mark} = 1; # set mark
+            }
+        }
+        $data = $self->{_lds}{$item};
     }
     else {
-        return $self->{_lds};
+        $data = $self->{_lds};
     }
+
+    return $data;
 }
+
+=head2 get_qdf_data_file
+
+Get data file full path from data structure attached to the  List.
+
+=cut
 
 sub get_qdf_data_file {
     my ($self, $item) = @_;

@@ -2,6 +2,8 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Carp;
 
 use Tk;
@@ -113,7 +115,7 @@ sub set_event_handlers_keys {
     #-- Quit Ctrl-q
     $self->_view->bind(
         '<Control-q>' => sub {
-            $self->_view->on_quit;
+            $self->on_quit;
         }
     );
 
@@ -146,6 +148,14 @@ sub set_event_handlers {
 
     $self->SUPER::set_event_handlers();
 
+    #-- Remove report
+    $self->_view->event_handler_for_tb_button(
+        'tb_rm',
+        sub {
+            $self->toggle_mark_item();
+        }
+    );
+
     #- Choice
     $self->_view->event_handler_for_tb_choice(
         'tb_ls',
@@ -153,6 +163,55 @@ sub set_event_handlers {
             $self->_model->set_choice( $_[0] );
         }
     );
+
+    return;
+}
+
+sub on_quit {
+    my $self = shift;
+
+    my $msg = 'Delete marked query definition files?';
+    if ( $self->_view->action_confirmed($msg) ) {
+        $self->list_remove_marked();
+    }
+
+    $self->_view->on_quit();
+
+    return;
+}
+
+=head2 toggle_mark_item
+
+Toggle mark on list item.
+
+=cut
+
+sub toggle_mark_item {
+    my $self = shift;
+
+    my $item = $self->_view->get_list_selected_index();
+
+    my $rec = $self->_model->get_qdf_data($item, 'toggle mark');
+    my $nrcrt = $rec->{nrcrt};
+    if ( exists $rec->{mark} ) {
+        $nrcrt = "$nrcrt D" if $rec->{mark} == 1;
+    }
+
+    $self->_view->list_item_edit( $item, $nrcrt );
+
+    return;
+}
+
+sub list_remove_marked {
+    my $self = shift;
+
+    my $recs = $self->_model->get_qdf_data();
+
+    foreach my $idx ( keys %{$recs} ) {
+        if ( exists $recs->{$idx}{mark} and $recs->{$idx}{mark} == 1 ) {
+            $self->_model->report_remove($recs->{$idx}{file});
+        }
+    }
 
     return;
 }
