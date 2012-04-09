@@ -55,6 +55,11 @@ Process an XML file's tag.
 sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
 
+    # # DEBUG
+    # my ($package, $filename, $line, $subroutine) = caller(3);
+    # print "process_file:\n $package, $line, $subroutine\n";
+
+    # print "params $qdf_file, $tag_name\n";
     if (! defined $qdf_file) {
         print "No report definition file?.\n";
         return;
@@ -188,6 +193,7 @@ Process an XML file an return the contents of all the elements.
 
 sub get_details {
     my ($self, $file) = @_;
+
     return $self->_process_file($file, 'report');
 }
 
@@ -199,6 +205,7 @@ Process an XML file an return the contents of the title element.
 
 sub get_title {
     my ($self, $file) = @_;
+
     return $self->_process_file($file, 'title');
 }
 

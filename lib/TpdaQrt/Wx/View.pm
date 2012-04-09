@@ -777,16 +777,14 @@ Yes - No message dialog.
 sub action_confirmed {
     my ( $self, $msg ) = @_;
 
-    my( $answer ) =  Wx::MessageBox(
+    my ($answer) = Wx::MessageBox(
         $msg,
         'Confirm',
-        Wx::wxYES_NO(),  # if you use Wx ':everything', it's wxYES_NO
-        undef,           # you needn't pass anything, much less $frame
-     );
+        wxYES_NO,
+        undef,
+    );
 
-     if( $answer == Wx::wxYES() ) {
-         return 1;
-     }
+    return $answer == wxID_YES ? 1 : 0;
 }
 
 =head2 get_toolbar_btn
@@ -813,19 +811,19 @@ sub get_choice_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
-=head2 get_choice
+# =head2 get_choice
 
-Return the selected choice.
+# Return the selected choice.
 
-=cut
+# =cut
 
-sub get_choice {
-    my ($self, $name) = @_;
+# sub get_choice {
+#     my ($self, $name) = @_;
 
-    my $idx = $self->get_toolbar_btn($name)->GetCurrentSelection;
+#     my $idx = $self->get_toolbar_btn($name)->GetCurrentSelection;
 
-    return $self->{_tb}->get_choice_options($idx);
-}
+#     return $self->{_tb}->get_choice_options($idx);
+# }
 
 =head2 get_listcontrol
 
@@ -935,35 +933,27 @@ sub set_list_text {
     return;
 }
 
-=head2 list_item_select_first
+=head2 list_item_select
 
-Select the first item in list.
-
-=cut
-
-sub list_item_select_first {
-    my ($self) = @_;
-
-    my $items_no = $self->get_list_max_index();
-
-    if ( $items_no > 0 ) {
-        $self->get_listcontrol->Select(0, 1);
-    }
-
-    return;
-}
-
-=head2 list_item_select_last
-
-Select the last item in list
+Select the first/last item in list.
 
 =cut
 
-sub list_item_select_last {
-    my ($self) = @_;
+sub list_item_select {
+    my ($self, $what) = @_;
 
     my $items_no = $self->get_list_max_index();
-    my $idx = $items_no - 1;
+
+    return unless $items_no > 0;             # nothing to select
+
+    my $item
+        = $what eq 'first' ? 0
+        : $what eq 'last'  ? $items_no - 1;
+        :                    undef # default
+        ;
+
+    return unless defined $item;
+
     $self->get_listcontrol->Select( $idx, 1 );
     $self->get_listcontrol->EnsureVisible($idx);
 
@@ -1077,7 +1067,7 @@ sub list_remove_item {
     $self->list_item_clear($item);
 
     # Set item 0 selected
-    $self->list_item_select_first();
+    $self->list_item_select('first');
 
     return $file;
 }
@@ -1143,7 +1133,7 @@ sub list_populate_item {
 
     $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title}, $r->{file} );
 
-    $self->list_item_select_last();          # ???
+    $self->list_item_select('last');          # ???
 
     return;
 }

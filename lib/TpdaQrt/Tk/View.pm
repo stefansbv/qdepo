@@ -2,6 +2,7 @@ package TpdaQrt::Tk::View;
 
 use strict;
 use warnings;
+use Ouch;
 
 use Data::Dumper;
 
@@ -1085,6 +1086,21 @@ Yes - No message dialog.
 
 sub action_confirmed {
     my ( $self, $msg ) = @_;
+
+    # Not localisable button labels
+
+    my $dlg = $self->MsgBox(
+        -title   => 'Question',
+        -type    => 'yesno',
+        -icon    => 'question',
+        -message => 'Confirm?',
+        -detail  => $msg,
+    );
+
+    my $answr = $dlg->Show() eq 'yes' ? 1 : 0;
+    print " $answr \n";
+
+    return $answr;
 }
 
 =head2 get_toolbar_btn
@@ -1111,19 +1127,19 @@ sub get_choice_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
-=head2 get_choice
+# =head2 get_choice
 
-Return the selected choice.
+# Return the selected choice.
 
-=cut
+# =cut
 
-sub get_choice {
-    my ($self, $name) = @_;
+# sub get_choice {
+#     my ($self, $name) = @_;
 
-    my $option_var =$self->get_toolbar_btn($name)->cget(-variable);
+#     my $option_var =$self->get_toolbar_btn($name)->cget(-variable);
 
-    return ${$option_var};
-}
+#     return ${$option_var};
+# }
 
 =head2 get_listcontrol
 
@@ -1234,37 +1250,27 @@ sub set_list_text {
     return;
 }
 
-=head2 list_item_select_first
+=head2 list_item_select
 
-Select the first item in list.
+Select the first/last item in list.
 
 =cut
 
-sub list_item_select_first {
-    my $self = shift;
+sub list_item_select {
+    my ($self, $what) = @_;
+
+    my $item
+        = $what eq 'first' ?  0
+        : $what eq 'last'  ? 'end'
+        :                     undef # default
+        ;
+
+    return unless defined $item;
 
     # Activate and select first
     $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->activate(0);
-    $self->get_listcontrol->selectionSet(0);
-    $self->get_listcontrol->see('active');
-
-    return;
-}
-
-=head2 list_item_select_last
-
-Select the last item in list.
-
-=cut
-
-sub list_item_select_last {
-    my $self = shift;
-
-    # Activate and select last
-    $self->get_listcontrol->selectionClear( 0, 'end' );
-    $self->get_listcontrol->activate('end');
-    $self->get_listcontrol->selectionSet('end');
+    $self->get_listcontrol->activate($item);
+    $self->get_listcontrol->selectionSet($item);
     $self->get_listcontrol->see('active');
 
     return;
@@ -1306,7 +1312,7 @@ sub get_list_selected_index {
     my $self = shift;
 
     my @selected;
-    eval { @selected = $self->get_listcontrol->curselection(); };
+    eval { @selected = $self->get_listcontrol->curselection() };
     if ($@) {
         warn "Error: $@";
         return;
@@ -1355,6 +1361,27 @@ sub list_item_edit {
     return;
 }
 
+# =head2 list_remove_selected
+
+# Remove the selected row from the list.
+
+# =cut
+
+# sub list_item_clear {
+#     my ($self, $item) = @_;
+
+#     ouch 'NoItem', 'EE: Nothing selected!' unless defined $item;
+
+#     eval {
+#         $self->get_listcontrol->delete($item);
+#     };
+#     if ($@) {
+#         ouch 'NoItem', 'EE: List item remove failes!';
+#     }
+
+#     return;
+# }
+
 =head2 list_item_clear_all
 
 Delete all list control items.
@@ -1364,10 +1391,33 @@ Delete all list control items.
 sub list_item_clear_all {
     my $self = shift;
 
+    #$self->get_listcontrol->removeAllItems();
+
     $self->get_listcontrol->selectionClear( 0, 'end' );
     $self->get_listcontrol->delete( 0, 'end' );
 
     return;
+}
+
+=head2 list_remove_item
+
+Remove item from list control and select the first item
+
+=cut
+
+sub list_remove_item {
+    my $self = shift;
+
+    my $item = $self->get_list_selected_index();
+    my $data = $self->_model->get_qdf_data($item);
+
+    # Remove from list
+    $self->list_item_clear($item);
+
+    # Set item 0 selected
+    $self->list_item_select('first');
+
+    return $data;
 }
 
 =head2 log_config_options
@@ -1379,8 +1429,7 @@ Log configuration options with data from the Config module
 sub log_config_options {
     my $self = shift;
 
-    my $cfg  = TpdaQrt::Config->instance();
-    my $path = $cfg->output;
+    my $path = $self->_cfg->output;
 
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
@@ -1432,7 +1481,7 @@ sub list_populate_item {
 
     $self->list_item_insert( $r->{nrcrt}, $r->{title} );
 
-    $self->list_item_select_last(); # ???
+    $self->list_item_select('last'); # ???
 
     return;
 }
@@ -1470,8 +1519,7 @@ sub controls_populate {
     my $item = $self->get_list_selected_index();
     my ($data, $file) = $self->_model->get_detail_data($item);
 
-    my $cfg     = TpdaQrt::Config->instance();
-    my $qdfpath = $cfg->qdfpath;
+    my $qdfpath = $self->_cfg->qdfpath;
 
     # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;

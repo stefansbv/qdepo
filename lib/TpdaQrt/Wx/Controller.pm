@@ -47,6 +47,7 @@ sub new {
 
     $self->_init;
 
+    $self->set_event_handlers();
     #$self->set_event_handlers_keys();
 
     return $self;
@@ -121,20 +122,24 @@ my $about = sub {
     );
 };
 
-=head2 process_sql
+=head2 set_event_handlers
 
-Get the sql text string from the QDF file, prepare it for execution.
+Set event handlers Wx.
 
 =cut
 
-sub process_sql {
+sub set_event_handlers {
     my $self = shift;
 
-    my $item   = $self->_view->get_list_selected_index();
-    my $file   = $self->_view->get_list_data($item);
-    my ($data) = $self->_model->get_detail_data($item, $file);
+    $self->SUPER::set_event_handlers();
 
-    $self->_model->run_export($data);
+    #- Choice
+    $self->_view->event_handler_for_tb_choice(
+        'tb_ls',
+        sub {
+            $self->_model->set_choice($_[1]->GetString);
+        }
+    );
 
     return;
 }

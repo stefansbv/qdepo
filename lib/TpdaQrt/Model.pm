@@ -513,7 +513,7 @@ sub save_query_def {
 
 =head2 report_add
 
-Create new QDF file from template
+Create new QDF file from template.
 
 =cut
 
@@ -559,20 +559,19 @@ sub report_add {
     # configured extension
     my $newqdf = 'report-' . sprintf( "%05d", $num ) . '.qdf';
 
-
-
     my $src_fqn = $self->_cfg->qdftemplate;
     my $dst_fqn = catfile($self->_cfg->qdfpath, $newqdf);
 
-    # print " $src_fqn -> $dst_fqn\n";
+    # print "Add *************\n";
+    # print "$src_fqn -> $dst_fqn\n";
 
     if ( !-f $dst_fqn ) {
         $self->message_log("II Create new report from template ...");
         if ( copy( $src_fqn, $dst_fqn ) ) {
-            $self->message_log("II done: '$newqdf'");
+            $self->message_log("II Made: '$newqdf'");
         }
         else {
-            $self->message_log("EE failed: $!");
+            $self->message_log("EE Failed: $!");
             return;
         }
 
@@ -606,8 +605,6 @@ B<.bak> extension, so it can be I<manualy> recovered.
 
 sub report_remove {
     my ($self, $file) = @_;                  # $item
-
-    # my $file_fqn = $self->get_qdf_data_file($item);
 
     unless (-f $file) {
         $self->message_log("EE '$file' not found!");

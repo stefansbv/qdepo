@@ -91,13 +91,13 @@ sub start {
 
     #-- Start
 
-    my $default_choice = $self->_view->get_choice_default();
-    $self->_model->set_choice($default_choice);
+    my $default = $self->_view->get_choice_default();
+    $self->_model->set_choice($default);
 
-    $self->_set_event_handlers;
+    $self->set_event_handlers();
     $self->set_app_mode('idle');
     $self->_view->list_populate_all();
-    $self->_view->list_item_select_first();
+    $self->_view->list_item_select('first');
     $self->_model->on_item_selected();
     $self->set_app_mode('sele');
 
@@ -172,13 +172,13 @@ sub on_screen_mode_sele {
     return;
 }
 
-=head2 _set_event_handlers
+=head2 set_event_handlers
 
 Setup event handlers for the interface.
 
 =cut
 
-sub _set_event_handlers {
+sub set_event_handlers {
     my $self = shift;
 
     #- Base menu
@@ -237,6 +237,7 @@ sub _set_event_handlers {
         sub {
             my $max_item = $self->_view->get_list_max_index();
             my $rec = $self->_model->report_add($max_item);
+            print Dumper('Rec:', $rec);
             $self->_view->list_populate_item($rec);
             $self->set_app_mode('edit');
         }
@@ -248,23 +249,12 @@ sub _set_event_handlers {
         sub {
             my $msg = 'Delete query definition file?';
             if ( $self->_view->action_confirmed($msg) ) {
-                my $file = $self->_view->list_remove_item();
-                if ($file) {
-                    $self->_model->report_remove($file);
-                }
+                my $data = $self->_view->list_remove_item();
+                $self->_model->report_remove($data->{file});
             }
             else {
                 $self->_view->log_msg("II delete canceled");
             }
-        }
-    );
-
-    #- Choice
-    $self->_view->event_handler_for_tb_choice(
-        'tb_ls',
-        sub {
-            my $text = $self->_view->get_choice('tb_ls');
-            $self->_model->set_choice($text);
         }
     );
 
@@ -434,38 +424,11 @@ Get the sql text string from the QDF file, prepare it for execution.
 =cut
 
 sub process_sql {
-
-    print 'process_sql not implemented in ', __PACKAGE__, "\n";
-
-    return;
-}
-
-=head2 list_populate_all
-
-Populate all other pages except the configuration page
-
-=cut
-
-sub list_populate_all {
     my $self = shift;
 
-    my $indices = $self->_model->get_qdf_data();
-
-    return unless scalar keys %{$indices};
-
-    # Populate list in sorted order
-    my @indices = sort { $a <=> $b } keys %{$indices};
-
-    # Clear list
-    $self->list_item_clear_all();
-
-    foreach my $idx ( @indices ) {
-        my $nrcrt = $indices->{$idx}{nrcrt};
-        my $title = $indices->{$idx}{title};
-        my $file  = $indices->{$idx}{file};
-
-        $self->_view->list_item_insert($nrcrt, $title);
-    }
+    my $item   = $self->_view->get_list_selected_index();
+    my ($data) = $self->_model->get_detail_data($item);
+    $self->_model->run_export($data);
 
     return;
 }
