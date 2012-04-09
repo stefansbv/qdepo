@@ -128,7 +128,7 @@ sub _set_model_callbacks {
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
-    my $xo = $self->_model->get_exception_observable;
+    my $xo = $self->_model->get_message_observable;
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
     my $pr = $self->_model->get_progress_observable;

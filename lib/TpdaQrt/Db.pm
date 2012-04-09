@@ -44,11 +44,27 @@ method. (From I<Class::Singleton> docs).
 =cut
 
 sub _new_instance {
-    my $class = shift;
+    my ($class, $model) = @_;
 
-    my $conn = TpdaQrt::Db::Connection->new;
+    my $conn = TpdaQrt::Db::Connection->new($model);
 
     return bless { conn => $conn }, $class;
+}
+
+=head2 db_connect
+
+Connect when there already is an instance.
+
+=cut
+
+sub db_connect {
+    my ($self, $model) = @_;
+
+    my $conn = TpdaQrt::Db::Connection->new($model);
+
+    $self->{conn} = $conn;
+
+    return $self;
 }
 
 =head2 dbh
@@ -94,7 +110,7 @@ sub DESTROY {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

@@ -8,7 +8,7 @@ use Data::Dumper;
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
-    LabFrame );
+    LabFrame MsgBox);
 
 use TpdaQrt::Config;
 use TpdaQrt::Tk::TB;    # ToolBar
@@ -185,7 +185,7 @@ sub _set_model_callbacks {
     my $so = $self->_model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
-    my $xo = $self->_model->get_exception_observable;
+    my $xo = $self->_model->get_message_observable;
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
     my $pr = $self->_model->get_progress_observable;
@@ -1057,13 +1057,25 @@ sub _create_config_page {
     return;
 }
 
-=head2 dialog_popup
 
-Define a dialog popup.
+=head2 dialog_error
+
+Error message dialog.
 
 =cut
 
-sub dialog_popup {
+sub dialog_error {
+    my ( $self, $message, $details ) = @_;
+
+    my $dialog_e = $self->MsgBox(
+        -title   => 'Info',
+        -type    => 'ok',
+        -icon    => 'error',
+        -message => $message,
+        -detail  => $details,
+    );
+
+    return $dialog_e->Show();
 }
 
 =head2 action_confirmed

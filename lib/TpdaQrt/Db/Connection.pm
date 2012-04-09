@@ -37,16 +37,16 @@ method. (From I<Class::Singleton> docs).
 =cut
 
 sub new {
-    my $class = shift;
+    my ($class, $model) = @_;
 
     my $self = bless {}, $class;
 
-    $self->db_connect();
+    $self->_connect($model);
 
     return $self;
 }
 
-=head2 db_connect
+=head2 _connect
 
 Connect method, uses I<TpdaQrt::Config> module for configuration.
 
@@ -54,9 +54,8 @@ Using separate modules for each RDBMS, because ...
 
 =cut
 
-sub db_connect {
-
-    my $self = shift;
+sub _connect {
+    my ($self, $model) = @_;
 
     my $inst = TpdaQrt::Config->instance;
     my $conf = $inst->conninfo;
@@ -69,27 +68,29 @@ sub db_connect {
 
   SWITCH: for ( $driver ) {
         /^$/ && do warn "No driver name?\n";
-        /firebird/i && do {
-            require TpdaQrt::Db::Connection::Firebird;
-            $db = TpdaQrt::Db::Connection::Firebird->new();
-            last SWITCH;
-        };
+        # /firebird/i && do {
+        #     require TpdaQrt::Db::Connection::Firebird;
+        #     $db = TpdaQrt::Db::Connection::Firebird->new($model);
+        #     last SWITCH;
+        # };
         /postgresql/i && do {
             require TpdaQrt::Db::Connection::Postgresql;
-            $db = TpdaQrt::Db::Connection::Postgresql->new();
+            $db = TpdaQrt::Db::Connection::Postgresql->new($model);
             last SWITCH;
         };
-        /mysql/i && do {
-            require TpdaQrt::Db::Connection::Mysql;
-            $db = TpdaQrt::Db::Connection::Mysql->new();
-            last SWITCH;
-        };
-        /sqlite/i && do {
-            require TpdaQrt::Db::Connection::Sqlite;
-            $db = TpdaQrt::Db::Connection::Sqlite->new();
-            last SWITCH;
-        };
+        # /mysql/i && do {
+        #     require TpdaQrt::Db::Connection::Mysql;
+        #     $db = TpdaQrt::Db::Connection::Mysql->new($model);
+        #     last SWITCH;
+        # };
+        # /sqlite/i && do {
+        #     require TpdaQrt::Db::Connection::Sqlite;
+        #     $db = TpdaQrt::Db::Connection::Sqlite->new($model);
+        #     last SWITCH;
+        # };
         # Default
+        # Disabled all except PG
+        # TODO update other ...
         warn "Database $driver not supported!\n";
         return;
     }

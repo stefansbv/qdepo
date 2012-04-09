@@ -6,6 +6,7 @@ use warnings;
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
+use Scalar::Util qw(blessed);
 
 use TpdaQrt::Config;
 use TpdaQrt::FileIO;
@@ -47,11 +48,13 @@ sub new {
     my $self = {
         _connected   => TpdaQrt::Observable->new(),
         _stdout      => TpdaQrt::Observable->new(),
+        _message     => TpdaQrt::Observable->new(),
         _exception   => TpdaQrt::Observable->new(),
         _itemchanged => TpdaQrt::Observable->new(),
         _appmode     => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
         _progress    => TpdaQrt::Observable->new(),
+        _cfg         => TpdaQrt::Config->instance(),
         _lds         => {},                 # list data structure
     };
 
@@ -60,6 +63,18 @@ sub new {
     bless $self, $class;
 
     return $self;
+}
+
+=head2 _cfg
+
+Return config instance variable
+
+=cut
+
+sub _cfg {
+    my $self = shift;
+
+    return $self->{_cfg};
 }
 
 =head2 db_connect
@@ -71,43 +86,30 @@ Database connection
 sub db_connect {
     my $self = shift;
 
-    if ( $self->is_connected ) {
-        # no nothing
+    # Connect to database or retry to connect
+    if (TpdaQrt::Db->has_instance) {
+        $self->{_dbh} = TpdaQrt::Db->instance->db_connect($self)->dbh;
     }
     else {
-        $self->_connect();
+        $self->{_dbh} = TpdaQrt::Db->instance($self)->dbh;
     }
 
-    return;
-}
-
-=head2 _connect
-
-Connect to the database
-
-=cut
-
-sub _connect {
-    my $self = shift;
-
-    my $conninfo = TpdaQrt::Config->instance->conninfo;
+    my $conninfo = $self->_cfg->conninfo;
     my $driver = $conninfo->{driver};
     my $dbname = $conninfo->{dbname};
-
-    # Connect to database
-    $self->{_dbh} = TpdaQrt::Db->instance->dbh;
+    my $host   = $conninfo->{host};
 
     # Is realy connected ?
-    if ( ref( $self->{_dbh} ) =~ m{DBI} ) {
-        $self->get_connection_observable->set(1);    # yes
-        $self->message_log("II Connected to \"$dbname\" with '$driver'");
+    if ( blessed $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        $self->get_connection_observable->set(1);    # assuming yes
+        $self->message_log("II Connected to \"$dbname\" with '$driver', on host '$host'");
     }
     else {
         $self->get_connection_observable->set(0);    # no ;)
         $self->message_log("EE Connection to '$dbname' failed");
     }
 
-    return;
+    return $self;
 }
 
 =head2 is_connected
@@ -221,28 +223,28 @@ sub message {
     return;
 }
 
-=head2 get_exception_observable
+=head2 get_message_observable
 
-Get EXCEPTION observable status
+Get message observable object.
 
 =cut
 
-sub get_exception_observable {
+sub get_message_observable {
     my $self = shift;
 
-    return $self->{_exception};
+    return $self->{_message};
 }
 
 =head2 message_log
 
-Log a message on a Wx text controll
+Log a user message on a Tk/Wx text controll.
 
 =cut
 
 sub message_log {
     my ( $self, $message ) = @_;
 
-    $self->get_exception_observable->set($message);
+    $self->get_message_observable->set($message);
 }
 
 =head2 progress_update
@@ -414,8 +416,7 @@ sub run_export {
 
     $self->message_log('II Running data export ...');
 
-    my $cfg     = TpdaQrt::Config->instance();
-    my $outpath = $cfg->output->{path};
+    my $outpath = $self->_cfg->output->{path};
     if ( !-d $outpath ) {
         $self->message('Wrong output path!', 0);
         $self->message_log("EE Wrong output path '$outpath'");
@@ -558,10 +559,10 @@ sub report_add {
     # configured extension
     my $newqdf = 'report-' . sprintf( "%05d", $num ) . '.qdf';
 
-    my $cfg = TpdaQrt::Config->instance();
 
-    my $src_fqn = $cfg->qdftemplate;
-    my $dst_fqn = catfile($cfg->qdfpath, $newqdf);
+
+    my $src_fqn = $self->_cfg->qdftemplate;
+    my $dst_fqn = catfile($self->_cfg->qdfpath, $newqdf);
 
     # print " $src_fqn -> $dst_fqn\n";
 
@@ -723,6 +724,30 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
+=head2 get_exception_observable
+
+Get EXCEPTION observable status
+
+=cut
+
+sub get_exception_observable {
+    my $self = shift;
+
+    return $self->{_exception};
+}
+
+=head2 exception_log
+
+Log an exception.
+
+=cut
+
+sub exception_log {
+    my ( $self, $message ) = @_;
+
+    $self->get_exception_observable->set($message);
+}
+
 =head2 get_exception
 
 Get exception message and then clear it.
@@ -741,7 +766,7 @@ sub get_exception {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

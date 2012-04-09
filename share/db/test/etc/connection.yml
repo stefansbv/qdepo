@@ -8,7 +8,7 @@
 ---
 conninfo:
   driver: sqlite
-  server: ~
+  host: localhost
   dbname: tpdaqrt-test.db
   port: ~
 output:

@@ -69,8 +69,8 @@ sub start {
         if ( my $message = $self->_model->get_exception ) {
             my ($type, $mesg) = split /#/, $message, 2;
             if ($type =~ m{fatal}imx) {
-                my $message = $self->localize('dialog','error-conn');
-                $self->dialog_error($message, $mesg);
+                my $message = 'Eroare de conectare!';
+                $self->_view->dialog_error($message, $mesg);
                 $return_string = 'shutdown';
                 last;
             }
@@ -84,8 +84,12 @@ sub start {
     }
 
     if ($return_string eq 'shutdown') {
+        print "Shutdown...\n";
         $self->_view->on_quit;
+        return;
     }
+
+    #-- Start
 
     my $default_choice = $self->_view->get_choice_default();
     $self->_model->set_choice($default_choice);
@@ -273,7 +277,7 @@ sub _set_event_handlers {
                 $self->process_sql();
             }
             else {
-                $self->_view->dialog_popup( 'Error', 'Not connected!' );
+                $self->_view->dialog_error( 'Error', 'Not connected!' );
             }
         }
     );
