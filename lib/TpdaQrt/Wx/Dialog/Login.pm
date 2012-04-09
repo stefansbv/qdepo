@@ -170,7 +170,7 @@ sub get_login {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefbv70 at gmail com> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

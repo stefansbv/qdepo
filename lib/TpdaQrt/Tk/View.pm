@@ -1057,7 +1057,6 @@ sub _create_config_page {
     return;
 }
 
-
 =head2 dialog_error
 
 Error message dialog.

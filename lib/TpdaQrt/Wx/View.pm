@@ -753,23 +753,19 @@ sub _create_config_page {
     $self->{_nb}{p4}->SetSizer($conf_main_sz);
 }
 
-=head2 dialog_popup
+=head2 dialog_error
 
-Define a dialog popup.
+Error message dialog.
 
 =cut
 
-sub dialog_popup {
-    my ( $self, $msgtype, $msg ) = @_;
-    if ( $msgtype eq 'Error' ) {
-        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_ERROR, $self )
-    }
-    elsif ( $msgtype eq 'Warning' ) {
-        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_WARNING, $self )
-    }
-    else {
-        Wx::MessageBox( $msg, $msgtype, wxOK|wxICON_INFORMATION, $self )
-    }
+sub dialog_error {
+    my ( $self, $message, $details ) = @_;
+
+    Wx::MessageBox( "$message\n$details", 'Error', wxOK | wxICON_ERROR,
+        $self );
+
+    return;
 }
 
 =head2 action_confirmed
@@ -1470,9 +1466,8 @@ Quit.
 sub on_quit {
     my $self = shift;
 
-    print "Closing ...\n";
-
     $self->Close(1);
+    #$self->Destroy;
 
     return;
 }

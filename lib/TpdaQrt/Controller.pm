@@ -84,7 +84,7 @@ sub start {
     }
 
     if ($return_string eq 'shutdown') {
-        print "Shutdown...\n";
+        print "Shuting down ...\n";
         $self->_view->on_quit;
         return;
     }
