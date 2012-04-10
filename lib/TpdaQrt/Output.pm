@@ -60,7 +60,7 @@ sub db_generate_output {
 
     # Check SQL param
     if ( !defined $sqltext ) {
-        $self->{model}->message('No SQL parameter!');
+        $self->{model}->message_status('No SQL parameter!');
         return;
     }
 
@@ -90,7 +90,7 @@ sub generate_output_excel {
         $outfile .= '.xls';
     }
     else {
-        $self->{model}->message('No file parameter');
+        $self->{model}->message_status('No file parameter');
         return;
     }
 
@@ -127,7 +127,7 @@ sub generate_output_excel {
 
         $row++;
 
-        $self->{model}->message("$rows_cnt total rows");
+        $self->{model}->message_status("$rows_cnt total rows");
 
         $self->{model}->progress_update(0);
         my $pv = 0;
@@ -174,7 +174,7 @@ sub generate_output_csv {
         $outfile .= '.csv';
     }
     else {
-        $self->{model}->message("No file parameter!");
+        $self->{model}->message_status("No file parameter!");
         return;
     }
 
@@ -245,7 +245,7 @@ sub generate_output_calc {
         $outfile .= '.ods';
     }
     else {
-        $self->{model}->message('No file parameter');
+        $self->{model}->message_status('No file parameter');
         return;
     }
 
@@ -287,7 +287,7 @@ sub generate_output_calc {
 
         $row++;
 
-        $self->{model}->message("$rows_cnt total rows");
+        $self->{model}->message_status("$rows_cnt total rows");
 
         $self->{model}->progress_update(0);
         my $pv = 0;
@@ -334,7 +334,7 @@ sub generate_output_odf {
         $outfile .= '.ods';
     }
     else {
-        $self->{model}->message('No file parameter');
+        $self->{model}->message_status('No file parameter');
         return;
     }
 
@@ -376,7 +376,7 @@ sub generate_output_odf {
 
         $row++;
 
-        $self->{model}->message("$rows_cnt total rows");
+        $self->{model}->message_status("$rows_cnt total rows");
 
         $self->{model}->progress_update(0);
         my $pv = 0;

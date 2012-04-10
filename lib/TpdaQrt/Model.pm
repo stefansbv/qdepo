@@ -2,6 +2,7 @@ package TpdaQrt::Model;
 
 use strict;
 use warnings;
+use Ouch;
 
 use File::Copy;
 use File::Basename;
@@ -56,6 +57,7 @@ sub new {
         _progress    => TpdaQrt::Observable->new(),
         _cfg         => TpdaQrt::Config->instance(),
         _lds         => {},                 # list data structure
+        _marks       => 0,
     };
 
     $self->{fio} = TpdaQrt::FileIO->new();
@@ -207,13 +209,13 @@ sub get_appmode {
     return $self->get_appmode_observable->get;
 }
 
-=head2 message
+=head2 message_status
 
 Put a message on the status bar.
 
 =cut
 
-sub message {
+sub message_status {
     my ( $self, $line, $sb_id ) = @_;
 
     $sb_id = 0 if not defined $sb_id;
@@ -283,7 +285,7 @@ sub on_item_selected {
     $self->get_itemchanged_observable->set( 1 );
 }
 
-=head2 get_qdf_data_wx
+=head2 read_qdf_data_wx
 
 Return the titles and file names from all the QDF files to fill the
 List control. Th Wx List control has a feature to store data in the
@@ -291,7 +293,7 @@ controls, so we don't need a data structure in the Model.
 
 =cut
 
-sub get_qdf_data_wx {
+sub read_qdf_data_wx {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
@@ -313,14 +315,14 @@ sub get_qdf_data_wx {
     return $titles;
 }
 
-=head2 load_qdf_data
+=head2 load_qdf_data_tk
 
 Load the titles and file names from all the QDF files and store in
 data structure used to fill the List control.
 
 =cut
 
-sub load_qdf_data {
+sub load_qdf_data_tk {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
@@ -343,41 +345,25 @@ sub load_qdf_data {
     return;
 }
 
-=head2 set_qdf_data
+=head2 append_list_record
 
-Insert new record in data structure.
+Append and return a new record in the list data structure.
 
 =cut
 
-sub set_qdf_data {
-    my ($self, $data_href) = @_;
+sub append_list_record {
+    my ($self, $rec) = @_;
 
     my @items = sort keys %{ $self->{_lds} };
+    my $item = scalar @items == 0 ? 0 : $#items + 1;
 
-    my $new_item = scalar @items == 0 ? 0 : $#items + 1;
+    $rec->{nrcrt} = $item + 1;
+    $self->{_lds}{$item} = $rec;
 
-    $data_href->{nrcrt} = $new_item + 1;
-
-    $self->{_lds}{$new_item} = $data_href;
-
-    return {$new_item => $data_href};
+    return {$item => $rec};
 }
 
-=head2 make_qdf_data
-
-Create data structure attached to the List, Tk only.
-
-=cut
-
-sub make_qdf_data {
-    my ($self, $data, $new_item) = @_;
-
-    $data->{nrcrt} = $new_item + 1;
-
-    return {$new_item => $data};
-}
-
-=head2 get_qdf_data
+=head2 get_qdf_data_tk
 
 Get data from List data structure, for single item or all.
 
@@ -385,7 +371,7 @@ Toggle delete mark on items if $toggle_mark paramter is true.
 
 =cut
 
-sub get_qdf_data {
+sub get_qdf_data_tk {
     my ( $self, $item, $toggle_mark ) = @_;
 
     my $data;
@@ -394,11 +380,17 @@ sub get_qdf_data {
             if ( exists $self->{_lds}{$item}{mark} ) {
                 $self->{_lds}{$item}{mark} == 1
                     ? ($self->{_lds}{$item}{mark} = 0)
-                    : ($self->{_lds}{$item}{mark} = 1);
+                    : ($self->{_lds}{$item}{mark} = 1)
+                    ;
             }
             else {
                 $self->{_lds}{$item}{mark} = 1; # set mark
             }
+            # Keep a count of marks
+            $self->{_lds}{$item}{mark} == 1
+                ? $self->{_marks}++
+                : $self->{_marks}--
+                ;
         }
         $data = $self->{_lds}{$item};
     }
@@ -409,13 +401,13 @@ sub get_qdf_data {
     return $data;
 }
 
-=head2 get_qdf_data_file
+=head2 get_qdf_data_file_tk
 
 Get data file full path from data structure attached to the  List.
 
 =cut
 
-sub get_qdf_data_file {
+sub get_qdf_data_file_tk {
     my ($self, $item) = @_;
 
     return unless defined $item;
@@ -445,7 +437,7 @@ sub run_export {
 
     my $outpath = $self->_cfg->output->{path};
     if ( !-d $outpath ) {
-        $self->message('Wrong output path!', 0);
+        $self->message_status('Wrong output path!', 0);
         $self->message_log("EE Wrong output path '$outpath'");
         return;
     }
@@ -467,11 +459,11 @@ sub run_export {
     );
 
     if ($out) {
-        $self->message("Output generated");
+        $self->message_status("Output generated");
         $self->message_log("II '$out' generated");
     }
     else {
-        $self->message("No output file generated");
+        $self->message_status("No output file generated");
         $self->message_log("EE No output file generated");
     }
 
@@ -480,16 +472,18 @@ sub run_export {
     return;
 }
 
-=head2 get_detail_data
+=head2 read_qdf_data
 
 Get all contents from the selected QDF title (file).
 
+For Wx the file parameter is required.
+
 =cut
 
-sub get_detail_data {
+sub read_qdf_data {
     my ($self, $item, $file) = @_;
 
-    $file ||= $self->get_qdf_data_file($item);
+    $file ||= $self->get_qdf_data_file_tk($item);
 
     my $ddata_ref = $self->{fio}->get_details($file);
 
@@ -508,16 +502,16 @@ sub get_itemchanged_observable {
     return $self->{_itemchanged};
 }
 
-=head2 save_query_def
+=head2 save_qdf_file
 
-Save current query definition data from controls
+Save current query definition data from controls into a qdf file.
 
 =cut
 
-sub save_query_def {
-    my ($self, $item, $head, $para, $body, $file) = @_;
+sub save_qdf_file {
+    my ($self, $item, $head, $para, $body) = @_;
 
-    $file ||= $self->get_qdf_data_file($item);
+    my $file = $self->get_qdf_data_file_tk($item);
 
     # Transform records to match data in xml format
     $head = TpdaQrt::Utils->transform_data($head);
@@ -533,7 +527,8 @@ sub save_query_def {
 
     $self->{fio}->xml_update($file, $record);
 
-    $self->message_log('II Saved');
+    my ($name, $path, $ext) = fileparse( $file, qr/\.[^\.]*/ );
+    $self->message_log("II Saved '${name}$ext'");
 
     return;
 }
@@ -545,16 +540,58 @@ Create new QDF file from template.
 =cut
 
 sub report_add {
-    my ($self, $max_item) = @_;
+    my $self = shift;
+
+    my $new_qdf_file = $self->report_name();
+
+    my $src_fqn = $self->_cfg->qdftemplate;
+    my $dst_fqn = catfile($self->_cfg->qdfpath, $new_qdf_file);
+
+    print "Add *************\n";
+    print "$src_fqn -> $dst_fqn\n";
+
+    if ( !-f $dst_fqn ) {
+        $self->message_log("II Create new report from template ...");
+        if ( copy( $src_fqn, $dst_fqn ) ) {
+            $self->message_log("II Made: '$new_qdf_file'");
+        }
+        else {
+            $self->message_log("EE Failed: $!");
+            return;
+        }
+
+        # Read the title and the file name from the new file
+        my $data_ref = $self->{fio}->get_title($dst_fqn);
+
+        $data_ref = $self->append_list_record($data_ref);
+
+        return $data_ref;
+    }
+    else {
+        $self->message_log("WW File exists! ($dst_fqn)");
+        ouch 'FileExists', "File exists! ($dst_fqn)";
+
+        return;
+    }
+}
+
+=head2 report_name
+
+Create report name.
+Find a new number to create a file name like raport-nnnnn.xml
+Try to fill the gaps between numbers in file names
+
+=cut
+
+sub report_name {
+    my $self = shift;
 
     my $reports_ref = $self->{fio}->get_file_list();
 
-    # Find a new number to create a file name like raport-nnnnn.xml
-    # Try to fill the gaps between numbers in file names
     my $files_no = scalar @{$reports_ref};
 
     # Search for an non existent file name ;)
-    my (%numbers, $num);
+    my ( %numbers, $num );
     foreach my $item ( @{$reports_ref} ) {
         my $filename = basename($item);
         if ( $filename =~ m/report\-(\d{5})\.qdf/ ) {
@@ -566,60 +603,28 @@ sub report_add {
     # Sort and find max
     my @numbers = sort { $a <=> $b } keys %numbers;
     my $num_max = $numbers[-1];
-    $num_max = 0 if ! defined $num_max;
+    $num_max = 0 if !defined $num_max;
 
     # Find first gap
     my $found = 0;
     foreach my $trynum ( 1 .. $num_max ) {
         if ( not exists $numbers{$trynum} ) {
-            $num = $trynum;
+            $num   = $trynum;
             $found = 1;
             last;
         }
     }
+
     # If gap not found, just asign the next number
     if ( $found == 0 ) {
         $num = $num_max + 1;
     }
 
     # Template for new qdf file names, can be anything but with
-    # configured extension
-    my $newqdf = 'report-' . sprintf( "%05d", $num ) . '.qdf';
+    # the configured extension (.qdf)
+    my $new_qdf_file = 'report-' . sprintf( "%05d", $num ) . '.qdf';
 
-    my $src_fqn = $self->_cfg->qdftemplate;
-    my $dst_fqn = catfile($self->_cfg->qdfpath, $newqdf);
-
-    # print "Add *************\n";
-    # print "$src_fqn -> $dst_fqn\n";
-
-    if ( !-f $dst_fqn ) {
-        $self->message_log("II Create new report from template ...");
-        if ( copy( $src_fqn, $dst_fqn ) ) {
-            $self->message_log("II Made: '$newqdf'");
-        }
-        else {
-            $self->message_log("EE Failed: $!");
-            return;
-        }
-
-        # Add title and file name in list
-        my $data_ref = $self->{fio}->get_title($dst_fqn);
-
-        if (defined $max_item) {
-            $data_ref = $self->make_qdf_data($data_ref, $max_item)
-        }
-        else {
-            $data_ref = $self->set_qdf_data($data_ref);
-        }
-
-        return $data_ref;
-    }
-    else {
-        warn "File exists! ($dst_fqn)\n";
-        $self->message_log("WW File exists! ($dst_fqn)");
-
-        return;
-    }
+    return $new_qdf_file;
 }
 
 =head2 report_remove
@@ -786,6 +791,20 @@ sub get_exception {
     $self->get_exception_observable->set();  # clear
 
     return $exception;
+}
+
+=head2 has_marks
+
+Return true if there are items marked for deletion.
+
+=cut
+
+sub has_marks {
+    my $self = shift;
+
+    print "$self->{_marks} marks.\n";
+
+    return $self->{_marks} > 0 ? 1 : 0;
 }
 
 =head1 AUTHOR

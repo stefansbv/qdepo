@@ -159,6 +159,7 @@ sub on_screen_mode_idle {
 sub on_screen_mode_edit {
     my $self = shift;
 
+    $self->_view->toggle_list_enable();
     $self->_view->toggle_sql_replace('edit');
 
     return;
@@ -234,9 +235,10 @@ sub set_event_handlers {
     $self->_view->event_handler_for_tb_button(
         'tb_ad',
         sub {
-            my $max_item = $self->_view->get_list_max_index();
-            my $rec = $self->_model->report_add($max_item);
+            my $rec = $self->_model->report_add();
             $self->_view->list_populate_item($rec);
+            $self->_view->list_item_select('last');
+            $self->_model->on_item_selected();
             $self->set_app_mode('edit');
         }
     );
@@ -388,30 +390,12 @@ sub save_query_def {
     my $para = $self->_view->controls_read_page('para');
     my $body = $self->_view->controls_read_page('sql');
 
-    my $file = $self->_view->get_list_data($item);
-
-    $self->_model->save_query_def( $item, $head, $para, $body, $file );
+    $self->_model->save_qdf_file( $item, $head, $para, $body );
 
     my $title = $head->[0]{title};
 
     # Update title in list
-    $self->_view->set_list_text( $item, 1, $title );
-
-    return;
-}
-
-=head2 process_sql
-
-Get the sql text string from the QDF file, prepare it for execution.
-
-=cut
-
-sub process_sql {
-    my $self = shift;
-
-    my $item   = $self->_view->get_list_selected_index();
-    my ($data) = $self->_model->get_detail_data($item);
-    $self->_model->run_export($data);
+    $self->_view->list_item_edit( $item, undef, $title);
 
     return;
 }
@@ -419,7 +403,7 @@ sub process_sql {
 sub on_quit {
     my $self = shift;
 
-    print 'dialog_progress not implemented in ', __PACKAGE__, "\n";
+    print 'on_quit not implemented in ', __PACKAGE__, "\n";
 
     return;
 }

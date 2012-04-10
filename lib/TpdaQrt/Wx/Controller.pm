@@ -2,6 +2,8 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use utf8;
 
 use Wx ':everything';
@@ -157,6 +159,29 @@ sub set_event_handlers {
     );
 
     return;
+}
+
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item = $self->_view->get_list_selected_index();
+    my $file = $self->_view->get_list_data($item);
+    my ($data) = $self->_model->read_qdf_data($item, $file);
+    $self->_model->run_export($data);
+
+    return;
+}
+
+sub on_quit {
+    my $self = shift;
+
+    $self->_view->on_quit();
 }
 
 =head1 AUTHOR

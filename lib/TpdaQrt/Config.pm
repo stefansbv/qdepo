@@ -7,6 +7,7 @@ use Data::Dumper;
 
 use Hash::Merge qw(merge);
 use File::HomeDir;
+use File::ShareDir qw(dist_dir);
 use File::UserConfig;
 use File::Spec::Functions;
 
@@ -296,6 +297,36 @@ sub xresource_file {
     my $self = shift;
 
     return catfile( $self->cfpath, 'etc', 'xresource.xrdb' );
+}
+
+=head2 get_licence
+
+Slurp licence file and return the text string.  Return only the title
+if the license file is not found, just to be on the save side.
+
+=cut
+
+sub get_license {
+    my $self = shift;
+
+    my $message = <<'END_LICENSE';
+
+                      GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+END_LICENSE
+
+    my $license = catfile( dist_dir('TpdaQrt'), 'license', 'gpl.txt' );
+
+    if (-f $license) {
+        return read_file($license);
+    }
+    else {
+        return $message;
+    }
 }
 
 =head1 AUTHOR

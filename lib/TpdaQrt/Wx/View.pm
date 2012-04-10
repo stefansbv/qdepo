@@ -933,6 +933,26 @@ sub set_list_text {
     return;
 }
 
+=head2 list_item_edit
+
+Edit and existing item. If undef is passed for nrcrt or title, keep
+the existing value.
+
+=cut
+
+sub list_item_edit {
+    my ( $self, $row, $nrcrt, $title ) = @_;
+
+    if ($nrcrt) {
+        $self->set_list_text($row, 0, $nrcrt);
+    }
+    if ($title) {
+        $self->set_list_text($row, 1, $title);
+    }
+
+    return;
+}
+
 =head2 list_item_select
 
 Select the first/last item in list.
@@ -979,7 +999,7 @@ Return the selected index from the list control.
 =cut
 
 sub get_list_selected_index {
-    my ($self) = @_;
+    my $self = shift;
 
     return $self->get_listcontrol->GetSelection();
 }
@@ -1098,7 +1118,7 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    my $indices = $self->_model->get_qdf_data_wx();
+    my $indices = $self->_model->read_qdf_data_wx();
 
     return unless scalar keys %{$indices};
 
@@ -1149,7 +1169,7 @@ sub controls_populate {
 
     my $item = $self->get_list_selected_index();
     my $file = $self->get_list_data($item);
-    my ($data) = $self->_model->get_detail_data($item, $file);
+    my ($data) = $self->_model->read_qdf_data($item, $file);
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
@@ -1184,7 +1204,7 @@ Toggle sql replace
 
     my $item = $self->get_list_selected_index();
     my $file = $self->get_list_data($item);
-    my ($data) = $self->_model->get_detail_data($item, $file);
+    my ($data) = $self->_model->read_qdf_data($item, $file);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );

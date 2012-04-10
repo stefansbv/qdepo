@@ -3,10 +3,10 @@ package TpdaQrt::Tk::Controller;
 use strict;
 use warnings;
 
-use Data::Dumper;
-use Carp;
-
+use English;
 use Tk;
+use Tk::Font;
+use utf8;
 
 require TpdaQrt::Tk::View;
 
@@ -167,12 +167,37 @@ sub set_event_handlers {
     return;
 }
 
+=head2 process_sql
+
+Get the sql text string from the QDF file, prepare it for execution.
+
+=cut
+
+sub process_sql {
+    my $self = shift;
+
+    my $item   = $self->_view->get_list_selected_index();
+    my ($data) = $self->_model->read_qdf_data($item);
+    $self->_model->run_export($data);
+
+    return;
+}
+
+=head2 on_quit
+
+Before quit ask for permission to delete the marked qdf files, if
+marked records exists.
+
+=cut
+
 sub on_quit {
     my $self = shift;
 
-    my $msg = 'Delete marked query definition files?';
-    if ( $self->_view->action_confirmed($msg) ) {
-        $self->list_remove_marked();
+    if ( $self->_model->has_marks() ) {
+        my $msg = 'Delete marked query definition files?';
+        if ( $self->_view->action_confirmed($msg) ) {
+            $self->list_remove_marked();
+        }
     }
 
     $self->_view->on_quit();
@@ -191,7 +216,7 @@ sub toggle_mark_item {
 
     my $item = $self->_view->get_list_selected_index();
 
-    my $rec = $self->_model->get_qdf_data($item, 'toggle mark');
+    my $rec = $self->_model->get_qdf_data_tk($item, 'toggle mark');
     my $nrcrt = $rec->{nrcrt};
     if ( exists $rec->{mark} ) {
         $nrcrt = "$nrcrt D" if $rec->{mark} == 1;
@@ -205,13 +230,103 @@ sub toggle_mark_item {
 sub list_remove_marked {
     my $self = shift;
 
-    my $recs = $self->_model->get_qdf_data();
+    my $recs = $self->_model->get_qdf_data_tk();
 
     foreach my $idx ( keys %{$recs} ) {
         if ( exists $recs->{$idx}{mark} and $recs->{$idx}{mark} == 1 ) {
             $self->_model->report_remove($recs->{$idx}{file});
         }
     }
+
+    return;
+}
+
+=head2 guide
+
+Quick help dialog.
+
+=cut
+
+sub guide {
+    my $self = shift;
+
+    my $gui = $self->_view;
+
+    require TpdaQrt::Tk::Dialog::Help;
+    my $gd = TpdaQrt::Tk::Dialog::Help->new;
+
+    $gd->help_dialog($gui);
+
+    return;
+}
+
+=head2 about
+
+About application dialog.
+
+=cut
+
+sub about {
+    my $self = shift;
+
+    my $gui = $self->_view;
+
+    # Create a dialog.
+    my $dbox = $gui->DialogBox(
+        -title   => 'Despre ... ',
+        -buttons => ['Close'],
+    );
+
+    # Windows has the annoying habit of setting the background color
+    # for the Text widget differently from the rest of the window.  So
+    # get the dialog box background color for later use.
+    my $bg = $dbox->cget('-background');
+
+    # Insert a text widget to display the information.
+    my $text = $dbox->add(
+        'Text',
+        -height     => 12,
+        -width      => 35,
+        -background => $bg
+    );
+
+    # Define some fonts.
+    my $textfont = $text->cget('-font')->Clone( -family => 'Helvetica' );
+    my $italicfont = $textfont->Clone( -slant => 'italic' );
+    $text->tag(
+        'configure', 'italic',
+        -font    => $italicfont,
+        -justify => 'center',
+    );
+    $text->tag(
+        'configure', 'normal',
+        -font    => $textfont,
+        -justify => 'center',
+    );
+
+    # Framework version
+    my $PROGRAM_NAME = 'TPDA - Query Repository Tool';
+    my $PROGRAM_VER  = $TpdaQrt::VERSION;
+
+    # Add the about text.
+    $text->insert( 'end', "\n" );
+    $text->insert( 'end', $PROGRAM_NAME . "\n", 'normal' );
+    $text->insert( 'end', "Version " . $PROGRAM_VER . "\n", 'normal' );
+    $text->insert( 'end', "Author: Ștefan Suciu\n", 'normal' );
+    $text->insert( 'end', "Copyright 2010-2012\n", 'normal' );
+    $text->insert( 'end', "GNU General Public License (GPL)\n", 'normal' );
+    $text->insert( 'end', 'stefan@s2i2.ro',
+        'italic' );
+    $text->insert( 'end', "\n\n" );
+    $text->insert( 'end', "Perl " . $PERL_VERSION . "\n", 'normal' );
+    $text->insert( 'end', "Tk v" . $Tk::VERSION . "\n", 'normal' );
+
+    $text->configure( -state => 'disabled' );
+    $text->pack(
+        -expand => 1,
+        -fill   => 'both'
+    );
+    $dbox->Show();
 
     return;
 }

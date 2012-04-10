@@ -4,8 +4,6 @@ use strict;
 use warnings;
 use Ouch;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Tk;
 use Tk::widgets qw(NoteBook StatusBar Dialog DialogBox MListbox Checkbutton
@@ -1106,7 +1104,7 @@ sub action_confirmed {
         -title   => 'Question',
         -type    => 'yesno',
         -icon    => 'question',
-        -message => 'Confirm?',
+        -message => 'Confirmation is required.',
         -detail  => $msg,
     );
 
@@ -1250,7 +1248,7 @@ sub get_control_by_name {
 
 =head2 set_list_text
 
-Set text item from list control row and col
+Set text for item from list control row and col.
 
 =cut
 
@@ -1458,8 +1456,8 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    $self->_model->load_qdf_data();
-    my $indices = $self->_model->get_qdf_data();
+    $self->_model->load_qdf_data_tk();
+    my $indices = $self->_model->get_qdf_data_tk();
 
     return unless scalar keys %{$indices};
 
@@ -1509,7 +1507,7 @@ sub controls_populate {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my ($data, $file) = $self->_model->get_detail_data($item);
+    my ($data, $file) = $self->_model->read_qdf_data($item);
 
     my $qdfpath = $self->_cfg->qdfpath;
 
@@ -1542,7 +1540,7 @@ sub toggle_sql_replace {
     $mode ||= $self->_model->get_appmode;
 
     my $item = $self->get_list_selected_index();
-    my ($data) = $self->_model->get_detail_data($item);
+    my ($data) = $self->_model->read_qdf_data($item);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
@@ -2000,16 +1998,23 @@ sub event_handler_for_tb_choice {
     return;
 }
 
+=head2 toggle_list_enable
+
+Does not work.
+
+=cut
+
 sub toggle_list_enable {
     my ($self, $state) = @_;
 
+    my $ml = $self->get_listcontrol();
+
     # Toggle List control
-    my $list = $self->get_listcontrol();
     if ($state) {
-        # $list->configure(-state => 'disabled'); doesn't work!
+        #$ml->configure(-state => 'disabled');
     }
     else {
-        # $list->configure(-state => 'normal');
+        #$ml->configure(-state => 'normal');
     }
 
     return;
