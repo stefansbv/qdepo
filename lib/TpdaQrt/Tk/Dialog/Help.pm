@@ -15,11 +15,11 @@ TpdaQrt::Tk::Dialog::Help - Dialog for quick help.
 
 =head1 VERSION
 
-Version 0.49
+Version 0.34
 
 =cut
 
-our $VERSION = 0.49;
+our $VERSION = 0.34;
 
 =head1 SYNOPSIS
 
