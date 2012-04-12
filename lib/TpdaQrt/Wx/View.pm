@@ -987,7 +987,7 @@ Return the max index from the list control
 =cut
 
 sub get_list_max_index {
-    my ($self) = @_;
+    my $self = shift;
 
     return $self->get_listcontrol->GetItemCount();
 }
@@ -1022,11 +1022,23 @@ sub list_item_insert {
     return;
 }
 
+=head2 set_list_data
+
+Store the absolute path to the .qdf file as item data.
+
+=cut
+
 sub set_list_data {
     my ($self, $item, $data) = @_;
 
     $self->get_listcontrol->SetItemData( $item, $data );
 }
+
+=head2 get_list_data
+
+Get the absolute path to the .qdf file stored as item data.
+
+=cut
 
 sub get_list_data {
     my ($self, $item) = @_;
@@ -1073,7 +1085,7 @@ sub list_item_clear_all {
 
 =head2 list_remove_item
 
-Remove item from list control and select the first item
+Remove item from list control and select the first item.
 
 =cut
 
@@ -1118,7 +1130,7 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    my $indices = $self->_model->read_qdf_data_wx();
+    my $indices = $self->_model->load_qdf_data_wx();
 
     return unless scalar keys %{$indices};
 

@@ -169,7 +169,7 @@ sub set_mode {
 
 =head2 is_appmode
 
-Return true if application mode is $ck_mode.
+Return true if application mode is L<$ck_mode>.
 
 =cut
 
@@ -285,7 +285,7 @@ sub on_item_selected {
     $self->get_itemchanged_observable->set( 1 );
 }
 
-=head2 read_qdf_data_wx
+=head2 load_qdf_data_wx
 
 Return the titles and file names from all the QDF files to fill the
 List control. Th Wx List control has a feature to store data in the
@@ -293,7 +293,7 @@ controls, so we don't need a data structure in the Model.
 
 =cut
 
-sub read_qdf_data_wx {
+sub load_qdf_data_wx {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
@@ -345,29 +345,44 @@ sub load_qdf_data_tk {
     return;
 }
 
-=head2 append_list_record
+=head2 append_list_record_wx
+
+Return a new record for the list data structure.
+
+=cut
+
+sub append_list_record_wx {
+    my ($self, $rec, $idx) = @_;
+
+    $rec->{nrcrt} = $idx + 1;
+    $self->{_lds}{$idx} = $rec;
+
+    return {$idx => $rec};
+}
+
+=head2 append_list_record_tk
 
 Append and return a new record in the list data structure.
 
 =cut
 
-sub append_list_record {
+sub append_list_record_tk {
     my ($self, $rec) = @_;
 
     my @items = sort keys %{ $self->{_lds} };
-    my $item = scalar @items == 0 ? 0 : $#items + 1;
+    my $idx = scalar @items == 0 ? 0 : $#items + 1;
 
-    $rec->{nrcrt} = $item + 1;
-    $self->{_lds}{$item} = $rec;
+    $rec->{nrcrt} = $idx + 1;
+    $self->{_lds}{$idx} = $rec;
 
-    return {$item => $rec};
+    return {$idx => $rec};
 }
 
 =head2 get_qdf_data_tk
 
 Get data from List data structure, for single item or all.
 
-Toggle delete mark on items if $toggle_mark paramter is true.
+Toggle delete mark on items if L<$toggle_mark> parameter is true.
 
 =cut
 
@@ -537,10 +552,12 @@ sub save_qdf_file {
 
 Create new QDF file from template.
 
+If the L<$items_no> parameter is defined, then the Wx interface is used.
+
 =cut
 
 sub report_add {
-    my $self = shift;
+    my ($self, $items_no) = @_;
 
     my $new_qdf_file = $self->report_name();
 
@@ -563,7 +580,12 @@ sub report_add {
         # Read the title and the file name from the new file
         my $data_ref = $self->{fio}->get_title($dst_fqn);
 
-        $data_ref = $self->append_list_record($data_ref);
+        if (defined $items_no) {
+            $data_ref = $self->append_list_record_wx($data_ref, $items_no);
+        }
+        else {
+            $data_ref = $self->append_list_record_tk($data_ref);
+        }
 
         return $data_ref;
     }
@@ -681,7 +703,7 @@ sub get_choice {
 
 =head2 get_choice_observable
 
-Return choice observable status
+Return choice observable status.
 
 =cut
 
@@ -729,7 +751,7 @@ sub string_replace_for_run {
 
 =head2 string_replace_pos
 
-Replace string pos
+Replace string pos.
 
 =cut
 
@@ -755,7 +777,7 @@ sub string_replace_pos {
 
 =head2 get_exception_observable
 
-Get EXCEPTION observable status
+Get exception observable status.
 
 =cut
 

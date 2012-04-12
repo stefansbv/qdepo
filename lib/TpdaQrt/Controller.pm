@@ -231,18 +231,6 @@ sub set_event_handlers {
         }
     );
 
-    #-- Add new report
-    $self->_view->event_handler_for_tb_button(
-        'tb_ad',
-        sub {
-            my $rec = $self->_model->report_add();
-            $self->_view->list_populate_item($rec);
-            $self->_view->list_item_select('last');
-            $self->_model->on_item_selected();
-            $self->set_app_mode('edit');
-        }
-    );
-
     #- Run
     $self->_view->event_handler_for_tb_button(
         'tb_go',

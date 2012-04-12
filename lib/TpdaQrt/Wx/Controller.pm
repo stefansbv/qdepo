@@ -94,6 +94,12 @@ sub dialog_login {
     return $return_string;
 }
 
+sub set_event_handlers_keys {
+    my $self = shift;
+
+    return;
+}
+
 =head2 set_event_handlers
 
 Set event handlers Wx.
@@ -105,14 +111,27 @@ sub set_event_handlers {
 
     $self->SUPER::set_event_handlers();
 
+    #-- Add new report
+    $self->_view->event_handler_for_tb_button(
+        'tb_ad',
+        sub {
+            my $items_no = $self->_view->get_list_max_index();
+            my $rec = $self->_model->report_add($items_no);
+            $self->_view->list_populate_item($rec);
+            $self->_view->list_item_select('last');
+            $self->_model->on_item_selected();
+            $self->set_app_mode('edit');
+        }
+    );
+
     #-- Remove report
     $self->_view->event_handler_for_tb_button(
         'tb_rm',
         sub {
             my $msg = 'Delete query definition file?';
             if ( $self->_view->action_confirmed($msg) ) {
-                my $data = $self->_view->list_remove_item();
-                $self->_model->report_remove($data->{file});
+                my $file = $self->_view->list_remove_item();
+                $self->_model->report_remove($file);
             }
             else {
                 $self->_view->log_msg("II delete canceled");
