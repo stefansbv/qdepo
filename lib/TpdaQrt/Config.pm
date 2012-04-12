@@ -3,13 +3,12 @@ package TpdaQrt::Config;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Hash::Merge qw(merge);
 use File::HomeDir;
 use File::ShareDir qw(dist_dir);
 use File::UserConfig;
 use File::Spec::Functions;
+use File::Slurp;
 
 use TpdaQrt::Config::Utils;
 
@@ -327,6 +326,18 @@ END_LICENSE
     else {
         return $message;
     }
+}
+
+=head2 get_help_file
+
+Return help file path.
+
+=cut
+
+sub get_help_file {
+    my ($self, $help_file) = @_;
+
+    return catfile( dist_dir('TpdaQrt'), 'help', $help_file);
 }
 
 =head1 AUTHOR

@@ -2,11 +2,11 @@ package TpdaQrt::Tk::Controller;
 
 use strict;
 use warnings;
+use utf8;
 
 use English;
 use Tk;
 use Tk::Font;
-use utf8;
 
 require TpdaQrt::Tk::View;
 
@@ -47,6 +47,7 @@ sub new {
 
     $self->_init;
 
+    $self->set_event_handlers();
     $self->set_event_handlers_keys();
 
     return $self;
@@ -106,6 +107,12 @@ sub fix_geometry {
 
     return;
 }
+
+=head2 set_event_handlers_keys
+
+Shortcut keys.
+
+=cut
 
 sub set_event_handlers_keys {
     my $self = shift;

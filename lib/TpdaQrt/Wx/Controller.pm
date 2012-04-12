@@ -2,10 +2,9 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use utf8;
 
+use English;
 use Wx ':everything';
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
                  EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
@@ -95,35 +94,6 @@ sub dialog_login {
     return $return_string;
 }
 
-# =head2 start
-
-# Populate list with titles, Log configuration options, set default
-# choice for export and initial mode.
-
-# TODO: make a more general method
-
-# =cut
-
-=head2 about
-
-The About dialog
-
-=cut
-
-my $about = sub {
-    my ( $self, $event ) = @_;
-
-    Wx::MessageBox(
-        "TPDA - Query Repository Tool v0.11\n(C) 2010-2012 Stefan Suciu\n\n"
-            . " - WxPerl $Wx::VERSION\n"
-            . " - " . Wx::wxVERSION_STRING,
-        "About TPDA-QRT",
-
-        wxOK | wxICON_INFORMATION,
-        $self
-    );
-};
-
 =head2 set_event_handlers
 
 Set event handlers Wx.
@@ -182,6 +152,57 @@ sub on_quit {
     my $self = shift;
 
     $self->_view->on_quit();
+}
+
+=head2 about
+
+The About dialog.
+
+=cut
+
+sub about {
+    my $self = shift;
+
+my $cfg = TpdaQrt::Config->instance();
+
+    # Framework version
+    my $PROGRAM_NAME = ' Tpda QRT ';
+    my $PROGRAM_DESC = 'TPDA - Query Repository Tool';
+    my $PROGRAM_VER  = $TpdaQrt::VERSION;
+    my $LICENSE = $cfg->get_license;
+
+    my $about = Wx::AboutDialogInfo->new;
+
+    $about->SetName($PROGRAM_NAME);
+    $about->SetVersion($PROGRAM_VER);
+    $about->SetDescription("$PROGRAM_DESC");
+    $about->SetCopyright('(c) 2010-2012 Ştefan Suciu <stefan@s2i2.ro>');
+    $about->SetLicense($LICENSE);
+    #$about->SetWebSite( 'http://tpda.s2i2.ro/', 'The Tpda3 web site');
+    $about->AddDeveloper( 'Ştefan Suciu <stefan@s2i2.ro>' );
+
+    Wx::AboutBox( $about );
+
+    return;
+}
+
+=head2 guide
+
+Quick help dialog.
+
+=cut
+
+sub guide {
+    my $self = shift;
+
+    my $gui = $self->_view;
+
+    require TpdaQrt::Wx::Dialog::Help;
+    my $gd = TpdaQrt::Wx::Dialog::Help->new;
+
+    $gd->show_html_help();
+
+    return;
 }
 
 =head1 AUTHOR
