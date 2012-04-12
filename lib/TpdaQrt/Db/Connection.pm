@@ -68,12 +68,12 @@ sub _connect {
 
   SWITCH: for ( $driver ) {
         /^$/ && do warn "No driver name?\n";
-        # /firebird/i && do {
+        # /fb|firebird/i && do {
         #     require TpdaQrt::Db::Connection::Firebird;
         #     $db = TpdaQrt::Db::Connection::Firebird->new($model);
         #     last SWITCH;
         # };
-        /postgresql/i && do {
+        /pg|postgresql/i && do {
             require TpdaQrt::Db::Connection::Postgresql;
             $db = TpdaQrt::Db::Connection::Postgresql->new($model);
             last SWITCH;
@@ -83,11 +83,11 @@ sub _connect {
         #     $db = TpdaQrt::Db::Connection::Mysql->new($model);
         #     last SWITCH;
         # };
-        # /sqlite/i && do {
-        #     require TpdaQrt::Db::Connection::Sqlite;
-        #     $db = TpdaQrt::Db::Connection::Sqlite->new($model);
-        #     last SWITCH;
-        # };
+        /sqlite/i && do {
+            require TpdaQrt::Db::Connection::Sqlite;
+            $db = TpdaQrt::Db::Connection::Sqlite->new($model);
+            last SWITCH;
+        };
         # Default
         # Disabled all except PG
         # TODO update other ...
