@@ -171,8 +171,8 @@ sub process_sql {
     my $self = shift;
 
     my $item = $self->_view->get_list_selected_index();
-    my $file = $self->_view->get_list_data($item);
-    my ($data) = $self->_model->read_qdf_data($item, $file);
+    my $lidata = $self->_view->get_list_data($item);
+    my ($data) = $self->_model->read_qdf_data($item, $lidata->{file} );
     $self->_model->run_export($data);
 
     return;

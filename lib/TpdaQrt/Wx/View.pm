@@ -1017,7 +1017,7 @@ sub list_item_insert {
     $self->set_list_text($indice, 0, $nrcrt);
     $self->set_list_text($indice, 1, $title);
 
-    $self->set_list_data($indice, $file );   # set data
+    $self->set_list_data($indice, { file => $file } );   # set data
 
     return;
 }
@@ -1168,8 +1168,9 @@ sub controls_populate {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my $file = $self->get_list_data($item);
-    my ($data) = $self->_model->read_qdf_data($item, $file);
+    my $lidata = $self->get_list_data($item);
+    my $file = $lidata->{file};
+    my ($data) = $self->_model->read_qdf_data( $item, $file );
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
@@ -1203,7 +1204,8 @@ Toggle sql replace
     $mode ||= $self->_model->get_appmode;
 
     my $item = $self->get_list_selected_index();
-    my $file = $self->get_list_data($item);
+    my $lidata = $self->get_list_data($item);
+    my $file   = $lidata->{file};
     my ($data) = $self->_model->read_qdf_data($item, $file);
 
     if ($mode eq 'edit') {
