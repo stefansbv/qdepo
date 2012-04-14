@@ -3,6 +3,8 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
@@ -10,6 +12,8 @@ use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
 use Wx::STC;
+
+#use Hash::Merge qw(merge);
 
 use TpdaQrt::Config;
 use TpdaQrt::Wx::Notebook;
@@ -1006,41 +1010,103 @@ sub get_list_selected_index {
 
 =head2 list_item_insert
 
-Insert item in list control
+Insert item in list control.
 
 =cut
 
 sub list_item_insert {
     my ( $self, $indice, $nrcrt, $title, $file ) = @_;
 
-    $self->list_string_item_insert($indice);
+    $self->list_item_string_insert($indice);
     $self->set_list_text($indice, 0, $nrcrt);
     $self->set_list_text($indice, 1, $title);
-
-    $self->set_list_data($indice, { file => $file } );   # set data
+    $self->set_list_item_data(
+        $indice,
+        {
+            file  => $file,
+            nrcrt => $nrcrt,
+        },
+    );    # set data
 
     return;
 }
 
-sub set_list_data {
-    my ($self, $item, $data) = @_;
+=head2 set_list_item_data
+
+Set list item data.
+
+=cut
+
+sub set_list_item_data {
+    my ($self, $item, $data_new) = @_;
+
+    my $data = $self->get_list_item_data($item);
+
+    while ( my ( $key, $value ) = each( %{$data_new} ) ) {
+        $data->{$key} = $value;
+    }
 
     $self->get_listcontrol->SetItemData( $item, $data );
+
+    return;
 }
 
-sub get_list_data {
+=head2 get_list_item_data
+
+Set list item data.
+
+=cut
+
+sub get_list_item_data {
     my ($self, $item) = @_;
 
     return $self->get_listcontrol->GetItemData( $item );
 }
 
-=head2 list_string_item_insert
+=head2 toggle_mark
+
+Toggle deleted mark on list item.
+
+=cut
+
+sub toggle_mark {
+    my ($self, $item) = @_;
+
+    my $data = $self->get_list_item_data($item);
+
+    if ( exists $data->{mark} ) {
+        if ( $data->{mark} == 1 ) {
+            $self->set_list_item_data($item, { mark => 0 } );
+        }
+        else {
+            $self->set_list_item_data($item, { mark => 1 } )
+        }
+
+        # ( $data->{mark} == 1 )
+        #     ? $self->set_list_item_data($item, { mark => 0 } )
+        #     : $self->set_list_item_data($item, { mark => 1 } )
+        #     ;
+    }
+    else {
+        $self->set_list_item_data($item, { mark => 1 } ); # set mark
+    }
+
+    # Keep a count of marks
+    $self->get_list_item_data($item)->{mark} == 1
+        ? $self->_model->{_marks}++
+        : $self->_model->{_marks}--
+        ;
+
+    return;
+}
+
+=head2 list_item_string_insert
 
 Insert string item in list control
 
 =cut
 
-sub list_string_item_insert {
+sub list_item_string_insert {
     my ($self, $indice) = @_;
 
     $self->get_listcontrol->InsertStringItem( $indice, 'dummy' );
@@ -1081,7 +1147,7 @@ sub list_remove_item {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my $file = $self->get_list_data($item);
+    my $file = $self->get_list_item_data($item);
 
     # Remove from list
     $self->list_item_clear($item);
@@ -1111,7 +1177,7 @@ sub log_config_options {
 
 =head2 list_populate_all
 
-Populate all other pages except the configuration page
+Populate list with items.
 
 =cut
 
@@ -1141,7 +1207,7 @@ sub list_populate_all {
 
 =head2 list_populate_item
 
-Add new item in list control and select the last item.
+Add new item in list control.
 
 =cut
 
@@ -1152,8 +1218,6 @@ sub list_populate_item {
     my $r     = $rec->{$idx};
 
     $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title}, $r->{file} );
-
-    $self->list_item_select('last');          # ???
 
     return;
 }
@@ -1168,7 +1232,7 @@ sub controls_populate {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my $lidata = $self->get_list_data($item);
+    my $lidata = $self->get_list_item_data($item);
     my $file = $lidata->{file};
     my ($data) = $self->_model->read_qdf_data( $item, $file );
 
@@ -1204,7 +1268,7 @@ Toggle sql replace
     $mode ||= $self->_model->get_appmode;
 
     my $item = $self->get_list_selected_index();
-    my $lidata = $self->get_list_data($item);
+    my $lidata = $self->get_list_item_data($item);
     my $file   = $lidata->{file};
     my ($data) = $self->_model->read_qdf_data($item, $file);
 

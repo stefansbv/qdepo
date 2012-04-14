@@ -62,7 +62,7 @@ Add a callback
 sub add_callback {
     my ( $self, $callback ) = @_;
 
-    $self->{_callbacks}->{$callback} = $callback;
+    $self->{_callbacks}{$callback} = $callback;
 
     return $self;
 }
@@ -76,7 +76,7 @@ Delete a callback
 sub del_callback {
     my ( $self, $callback ) = @_;
 
-    delete $self->{_callbacks}->{$callback};
+    delete $self->{_callbacks}{$callback};
 
     return $self;
 }
@@ -91,8 +91,10 @@ sub _docallbacks {
     my $self = shift;
 
     foreach my $cb ( keys %{ $self->{_callbacks} } ) {
-        $self->{_callbacks}->{$cb}->( $self->{_data} );
+        $self->{_callbacks}{$cb}->( $self->{_data} );
     }
+
+    return;
 }
 
 =head2 set
@@ -103,6 +105,10 @@ Set data value
 
 sub set {
     my ( $self, $data ) = @_;
+# # DEBUG
+#     my ($package, $filename, $line, $subroutine) = caller(3);
+#     print "set:\n $package, $line, $subroutine\n";
+
 
     $self->{_data} = $data;
     $self->_docallbacks();

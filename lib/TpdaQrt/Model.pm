@@ -2,6 +2,8 @@ package TpdaQrt::Model;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use Ouch;
 
 use File::Copy;
@@ -99,7 +101,7 @@ sub db_connect {
     my $conninfo = $self->_cfg->conninfo;
     my $driver = $conninfo->{driver};
     my $dbname = $conninfo->{dbname};
-    my $host   = $conninfo->{host};
+    my $host   = $conninfo->{host} || 'localhost';
 
     # Is realy connected ?
     if ( blessed $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
@@ -315,14 +317,14 @@ sub read_qdf_data_wx {
     return $titles;
 }
 
-=head2 load_qdf_data_tk
+=head2 read_qdf_data_tk
 
-Load the titles and file names from all the QDF files and store in
-data structure used to fill the List control.
+Read the titles and file names from all the QDF files and store in
+a data structure used to fill the List control.
 
 =cut
 
-sub load_qdf_data_tk {
+sub read_qdf_data_tk {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
@@ -365,9 +367,8 @@ sub append_list_record {
 
 =head2 get_qdf_data_tk
 
-Get data from List data structure, for single item or all.
-
-Toggle delete mark on items if $toggle_mark paramter is true.
+Get data from List data structure, for single item or all.  Toggle
+delete mark on items if L<$toggle_mark> parameter is true.
 
 =cut
 
@@ -376,22 +377,7 @@ sub get_qdf_data_tk {
 
     my $data;
     if ( defined $item ) {
-        if ($toggle_mark) {
-            if ( exists $self->{_lds}{$item}{mark} ) {
-                $self->{_lds}{$item}{mark} == 1
-                    ? ($self->{_lds}{$item}{mark} = 0)
-                    : ($self->{_lds}{$item}{mark} = 1)
-                    ;
-            }
-            else {
-                $self->{_lds}{$item}{mark} = 1; # set mark
-            }
-            # Keep a count of marks
-            $self->{_lds}{$item}{mark} == 1
-                ? $self->{_marks}++
-                : $self->{_marks}--
-                ;
-        }
+        $self->toggle_mark($item) if $toggle_mark;
         $data = $self->{_lds}{$item};
     }
     else {
@@ -399,6 +385,34 @@ sub get_qdf_data_tk {
     }
 
     return $data;
+}
+
+=head2 toggle_mark
+
+Toggle deleted mark on list item.
+
+=cut
+
+sub toggle_mark {
+    my ($self, $item) = @_;
+
+    if ( exists $self->{_lds}{$item}{mark} ) {
+        $self->{_lds}{$item}{mark} == 1
+            ? ($self->{_lds}{$item}{mark} = 0)
+            : ($self->{_lds}{$item}{mark} = 1)
+            ;
+    }
+    else {
+        $self->{_lds}{$item}{mark} = 1; # set mark
+    }
+
+    # Keep a count of marks
+    $self->{_lds}{$item}{mark} == 1
+        ? $self->{_marks}++
+        : $self->{_marks}--
+        ;
+
+    return;
 }
 
 =head2 get_qdf_data_file_tk
