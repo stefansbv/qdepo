@@ -3,7 +3,9 @@ package TpdaQrt::Db::Connection::Firebird;
 use strict;
 use warnings;
 
+use Regexp::Common;
 use DBI;
+use Ouch;
 use Try::Tiny;
 
 =head1 NAME
@@ -30,14 +32,16 @@ our $VERSION = '0.34';
 
 =head2 new
 
-Constructor
+Constructor.
 
 =cut
 
 sub new {
-    my $class = shift;
+    my ($class, $model) = @_;
 
     my $self = {};
+
+    $self->{model} = $model;
 
     bless $self, $class;
 
@@ -53,30 +57,35 @@ Connect to database
 sub db_connect {
     my ($self, $conf) = @_;
 
-    print "Connecting to the $conf->{driver} server\n";
-    print "Parameters:\n";
-    print "  => Database = $conf->{dbname}\n";
-    print "  => Host     = $conf->{host}\n";
-    print "  => User     = $conf->{user}\n";
-
     try {
         $self->{_dbh} = DBI->connect(
             "dbi:Firebird:"
-              . "dbname="
-              . $conf->{dbname}
-              . ";host="
-              . $conf->{host}
-              . ";port="
-              . $conf->{port}
-              . ";ib_dialect=3",
-            $conf->{user}, $conf->{pass},
+                . "dbname="
+                . $conf->{dbname}
+                . ";host="
+                . $conf->{host}
+                . ";port="
+                . $conf->{port}
+                . ";ib_dialect=3"
+                . ";ib_charset=UTF8",
+            $conf->{user},
+            $conf->{pass},
+            {   FetchHashKeyName => 'NAME_lc',
+                AutoCommit       => 1,
+                RaiseError       => 1,
+                PrintError       => 0,
+                LongReadLen      => 524288,
+            }
         );
     }
     catch {
-        print "Transaction aborted: $_"
-            or print STDERR "$_\n";
-
-        # exit 1;
+        my $user_message = $self->parse_db_error($_);
+        if ( $self->{model} and $self->{model}->can('exception_log') ) {
+            $self->{model}->exception_log($user_message);
+        }
+        else {
+            ouch 'ConnError','Connection failed!';
+        }
     };
 
     ## Date format
@@ -84,14 +93,60 @@ sub db_connect {
     $self->{_dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
     $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
     $self->{_dbh}->{ib_timeformat}      = '%H:%M';
-    ## Format: German
-    # $self->{_dbh}->{ib_timestampformat} = '%d.%m.%Y %H:%M';
-    # $self->{_dbh}->{ib_dateformat}      = '%d.%m.%Y';
-    # $self->{_dbh}->{ib_timeformat}      = '%H:%M';
 
-    print "Connected to database $conf->{dbname}\n";
+    $self->{_dbh}{ib_enable_utf8} = 1;
 
     return $self->{_dbh};
+}
+
+=head2 parse_db_error
+
+Parse a database error message, and translate it for the user.
+
+RDBMS specific (and maybe version specific?).
+
+=cut
+
+sub parse_db_error {
+    my ($self, $fb) = @_;
+
+    print "\nFB: $fb\n\n";
+
+    my $message_type =
+         $fb eq q{}                                          ? "nomessage"
+       : $fb =~ m/operation for file ($RE{quoted})/smi       ? "dbnotfound:$1"
+       : $fb =~ m/\-Table unknown\s*\-(.*)\-/smi             ? "relnotfound:$1"
+       : $fb =~ m/user name and password/smi                 ? "userpass"
+       : $fb =~ m/no route to host/smi                       ? "network"
+       : $fb =~ m/network request to host ($RE{quoted})/smi  ? "nethost:$1"
+       : $fb =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi ? "driver:$1"
+       :                                                       "unknown";
+
+    # Analize and translate
+
+    my ( $type, $name ) = split /:/, $message_type, 2;
+    $name = $name ? $name : '';
+
+    my $translations = {
+        driver      => "fatal#Database driver $name not found",
+        nomessage   => "weird#Error without message",
+        dbnotfound  => "fatal#Database $name not found",
+        relnotfound => "fatal#Relation $name not found",
+        userpass    => "info#Authentication failed, password?",
+        nethost     => "fatal#Network problem: host $name",
+        network     => "fatal#Network problem",
+        unknown     => "fatal#Database error",
+    };
+
+    my $message;
+    if (exists $translations->{$type} ) {
+        $message = $translations->{$type}
+    }
+    else {
+        print "EE: Translation error!\n";
+    }
+
+    return $message;
 }
 
 =head1 AUTHOR

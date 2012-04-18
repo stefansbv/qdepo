@@ -68,11 +68,11 @@ sub _connect {
 
   SWITCH: for ( $driver ) {
         /^$/ && do warn "No driver name?\n";
-        # /fb|firebird/i && do {
-        #     require TpdaQrt::Db::Connection::Firebird;
-        #     $db = TpdaQrt::Db::Connection::Firebird->new($model);
-        #     last SWITCH;
-        # };
+        /fb|firebird/i && do {
+            require TpdaQrt::Db::Connection::Firebird;
+            $db = TpdaQrt::Db::Connection::Firebird->new($model);
+            last SWITCH;
+        };
         /pg|postgresql/i && do {
             require TpdaQrt::Db::Connection::Postgresql;
             $db = TpdaQrt::Db::Connection::Postgresql->new($model);
@@ -89,8 +89,6 @@ sub _connect {
             last SWITCH;
         };
         # Default
-        # Disabled all except PG
-        # TODO update other ...
         warn "Database $driver not supported!\n";
         return;
     }
