@@ -333,7 +333,6 @@ sub toggle_controls_page {
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-
             my ($state, $color);
             if ($is_edit) {
                 $state = $control->{$name}[1];  # normal | disabled

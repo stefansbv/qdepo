@@ -1602,16 +1602,10 @@ sub toggle_list_enable {
 sub set_editable {
     my ( $self, $name, $state, $color ) = @_;
 
-    # Controls state are defined in View as strings
+    # Controls states are defined in View as strings
     # Here we need to transform them to 0|1
-    my $editable;
-    if ($state) {
-        $editable = 0;
-        $color = 'lightgrey'; # Default color for disabled ctrl
-    }
-    else {
-        $editable = $state eq 'normal' ? 1 : 0;
-    }
+    my $editable = $state eq 'normal' ? 1 : 0;
+    $color = 'lightgrey' unless $editable; # default color for disabled
 
     my $control = $self->get_control_by_name($name);
 
