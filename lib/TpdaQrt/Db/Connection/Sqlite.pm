@@ -53,10 +53,6 @@ Connect to database
 sub db_connect {
     my ($self, $conf) = @_;
 
-    print "Connecting to the $conf->{driver} server\n";
-    print "Parameters:\n";
-    print "  => Database = $conf->{dbname}\n";
-
     try {
         $self->{_dbh} = DBI->connect(
             "dbi:SQLite:"
@@ -81,7 +77,7 @@ sub db_connect {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>.
 
 =head1 BUGS
 

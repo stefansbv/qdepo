@@ -2,6 +2,8 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use utf8;
 
 use English;
@@ -153,7 +155,7 @@ sub process_sql {
     my $self = shift;
 
     my $item = $self->_view->get_list_selected_index();
-    my $lidata = $self->_view->get_qdf_data($item);
+    my $lidata = $self->_view->get_list_item_data($item);
     my ($data) = $self->_model->read_qdf_data($item, $lidata->{file} );
     $self->_model->run_export($data);
 

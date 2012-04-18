@@ -144,7 +144,7 @@ sub _set_model_callbacks {
 =head2 update_gui_components
 
 When the application status (mode) changes, update gui components.
-Screen controls (widgets) are not handled here, but in controller
+Screen controls (widgets) are not handled here, but in the controller
 module.
 
 =cut
@@ -1075,17 +1075,10 @@ sub toggle_mark {
     my $data = $self->get_list_item_data($item);
 
     if ( exists $data->{mark} ) {
-        if ( $data->{mark} == 1 ) {
-            $self->set_list_item_data($item, { mark => 0 } );
-        }
-        else {
-            $self->set_list_item_data($item, { mark => 1 } )
-        }
-
-        # ( $data->{mark} == 1 )
-        #     ? $self->set_list_item_data($item, { mark => 0 } )
-        #     : $self->set_list_item_data($item, { mark => 1 } )
-        #     ;
+        ( $data->{mark} == 1 )
+            ? $self->set_list_item_data($item, { mark => 0 } )
+            : $self->set_list_item_data($item, { mark => 1 } )
+            ;
     }
     else {
         $self->set_list_item_data($item, { mark => 1 } ); # set mark
@@ -1625,7 +1618,7 @@ sub set_editable {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 
