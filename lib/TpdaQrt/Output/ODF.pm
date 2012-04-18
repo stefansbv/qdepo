@@ -110,7 +110,7 @@ Print a message about the status of document creation and return it.
 sub create_done {
     my ($self, ) = @_;
 
-    # Set columns width
+    # Set column widths
     $self->set_cols_width();
 
     $self->{doc}->save(target => $self->{doc_file});

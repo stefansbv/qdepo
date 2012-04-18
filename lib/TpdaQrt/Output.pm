@@ -3,9 +3,9 @@ package TpdaQrt::Output;
 use strict;
 use warnings;
 
-use POSIX qw (floor);
-
+use Ouch;
 use Try::Tiny;
+use POSIX qw (floor);
 
 use TpdaQrt::Db;
 
@@ -102,6 +102,11 @@ sub generate_output_excel {
     };
 
     my $rows_cnt = $self->count_rows($sql, $bind);
+    unless ($rows_cnt) {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II SQL: No output rows!");
+        return;
+    }
 
     #--- Select
 
@@ -439,11 +444,14 @@ sub count_rows {
         }
 
         my @cols = $self->{dbh}->selectrow_array( $sth );
-        $rows_cnt = $cols[0] + 1;         # One more for the header
+        if (@cols) {
+            $rows_cnt = $cols[0] + 1;         # One more for the header
+        }
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
+        ouch 'SQLError', "EE: $_";
     };
 
     return $rows_cnt;

@@ -136,7 +136,7 @@ sub _create_doc {
 
 =head2 create_row
 
-Create a row of data; format not imlemented yet.
+Create a row of data; format not implemented yet.
 
 =cut
 
