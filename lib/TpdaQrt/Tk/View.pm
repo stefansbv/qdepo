@@ -1420,7 +1420,7 @@ sub list_remove_item {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my $data = $self->_model->get_qdf_data($item);
+    my $data = $self->_model->get_qdf_data_tk($item);
 
     # Remove from list
     $self->list_item_clear($item);
@@ -1456,7 +1456,7 @@ Populate all other pages except the configuration page
 sub list_populate_all {
     my $self = shift;
 
-    $self->_model->load_qdf_data_tk();
+    $self->_model->read_qdf_data_tk();
     my $indices = $self->_model->get_qdf_data_tk();
 
     return unless scalar keys %{$indices};
@@ -1480,7 +1480,7 @@ sub list_populate_all {
 
 =head2 list_populate_item
 
-Add new item in list control and select the last item.
+Add new item in list control.
 
 =cut
 
@@ -1491,8 +1491,6 @@ sub list_populate_item {
     my $r     = $rec->{$idx};
 
     $self->list_item_insert( $r->{nrcrt}, $r->{title} );
-
-    $self->list_item_select('last'); # ???
 
     return;
 }

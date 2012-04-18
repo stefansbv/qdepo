@@ -128,14 +128,7 @@ sub set_event_handlers {
     $self->_view->event_handler_for_tb_button(
         'tb_rm',
         sub {
-            my $msg = 'Delete query definition file?';
-            if ( $self->_view->action_confirmed($msg) ) {
-                my $file = $self->_view->list_remove_item();
-                $self->_model->report_remove($file);
-            }
-            else {
-                $self->_view->log_msg("II delete canceled");
-            }
+            $self->toggle_mark_item();
         }
     );
 
@@ -160,17 +153,60 @@ sub process_sql {
     my $self = shift;
 
     my $item = $self->_view->get_list_selected_index();
-    my $file = $self->_view->get_list_data($item);
-    my ($data) = $self->_model->read_qdf_data($item, $file);
+    my $lidata = $self->_view->get_qdf_data($item);
+    my ($data) = $self->_model->read_qdf_data($item, $lidata->{file} );
     $self->_model->run_export($data);
 
     return;
 }
 
-sub on_quit {
+=head2 toggle_mark_item
+
+Toggle mark on list item.
+
+=cut
+
+sub toggle_mark_item {
     my $self = shift;
 
-    $self->_view->on_quit();
+    my $item = $self->_view->get_list_selected_index();
+
+    $self->_view->toggle_mark($item);
+
+    my $data = $self->_view->get_list_item_data($item);
+
+    my $nrcrt = $data->{nrcrt};
+    if ( exists $data->{mark} ) {
+        $nrcrt = "$nrcrt D" if $data->{mark} == 1;
+    }
+
+    $self->_view->list_item_edit( $item, $nrcrt );
+
+    return;
+}
+
+=head2 list_remove_marked
+
+Scan all items and remove marked ones.
+
+=cut
+
+sub list_remove_marked {
+    my $self = shift;
+
+    my $max_index = $self->_view->get_list_max_index();
+
+    foreach my $item (1..$max_index) {
+        my $data = $self->_view->get_list_item_data($item);
+
+        while ( my ( $key, $value ) = each( %{$data} ) ) {
+            if ( $key eq 'mark' and $data->{mark} == 1 ) {
+                $self->_model->report_remove( $data->{file} );
+            }
+        }
+    }
+
+    return;
 }
 
 =head2 about

@@ -388,10 +388,31 @@ sub save_query_def {
     return;
 }
 
+=head2 on_quit
+
+Before quit ask for permission to delete the marked qdf files, if
+marked records exists.
+
+=cut
+
 sub on_quit {
     my $self = shift;
 
-    print 'on_quit not implemented in ', __PACKAGE__, "\n";
+    if ( $self->_model->has_marks() ) {
+        my $msg = 'Delete marked query definition files?';
+        if ( $self->_view->action_confirmed($msg) ) {
+            $self->list_remove_marked();
+        }
+    }
+
+    $self->_view->on_quit();
+
+    return;
+}
+
+sub list_remove_marked {
+
+    print 'list_remove_marked not implemented in ', __PACKAGE__, "\n";
 
     return;
 }
