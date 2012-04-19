@@ -578,9 +578,6 @@ sub report_add {
     my $src_fqn = $self->_cfg->qdftemplate;
     my $dst_fqn = catfile($self->_cfg->qdfpath, $new_qdf_file);
 
-    print "Add *************\n";
-    print "$src_fqn -> $dst_fqn\n";
-
     if ( !-f $dst_fqn ) {
         $self->message_log("II Create new report from template ...");
         if ( copy( $src_fqn, $dst_fqn ) ) {
@@ -809,7 +806,7 @@ Log an exception.
 
 sub exception_log {
     my ( $self, $message ) = @_;
-print " exception_log set $message\n";
+
     $self->get_exception_observable->set($message);
 }
 
@@ -823,7 +820,7 @@ sub get_exception {
     my $self = shift;
 
     my $exception = $self->get_exception_observable->get;
-print "get exc $exception\n";
+
     $self->get_exception_observable->set();  # clear
 
     return $exception;
@@ -837,8 +834,6 @@ Return true if there are items marked for deletion.
 
 sub has_marks {
     my $self = shift;
-
-    print "$self->{_marks} marks.\n";
 
     return $self->{_marks} > 0 ? 1 : 0;
 }

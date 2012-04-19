@@ -80,7 +80,6 @@ sub db_connect {
     catch {
         my $user_message = $self->parse_db_error($_);
         if ( $self->{model} and $self->{model}->can('exception_log') ) {
-            print " log exception $user_message\n";
             $self->{model}->exception_log($user_message);
         }
         else {
@@ -130,10 +129,9 @@ sub parse_db_error {
         unknown     => "fatal#Database error",
     };
 
- my $message;
+    my $message;
     if (exists $translations->{$type} ) {
         $message = $translations->{$type};
-        print "MESS: $message\n";
     }
     else {
         print "EE: Translation error!\n";
