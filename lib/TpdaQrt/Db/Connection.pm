@@ -78,11 +78,11 @@ sub _connect {
             $db = TpdaQrt::Db::Connection::Postgresql->new($model);
             last SWITCH;
         };
-        # /mysql/i && do {
-        #     require TpdaQrt::Db::Connection::Mysql;
-        #     $db = TpdaQrt::Db::Connection::Mysql->new($model);
-        #     last SWITCH;
-        # };
+        /mysql/i && do {
+            require TpdaQrt::Db::Connection::Mysql;
+            $db = TpdaQrt::Db::Connection::Mysql->new($model);
+            last SWITCH;
+        };
         /sqlite/i && do {
             require TpdaQrt::Db::Connection::Sqlite;
             $db = TpdaQrt::Db::Connection::Sqlite->new($model);
@@ -95,17 +95,6 @@ sub _connect {
 
     $self->{dbc} = $db;
     $self->{dbh} = $db->db_connect($conf);
-
-    if ( ref $self->{dbh} ) {
-
-        # Some defaults
-        $self->{dbh}->{AutoCommit} = 1; # disable transactions
-        $self->{dbh}->{RaiseError} = 0; # non fatal, handled
-        $self->{dbh}->{PrintError} = 0;
-        $self->{dbh}->{ShowErrorStatement} = 1;
-        $self->{dbh}->{LongReadLen} = 524288;    # for BLOBs
-        $self->{dbh}->{FetchHashKeyName} = 'NAME_lc';
-    }
 
     return;
 }

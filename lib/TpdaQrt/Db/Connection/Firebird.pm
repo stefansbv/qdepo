@@ -115,7 +115,6 @@ sub parse_db_error {
     my $message_type =
          $fb eq q{}                                          ? "nomessage"
        : $fb =~ m/operation for file ($RE{quoted})/smi       ? "dbnotfound:$1"
-       : $fb =~ m/\-Table unknown\s*\-(.*)\-/smi             ? "relnotfound:$1"
        : $fb =~ m/user name and password/smi                 ? "userpass"
        : $fb =~ m/no route to host/smi                       ? "network"
        : $fb =~ m/network request to host ($RE{quoted})/smi  ? "nethost:$1"
@@ -128,10 +127,9 @@ sub parse_db_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        driver      => "fatal#Database driver $name not found",
         nomessage   => "weird#Error without message",
+        driver      => "fatal#Database driver $name not found",
         dbnotfound  => "fatal#Database $name not found",
-        relnotfound => "fatal#Relation $name not found",
         userpass    => "info#Authentication failed, password?",
         nethost     => "fatal#Network problem: host $name",
         network     => "fatal#Network problem",
@@ -140,7 +138,7 @@ sub parse_db_error {
 
     my $message;
     if (exists $translations->{$type} ) {
-        $message = $translations->{$type}
+        $message = $translations->{$type};
     }
     else {
         print "EE: Translation error!\n";

@@ -65,11 +65,12 @@ sub start {
     # Try until connected or canceled
     my $return_string = '';
     while ( !$self->_model->is_connected ) {
-print " not connected\n";
+        print " trying ...\n";
         $self->_model->db_connect();
-print " still not !!!\n";
-        if ( my $message = $self->_model->get_exception ) {
-            print "exception message is $message\n";
+        print " still not ...\n";
+        my $message = $self->_model->get_exception();
+        if ($message) {
+            print "EXCEPTION message is $message\n";
             my ($type, $mesg) = split /#/, $message, 2;
             if ($type =~ m{fatal}imx) {
                 my $message = 'Eroare de conectare!';
@@ -77,6 +78,9 @@ print " still not !!!\n";
                 $return_string = 'shutdown';
                 last;
             }
+        }
+        else {
+            print " no message? ...\n";
         }
 
         # Try with the login dialog if still not connected

@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Regexp::Common;
+use DBI;
 use Ouch;
 use Try::Tiny;
-use DBI;
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ our $VERSION = 0.34;
 
     use TpdaQrt::Db::Connection::Postgresql;
 
-    my $db = TpdaQrt::Db::Connection::Postgresql->new();
+    my $db = TpdaQrt::Db::Connection::Postgresql->new($model);
 
     $db->db_connect($connection);
 
@@ -33,7 +33,7 @@ our $VERSION = 0.34;
 
 =head2 new
 
-Constructor
+Constructor.
 
 =cut
 
@@ -51,7 +51,7 @@ sub new {
 
 =head2 db_connect
 
-Connect to database
+Connect to the database.
 
 =cut
 
@@ -113,14 +113,10 @@ sub parse_db_error {
     my $message_type =
          $pg eq q{}                                          ? "nomessage"
        : $pg =~ m/database ($RE{quoted}) does not exist/smi  ? "dbnotfound:$1"
-       : $pg =~ m/ERROR:  column ($RE{quoted}) of relation ($RE{quoted}) does not exist/smi ? "colnotfound:$2.$1"
-       : $pg =~ m/ERROR:  null value in column ($RE{quoted})/smi ? "nullvalue:$1"
-       : $pg =~ m/relation ($RE{quoted}) does not exist/smi  ? "relnotfound:$1"
        : $pg =~ m/authentication failed .* ($RE{quoted})/smi ? "password:$1"
        : $pg =~ m/no password supplied/smi                   ? "password"
        : $pg =~ m/role ($RE{quoted}) does not exist/smi      ? "username:$1"
        : $pg =~ m/no route to host/smi                       ? "network"
-       : $pg =~ m/DETAIL:  Key ($RE{balanced}{-parens=>'()'})=/smi ? "duplicate:$1"
        :                                                       "unknown";
 
     # Analize and translate
@@ -131,20 +127,16 @@ sub parse_db_error {
     my $translations = {
         nomessage   => "weird#Error without message!",
         dbnotfound  => "fatal#Database $name not found!",
-        relnotfound => "fatal#Relation $name not found!",
         password    => "info#Authentication failed for $name",
         password    => "info#Authentication failed, password?",
         username    => "info#User name $name not found!",
         network     => "fatal#Network problem",
         unknown     => "fatal#Database error",
-        duplicate   => "error#Duplicate $name",
-        colnotfound => "error#Column not found $name",
-        nullvalue   => "error#Null value for $name",
     };
 
     my $message;
     if (exists $translations->{$type} ) {
-        $message = $translations->{$type}
+        $message = $translations->{$type};
     }
     else {
         print "EE: Translation error!\n";

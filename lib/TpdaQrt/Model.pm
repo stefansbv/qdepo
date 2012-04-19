@@ -106,7 +106,7 @@ sub db_connect {
     # Is realy connected ?
     if ( blessed $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
         $self->get_connection_observable->set(1);    # assuming yes
-        $self->message_log("II Connected to \"$dbname\" with '$driver', on host '$host'");
+        $self->message_log("II Connected to \"$dbname\" with '$driver', on '$host'");
     }
     else {
         $self->get_connection_observable->set(0);    # no ;)
@@ -809,7 +809,7 @@ Log an exception.
 
 sub exception_log {
     my ( $self, $message ) = @_;
-
+print " exception_log set $message\n";
     $self->get_exception_observable->set($message);
 }
 
@@ -823,7 +823,7 @@ sub get_exception {
     my $self = shift;
 
     my $exception = $self->get_exception_observable->get;
-
+print "get exc $exception\n";
     $self->get_exception_observable->set();  # clear
 
     return $exception;
