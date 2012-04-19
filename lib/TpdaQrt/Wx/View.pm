@@ -1536,9 +1536,8 @@ sub on_quit {
     my $self = shift;
 
     $self->Close(1);
-    #$self->Destroy;
 
-    return;
+    exit;                              # force exit ... BUG workaround
 }
 
 ######################################################################

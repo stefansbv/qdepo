@@ -2,8 +2,6 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use utf8;
 
 use English;
@@ -51,7 +49,7 @@ sub new {
     $self->_init;
 
     $self->set_event_handlers();
-    #$self->set_event_handlers_keys();
+    $self->set_event_handlers_keys();
 
     return $self;
 }
@@ -95,6 +93,12 @@ sub dialog_login {
 
     return $return_string;
 }
+
+=head2 set_event_handlers_keys
+
+Set shortcut keys.
+
+=cut
 
 sub set_event_handlers_keys {
     my $self = shift;
@@ -220,7 +224,7 @@ The About dialog.
 sub about {
     my $self = shift;
 
-my $cfg = TpdaQrt::Config->instance();
+    my $cfg = TpdaQrt::Config->instance();
 
     # Framework version
     my $PROGRAM_NAME = ' Tpda QRT ';

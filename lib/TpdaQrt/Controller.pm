@@ -70,7 +70,7 @@ sub start {
         if ($message) {
             my ($type, $mesg) = split /#/, $message, 2;
             if ($type =~ m{fatal}imx) {
-                my $message = 'Eroare de conectare!';
+                my $message = 'Connection error!';
                 $self->_view->dialog_error($message, $mesg);
                 $return_string = 'shutdown';
                 last;
