@@ -97,7 +97,9 @@ sub start {
 
     $self->set_event_handlers();
     $self->set_app_mode('idle');
-    if ( $self->_view->list_populate_all() ) {
+    $self->_view->list_populate_all();
+    if ( $self->_view->get_list_max_index() >= 0) {
+        # We have items
         $self->_view->list_item_select('first');
         $self->_model->on_item_selected();
         $self->set_app_mode('sele');
@@ -129,7 +131,7 @@ sub set_app_mode {
     my ( $self, $mode ) = @_;
 
     if ( $mode eq 'sele' ) {
-        my $item_no = $self->_view->get_list_max_index();
+        my $item_no = $self->_view->get_list_max_index() + 1;
 
         # Set mode to 'idle' if no items
         $mode = 'idle' if $item_no <= 0;
@@ -409,8 +411,8 @@ sub save_query_def {
 
 =head2 on_quit
 
-Before quit ask for permission to delete the marked qdf files, if
-marked records exists.
+Before quit, ask for permission to delete the marked .qdf files, if
+L<has_marks> is true.
 
 =cut
 
@@ -418,15 +420,17 @@ sub on_quit {
     my $self = shift;
 
     if ( $self->_model->has_marks() ) {
-        my $msg = 'Delete marked query definition files?';
-        if ( $self->_view->action_confirmed($msg) ) {
+        my $msg = 'Delete marked reports and quit?';
+        my $answer = $self->_view->action_confirmed($msg);
+        if ($answer eq 'yes') {
             $self->list_remove_marked();
+        }
+        elsif ($answer eq 'cancel') {
+            return;
         }
     }
 
     $self->_view->on_quit();
-
-    return;
 }
 
 =head2 list_remove_marked

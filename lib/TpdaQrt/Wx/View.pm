@@ -774,7 +774,7 @@ sub dialog_error {
 
 =head2 action_confirmed
 
-Yes - No message dialog.
+Yes, No, Cancel message dialog.
 
 =cut
 
@@ -788,7 +788,13 @@ sub action_confirmed {
         undef,
     );
 
-    return ( $answer == wxYES ) ? 1 : 0;
+    my $return_answer = ($answer == wxYES)     ? 'yes'
+                      : ($answer == wxNO)      ? 'no'
+                      : ($answer == wxCANCEL)  ? 'cancel'
+                      :                          'unknown'
+                      ;
+
+    return $return_answer;
 }
 
 =head2 get_toolbar_btn
@@ -966,7 +972,7 @@ Select the first/last item in list.
 sub list_item_select {
     my ($self, $what) = @_;
 
-    my $items_no = $self->get_list_max_index();
+    my $items_no = $self->get_list_max_index() + 1;
 
     return unless $items_no > 0;             # nothing to select
 
@@ -986,14 +992,14 @@ sub list_item_select {
 
 =head2 get_list_max_index
 
-Return the max index from the list control
+Return the maximum index from the list control (item count - 1).
 
 =cut
 
 sub get_list_max_index {
     my $self = shift;
 
-    return $self->get_listcontrol->GetItemCount();
+    return ( $self->get_listcontrol->GetItemCount() - 1 );
 }
 
 =head2 get_list_selected_index
@@ -1015,13 +1021,13 @@ Insert item in list control.
 =cut
 
 sub list_item_insert {
-    my ( $self, $indice, $nrcrt, $title, $file ) = @_;
+    my ( $self, $item, $nrcrt, $title, $file ) = @_;
 
-    $self->list_item_string_insert($indice);
-    $self->set_list_text($indice, 0, $nrcrt);
-    $self->set_list_text($indice, 1, $title);
+    $self->list_item_string_insert($item);
+    $self->set_list_text($item, 0, $nrcrt);
+    $self->set_list_text($item, 1, $title);
     $self->set_list_item_data(
-        $indice,
+        $item,
         {
             file  => $file,
             nrcrt => $nrcrt,
@@ -1065,7 +1071,7 @@ sub get_list_item_data {
 
 =head2 toggle_mark
 
-Toggle deleted mark on list item.
+Toggle delete mark on list item.
 
 =cut
 
@@ -1100,9 +1106,9 @@ Insert string item in list control
 =cut
 
 sub list_item_string_insert {
-    my ($self, $indice) = @_;
+    my ($self, $item) = @_;
 
-    $self->get_listcontrol->InsertStringItem( $indice, 'dummy' );
+    $self->get_listcontrol->InsertStringItem( $item, 'dummy' );
 
     return;
 }
@@ -1177,20 +1183,20 @@ Populate list with items.
 sub list_populate_all {
     my $self = shift;
 
-    my $indices = $self->_model->load_qdf_data_wx();
+    my $items = $self->_model->load_qdf_data_wx();
 
-    return unless scalar keys %{$indices};
+    return unless scalar keys %{$items};
 
     # Populate list in sorted order
-    my @indices = sort { $a <=> $b } keys %{$indices};
+    my @indices = sort { $a <=> $b } keys %{$items};
 
     # Clear list
     $self->list_item_clear_all();
 
     foreach my $idx ( @indices ) {
-        my $nrcrt = $indices->{$idx}{nrcrt};
-        my $title = $indices->{$idx}{title};
-        my $file  = $indices->{$idx}{file};
+        my $nrcrt = $items->{$idx}{nrcrt};
+        my $title = $items->{$idx}{title};
+        my $file  = $items->{$idx}{file};
 
         $self->list_item_insert($idx, $nrcrt, $title, $file);
     }
@@ -1536,8 +1542,6 @@ sub on_quit {
     my $self = shift;
 
     $self->Close(1);
-
-    exit;                              # force exit ... BUG workaround
 }
 
 ######################################################################

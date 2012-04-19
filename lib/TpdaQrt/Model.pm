@@ -676,11 +676,15 @@ sub report_remove {
         return;
     }
 
+    print "Remove '$file' ";
     # Rename file as backup
     my $file_bak = "$file.bak";
     if ( move($file, $file_bak) ) {
-        $self->message_log("WW '$file' deleted");
+        print " done\n";
         return 1;
+    }
+    else {
+        print " failed\n";
     }
 
     return;

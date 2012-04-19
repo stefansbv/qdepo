@@ -2,6 +2,8 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
+
+use Data::Dumper;
 use utf8;
 
 use English;
@@ -122,7 +124,7 @@ sub set_event_handlers {
         'tb_ad',
         sub {
             my $items_no = $self->_view->get_list_max_index();
-            my $rec = $self->_model->report_add($items_no);
+            my $rec = $self->_model->report_add($items_no + 1);
             $self->_view->list_populate_item($rec);
             $self->_view->list_item_select('last');
             $self->_model->on_item_selected();
@@ -201,10 +203,8 @@ sub list_remove_marked {
     my $self = shift;
 
     my $max_index = $self->_view->get_list_max_index();
-
-    foreach my $item (1..$max_index) {
+    foreach my $item (0..$max_index) {
         my $data = $self->_view->get_list_item_data($item);
-
         while ( my ( $key, $value ) = each( %{$data} ) ) {
             if ( $key eq 'mark' and $data->{mark} == 1 ) {
                 $self->_model->report_remove( $data->{file} );

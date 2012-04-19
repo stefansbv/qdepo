@@ -1,8 +1,148 @@
-2011-12-19    <stefan>
+2012-04-19     <stefan>
+
+	* Small fixes.
+
+2012-04-19     <stefan>
+
+	* Don't try to load details when no item is selected.
+
+2012-04-19     <stefan>
+
+	* Cleanup debug print.
+
+2012-04-19     <stefan>
+
+	* Add MySQL support; 'translate' only connection error messages.
+
+2012-04-18     <stefan>
+
+	* Add Firebird support.
+
+2012-04-18     <stefan>
+
+	* Fix method name call in process_sql - Wx.
+
+2012-04-18     <stefan>
+
+	* Fix enable controlls on edit for Wx.
+
+2012-04-18     <stefan>
+
+	* Check what rows_count returns.
+
+2012-04-18     <stefan>
+
+	* Add Guide to Wx.
+
+2012-04-14     <stefan>
+
+	* Mark items for deletition and delete when quiting.
+
+2012-04-14     <stefan>
+
+	* Make Wx list item data a hash reference.
+
+2012-04-12     <stefan>
+
+	* Fix add report for Wx.
+
+2012-04-12     <stefan>
+
+	* Add About and Help for Wx.
+
+2012-04-12     <stefan>
+
+	* Default interface Tk; enable SQLite.
+
+2012-04-10     <stefan>
+
+	* Release v0.34.
+
+2012-04-10     <stefan>
+
+	* Working Tk interface.
+
+2012-04-09     <stefan>
+
+	* Mark items for deletition and remove at quit (Tk).
+
+2012-04-09     <stefan>
+
+	* Refactor controllers and views.
+
+2012-04-09     <stefan>
+
+	* Make same version for all modules. Release v0.33.
+
+2012-04-09     <stefan>
+
+	* Add Wx Error dialog message.
+
+2012-04-09     <stefan>
+
+	* Add login dialog (from Tpda3).
+
+2012-04-08     <stefan>
+
+	* Register selected output format choice.
+
+2012-04-08     <stefan>
+
+	* Fix progress dialog.
+
+2012-04-08     <stefan>
+
+	* Move process_sql method to platform controller.
+
+2012-04-08     <stefan>
+
+	* Fix list select event handler.
+
+2012-04-08     <stefan>
+
+	* Refactor Controller.
+
+2012-04-08     <stefan>
+
+	* Revert to Excel output as default.
+
+2012-02-16     <stefan>
+
+	* Remove not used module: Exception::Class::DBI
+
+2012-02-10     <stefan>
+
+	* Add Progress dialog to all output types.
+
+2012-02-10     <stefan>
+
+	* Enable setting column width for Excel and ODF.
+
+2012-02-10     <stefan>
+
+	* Fix test
+
+2012-02-10     <stefan>
+
+	* Update copyright year.
+
+2012-02-09     <stefan>
+
+	* Update module versions.
+
+2012-02-09     <stefan>
+
+	* Revert to Module::Install.
+
+2011-12-20     <stefan>
+
+	* Experimenting with Dist::Zilla build system.
+
+2011-12-19     <stefan>
 
 	* Release v0.31. Bug fix for (not) installing the main script.
 
-2011-12-05    <stefan>
+2011-12-05     <stefan>
 
 	* Release v0.30
 
@@ -101,4 +241,4 @@
 
 2010-12-16    <stefan>
 
-        * Release ver. 0.10 - Initial release
+       * Release ver. 0.10 - Initial release
