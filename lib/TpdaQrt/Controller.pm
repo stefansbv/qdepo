@@ -65,12 +65,9 @@ sub start {
     # Try until connected or canceled
     my $return_string = '';
     while ( !$self->_model->is_connected ) {
-        print " trying ...\n";
         $self->_model->db_connect();
-        print " still not ...\n";
         my $message = $self->_model->get_exception();
         if ($message) {
-            print "EXCEPTION message is $message\n";
             my ($type, $mesg) = split /#/, $message, 2;
             if ($type =~ m{fatal}imx) {
                 my $message = 'Eroare de conectare!';
@@ -78,9 +75,6 @@ sub start {
                 $return_string = 'shutdown';
                 last;
             }
-        }
-        else {
-            print " no message? ...\n";
         }
 
         # Try with the login dialog if still not connected
@@ -103,10 +97,11 @@ sub start {
 
     $self->set_event_handlers();
     $self->set_app_mode('idle');
-    $self->_view->list_populate_all();
-    $self->_view->list_item_select('first');
-    $self->_model->on_item_selected();
-    $self->set_app_mode('sele');
+    if ( $self->_view->list_populate_all() ) {
+        $self->_view->list_item_select('first');
+        $self->_model->on_item_selected();
+        $self->set_app_mode('sele');
+    }
 
     return;
 }
@@ -126,7 +121,7 @@ sub dialog_login {
 
 =head2 set_app_mode
 
-Set application mode
+Set application mode.
 
 =cut
 
@@ -157,11 +152,23 @@ sub set_app_mode {
     return 1;
 }
 
+=head2 on_screen_mode_idle
+
+Idle mode.
+
+=cut
+
 sub on_screen_mode_idle {
     my $self = shift;
 
     return;
 }
+
+=head2 on_screen_mode_edit
+
+Edit mode.
+
+=cut
 
 sub on_screen_mode_edit {
     my $self = shift;
@@ -171,6 +178,12 @@ sub on_screen_mode_edit {
 
     return;
 }
+
+=head2 on_screen_mode_sele
+
+Select mode.
+
+=cut
 
 sub on_screen_mode_sele {
     my $self = shift;
@@ -272,7 +285,7 @@ sub set_event_handlers {
 
 =head2 _model
 
-Return model instance variable
+Return model instance variable.
 
 =cut
 
@@ -284,7 +297,7 @@ sub _model {
 
 =head2 _view
 
-Return view instance variable
+Return view instance variable.
 
 =cut
 
@@ -328,7 +341,7 @@ sub toggle_interface_controls {
 
 =head2 toggle_controls_page
 
-Toggle the controls on page
+Toggle the controls on page.
 
 =cut
 
@@ -371,7 +384,7 @@ sub dialog_progress {
 
 =head2 save_query_def
 
-Save query definition file
+Save .qdf file.
 
 =cut
 
@@ -415,6 +428,12 @@ sub on_quit {
 
     return;
 }
+
+=head2 list_remove_marked
+
+Remove marked items.
+
+=cut
 
 sub list_remove_marked {
 

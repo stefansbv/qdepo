@@ -2,9 +2,7 @@ package TpdaQrt::FileIO;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
-use Carp;
+use Ouch;
 
 use File::Find::Rule;
 use XML::Twig;
@@ -55,13 +53,8 @@ Process an XML file's tag.
 sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
 
-    # # DEBUG
-    # my ($package, $filename, $line, $subroutine) = caller(3);
-    # print "process_file:\n $package, $line, $subroutine\n";
-
-    # print "params $qdf_file, $tag_name\n";
-    if (! defined $qdf_file) {
-        print "No report definition file?.\n";
+    unless ( defined $qdf_file ) {
+        print "No .qdf file to process.\n";
         return;
     }
 
@@ -90,7 +83,6 @@ Loop and process all files.
 =cut
 
 sub _process_all_files {
-
     my ($self, $tag_name) = @_;
 
     my $qdf_ref = $self->get_file_list();
@@ -105,8 +97,7 @@ sub _process_all_files {
     }
 
     print "\nReading XML files...\n";
-
-    print " $qdf_files_no QDFs found.\n";
+    print " found $qdf_files_no\n";
 
     my @qdfdata;
     foreach my $qdf_file ( @{$qdf_ref} ) {
@@ -141,7 +132,7 @@ sub _xml_read_simple {
         # are present
     }
     else {
-        croak "Can't find file: $file!\n";
+        ouch 'FileNotFound', "Can't find file: $file!\n";
     }
 
     return $xml_data;
@@ -182,6 +173,7 @@ sub get_file_list {
         ->in($qdfpath);
 
     my $nrfisiere = scalar @rapoarte;    # total file number
+
     return \@rapoarte;
 }
 

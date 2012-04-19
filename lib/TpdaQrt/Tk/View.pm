@@ -1449,7 +1449,7 @@ sub log_config_options {
 
 =head2 list_populate_all
 
-Populate all other pages except the configuration page
+Populate list.
 
 =cut
 
@@ -1475,7 +1475,7 @@ sub list_populate_all {
         $self->list_item_insert($nrcrt, $title);
     }
 
-    return;
+    return 1;
 }
 
 =head2 list_populate_item
