@@ -15,11 +15,11 @@ TpdaQrt::Tk::Dialog::Help - Dialog for quick help.
 
 =head1 VERSION
 
-Version 0.34
+Version 0.35
 
 =cut
 
-our $VERSION = 0.34;
+our $VERSION = 0.35;
 
 =head1 SYNOPSIS
 
@@ -45,6 +45,8 @@ sub new {
         tlw   => {},    # TopLevel
         ttext => '',    # text
     };
+
+    $self->{cfg} = TpdaQrt::Config->instance();
 
     return bless( $self, $class );
 }
@@ -163,6 +165,12 @@ sub help_dialog {
     return;
 }
 
+=head2 toggle_load
+
+Toggle load GPL / Help.
+
+=cut
+
 sub toggle_load {
     my ( $self, $doc ) = @_;
 
@@ -185,21 +193,31 @@ sub toggle_load {
     return;
 }
 
+=head2 get_toolbar_btn
+
+Get toolbar button by name.
+
+=cut
+
 sub get_toolbar_btn {
     my ( $self, $name ) = @_;
 
     return $self->{tb3}->get_toolbar_btn($name);
 }
 
+=head2 load_gpl_text
+
+Load GPL text.
+
+=cut
+
 sub load_gpl_text {
     my $self = shift;
-
-    my $cfg = TpdaQrt::Config->instance();
 
     $self->{ttext}->configure( -state => 'normal' );
     $self->{ttext}->delete( '1.0', 'end' );
 
-    my $txt = $cfg->get_license();
+    my $txt = $self->{cfg}->get_license();
 
     $self->{ttext}->insert( 'end', $txt );
 
@@ -209,6 +227,12 @@ sub load_gpl_text {
     return;
 }
 
+=head2 load_ugd_text
+
+Load user guide.
+
+=cut
+
 sub load_ugd_text {
 
     my $self = shift;
@@ -216,12 +240,12 @@ sub load_ugd_text {
     $self->{ttext}->configure( -state => 'normal' );
     $self->{ttext}->delete( '1.0', 'end' );
 
-    my $title = "\n Ghid de utilizare \n\n";
+    # my $title = "\n Ghid de utilizare \n\n";
 
-    my $txt = get_help_ro();
+    my $txt = $self->{cfg}->get_help();
 
     # add the help text.
-    $self->{ttext}->insert( 'end', $title, 'centertxt' );
+    # $self->{ttext}->insert( 'end', $title, 'centertxt' );
     my $tag = 'normaltxt';
 
     for my $section ( split( /(<[^>]+>)/, $txt ) ) {
@@ -242,6 +266,12 @@ sub load_ugd_text {
     return;
 }
 
+=head2 dlg_exit
+
+Quit.
+
+=cut
+
 sub dlg_exit {
 
     my $self = shift;
@@ -251,36 +281,24 @@ sub dlg_exit {
     return;
 }
 
-sub get_help_ro {
+=head1 AUTHOR
 
-    my $helptext = qq{
-           <BOLD>Introducere</BOLD>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>.
 
-           TPDA - Query Repository Tool' este un program utilitar
-           destinat exportului de informaţii dintr-o bază de date
-           relaţională în fişiere format proprietar Microsoft Excel,
-           sau în fişiere care folosesc open document format (ODF),
-           adică OpenOffice sau LibreOffice Calc.  De asemenea este
-           suportat şi formatul CSV.
+=head1 BUGS
 
-           Aplicația este foarte simplu de folosit, se alege o
-           interogare din listă şi se apasă pe butonul 'Run' (simbol:
-           săgeată albastru spre dreapta).
+None known.
 
-           Dacă totul funcţionează normal, atunci va fi generat
-           fişierul cerut în directorul de ieşire.
+Please report any bugs or feature requests to the author.
 
-           <BOLD>Atenţie</BOLD> generarea fişierelor în format ODF poate dura
-           destul de mult: de exemplu 100 înregistrări în 10 minute.
+=head1 LICENSE AND COPYRIGHT
 
-           <BOLD>Administratori</BOLD>
+Copyright 2010-2012 Stefan Suciu.
 
-           Administratorii de sistem pot definii interogări noi folosind
-           interfaţa aplicaţiei.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation.
 
-};
+=cut
 
-    return $helptext;
-}
-
-1;
+1; # End of TpdaQrt::Tk::Dialog::Help

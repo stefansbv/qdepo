@@ -11,3 +11,5 @@ templates:
   connection: template/connection.yml
 resource:
   icons: etc/interfaces/icons
+helpfile:
+  name: english.txt

@@ -1,0 +1,22 @@
+           <BOLD>Introduction</BOLD>
+
+           TPDA - Query Repository Tool' is a utility programme
+           destined to export data from a relational database
+           to Microsoft Excel proprietary format or in the open
+           document format (ODF), used by OpenOffice or LibreOffice Calc.
+           Also the CSV format is supported.
+
+           It's very simple to use this application, select a report
+           title from the list and click on the 'Run' toolbar button
+           (symbol: blue arrow to the right).
+
+           If all is right, the required file should be generated in the
+           configured output directory.
+
+           <BOLD>Warning</BOLD> generating reports in ODF format may take
+           longer than you expect, something like 100 record in 10 minutes.
+
+           <BOLD>Administrators</BOLD>
+
+           System administrators can define new queries using the
+           graphical user interface.

@@ -20,11 +20,11 @@ TpdaQrt::Config - Tpda TpdaQrt configuration module
 
 =head1 VERSION
 
-Version 0.34
+Version 0.35
 
 =cut
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 =head1 SYNOPSIS
 
@@ -132,6 +132,7 @@ sub _config_main_load {
         ymlconnection =>
             catdir( $configpath, $maincfg->{templates}{connection} ),
         qdftemplate => catfile( $configpath, $maincfg->{templates}{qdf} ),
+        helpfile => $maincfg->{helpfile}{name},
     };
 
     if ( $self->can('cfname') ) {
@@ -328,16 +329,29 @@ END_LICENSE
     }
 }
 
-=head2 get_help_file
+=head2 get_help
 
 Return help file path.
 
 =cut
 
-sub get_help_file {
-    my ($self, $help_file) = @_;
+sub get_help {
+    my $self = shift;
 
-    return catfile( dist_dir('TpdaQrt'), 'help', $help_file);
+    my $message = <<'END_LICENSE';
+
+                     The HELP file is missing or misconfigured!
+
+END_LICENSE
+
+    my $help_file = catfile( dist_dir('TpdaQrt'), 'help', $self->helpfile);
+print "help_file is $help_file\n";
+    if (-f $help_file) {
+        return  read_file( $help_file, binmode => ':utf8' );
+    }
+    else {
+        return $message;
+    }
 }
 
 =head1 AUTHOR
