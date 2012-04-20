@@ -18,6 +18,9 @@ needed ones.  Same is true for the modules used to generate the
 output, like 'Spreadsheet::WriteExcel', 'OpenOffice::OODoc',
 ODF::lpOD, and 'Text::CSV_XS'.
 
+
+INSTALL
+
 % tar -xvzf TpdaQrt-0.35.tar.gz
 
 or
@@ -25,9 +28,6 @@ or
 % unzip  TpdaQrt-0.35.zip
 
 cd TpdaQrt-0.35
-
-
-INSTALL
 
 % perl Makefile.PL
 % make
@@ -38,7 +38,9 @@ For testing the application without installation, after 'make' one can use:
 
 % perl -Mblib bin/tpda-qrt [options] ...
 
-Only make install should be run as root.
+Then, do:
+
+% tpda-qrt test
 
 
 USAGE
