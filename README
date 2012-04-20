@@ -1,0 +1,32 @@
+
+TPDA - Query Repository Tool - a wxPerl and PerlTk GUI tool for data
+exporting and query repository management. SQL queries are saved in XML
+files and can be edited and parametrized.
+
+Open source, alpha status software, be careful it might harm your
+computer ;) Be sure to read the Disclaimer of Warranty. from the GNU
+GENERAL PUBLIC LICENSE
+
+Currently supported export formats: CSV, Excel, OpenOffice Calc and ODF.
+Database management systems support: Firebird, PostgreSQL, MySQL and
+SQLite.
+
+The 'Makefile.PL' script lists the required modules.  From that list
+'DBD::SQLite' is required for the tests and for the initial demo
+configuration.  The other DBD modules are optional, use only the
+needed ones.  Same is true for the modules used to generate the
+output, like 'Spreadsheet::WriteExcel', 'OpenOffice::OODoc',
+ODF::lpOD, and 'Text::CSV_XS'.
+
+This archive contains the distribution TpdaQrt v0.35.
+
+This software is Copyright (c) 2010-2012 by Stefan Suciu.
+
+This is free software, licensed under:
+
+  The GNU General Public License, Version 3, June 2007
+
+Note: Starting with v0.11, back to 'tpda-qrt' name for the starter
+script, using 'qrt' in the initial release, was a bad choice, I think.
+I hope no harm was done for those, who tried to test and install the
+application.

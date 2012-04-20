@@ -228,7 +228,6 @@ sub list_remove_marked {
     my $self = shift;
 
     my $recs = $self->_model->get_qdf_data_tk();
-
     foreach my $idx ( keys %{$recs} ) {
         if ( exists $recs->{$idx}{mark} and $recs->{$idx}{mark} == 1 ) {
             $self->_model->report_remove($recs->{$idx}{file});

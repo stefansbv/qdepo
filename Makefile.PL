@@ -24,16 +24,23 @@ requires 'File::UserConfig'      => '0';
 requires 'File::Find::Rule'      => '0.30';
 requires 'File::HomeDir'         => '0.89';
 requires 'File::Spec::Functions' => '0';
+requires 'File::Slurp'           => '0';
 requires 'YAML::Tiny'            => '0';
 requires 'DBI'                   => '1.53';
 requires 'DBD::SQLite'           => '1.29';
 requires 'XML::Twig'             => '3.26';
-requires 'Hash::Merge'           => '0';
-# for Output
+requires 'Ouch'                  => '0.0401';
+
+# Database
+recommends 'DBD::Pg'       => '1.32';
+recommends 'DBD::Firebird' => '0.80';
+
+# For Output
 requires 'Spreadsheet::WriteExcel' => '0';
-requires 'OpenOffice::OODoc'       => '2.103';
-requires 'Text::CSV_XS'            => '0';
-requires 'ODF::lpOD'               => '0';
+# other optional modules
+recommends 'OpenOffice::OODoc' => '2.103';
+recommends 'Text::CSV_XS'      => '0';
+recommends 'ODF::lpOD'         => '0';
 
 test_requires 'Test::More' => '0.47';
 

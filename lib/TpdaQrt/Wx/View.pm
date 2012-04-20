@@ -3,8 +3,6 @@ package TpdaQrt::Wx::View;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
@@ -12,8 +10,6 @@ use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
 use Wx::STC;
-
-#use Hash::Merge qw(merge);
 
 use TpdaQrt::Config;
 use TpdaQrt::Wx::Notebook;

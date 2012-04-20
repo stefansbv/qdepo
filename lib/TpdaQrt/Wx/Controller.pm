@@ -2,8 +2,6 @@ package TpdaQrt::Wx::Controller;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use utf8;
 
 use English;

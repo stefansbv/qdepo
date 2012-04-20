@@ -2,8 +2,6 @@ package TpdaQrt::Model;
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 use Ouch;
 
 use File::Copy;
