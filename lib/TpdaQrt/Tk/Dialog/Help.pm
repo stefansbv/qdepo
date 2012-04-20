@@ -242,7 +242,7 @@ sub load_ugd_text {
 
     # my $title = "\n Ghid de utilizare \n\n";
 
-    my $txt = $self->{cfg}->get_help();
+    my $txt = $self->{cfg}->get_help_text();
 
     # add the help text.
     # $self->{ttext}->insert( 'end', $title, 'centertxt' );

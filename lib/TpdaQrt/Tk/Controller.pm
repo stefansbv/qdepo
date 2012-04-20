@@ -224,6 +224,12 @@ sub toggle_mark_item {
     return;
 }
 
+=head2 list_remove_marked
+
+Scan the list items and delete the marked ones.
+
+=cut
+
 sub list_remove_marked {
     my $self = shift;
 
@@ -329,7 +335,7 @@ sub about {
 
 =head1 AUTHOR
 
-Stefan Suciu, C<< <stefansbv at user.sourceforge.net> >>
+Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 BUGS
 

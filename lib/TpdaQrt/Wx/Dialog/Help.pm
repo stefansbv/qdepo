@@ -28,6 +28,12 @@ Constructor method
     return bless( $self, $class );
 }
 
+=head2 show_html_help
+
+Show guide.
+
+=cut
+
 sub show_html_help {
     my ($self) = @_;
 
@@ -40,6 +46,28 @@ sub show_html_help {
 
     $self->{help}->AddBook( $htb_file, 1 );
     $self->{help}->DisplayContents;
+
+    return;
 }
 
-1;
+=head1 AUTHOR
+
+Stefan Suciu, C<< <stefan@s2i2.ro> >>.
+
+=head1 BUGS
+
+None known.
+
+Please report any bugs or feature requests to the author.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2010-2012 Stefan Suciu.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation.
+
+=cut
+
+1; # End of TpdaQrt::Wx::Dialog::Help

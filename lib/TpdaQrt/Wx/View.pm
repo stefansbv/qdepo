@@ -265,6 +265,7 @@ sub make_popup_item {
 
     # Preserve some default Id's used by Wx
     $id = wxID_ABOUT if $item->{name} eq q{mn_ab};
+    $id = wxID_HELP  if $item->{name} eq q{mn_gd};
     $id = wxID_EXIT  if $item->{name} eq q{mn_qt};
 
     my $label = $item->{label};
