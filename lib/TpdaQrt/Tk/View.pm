@@ -1102,16 +1102,13 @@ sub action_confirmed {
 
     my $dlg = $self->MsgBox(
         -title   => 'Question',
-        -type    => 'yesno',
+        -type    => 'yesnocancel',
         -icon    => 'question',
         -message => 'Confirmation is required.',
         -detail  => $msg,
     );
 
-    my $answr = $dlg->Show() eq 'yes' ? 1 : 0;
-    print " $answr \n";
-
-    return $answr;
+    return $dlg->Show();
 }
 
 =head2 get_toolbar_btn
@@ -1289,7 +1286,7 @@ sub list_item_select {
 
 =head2 get_list_max_index
 
-Return the max index from the list control
+Return the maximum index from the list control.
 
 =cut
 
@@ -1310,7 +1307,7 @@ sub get_list_max_index {
         $row_count = 0;
     }
 
-    return $row_count;
+    return ($row_count - 1);
 }
 
 =head2 get_list_selected_index
