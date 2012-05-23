@@ -338,11 +338,11 @@ Return help file path.
 sub get_help_text {
     my $self = shift;
 
-    my $message = <<'END_LICENSE';
+    my $message = <<'END_HELP';
 
                      The HELP file is missing or misconfigured!
 
-END_LICENSE
+END_HELP
 
     my $help_file = catfile( dist_dir('TpdaQrt'), 'help', $self->helpfile);
     if (-f $help_file) {

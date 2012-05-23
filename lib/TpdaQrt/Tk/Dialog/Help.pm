@@ -51,7 +51,7 @@ sub new {
     return bless( $self, $class );
 }
 
-=head2 search_dialog
+=head2 help_dialog
 
 Define and show search dialog.
 
