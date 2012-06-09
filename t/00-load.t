@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 15;
 
 use_ok('TpdaQrt');
 use_ok('TpdaQrt::Utils');
@@ -21,6 +21,5 @@ use_ok('TpdaQrt::Observable');
 use_ok('TpdaQrt::Model');
 # Output
 use_ok('TpdaQrt::Output');
-use_ok('TpdaQrt::Output::Excel');
 
 #-- done

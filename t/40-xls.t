@@ -5,11 +5,19 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More;
 
 use lib qw( lib ../lib );
 
-use TpdaQrt::Output::Excel;
+BEGIN {
+    eval { require TpdaQrt::Output::Excel; };
+    if ($@) {
+        plan( skip_all => 'Spreadsheet::WriteExcel is required for this test' );
+    }
+    else {
+        plan tests => 6;
+    }
+}
 
 my @test_data = (
     [ 'id', 'firstname', 'lastname' ],
