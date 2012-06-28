@@ -196,7 +196,7 @@ sub process_sql {
     my $self = shift;
 
     my $item   = $self->_view->get_list_selected_index();
-    my ($data) = $self->_model->read_qdf_data($item);
+    my ($data) = $self->_model->read_qdf_data_file($item);
     $self->_model->run_export($data);
 
     return;
@@ -329,6 +329,25 @@ sub about {
         -fill   => 'both'
     );
     $dbox->Show();
+
+    return;
+}
+
+sub save_qdf_data {
+    my $self = shift;
+
+    my $item = $self->_view->get_list_selected_index();
+    my $file = $self->_model->get_qdf_data_file_tk($item);
+    my $head = $self->_view->controls_read_page('list');
+    my $para = $self->_view->controls_read_page('para');
+    my $body = $self->_view->controls_read_page('sql');
+
+    $self->_model->write_qdf_data_file( $file, $head, $para, $body );
+
+    my $title = $head->[0]{title};
+
+    # Update title in list
+    $self->_view->list_item_edit( $item, undef, $title);
 
     return;
 }

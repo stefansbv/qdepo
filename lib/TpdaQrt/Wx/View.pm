@@ -1230,7 +1230,7 @@ sub controls_populate {
     my $item = $self->get_list_selected_index();
     my $lidata = $self->get_list_item_data($item);
     my $file = $lidata->{file};
-    my ($data) = $self->_model->read_qdf_data( $item, $file );
+    my ($data) = $self->_model->read_qdf_data_file( $item, $file );
 
     my $cfg     = TpdaQrt::Config->instance();
     my $qdfpath = $cfg->qdfpath;
@@ -1266,7 +1266,7 @@ Toggle sql replace
     my $item = $self->get_list_selected_index();
     my $lidata = $self->get_list_item_data($item);
     my $file   = $lidata->{file};
-    my ($data) = $self->_model->read_qdf_data($item, $file);
+    my ($data) = $self->_model->read_qdf_data_file($item, $file);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
@@ -1277,6 +1277,15 @@ Toggle sql replace
     }
 
     return;
+}
+
+sub get_qdf_data_file_wx {
+    my ($self, $item) = @_;
+
+    my $lidata = $self->get_list_item_data($item);
+    my $file   = $lidata->{file};
+
+    return $file;
 }
 
 =head2 control_replace_sql_text

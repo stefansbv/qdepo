@@ -247,7 +247,7 @@ sub set_event_handlers {
         'tb_sv',
         sub {
             if ( $self->_model->is_appmode('edit') ) {
-                $self->save_query_def();
+                $self->save_qdf_data();
                 $self->set_app_mode('sele');
             }
         }
@@ -384,27 +384,15 @@ sub dialog_progress {
     return;
 }
 
-=head2 save_query_def
+=head2 save_qdf_data
 
 Save .qdf file.
 
 =cut
 
-sub save_query_def {
-    my $self = shift;
+sub save_qdf_data {
 
-    my $item = $self->_view->get_list_selected_index();
-
-    my $head = $self->_view->controls_read_page('list');
-    my $para = $self->_view->controls_read_page('para');
-    my $body = $self->_view->controls_read_page('sql');
-
-    $self->_model->save_qdf_file( $item, $head, $para, $body );
-
-    my $title = $head->[0]{title};
-
-    # Update title in list
-    $self->_view->list_item_edit( $item, undef, $title);
+    print 'save_qdf_data not implemented in ', __PACKAGE__, "\n";
 
     return;
 }

@@ -1453,7 +1453,7 @@ Populate list.
 sub list_populate_all {
     my $self = shift;
 
-    $self->_model->read_qdf_data_tk();
+    $self->_model->load_qdf_data_tk();
     my $indices = $self->_model->get_qdf_data_tk();
 
     return unless scalar keys %{$indices};
@@ -1502,7 +1502,7 @@ sub controls_populate {
     my $self = shift;
 
     my $item = $self->get_list_selected_index();
-    my ($data, $file) = $self->_model->read_qdf_data($item);
+    my ($data, $file) = $self->_model->read_qdf_data_file($item);
 
     my $qdfpath = $self->_cfg->qdfpath;
 
@@ -1535,7 +1535,7 @@ sub toggle_sql_replace {
     $mode ||= $self->_model->get_appmode;
 
     my $item = $self->get_list_selected_index();
-    my ($data) = $self->_model->read_qdf_data($item);
+    my ($data) = $self->_model->read_qdf_data_file($item);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );

@@ -37,11 +37,25 @@ Constructor method.
 =cut
 
 sub new {
-    my $class = shift;
+    my ($class, $model) = @_;
 
     my $self = bless( {}, $class );
 
+    $self->{model} = $model;
+
     return $self;
+}
+
+=head2 _model
+
+Model.
+
+=cut
+
+sub _model {
+    my $self = shift;
+
+    return $self->{model};
 }
 
 =head2 _process_file
@@ -54,7 +68,7 @@ sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
 
     unless ( defined $qdf_file ) {
-        print "No .qdf file to process.\n";
+        $self->_model->message_status("No .qdf file to process");
         return;
     }
 
@@ -63,14 +77,14 @@ sub _process_file {
         $data = $self->_xml_read_simple($qdf_file, $tag_name);
     };
     if ($@) {
-        print "> $qdf_file: Not valid XML!\n";
+        $self->_model->message_log("$qdf_file: Not valid XML!");
     } else {
         if (ref $data) {
             $data->{file} = $qdf_file;
             return $data;
         }
         else {
-            print "$qdf_file: Not valid query file!\n";
+            $self->_model->message_log("$qdf_file: Not valid qdf!");
             return;
         }
     }
@@ -85,6 +99,8 @@ Loop and process all files.
 sub _process_all_files {
     my ($self, $tag_name) = @_;
 
+    $self->{model}->message_status("Reading XML files...");
+
     my $qdf_ref = $self->get_file_list();
 
     my $qdf_files_no;
@@ -92,12 +108,15 @@ sub _process_all_files {
         $qdf_files_no = scalar @{$qdf_ref};
     }
     else {
-        print "No query definition files.\n";
+        $self->_model->message_status("No query definition files!");
         return;
     }
 
-    print "\nReading XML files...\n";
-    print " found $qdf_files_no\n";
+    my $msg
+        = $qdf_files_no > 1
+        ? "$qdf_files_no qdf files"
+        : "$qdf_files_no qdf file";
+    $self->{model}->message_status($msg);
 
     my @qdfdata;
     foreach my $qdf_file ( @{$qdf_ref} ) {
@@ -132,7 +151,7 @@ sub _xml_read_simple {
         # are present
     }
     else {
-        ouch 'FileNotFound', "Can't find file: $file!\n";
+        ouch 404, "Can't find file: $file!";
     }
 
     return $xml_data;
@@ -222,6 +241,8 @@ Update an XML file with the new values from record.
 sub xml_update {
     my ($self, $file, $rec) = @_;
 
+    ouch 404, "No valid XML file parameter" unless -f $file;
+
     my $old = $file;
     my $new = "$file.tmp.$$";
     my $bak = "$file.orig";
@@ -247,7 +268,7 @@ sub xml_update {
         $twig->parsefile($file);    # build it (the twig...)
     }
     else {
-        print "NIX report file!\n";
+        ouch 404, "No report file!";
         return;
     }
 

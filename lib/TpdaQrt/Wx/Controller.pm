@@ -160,7 +160,7 @@ sub process_sql {
 
     my $item = $self->_view->get_list_selected_index();
     my $lidata = $self->_view->get_list_item_data($item);
-    my ($data) = $self->_model->read_qdf_data($item, $lidata->{file} );
+    my ($data) = $self->_model->read_qdf_data_file($item, $lidata->{file} );
     $self->_model->run_export($data);
 
     return;
@@ -260,6 +260,25 @@ sub guide {
     my $gd = TpdaQrt::Wx::Dialog::Help->new;
 
     $gd->show_html_help();
+
+    return;
+}
+
+sub save_qdf_data {
+    my $self = shift;
+
+    my $item = $self->_view->get_list_selected_index();
+    my $file = $self->_view->get_qdf_data_file_wx($item);
+    my $head = $self->_view->controls_read_page('list');
+    my $para = $self->_view->controls_read_page('para');
+    my $body = $self->_view->controls_read_page('sql');
+
+    $self->_model->write_qdf_data_file( $file, $head, $para, $body );
+
+    my $title = $head->[0]{title};
+
+    # Update title in list
+    $self->_view->list_item_edit( $item, undef, $title);
 
     return;
 }

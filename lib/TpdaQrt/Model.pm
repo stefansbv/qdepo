@@ -60,7 +60,7 @@ sub new {
         _marks       => 0,
     };
 
-    $self->{fio} = TpdaQrt::FileIO->new();
+    $self->{fio} = TpdaQrt::FileIO->new($self);
 
     bless $self, $class;
 
@@ -288,7 +288,7 @@ sub on_item_selected {
 =head2 load_qdf_data_wx
 
 Return the titles and file names from all the QDF files to fill the
-List control. Th Wx List control has a feature to store data in the
+List control. The Wx List control has a feature to store data in the
 controls, so we don't need a data structure in the Model.
 
 =cut
@@ -315,14 +315,14 @@ sub load_qdf_data_wx {
     return $titles;
 }
 
-=head2 read_qdf_data_tk
+=head2 load_qdf_data_tk
 
 Read the titles and file names from all the QDF files and store in
 a data structure used to fill the List control.
 
 =cut
 
-sub read_qdf_data_tk {
+sub load_qdf_data_tk {
     my $self = shift;
 
     my $data_ref = $self->{fio}->get_titles();
@@ -499,7 +499,7 @@ sub run_export {
     return;
 }
 
-=head2 read_qdf_data
+=head2 read_qdf_data_file
 
 Get all contents from the selected QDF title (file).
 
@@ -507,7 +507,7 @@ For Wx the file parameter is required.
 
 =cut
 
-sub read_qdf_data {
+sub read_qdf_data_file {
     my ($self, $item, $file) = @_;
 
     $file ||= $self->get_qdf_data_file_tk($item);
@@ -529,16 +529,14 @@ sub get_itemchanged_observable {
     return $self->{_itemchanged};
 }
 
-=head2 save_qdf_file
+=head2 write_qdf_data_file
 
 Save current query definition data from controls into a qdf file.
 
 =cut
 
-sub save_qdf_file {
-    my ($self, $item, $head, $para, $body) = @_;
-
-    my $file = $self->get_qdf_data_file_tk($item);
+sub write_qdf_data_file {
+    my ($self, $file, $head, $para, $body) = @_;
 
     # Transform records to match data in xml format
     $head = TpdaQrt::Utils->transform_data($head);
