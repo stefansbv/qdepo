@@ -259,7 +259,7 @@ sub set_event_handlers {
         sub {
             if ($self->_model->is_connected ) {
                 $self->_view->dialog_progress('Export data');
-                $self->process_sql();
+                $self->process_sql();        # in Controller Wx | Tk
             }
             else {
                 $self->_view->dialog_error( 'Error', 'Not connected!' );
@@ -367,19 +367,6 @@ sub toggle_controls_page {
             $self->_view->set_editable($name, $state, $color);
         }
     }
-
-    return;
-}
-
-=head2 dialog_progress
-
-Progress dialog.
-
-=cut
-
-sub dialog_progress {
-
-    print 'dialog_progress not implemented in ', __PACKAGE__, "\n";
 
     return;
 }

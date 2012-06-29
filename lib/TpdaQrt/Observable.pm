@@ -99,16 +99,12 @@ sub _docallbacks {
 
 =head2 set
 
-Set data value
+Set data value and execute the callbacks.
 
 =cut
 
 sub set {
     my ( $self, $data ) = @_;
-# # DEBUG
-#     my ($package, $filename, $line, $subroutine) = caller(3);
-#     print "set:\n $package, $line, $subroutine\n";
-
 
     $self->{_data} = $data;
     $self->_docallbacks();

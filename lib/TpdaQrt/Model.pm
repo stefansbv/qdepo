@@ -2,7 +2,6 @@ package TpdaQrt::Model;
 
 use strict;
 use warnings;
-use Ouch;
 
 use File::Copy;
 use File::Basename;
@@ -55,6 +54,7 @@ sub new {
         _appmode     => TpdaQrt::Observable->new(),
         _choice      => TpdaQrt::Observable->new(),
         _progress    => TpdaQrt::Observable->new(),
+        _continue    => TpdaQrt::Observable->new(),
         _cfg         => TpdaQrt::Config->instance(),
         _lds         => {},                 # list data structure
         _marks       => 0,
@@ -151,7 +151,6 @@ sub get_stdout_observable {
 
     return $self->{_stdout};
 }
-
 
 =head2 set_mode
 
@@ -458,6 +457,11 @@ sub run_export {
         $data->{parameters},
     );
 
+    unless (($bind and $sqltext)) {
+        $self->message_status('Parameter error!', 0);
+        return;
+    }
+
     my $outfile = $data->{header}{output};
 
     $self->message_log('II Running data export ...');
@@ -597,11 +601,10 @@ sub report_add {
         return $data_ref;
     }
     else {
-        $self->message_log("WW File exists! ($dst_fqn)");
-        ouch 'FileExists', "File exists! ($dst_fqn)";
-
-        return;
+        $self->message_log("EE File exists! ($dst_fqn)");
     }
+
+    return;
 }
 
 =head2 report_name
@@ -726,7 +729,7 @@ sub get_choice_observable {
 
 =head2 string_replace_for_run
 
-Prepare sql text string for execution.  Replace the 'valueN' string
+Prepare SQL text string for execution.  Replace the 'valueN' string
 with with '?'.  Create an array of parameter values, used for binding.
 
 Need to check if number of parameters match number of 'valueN' strings
@@ -743,7 +746,8 @@ sub string_replace_for_run {
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
         unless ( $sqltext =~ s/($var)/\?/pm ) {
-            $self->log_msg("EE Parameter mismatch, to few parameters in SQL");
+            my $error_msg = "EE Parameter mismatch, to few parameters in SQL";
+            $self->message_log($error_msg);
             return;
         }
 
@@ -752,13 +756,13 @@ sub string_replace_for_run {
 
     # Check for remaining not substituted 'value[0-9]' in SQL
     if ( $sqltext =~ m{(value[0-9])}pm ) {
-        $self->log_msg("EE Parameter mismatch, to many parameters in SQL");
+        my $error_msg = "EE Parameter mismatch, to many parameters in SQL";
+        $self->message_log($error_msg);
         return;
     }
 
     return ( \@bind, $sqltext );
 }
-
 
 =head2 string_replace_pos
 
@@ -824,6 +828,34 @@ sub get_exception {
     $self->get_exception_observable->set();  # clear
 
     return $exception;
+}
+
+=head2 get_continue_observable
+
+Get continue operation observable status.  Flag used by the progress
+indicator to stop the output file generation process.
+
+=cut
+
+sub get_continue_observable {
+    my $self = shift;
+
+    return $self->{_continue};
+}
+
+=head2 set_continue
+
+Set continue to false if Cancel button ont the progress dialog is
+activated (Wx only).
+
+=cut
+
+sub set_continue {
+    my ( $self, $cont ) = @_;
+
+    $self->get_continue_observable->set($cont);
+
+    return;
 }
 
 =head2 has_marks

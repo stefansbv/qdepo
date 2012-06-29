@@ -208,6 +208,9 @@ sub _set_model_callbacks {
         }
     );
 
+    # Set continue to true
+    $self->_model->set_continue(1);
+
     return;
 }
 

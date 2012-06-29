@@ -67,7 +67,9 @@ sub _create_progress {
     my $flags = Wx::wxPD_ELAPSED_TIME
               | Wx::wxPD_ESTIMATED_TIME
               | Wx::wxPD_REMAINING_TIME
-              | Wx::wxPD_AUTO_HIDE;
+              | Wx::wxPD_AUTO_HIDE
+              | Wx::wxPD_CAN_ABORT
+              ;
 
     $flags |= Wx::wxPD_APP_MODAL if $self->{modal};
 
@@ -104,21 +106,26 @@ sub update {
 
     my $text = "Copied $value\% ...";
 
-    $self->{dialog}->Update( $value, $text );
-
-    return 1;
+    return $self->{dialog}->Update( $value, $text );
 }
 
-sub Destroy {
+=head2 Destroy
 
-    # Simulate Wx's ->Destroy function
-    shift->DESTROY;
-}
+Simulate Wx's ->Destroy function.
+
+=cut
+
+sub Destroy { shift->DESTROY; }
+
+=head2 DESTROY
+
+Destroy (and hide )the dialog if it's still defined.
+
+=cut
 
 sub DESTROY {
     my $self = shift;
 
-    # Destroy (and hide )the dialog if it's still defined
     $self->{dialog}->Destroy if defined( $self->{dialog} );
 }
 
@@ -132,8 +139,13 @@ None known.
 
 Please report any bugs or feature requests to the author.
 
+=head1 ACKNOWLEDGEMENTS
+
+From Padre::Wx::Progress
+
 =head1 LICENSE AND COPYRIGHT
 
+Copyright 2008-2011 The Padre development team as listed in Padre.pm.
 Copyright 2010-2012 Stefan Suciu.
 
 This program is free software; you can redistribute it and/or modify

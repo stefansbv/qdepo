@@ -3,7 +3,6 @@ package TpdaQrt::Output;
 use strict;
 use warnings;
 
-use Ouch;
 use Try::Tiny;
 use POSIX qw (floor);
 
@@ -149,6 +148,12 @@ sub generate_output_excel {
             next if $pv == $p;
 
             $self->{model}->progress_update($p);
+
+            unless ( $self->{model}->get_continue_observable->get ) {
+                $self->{model}->message_log("II Stopped by user request!");
+                last;
+            }
+
             $pv = $p;
         }
 
@@ -220,6 +225,12 @@ sub generate_output_csv {
             next if $pv == $p;
 
             $self->{model}->progress_update($p);
+
+            unless ( $self->{model}->get_continue_observable->get ) {
+                $self->{model}->message_log("II Stopped by user request!");
+                last;
+            }
+
             $pv = $p;
         }
 
@@ -309,6 +320,12 @@ sub generate_output_calc {
             next if $pv == $p;
 
             $self->{model}->progress_update($p);
+
+            unless ( $self->{model}->get_continue_observable->get ) {
+                $self->{model}->message_log("II Stopped by user request!");
+                last;
+            }
+
             $pv = $p;
         }
 
@@ -398,6 +415,12 @@ sub generate_output_odf {
             next if $pv == $p;
 
             $self->{model}->progress_update($p);
+
+            unless ( $self->{model}->get_continue_observable->get ) {
+                $self->{model}->message_log("II Stopped by user request!");
+                last;
+            }
+
             $pv = $p;
         }
 
@@ -451,7 +474,6 @@ sub count_rows {
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
-        ouch 'SQLError', "EE: $_";
     };
 
     return $rows_cnt;

@@ -1380,29 +1380,49 @@ sub toggle_status_cn {
     return;
 }
 
+=head2 dialog_progress
+
+Create a progress dialog.
+
+=cut
+
 sub dialog_progress {
     my ($self, $title, $max) = @_;
 
-    require TpdaQrt::Wx::Progress;
+    $max = (defined $max and $max > 0) ? $max : 100;
 
-    $self->{progress} = TpdaQrt::Wx::Progress->new($self, $title, 100);
+    require TpdaQrt::Wx::Progress;
+    $self->{progress} = TpdaQrt::Wx::Progress->new($self, $title, $max);
+
+    $self->{progress}->Destroy;
 
     return;
 }
 
+=head2 progress_update
+
+Update progress.  If Cancel is pressed, stop, (set continue to false).
+
+=cut
+
 sub progress_update {
-    my ($self, $count) = @_;
+    my ( $self, $count ) = @_;
 
     return if !$count;
 
-    $self->{progress}->update($count) if defined $self->{progress};
+    if ( defined $self->{progress}
+        and $self->{progress}->isa('TpdaQrt::Wx::Progress') )
+    {
+        my $continue = $self->{progress}->update($count);
+        $self->_model->set_continue($continue);
+    }
 
     return;
 }
 
 =head2 control_set_value
 
-Set new value for a controll
+Set new value for a controll.
 
 =cut
 
