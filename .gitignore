@@ -11,3 +11,8 @@ inc/
 *.sqlite
 *.db
 .\#*
+*.od?
+*.xls
+*.csv
+*.al
+.tmp.*
