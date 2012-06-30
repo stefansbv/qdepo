@@ -1,83 +1,45 @@
 
-Open source, alpha status software, be careful it might harm your
-computer ;) Be sure to read the Disclaimer of Warranty. from the GNU
-GENERAL PUBLIC LICENSE
+TPDA - Query Repository Tool - A desktop application for retrieving
+and exporting data from relational database systems to spreadsheet
+files.
 
-TPDA - Query Repository Tool - a wxPerl and PerlTk GUI tool for data
-exporting and query repository management. Queries are saved in XML
-files and can be edited and parametrized.
+Please, read the Disclaimer of Warranty. from the GNU GENERAL PUBLIC
+LICENSE.
 
-Currently supported export formats: CSV, Excel, OpenOffice Calc and ODF.
-Database management systems support: Firebird, PostgreSQL, MySQL and
-SQLite.
+This is a Perl application with wxPerl and/or PerlTk graphical user
+interface. Unpack the distribution file, install the prerequisites.
+listed in Makefile.PL,
 
-The 'Makefile.PL' script lists the required modules.  From that list
-'DBD::SQLite' is required for the tests and for the initial demo
-configuration.  The other DBD modules are optional, use only the
-needed ones.  Same is true for the modules used to generate the
-output, like 'Spreadsheet::WriteExcel', 'OpenOffice::OODoc',
-ODF::lpOD, and 'Text::CSV_XS'.
+ % cpanm --installdeps .  # easy if you have App::cpanminus installed
 
+Than install like any other standard Perl module:
 
-INSTALL
-
-% tar -xvzf TpdaQrt-0.35.tar.gz
-
-or
-
-% unzip  TpdaQrt-0.35.zip
-
-cd TpdaQrt-0.35
-
-% perl Makefile.PL
-% make
-% make test
-% make install
-
-For testing the application without installation, after 'make' one can use:
-
-% perl -Mblib bin/tpda-qrt [options] ...
-
-Then, do:
-
-% tpda-qrt test
-
-
-USAGE
+ % tar xaf Tpda-Qrt-0.XX.tar.gz
+ % cd Tpda-Qrt-0.XX
+ % make
+ % make test
+ % make install
 
 After installing the application, at first start, the configuration
-directory is initialized automatically.  The following command will
+directory is initialized automaticaly.  The following command will
 list all the defined configurations.
 
-There is a new config option in .tpdaqrt/etc/main.yml for used to
-switch to the newly supported PerlTk GUI interface.
+ % tpda-qrt -l
 
-widgetset: Tk (instead of Wx)
+After a fresh instalation only a configuration named 'test' exists.
+A new configuration (project) can be created like this:
 
-% tpda-qrt -list
+ % tpda-qrt -i <config-name>
 
-Create a new connection configuration, let's name it 'myconn':
-
-% tpda-qrt -init myconn
-
-Edit $HOME/.tpdaqrt/db/myconn/etc/connection.yml
-
-For 'driver', following options are valid:
-
-firebird
-postgresql
-mysql
-sqlite
-
-case is not important
-
-'output' is the path where the files are generated.
+Then edit the connection.yml configuration file and replace at least
+the database name and host name (see the next chapter for details).
 
 Start the program with:
 
-% tpda-qrt myconn [-u username -p password]
+ % tpda-qrt myconn [-u username -p password]
 
-If no user and/or password a login dialog should show.
+If no user and/or password and the connection fails, a login dialog
+should show, enter the required data and login.
 
 Click on the '+' toolbar button and then on the 'Edit' button, edit
 the title, the output file name, (the sheet name is valid only for

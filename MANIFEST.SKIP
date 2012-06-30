@@ -39,4 +39,4 @@
 \.odf$
 \.csv$
 \.al$
-\.html
+^help/

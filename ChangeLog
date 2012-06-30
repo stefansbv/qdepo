@@ -1,243 +1,296 @@
+2012-06-30     <stefan>
+
+	* Add new manual for Wx. Update the connection template. Prepare
+	for Release 0.36.
+
+2012-06-29     <stefan>
+
+	* Git ignore test files.
+
+2012-06-29     <stefan>
+
+	* New feature: cancel button on progress dialog.
+
+2012-06-28     <stefan>
+
+	* Fix save for qdf file (Wx) and rename some methods.
+
+2012-06-27     <stefan>
+
+	* Add support for CUBRID RDBMS.
+
+2012-06-09     <stefan>
+
+	* Fix tests.
+
+2012-05-23     <stefan>
+
+	* Small name changes
+
+2012-04-20     <stefan>
+
+	* Doc update.
+
+2012-04-20     <stefan>
+
+	* Update PODs.
+
+2012-04-20     <stefan>
+
+	* Add configurable guide text file (Tk). Prepare release v0.35.
+
+2012-04-20     <stefan>
+
+	* Add tests for Tk load; split load test; update requirements.
+
+2012-04-20     <stefan>
+
+	* Add Cancel button to dialog; fix get_list_max_index method.
+
 2012-04-19     <stefan>
 
-	* Small fixes.
+	* Fixes and docs update.
 
 2012-04-19     <stefan>
 
-	* Don't try to load details when no item is selected.
+        * Small fixes.
 
 2012-04-19     <stefan>
 
-	* Cleanup debug print.
+        * Don't try to load details when no item is selected.
 
 2012-04-19     <stefan>
 
-	* Add MySQL support; 'translate' only connection error messages.
+        * Cleanup debug print.
+
+2012-04-19     <stefan>
+
+        * Add MySQL support; 'translate' only connection error messages.
 
 2012-04-18     <stefan>
 
-	* Add Firebird support.
+        * Add Firebird support.
 
 2012-04-18     <stefan>
 
-	* Fix method name call in process_sql - Wx.
+        * Fix method name call in process_sql - Wx.
 
 2012-04-18     <stefan>
 
-	* Fix enable controlls on edit for Wx.
+        * Fix enable controlls on edit for Wx.
 
 2012-04-18     <stefan>
 
-	* Check what rows_count returns.
+        * Check what rows_count returns.
 
 2012-04-18     <stefan>
 
-	* Add Guide to Wx.
+        * Add Guide to Wx.
 
 2012-04-14     <stefan>
 
-	* Mark items for deletition and delete when quiting.
+        * Mark items for deletition and delete when quiting.
 
 2012-04-14     <stefan>
 
-	* Make Wx list item data a hash reference.
+        * Make Wx list item data a hash reference.
 
 2012-04-12     <stefan>
 
-	* Fix add report for Wx.
+        * Fix add report for Wx.
 
 2012-04-12     <stefan>
 
-	* Add About and Help for Wx.
+        * Add About and Help for Wx.
 
 2012-04-12     <stefan>
 
-	* Default interface Tk; enable SQLite.
+        * Default interface Tk; enable SQLite.
 
 2012-04-10     <stefan>
 
-	* Release v0.34.
+        * Release v0.34.
 
 2012-04-10     <stefan>
 
-	* Working Tk interface.
+        * Working Tk interface.
 
 2012-04-09     <stefan>
 
-	* Mark items for deletition and remove at quit (Tk).
+        * Mark items for deletition and remove at quit (Tk).
 
 2012-04-09     <stefan>
 
-	* Refactor controllers and views.
+        * Refactor controllers and views.
 
 2012-04-09     <stefan>
 
-	* Make same version for all modules. Release v0.33.
+        * Make same version for all modules. Release v0.33.
 
 2012-04-09     <stefan>
 
-	* Add Wx Error dialog message.
+        * Add Wx Error dialog message.
 
 2012-04-09     <stefan>
 
-	* Add login dialog (from Tpda3).
+        * Add login dialog (from Tpda3).
 
 2012-04-08     <stefan>
 
-	* Register selected output format choice.
+        * Register selected output format choice.
 
 2012-04-08     <stefan>
 
-	* Fix progress dialog.
+        * Fix progress dialog.
 
 2012-04-08     <stefan>
 
-	* Move process_sql method to platform controller.
+        * Move process_sql method to platform controller.
 
 2012-04-08     <stefan>
 
-	* Fix list select event handler.
+        * Fix list select event handler.
 
 2012-04-08     <stefan>
 
-	* Refactor Controller.
+        * Refactor Controller.
 
 2012-04-08     <stefan>
 
-	* Revert to Excel output as default.
+        * Revert to Excel output as default.
 
 2012-02-16     <stefan>
 
-	* Remove not used module: Exception::Class::DBI
+        * Remove not used module: Exception::Class::DBI
 
 2012-02-10     <stefan>
 
-	* Add Progress dialog to all output types.
+        * Add Progress dialog to all output types.
 
 2012-02-10     <stefan>
 
-	* Enable setting column width for Excel and ODF.
+        * Enable setting column width for Excel and ODF.
 
 2012-02-10     <stefan>
 
-	* Fix test
+        * Fix test
 
 2012-02-10     <stefan>
 
-	* Update copyright year.
+        * Update copyright year.
 
 2012-02-09     <stefan>
 
-	* Update module versions.
+        * Update module versions.
 
 2012-02-09     <stefan>
 
-	* Revert to Module::Install.
+        * Revert to Module::Install.
 
 2011-12-20     <stefan>
 
-	* Experimenting with Dist::Zilla build system.
+        * Experimenting with Dist::Zilla build system.
 
 2011-12-19     <stefan>
 
-	* Release v0.31. Bug fix for (not) installing the main script.
+        * Release v0.31. Bug fix for (not) installing the main script.
 
 2011-12-05     <stefan>
 
-	* Release v0.30
+        * Release v0.30
 
 2011-12-05     <stefan>
 
-	* Integrate original README in POD. Experiment with Dist::Zilla.
+        * Integrate original README in POD. Experiment with Dist::Zilla.
 
 2011-12-03     <stefan>
 
-	* Cleanup
+        * Cleanup
 
 2011-11-05     <stefan>
 
-	* Only level 1 subdirs for qdf files is supported.  Fix log info
-	output. Fix export from Wx. Restore Wx feature to remove report
-	directly. Back to using the Lists data structure to store the file
-	name in Wx. Almost the desired sequence of events :)
+        * Only level 1 subdirs for qdf files is supported.  Fix log info
+        output. Fix export from Wx. Restore Wx feature to remove report
+        directly. Back to using the Lists data structure to store the file
+        name in Wx. Almost the desired sequence of events :)
 
 2011-11-04     <stefan>
 
-	* Fix parameters replace in SQL. Fix utf8 in CSV output. Remove
-	icons for connect and refresh. Implement change output option and
-	fix layout for Tk. Refactor generate output.
+        * Fix parameters replace in SQL. Fix utf8 in CSV output. Remove
+        icons for connect and refresh. Implement change output option and
+        fix layout for Tk. Refactor generate output.
 
 2011-11-02     <stefan>
 
-	* Refactor DB connection. Refactor Tk interface.
+        * Refactor DB connection. Refactor Tk interface.
 
 2011-11-01     <stefan>
 
-	* Refactor list data model and sync Wx and Tk implementation. Move
-	and rename some functions.
+        * Refactor list data model and sync Wx and Tk implementation. Move
+        and rename some functions.
 
 2011-10-31     <stefan>
 
-	* Crude implementation of the Tk front-end. Synchronize Tk with Wx
-	(methods for lists). Update menu data, change label for
-	Pages. Fill pages with controls. Refactor config.
+        * Crude implementation of the Tk front-end. Synchronize Tk with Wx
+        (methods for lists). Update menu data, change label for
+        Pages. Fill pages with controls. Refactor config.
 
 2011-10-29     <stefan>
 
-	* First page in Tk. Small tweaks in Wx. Ignore .db files. Changes
-	adapted from Tpda3. Initial import - Tk
+        * First page in Tk. Small tweaks in Wx. Ignore .db files. Changes
+        adapted from Tpda3. Initial import - Tk
 
 2011-10-23     <stefan>
 
-	* Updated gitignore. Add test for ODF output. Add progress dialog
-	module ;) Fix UTF8 problem; Add progress dialog. New output doc
-	format.
+        * Updated gitignore. Add test for ODF output. Add progress dialog
+        module ;) Fix UTF8 problem; Add progress dialog. New output doc
+        format.
 
 2011-05-17     <stefan>
 
-	* Check if output path exist and show a message if not
+        * Check if output path exist and show a message if not
 
 2011-05-08     <stefan>
 
-	* Added required module
+        * Added required module
 
 2011-01-12    <stefan>
 
-	* New default icon set; Added extension to icon file names in the
-	toolbar.yml config file
+        * New default icon set; Added extension to icon file names in the
+        toolbar.yml config file
 
 2011-01-07    <stefan>
 
-	* Release ver. 0.20
+        * Release ver. 0.20
 
 2011-01-06    <stefan>
 
-	* Sample report for the test connection
+        * Sample report for the test connection
 
 2011-01-05    <stefan>
 
-	* Added text control for logging, with customized log
-	messages. Removed (ugly) config values display, switched to
-	logging
+        * Added text control for logging, with customized log
+        messages. Removed (ugly) config values display, switched to
+        logging
 
 2011-01-03    <stefan>
 
-	* Added exception reporting for DBI operations
+        * Added exception reporting for DBI operations
 
 2010-12-30    <stefan>
 
-	* Renamed main module to TpdaQrt
+        * Renamed main module to TpdaQrt
 
 2010-12-28    <stefan>
 
-	* Release ver. 0.11 - Bugfix release
+        * Release ver. 0.11 - Bugfix release
 
 2010-12-28    <stefan>
 
-	* Bug fix. Back to tpda-qrt name for the starter script; Fixed
-	some configurations in Makefile.PL: the min perl version is now
-	5.8 and the min SQLite version is 1.29. Using '.tpda_qrt' as
-	config directory.
+        * Bug fix. Back to tpda-qrt name for the starter script; Fixed
+        some configurations in Makefile.PL: the min perl version is now
+        5.8 and the min SQLite version is 1.29. Using '.tpda_qrt' as
+        config directory.
 
 2010-12-16    <stefan>
 
