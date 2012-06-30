@@ -1,15 +1,15 @@
 # Tpda-Qrt
 # Database connection configuration
 # Valid options for driver are:
-#  firebird postgresql mysql sqlite
+#  cubrid | firebird | postgresql | mysql | sqlite
 # Output path points to the directory where output files are created
 #
 # ~ means undefined
 ---
 conninfo:
-  driver: firebird
+  driver: cubrid
   host:   localhost
-  dbname: databasename
-  port:   3050
+  dbname: demodb
+  port:   30000
 output:
   path:   ./

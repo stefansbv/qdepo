@@ -1,0 +1,47 @@
+<chapter><title>Introduction</title>
+  <formalpara>
+    <title>TPDA - Query Repository Tool</title>
+    <para>
+      A desktop application for retrieving and exporting data from
+    relational database systems to spreadsheet files.</para>
+  </formalpara>
+  <para>
+    The supported formats are <trademark class='registered'>Excel
+    <emphasis>.xls</emphasis></trademark>, ODF and
+    CSV. The Database management system support includes <trademark
+    class='trade'>CUBRID</trademark> (new),
+    <trademark class='registered'>Firebird</trademark>, <trademark
+    class='trade'>MySQL</trademark>, <trademark
+    class='registered'>PostgreSQL</trademark> and <trademark
+    class='registered'>SQLite</trademark>.
+  </para>
+  <para>The graphical user interface is based on wxPerl or PerlTk.</para>
+  <para>The main feature of the application is the SQL query
+  repository management. The repository consists from a collection of
+  XML files that ca easily be moved or copied to other computers. The
+  XML data files have a <emphasis>.qdf</emphasis> extension.
+  The queries can be parametrized and edited from the application user interface.</para>
+  <para>Export formats supported, and the required Perl modules:</para>
+  <para>
+    <itemizedlist>
+      <listitem>
+        <para>CSV - Text::CSV_XS</para>
+      </listitem>
+      <listitem>
+        <para>XLS - Spreadsheet::WriteExcel</para>
+      </listitem>
+      <listitem>
+        <para>ODF<footnote><para>Open Document Format.</para></footnote> - OpenOffice::OODoc or ODF::lpOD</para>
+      </listitem>
+    </itemizedlist>
+  </para>
+  <formalpara>
+    <title>History</title>
+    <para>
+      The idea for this project, was born around 2002, from the
+      necessity to run, monthly, the same queries against two small
+      databases, with a couple of parameters changed at every run, and
+      get the data in spreadsheet format for further
+      processing. The first version was a single, big PerlTk script.</para>
+  </formalpara>
+</chapter>

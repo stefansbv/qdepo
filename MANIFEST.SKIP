@@ -18,6 +18,7 @@
 # Avoid temp and backup files.
 ~$
 \.tmp$
+\.tmp.*$
 \.old$
 \.bak$
 \#$
@@ -33,3 +34,9 @@
 \.zip$
 ^test\.ods$
 ^test\.xls$
+\.xls$
+\.ods$
+\.odf$
+\.csv$
+\.al$
+\.html

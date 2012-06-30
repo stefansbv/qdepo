@@ -1,0 +1,137 @@
+<chapter><title>Usage</title>
+<section><title>Quick usage</title>
+<para>
+Run the application with the connection name created at the
+configuration step as argument.</para>
+<para>
+  <programlisting>
+    % tpda-qrt <sgmltag>&lt;config-name&gt;</sgmltag>
+  </programlisting>
+</para>
+<para>
+Create a new query definition by clicking on the add report button
+(+).  Edit the title, the output file name and the description from
+the Query List tab. Also edit the SQL query statement from the SQL
+Query tab. Click the Save toolbar button and them click Run to export
+the data from the table in the format currently selected.</para>
+</section>
+<section><title>Interface description</title>
+<para>
+   The application's graphical user interface frame consists of a
+   menu, a toolbar, a statusbar and a notebook with four tabs:</para>
+  <formalpara>
+    <title>Description of the tabs:</title>
+    <para>
+      <variablelist>
+        <varlistentry>
+          <term>Query list</term>
+          <listitem>
+            <para>
+              List of queries and details about the selected one.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Parameters</term>
+          <listitem>
+            <para>
+              In the current implementation, up to five parameters ca
+              be used in the SQL query.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>SQL Query</term>
+          <listitem>
+            <para>
+              Basic SQL viewer/editor with syntax highlighting.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Log Info</term>
+          <listitem>
+            <para>
+              Log for the current activity. Coding inspired from the
+              X.org server: II for info, WW for warning and EE for
+              errors.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+  </formalpara>
+  <formalpara>
+    <title>The toolbar buttons:</title>
+    <para>
+      <variablelist>
+        <varlistentry>
+          <term>Edit</term>
+          <listitem>
+            <para>
+              Enter edit mode. In this mode the data can be edited and
+              then saved with the Save button.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Save</term>
+          <listitem>
+            <para>
+              Save the data from the controls and enter
+              <emphasis>sele</emphasis>ct mode.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Add report</term>
+          <listitem>
+            <para>
+              Add new report (<emphasis>.qdf</emphasis> file) to the
+              repository. It's created from template.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Remove</term>
+          <listitem>
+            <para>
+              Remove a report (<emphasis>.qdf</emphasis> file) from
+              the repository. Makes a backup with the
+              <emphasis>.orig</emphasis> extension.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Output format options </term>
+          <listitem>
+            <para>
+              Select the output format. Currently supported formats
+              are: Excel, CSV, Calc and ODF.
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Run</term>
+          <listitem>
+            <para>
+              Execute the curent query. Output file is created in the
+              configured directory (the default is the current
+              directory).
+            </para>
+          </listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>Quit</term>
+          <listitem>
+            <para>
+              Quit the application.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+  </formalpara>
+  <para></para>
+</section>
+</chapter>

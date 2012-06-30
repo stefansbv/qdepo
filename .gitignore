@@ -16,3 +16,7 @@ inc/
 *.csv
 *.al
 .tmp.*
+htmlhelp.h??
+htmlhelp.chm
+*.html
+toc.hhc
