@@ -22,8 +22,8 @@ behind this great projects:</para>
       <para>GNU/Linux</para>
     </listitem>
     <listitem>
-      <para><ulink type="http"
-                   url="http://www.perlmonks.org/">Perl Monks - the best Perl support site</ulink>
+      <para><ulink type="http" url="http://www.perlmonks.org/">Perl
+      Monks</ulink> - the best Perl support site.
       </para>
     </listitem>
     <listitem>
@@ -32,7 +32,12 @@ behind this great projects:</para>
   </itemizedlist>
 </para>
 <para>
-And last but least, Herbert Breunung for his guidance, hints and
+  This documentation is made with DocBook and with help from a
+  tutorial by Jim Crafton ("Documention with DocBook on Win32").
+</para>
+<para>
+And last but not least, Herbert Breunung for his guidance, hints and
 for his Kephra project a very good source of inspiration.</para>
 <para>Thank you!</para>
+
 </chapter>

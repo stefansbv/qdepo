@@ -106,6 +106,10 @@ sub generate_output_excel {
         $self->{model}->message_log("II SQL: No output rows!");
         return;
     }
+    else {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II Count: $rows_cnt total rows");
+    }
 
     #--- Select
 
@@ -130,8 +134,6 @@ sub generate_output_excel {
         $xls->create_row( $row, $sth->{NAME}, 'h_fmt');
 
         $row++;
-
-        $self->{model}->message_status("$rows_cnt total rows");
 
         $self->{model}->progress_update(0);
         my $pv = 0;
@@ -455,7 +457,7 @@ sub count_rows {
 
     my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
 
-    $self->{model}->message_log("II SQL: $cnt_sql");
+    # $self->{model}->message_log("II SQL: $cnt_sql");
 
     my $rows_cnt;
     try {

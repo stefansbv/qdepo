@@ -491,7 +491,7 @@ sub run_export {
 
     if ($out) {
         $self->message_status("Output generated");
-        $self->message_log("II '$out' generated");
+        #$self->message_log("II '$out' generated");
     }
     else {
         $self->message_status("No output file generated");

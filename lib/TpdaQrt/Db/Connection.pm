@@ -101,6 +101,12 @@ sub _connect {
     $self->{dbc} = $db;
     $self->{dbh} = $db->db_connect($conf);
 
+    my $username = defined $self->{dbh}->{Username}
+        ? $self->{dbh}->{Username}
+        : 'undef?'
+        ;
+    print "Connected as $username\n";
+
     return;
 }
 

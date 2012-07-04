@@ -19,4 +19,6 @@ inc/
 htmlhelp.h??
 htmlhelp.chm
 *.html
+*.chm
 toc.hhc
+*.old
