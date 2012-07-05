@@ -53,6 +53,18 @@ sub new {
     return $self;
 }
 
+=head2 close_app
+
+Generate close event.
+
+=cut
+
+sub close_app {
+    my $self = shift;
+
+    $self->_view->on_close_window;
+}
+
 =head2 _init
 
 Init App.

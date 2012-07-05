@@ -5,7 +5,7 @@ use warnings;
 
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
-use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
+use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED
     EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
@@ -73,6 +73,17 @@ sub new {
     $self->_set_model_callbacks();
 
     $self->Fit;
+
+    #-- Event close
+    EVT_CLOSE(
+        $self,
+        sub {
+            my $self = shift;
+            $self->on_close_window(@_);
+        },
+    );
+
+    EVT_COMMAND( $self, -1, 9999, \&on_close_window );
 
     return $self;
 }
@@ -1558,16 +1569,36 @@ sub controls_read_page {
     return \@records;
 }
 
-=head2 on_quit
+sub toggle_list_enable {
+    my ($self, $state) = @_;
 
-Quit.
+    $self->get_listcontrol()->Enable($state);
 
-=cut
+    return;
+}
 
-sub on_quit {
-    my $self = shift;
+sub set_editable {
+    my ( $self, $name, $state, $color ) = @_;
 
-    $self->Close(1);
+    # Controls states are defined in View as strings
+    # Here we need to transform them to 0|1
+    my $editable = $state eq 'normal' ? 1 : 0;
+    $color = 'lightgrey' unless $editable; # default color for disabled
+
+    my $control = $self->get_control_by_name($name);
+
+    if ( $name eq 'sql' ) {
+        # For Wx::StyledTextCtrl
+        $control->Enable($editable);
+    }
+    else {
+        # For Wx::TextCtrl
+        $control->SetEditable($editable);
+    }
+
+    $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
+
+    return ;
 }
 
 ######################################################################
@@ -1613,36 +1644,16 @@ sub event_handler_for_list {
     return;
 }
 
-sub toggle_list_enable {
-    my ($self, $state) = @_;
+=head2 on_close_window
 
-    $self->get_listcontrol()->Enable($state);
+Destroy the window.
 
-    return;
-}
+=cut
 
-sub set_editable {
-    my ( $self, $name, $state, $color ) = @_;
+sub on_close_window {
+    my ($self, ) = @_;
 
-    # Controls states are defined in View as strings
-    # Here we need to transform them to 0|1
-    my $editable = $state eq 'normal' ? 1 : 0;
-    $color = 'lightgrey' unless $editable; # default color for disabled
-
-    my $control = $self->get_control_by_name($name);
-
-    if ( $name eq 'sql' ) {
-        # For Wx::StyledTextCtrl
-        $control->Enable($editable);
-    }
-    else {
-        # For Wx::TextCtrl
-        $control->SetEditable($editable);
-    }
-
-    $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
-
-    return ;
+    $self->Destroy;
 }
 
 =head1 AUTHOR

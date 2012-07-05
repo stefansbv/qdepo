@@ -70,7 +70,7 @@ sub start {
         if ($message) {
             my ($type, $mesg) = split /#/, $message, 2;
             if ($type =~ m{fatal}imx) {
-                my $message = 'Connection error!';
+                my $message = 'Connection error! Shutting down...';
                 $self->_view->dialog_error($message, $mesg);
                 $return_string = 'shutdown';
                 last;
@@ -85,8 +85,7 @@ sub start {
     }
 
     if ($return_string eq 'shutdown') {
-        print "Shuting down ...\n";
-        $self->on_quit;
+        $self->close_app;
         return;
     }
 
@@ -394,6 +393,8 @@ L<has_marks> is true.
 sub on_quit {
     my $self = shift;
 
+    print "Shuting down...\n";
+
     if ( $self->_model->has_marks() ) {
         my $msg = 'Delete marked reports and quit?';
         my $answer = $self->_view->action_confirmed($msg);
@@ -405,7 +406,7 @@ sub on_quit {
         }
     }
 
-    $self->_view->on_quit();
+    $self->_view->on_close_window(@_);
 }
 
 =head2 list_remove_marked

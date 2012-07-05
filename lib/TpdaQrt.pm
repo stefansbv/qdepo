@@ -69,14 +69,10 @@ sub _init {
     if ( $widgetset =~ m{wx}ix ) {
         require TpdaQrt::Wx::Controller;
         $self->{gui} = TpdaQrt::Wx::Controller->new();
-
-        # $self->{_log}->info('Using Wx ...');
     }
     elsif ( $widgetset =~ m{tk}ix ) {
         require TpdaQrt::Tk::Controller;
         $self->{gui} = TpdaQrt::Tk::Controller->new();
-
-        # $self->{_log}->info('Using Tk ...');
     }
     else {
         ouch "ConfigError", "Unknown widget set!: '$widgetset'";

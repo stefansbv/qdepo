@@ -54,6 +54,19 @@ sub new {
     return $self;
 }
 
+=head2 close_app
+
+Generate close event.
+
+=cut
+
+sub close_app {
+    my $self = shift;
+
+    my $event = Wx::CommandEvent->new( 9999, -1 );
+    $self->_view->GetEventHandler()->AddPendingEvent($event);
+}
+
 =head2 _init
 
 Init App.
@@ -90,6 +103,8 @@ sub dialog_login {
     else {
         $return_string = 'shutdown';
     }
+
+    $dialog->Destroy;
 
     return $return_string;
 }
@@ -292,6 +307,10 @@ Stefan Suciu, C<< <stefan@s2i2.ro> >>
 None known.
 
 Please report any bugs or feature requests to the author.
+
+=head1 ACKNOWLEDGEMENTS
+
+Mark Dootson.
 
 =head1 LICENSE AND COPYRIGHT
 
