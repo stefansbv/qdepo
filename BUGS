@@ -1,0 +1,5 @@
+Segmentation fault on exit after an output generation with progress
+dialog.
+
+It' interesting that if we quit the app after another output
+generation, without a progress dialog, then is NO Segmentation fault.

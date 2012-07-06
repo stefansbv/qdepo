@@ -1,8 +1,6 @@
 1. Check if the statement is a pure select one.
 
-2. Optimize log messages
-
-3. SQL Editor/Viewer
+2. SQL Editor/Viewer
  delete the quotes around the value if exists at execute
  put quotes around the value just for the preview
 
