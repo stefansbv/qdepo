@@ -42,6 +42,6 @@ for ( my $row = 0 ; $row < $rows ; $row++ ) {
 }
 
 # Close
-ok( my $out = $doc->create_done(), 'done' );
+ok( my ($out) = $doc->create_done(), 'done' );
 
 # end test
