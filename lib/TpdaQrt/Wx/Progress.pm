@@ -1,11 +1,11 @@
-package TpdaQrt::Wx::Progress;
+package TpdaQrt::Wx::Dialog::Progress;
 
 use strict;
 use warnings;
 
 =head1 NAME
 
-TpdaQrt::Wx::Progress - Progress dialog.
+TpdaQrt::Wx::Dialog::Progress - Progress dialog.
 
 =head1 VERSION
 
@@ -19,9 +19,9 @@ our $VERSION = '0.36';
 
 Show a progress dialog to the user.
 
-    use TpdaQrt::Wx::Progress;
+    use TpdaQrt::Wx::Dialog::Progress;
 
-    my $dlg = TpdaQrt::Wx::Progress->new();
+    my $dlg = TpdaQrt::Wx::Dialog::Progress->new();
 
     $dlg->update();
 
@@ -45,8 +45,8 @@ sub new {
         start => time,
     };
 
-    $self->{title}   ||= 'Please wait...';
-    $self->{message} ||= 'Copied 0% ...';
+    $self->{title}   = $title   || 'Please wait...';
+    $self->{message} = $message || 'Copied 0%...';
 
     bless $self, $class;
 
@@ -71,8 +71,6 @@ sub _create_progress {
               | Wx::wxPD_CAN_ABORT
               ;
 
-    $flags |= Wx::wxPD_APP_MODAL if $self->{modal};
-
     # Create the progress bar dialog
 
     $self->{dialog} = Wx::ProgressDialog->new(
@@ -82,6 +80,8 @@ sub _create_progress {
         $self->{main},
         $flags,
     );
+
+    return $self->{dialog};
 }
 
 =head2 update
@@ -141,7 +141,7 @@ Please report any bugs or feature requests to the author.
 
 =head1 ACKNOWLEDGEMENTS
 
-From Padre::Wx::Progress
+From Padre::Wx::Progress.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -154,4 +154,4 @@ the Free Software Foundation.
 
 =cut
 
-1; # End of TpdaQrt::Wx::Progress
+1; # End of TpdaQrt::Wx::Dialog::Progress

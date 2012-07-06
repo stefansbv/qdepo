@@ -1400,10 +1400,10 @@ Create a progress dialog.
 sub dialog_progress {
     my ($self, $title, $max) = @_;
 
-    $max = (defined $max and $max > 0) ? $max : 100;
+    $max = (defined $max and $max > 0) ? $max : 100; # default 100
 
-    require TpdaQrt::Wx::Progress;
-    $self->{progress} = TpdaQrt::Wx::Progress->new($self, $title, $max);
+    require TpdaQrt::Wx::Dialog::Progress;
+    $self->{progress} = TpdaQrt::Wx::Dialog::Progress->new($self, $title, $max);
 
     $self->{progress}->Destroy;
 
@@ -1412,7 +1412,9 @@ sub dialog_progress {
 
 =head2 progress_update
 
-Update progress.  If Cancel is pressed, stop, (set continue to false).
+Update progress.  If I<Cancel> is pressed, stop (set continue to
+false) from the return value of the Update method of
+L<Wx::ProgressDialog>.
 
 =cut
 
@@ -1422,7 +1424,7 @@ sub progress_update {
     return if !$count;
 
     if ( defined $self->{progress}
-        and $self->{progress}->isa('TpdaQrt::Wx::Progress') )
+        and $self->{progress}->isa('TpdaQrt::Wx::Dialog::Progress') )
     {
         my $continue = $self->{progress}->update($count);
         $self->_model->set_continue($continue);

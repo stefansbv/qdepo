@@ -79,7 +79,7 @@ Create a row of data.
 =cut
 
 sub create_row {
-    my ($self, $data) = @_;
+    my ($self, undef, $data) = @_;
 
     my @data = map { defined $_ ? $_ : "" } @{$data};
 
@@ -102,7 +102,7 @@ Print a message about the status of document creation and return it.
 =cut
 
 sub create_done {
-    my ($self, ) = @_;
+    my ($self, $count_rows, $percent) = @_;
 
     close $self->{csv_fh}
         or die "Can not close file: $!\n";
@@ -112,7 +112,7 @@ sub create_done {
         $output = $self->{csv_file};
     }
 
-    return $output;
+    return ($output, $count_rows, $percent);
 }
 
 =head1 AUTHOR

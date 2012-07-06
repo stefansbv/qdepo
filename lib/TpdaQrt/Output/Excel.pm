@@ -163,8 +163,7 @@ Print a message about the status of document creation and return it.
 =cut
 
 sub create_done {
-
-    my ($self, ) = @_;
+    my ($self, $count_rows, $percent) = @_;
 
     # Set columns width
     $self->set_cols_width();
@@ -177,7 +176,7 @@ sub create_done {
         $output = $self->{xls_file};
     }
 
-    return $output;
+    return ($output, $count_rows, $percent);
 }
 
 =head2 init_lengths

@@ -489,9 +489,12 @@ sub run_export {
         $out_fqn,
     );
 
-    if ($out) {
-        $self->message_status("Output generated");
-        #$self->message_log("II '$out' generated");
+    my ($file, $rows, $percent) = @{$out};
+    $rows    = defined $rows    ? $rows    : '?';
+    $percent = defined $percent ? $percent : '?';
+    if ($file) {
+        $self->message_status("Generated, $rows rows ($percent%)");
+        $self->message_log("II Output generated, $rows rows ($percent%)");
     }
     else {
         $self->message_status("No output file generated");
@@ -845,7 +848,7 @@ sub get_continue_observable {
 
 =head2 set_continue
 
-Set continue to false if Cancel button ont the progress dialog is
+Set continue to false if Cancel button on the progress dialog is
 activated (Wx only).
 
 =cut

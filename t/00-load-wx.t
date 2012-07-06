@@ -23,7 +23,7 @@ BEGIN {
 use_ok('Wx');
 diag( "using Wx: $Wx::VERSION" );
 use_ok('TpdaQrt::Wx::Notebook');
-use_ok('TpdaQrt::Wx::Progress');
+use_ok('TpdaQrt::Wx::Dialog::Progress');
 use_ok('TpdaQrt::Wx::Dialog::Help');
 use_ok('TpdaQrt::Wx::Dialog::Login');
 use_ok('TpdaQrt::Wx::App');

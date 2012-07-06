@@ -113,8 +113,9 @@ sub generate_output_excel {
 
     #--- Select
 
-    my $xls = TpdaQrt::Output::Excel->new($outfile);
+    my $doc = TpdaQrt::Output::Excel->new($outfile);
 
+    my @out;
     try {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -125,51 +126,29 @@ sub generate_output_excel {
 
         $sth->execute();
 
-        my $row = 0;
-
         # Initialize lengths record
-        $xls->init_lengths( $sth->{NAME} );
+        $doc->init_lengths( $sth->{NAME} );
 
         # Header
-        $xls->create_row( $row, $sth->{NAME}, 'h_fmt');
-
-        $row++;
+        $doc->create_row( 0, $sth->{NAME}, 'h_fmt');
 
         $self->{model}->progress_update(0);
-        my $pv = 0;
 
-        while ( my @rezultat = $sth->fetchrow_array() ) {
-            my $fmt_name = 's_format'; # Default to string format
-                                       # other formats support TODO
-            $xls->create_row($row, \@rezultat, $fmt_name);
+        my $fmt = 's_format'; # Default to string format
+                              # other formats support, TODO
 
-            $row++;
+        my ( $row, $pv )
+            = $self->doc_create_contents( $doc, $sth, $rows_cnt, $fmt );
 
-            # Progress bar
-            my $p = floor ($row * 100 / $rows_cnt);
-            next if $pv == $p;
-
-            $self->{model}->progress_update($p);
-
-            unless ( $self->{model}->get_continue_observable->get ) {
-                $self->{model}->message_log("II Stopped by user request!");
-                last;
-            }
-
-            $pv = $p;
-        }
-
-        $self->{model}->progress_update(100); # finish
+        # Try to close file and check if realy exists
+        @out = $doc->create_done($row, $pv);
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
     };
 
-    # Try to close file and check if realy exists
-    my $out = $xls->create_done();
-
-    return $out;
+    return \@out;
 }
 
 =head2 generate_output_csv
@@ -200,8 +179,9 @@ sub generate_output_csv {
 
     my $rows_cnt = $self->count_rows($sql, $bind);
 
-    my $csv = TpdaQrt::Output::Csv->new($outfile);
+    my $doc = TpdaQrt::Output::Csv->new($outfile);
 
+    my @out;
     try {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -213,40 +193,20 @@ sub generate_output_csv {
         $sth->execute();
 
         # Header
-        $csv->create_row( $sth->{NAME} );
+        $doc->create_row( $sth->{NAME} );
 
-        my $row = 1;
-        my $pv  = 0;
-        while ( my @rezultat = $sth->fetchrow_array() ) {
-            $csv->create_row(\@rezultat);
+        my ( $row, $pv )
+            = $self->doc_create_contents( $doc, $sth, $rows_cnt );
 
-            $row++;
-
-            # Progress bar
-            my $p = floor ($row * 100 / $rows_cnt);
-            next if $pv == $p;
-
-            $self->{model}->progress_update($p);
-
-            unless ( $self->{model}->get_continue_observable->get ) {
-                $self->{model}->message_log("II Stopped by user request!");
-                last;
-            }
-
-            $pv = $p;
-        }
-
-        $self->{model}->progress_update(100); # finish
+        # Try to close file and check if realy exists
+        @out = $doc->create_done($row, $pv);
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
     };
 
-    # Try to close file and check if realy exists
-    my $out = $csv->create_done();
-
-    return $out;
+    return \@out;
 }
 
 =head2 generate_output_calc
@@ -279,9 +239,9 @@ sub generate_output_calc {
 
     #--- Select
 
-    my $out;
+    my (@out, $sth);
     try {
-        my $sth = $self->{dbh}->prepare($sql);
+        $sth = $self->{dbh}->prepare($sql);
 
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
@@ -289,59 +249,37 @@ sub generate_output_calc {
         }
 
         $sth->execute();
-
-        my $cols = scalar @{ $sth->{NAME} };
-
-        # Create new spreadsheet with predefined dimensions
-        my $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
-
-        # Initialize lengths record
-        $doc->init_lengths( $sth->{NAME} );
-
-        my $row = 0;
-
-        # Header
-        $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
-
-        $row++;
-
-        $self->{model}->message_status("$rows_cnt total rows");
-
-        $self->{model}->progress_update(0);
-        my $pv = 0;
-
-        while ( my @rezultat = $sth->fetchrow_array() ) {
-            my $fmt_name = 's_format'; # Default to string format
-                                       # other formats support TODO
-            $doc->create_row($row, \@rezultat, $fmt_name);
-
-            $row++;
-
-            # Progress bar
-            my $p = floor ($row * 100 / $rows_cnt);
-            next if $pv == $p;
-
-            $self->{model}->progress_update($p);
-
-            unless ( $self->{model}->get_continue_observable->get ) {
-                $self->{model}->message_log("II Stopped by user request!");
-                last;
-            }
-
-            $pv = $p;
-        }
-
-        $self->{model}->progress_update(100); # finish
-
-        # Try to close file and check if realy exists
-        $out = $doc->create_done();
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
     };
 
-    return $out;
+    my $cols = scalar @{ $sth->{NAME} };
+
+    # Create new spreadsheet with predefined dimensions
+    my $doc = TpdaQrt::Output::Calc->new($outfile, $rows_cnt, $cols);
+
+    # Initialize lengths record
+    $doc->init_lengths( $sth->{NAME} );
+
+    # Header
+    $doc->create_row( 0, $sth->{NAME}, 'h_fmt');
+
+    $self->{model}->message_status("$rows_cnt total rows");
+
+    $self->{model}->progress_update(0);
+
+    my $fmt = 's_format'; # defaults to string format
+                          # other formats support, TODO
+
+    my ( $row, $pv )
+        = $self->doc_create_contents( $doc, $sth, $rows_cnt, $fmt );
+
+    # Try to close file and check if realy exists
+    @out = $doc->create_done($row, $pv);
+
+    return \@out;
 }
 
 =head2 generate_output_odf
@@ -374,7 +312,7 @@ sub generate_output_odf {
 
     #--- Select
 
-    my $out;
+    my @out;
     try {
         my $sth = $self->{dbh}->prepare($sql);
 
@@ -393,50 +331,25 @@ sub generate_output_odf {
         # Initialize lengths record
         $doc->init_lengths( $sth->{NAME} );
 
-        my $row = 0;
-
         # Header
-        $doc->create_row( $row, $sth->{NAME}, 'h_fmt');
-
-        $row++;
+        $doc->create_row( 0, $sth->{NAME}, 'h_fmt');
 
         $self->{model}->message_status("$rows_cnt total rows");
 
         $self->{model}->progress_update(0);
-        my $pv = 0;
 
-        while ( my @rezultat = $sth->fetchrow_array() ) {
-            my $fmt_name = 's_format'; # Default to string format
-                                       # other formats support TODO
-            $doc->create_row($row, \@rezultat, $fmt_name);
-
-            $row++;
-
-            # Progress bar
-            my $p = floor ($row * 100 / $rows_cnt);
-            next if $pv == $p;
-
-            $self->{model}->progress_update($p);
-
-            unless ( $self->{model}->get_continue_observable->get ) {
-                $self->{model}->message_log("II Stopped by user request!");
-                last;
-            }
-
-            $pv = $p;
-        }
-
-        $self->{model}->progress_update(100); # finish
+        my ( $row, $pv )
+            = $self->doc_create_contents( $doc, $sth, $rows_cnt );
 
         # Try to close file and check if realy exists
-        $out = $doc->create_done();
+        @out = $doc->create_done($row, $pv);
     }
     catch {
         $self->{model}->message_log("II SQL: $sql");
         $self->{model}->message_log('EE ' . $_);
     };
 
-    return $out;
+    return \@out;
 }
 
 =head2 count_rows
@@ -479,6 +392,47 @@ sub count_rows {
     };
 
     return $rows_cnt;
+}
+
+=head2 doc_create_contents
+
+Create document contents and show progress.
+
+=cut
+
+sub doc_create_contents {
+    my ( $self, $doc, $sth, $rows_cnt, $fmt_name) = @_;
+
+    my ($row, $pv) = (1, 0);
+
+    while ( my @rezultat = $sth->fetchrow_array() ) {
+
+        #-- New row
+
+        $doc->create_row( $row, \@rezultat, $fmt_name );
+
+        $row++;
+
+        #-- Progress bar
+
+        my $p = floor( $row * 100 / $rows_cnt );
+        next if $pv == $p;
+
+        $self->{model}->progress_update($p);
+
+        unless ( $self->{model}->get_continue_observable->get ) {
+            $self->{model}->message_log("II Stopped at user request!");
+            $sth->finish;
+            last;
+        }
+
+        $pv = $p;
+    }
+
+    $self->{model}->progress_update(100); # finish
+    $self->{model}->progress_update();
+
+    return ($row, $pv);
 }
 
 =head1 AUTHOR
