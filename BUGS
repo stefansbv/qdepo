@@ -3,3 +3,9 @@ dialog.
 
 It' interesting that if we quit the app after another output
 generation, without a progress dialog, then is NO Segmentation fault.
+
+SOLVED!
+
+Added a '$self->{dialog} = undef' statement in DESTROY!
+
+:D
