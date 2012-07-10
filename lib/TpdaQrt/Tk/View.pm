@@ -21,11 +21,11 @@ TpdaQrt::Tk::App - Tk Perl application class
 
 =head1 VERSION
 
-Version 0.36
+Version 0.37
 
 =cut
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 =head1 SYNOPSIS
 
@@ -1024,6 +1024,10 @@ sub _create_sql_page {
         -pady   => 5,
     );
 
+    # Add tags to simulate highlight
+    $self->{sql}->tag(qw/configure label -foreground/ => 'yellow');
+    $self->{sql}->tag(qw/configure value -foreground/ => 'green');
+
     return;
 }
 
@@ -1528,7 +1532,7 @@ sub controls_populate {
 
 =head2 toggle_sql_replace
 
-Toggle sql replace
+Toggle sql replace.
 
 =cut
 
@@ -1542,6 +1546,9 @@ sub toggle_sql_replace {
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
+
+        my $searchstr = 'value\d+';
+        $self->highlight_text($self->{sql}, \$searchstr, 'label', 'regexp');
     }
     elsif ($mode eq 'sele') {
         my $para = TpdaQrt::Utils->params_to_hash( $data->{parameters} );
@@ -1564,6 +1571,14 @@ sub control_replace_sql_text {
 
     # Write new text to control
     $self->control_set_value('sql', $newtext);
+
+    # Highlight (tag) the replaces value
+    while (my ($key, $search) = each ( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+        $self->highlight_text($self->{sql}, \$search, 'value', 'regexp');
+    }
+
+    return;
 }
 
 =head2 log_msg
@@ -2047,6 +2062,44 @@ Progress dialog.
 
 sub dialog_progress {
     # empty
+}
+
+=head2 highlight_text
+
+The utility procedure below searches for all instances of a given
+string in a text widget and applies a given tag to each instance found.
+
+Arguments:
+
+  w           The window in which to search.  Must be a text widget.
+
+  string      Reference to the string to search for.  The search is done
+              using exact matching only;  no special characters.
+  tag         Tag to apply to each instance of a matching string.
+
+=cut
+
+sub highlight_text {
+    my ( $self, $w, $string, $tag, $kind ) = @_;
+
+    return unless ref($string) && length(${$string});
+
+    # $w->tagRemove($tag, qw/0.0 end/);
+    my ( $current, $length ) = ( '1.0', 0 );
+
+    while (1) {
+        $current = $w->search(
+            -count => \$length,
+            "-$kind", ${$string}, $current, 'end'
+        );
+        last if not $current;
+
+        #warn "Pos=$current, Count=$length\n";
+        $w->tagAdd( $tag, $current, "$current + $length char" );
+        $current = $w->index("$current + $length char");
+    }
+
+    return;
 }
 
 =head1 AUTHOR

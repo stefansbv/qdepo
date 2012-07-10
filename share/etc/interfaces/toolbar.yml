@@ -1,13 +1,12 @@
 # Tpda-Qrt
 # Interface configuration
-# Don't touch!, not for users ;)
 ---
 toolbar:
   tb_ed:
     id:      1001
     type:    _item_check
     icon:    edit16
-    tooltip: Edit
+    tooltip: Edit metadata
     help:    Edit mode on/off
     sep:     none
     state:
@@ -18,7 +17,7 @@ toolbar:
     id:      1002
     type:    _item_normal
     icon:    filesave16
-    tooltip: Save
+    tooltip: Save metadata
     help:    Save query definition file
     sep:     after
     state:
@@ -29,7 +28,7 @@ toolbar:
     id:      1003
     type:    _item_normal
     icon:    actitemadd16
-    tooltip: Add report
+    tooltip: Add query
     help:    Create new query definition file
     sep:     none
     state:
@@ -40,7 +39,7 @@ toolbar:
     id:      1004
     type:    _item_normal
     icon:    actitemdelete16
-    tooltip: Remove
+    tooltip: Remove query
     help:    Remove query definition file
     sep:     after
     state:
@@ -60,7 +59,7 @@ toolbar:
     type:    _item_normal
     icon:    navforward16
     tooltip: Run
-    help:    Run export
+    help:    Execute query
     sep:     after
     state:
       idle: disabled

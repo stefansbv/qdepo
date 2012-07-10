@@ -7,7 +7,7 @@ Please, read the Disclaimer of Warranty. from the GNU GENERAL PUBLIC
 LICENSE.
 
 This is a Perl application with wxPerl and/or PerlTk graphical user
-interface. Unpack the distribution file, install the prerequisites.
+interface. Unpack the distribution file, install the prerequisites
 listed in Makefile.PL,
 
  % cpanm --installdeps .  # easy if you have App::cpanminus installed

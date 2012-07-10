@@ -1,65 +1,78 @@
 # Tpda-Qrt
 # Interface configuration
-# Don't touch!, not for users ;)
 ---
 toolbar:
-  tb_cn:
+  tb_ed:
     id:      1001
-    type:    item_normal
-    icon:    database_connect.png
-    tooltip: Connect
-    help:    Connect to the database
-    sep:     after
+    type:    _item_check
+    icon:    report_edit.png
+    tooltip: Edit metadata
+    help:    Edit metadata
+    sep:     none
+    state:
+      idle: disabled
+      edit: normal
+      sele: normal
   tb_sv:
     id:      1002
-    type:    item_normal
+    type:    _item_normal
     icon:    report_disk.png
-    tooltip: Save report
-    help:    Save report
-    sep:     none
-  tb_rf:
-    id:      1003
-    type:    item_normal
-    icon:    arrow_refresh.png
-    tooltip: Reload report
-    help:    Reload report
+    tooltip: Save metatdata
+    help:    Save metatdata
     sep:     after
+    state:
+      idle: disabled
+      edit: normal
+      sele: disabled
   tb_ad:
-    id:      1004
-    type:    item_normal
+    id:      1003
+    type:    _item_normal
     icon:    report_add.png
-    tooltip: Add report
+    tooltip: Add query
     help:    Create new query definition file
     sep:     none
+    state:
+      idle: normal
+      edit: disabled
+      sele: normal
   tb_rm:
-    id:      1005
-    type:    item_normal
+    id:      1004
+    type:    _item_normal
     icon:    report_delete.png
-    tooltip: Remove report
+    tooltip: Remove query
     help:    Remove query definition file
-    sep:     none
-  tb_ed:
-    id:      1006
-    type:    item_check
-    icon:    report_edit.png
-    tooltip: Edit report
-    help:    Edit mode on/off
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_ls:
-    id:      1007
-    type:    item_list
+    id:      1005
+    type:    _item_list
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_go:
-    id:      1008
-    type:    item_normal
+    id:      1006
+    type:    _item_normal
     icon:    report_disk.png
-    tooltip: Execute report
+    tooltip: Run
     help:    Execute query
     sep:     after
+    state:
+      idle: disabled
+      edit: disabled
+      sele: normal
   tb_qt:
-    id:      1009
-    type:    item_normal
+    id:      1007
+    type:    _item_normal
     icon:    cancel.png
     tooltip: Quit
     help:    Quit the application
     sep:     none
+    state:
+      idle: normal
+      edit: disabled
+      sele: normal
