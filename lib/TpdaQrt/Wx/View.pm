@@ -85,6 +85,8 @@ sub new {
 
     EVT_COMMAND( $self, -1, 9999, \&on_close_window );
 
+    $self->Show(1);
+
     return $self;
 }
 

@@ -14,9 +14,36 @@ use inc::Module::Install;
 name 'TpdaQrt';
 all_from 'lib/TpdaQrt.pm';
 
-#- Wx
-requires 'Wx'                    => '0.9701';
-requires 'Wx::Perl::ListCtrl'    => '0.03';
+my $guitk = 0;
+
+#-  GUI toolkits
+
+#-- Wx
+
+eval { require Wx; };
+unless ($@) {
+    $guitk++;
+    requires 'Wx'                 => '0.970101';
+    requires 'Wx::Perl::ListCtrl' => '0.03';
+}
+
+#-- and/or Tk
+
+eval { require Tk; };
+unless ($@) {
+    $guitk++;
+    requires 'Tk'            => '804.028';
+    requires 'Tk::ToolBar'   => '0.09';
+    requires 'Tk::StatusBar' => '0.04';
+    requires 'Tk::MListbox'  => '1.11';
+    requires 'Tk::MsgBox'    => '0';
+}
+
+if ($guitk == 0) {
+    die "wxPerl or PerlTk is required!\nPlease install at least one of them first.";
+}
+
+#-  Other modules
 
 requires 'Class::Singleton'      => '1.4';
 requires 'Class::Accessor'       => '0';
@@ -30,22 +57,19 @@ requires 'File::Slurp'           => '0';
 requires 'YAML::Tiny'            => '0';
 requires 'DBI'                   => '1.53';
 requires 'DBD::SQLite'           => '1.29';  # for testing
+requires 'HTML::TreeBuilder'     => '0';     # for XML::Twig tests
 requires 'XML::Twig'             => '3.26';
 requires 'Ouch'                  => '0.0401';
+requires 'Hash::Merge'           => '0';
+requires 'Regexp::Common'        => '0';
 
-# Database
-requires   'DBD::cubrid'   => '1.32';
-recommends 'DBD::Pg'       => '1.32';
+#-- Database
+recommends 'DBD::cubrid'   => '1.32';
 recommends 'DBD::Firebird' => '0.80';
+recommends 'DBD::Pg'       => '1.32';
+recommends 'DBD::mysql'    => '0';
 
-#- Alternative toolkit: Tk
-recommends 'Tk'                   => '804.028';
-recommends 'Tk::ToolBar'          => '0.09';
-recommends 'Tk::StatusBar'        => '0.04';
-recommends 'Tk::MListbox'         => '1.11';
-recommends 'Tk::MsgBox'           => '0';
-
-# For Output
+#-- For Output
 requires 'Spreadsheet::WriteExcel' => '0';
 # other optional modules
 recommends 'OpenOffice::OODoc' => '2.103';

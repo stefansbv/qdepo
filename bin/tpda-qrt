@@ -26,6 +26,7 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
+# use IO::Interactive qw(is_interactive);
 
 use TpdaQrt;
 use TpdaQrt::Config;
@@ -39,6 +40,10 @@ my $list;
 my $init    = q{};
 my $user;
 my $pass;
+
+# if ( is_interactive() ) {
+#     print "Running interactively\n";
+# }
 
 # Process options.
 if ( @ARGV > 0 ) {

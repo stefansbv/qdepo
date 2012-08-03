@@ -1,4 +1,4 @@
-1. Check if the statement is a pure select one.
+1. Safety: check if the statement is a pure select one.
 
 2. SQL Editor/Viewer
  delete the quotes around the value if exists at execute
@@ -17,3 +17,7 @@ PostgreSQL:
 CUBRID:
 
  No eror and no output rows (only the header row)
+
+3. Use a lighter module for XML parse/update instead of XML::Twig.
+
+4. Disable the not available output options.

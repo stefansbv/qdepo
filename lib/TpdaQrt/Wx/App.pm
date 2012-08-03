@@ -48,7 +48,7 @@ sub create {
         wxDEFAULT_FRAME_STYLE,
     );
 
-    $self->{_view}->Show(1);
+    # $self->{_view}->Show(1);
 
     return $self;
 }
