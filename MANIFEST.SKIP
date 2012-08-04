@@ -32,8 +32,6 @@
 ^errors.txt$
 \.tar.gz$
 \.zip$
-^test\.ods$
-^test\.xls$
 \.xls$
 \.ods$
 \.odf$

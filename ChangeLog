@@ -1,3 +1,41 @@
+2012-08-03     <stefan>
+
+	* Change Makefile.PL, misc updates.
+
+2012-07-10     <stefan>
+
+	* Release v0.37.
+
+2012-07-06     <stefan>
+
+	* Small fix on tests (consequence of a changed return type for a method).
+
+2012-07-06     <stefan>
+
+	* Fix bug about Segmentation fault on exit when using the progress
+	dialog. :)
+
+2012-07-06     <stefan>
+
+	* Add BUGS file.
+
+2012-07-06     <stefan>
+
+	* Add Progress.pm (moved to Dialog).
+
+2012-07-06     <stefan>
+
+	* Improve messages; refactor generate_output_* methods; cleanup
+	Progress.pm.x#
+
+2012-07-05     <stefan>
+
+	* Fix 'segmentation fault' on app exit.
+
+2012-07-04     <stefan>
+
+	* Docs update.
+
 2012-06-30     <stefan>
 
 	* Add new manual for Wx. Update the connection template. Prepare
