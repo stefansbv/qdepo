@@ -364,7 +364,8 @@ TODO: Improve to support GROUP BY | ORDER and so ...
 sub count_rows {
     my ($self, $sql, $bind) = @_;
 
-    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
+    # Capture everything after the last "FROM"
+    my ($from) = $sql =~ m/FROM.*FROM(.*)/ims;
 
     #--- Count
 

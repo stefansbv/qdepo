@@ -489,6 +489,8 @@ sub run_export {
         $out_fqn,
     );
 
+    return unless ref $out;
+
     my ($file, $rows, $percent) = @{$out};
     $rows    = defined $rows    ? $rows    : '?';
     $percent = defined $percent ? $percent : '?';
