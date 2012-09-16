@@ -1,7 +1,7 @@
-# Tpda-Qrt
+# QDepo
 # Database connection configuration
 # Valid options for driver are:
-#  firebird postgresql mysql sqlite
+#  cubrid | firebird | postgresql | mysql | sqlite
 # Output path points to the directory where output files are created
 #
 # ~ means undefined
@@ -9,7 +9,7 @@
 conninfo:
   driver: sqlite
   host: localhost
-  dbname: tpdaqrt-test.db
+  dbname: qdepo-test.db
   port: ~
 output:
   path: ./

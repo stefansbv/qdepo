@@ -1,9 +1,10 @@
 <chapter><title>Introduction</title>
   <formalpara>
-    <title>TPDA - Query Repository Tool</title>
+    <title>QDepo</title>
     <para>
       A desktop application for retrieving and exporting data from
-    relational database systems to spreadsheet files.</para>
+    relational database systems to spreadsheet files,
+    also formerly known as "TPDA - Query Repository Tool"</para>
   </formalpara>
   <para>
     The supported formats are <trademark class='registered'>Excel

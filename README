@@ -1,6 +1,6 @@
-TPDA - Query Repository Tool - A desktop application for retrieving
-and exporting data from relational database systems to spreadsheet
-files.
+QDepo - A desktop application for retrieving and exporting data from
+relational database systems to spreadsheet files, also formerly known
+as "TPDA - Query Repository Tool".
 
 The graphical user interface is based on wxPerl or PerlTk.
 

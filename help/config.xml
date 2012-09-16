@@ -6,7 +6,7 @@ output path where the files are created.</para>
 <para>To find out where are the configuration files, use the command:</para>
   <para>
     <programlisting>
-  % tpda-qrt -l
+  % qdepo -l
     </programlisting>
   </para>
 <para>This will return something like:</para>
@@ -14,12 +14,12 @@ output path where the files are created.</para>
     <programlisting>
 Connection configurations:
   > test
- in '/home/user/.local/share/.tpdaqrt/db'
+ in '/home/user/.local/share/.qdepo/db'
     </programlisting>
   </para>
   <para>
 A configuration name is the name of the directory underneath the
-<emphasis>.tpdaqrt/db/</emphasis> path. This directory contains two
+<emphasis>.qdepo/db/</emphasis> path. This directory contains two
 other directories <emphasis>etc</emphasis> and
 <emphasis>qdf</emphasis>. The <emphasis>etc</emphasis> directory
 contains a file named <emphasis>connection.yml</emphasis>.  This file
@@ -35,7 +35,7 @@ documentation of the YAML::Tiny module.</para>
 <para>An example user configuration tree:</para>
 <para>
   <programlisting>
-.tpda-qrt/
+.qdepo/
 |-- db
 |   |-- classicmodels
 |   |   |-- etc
@@ -69,7 +69,7 @@ configures the application.</para>
 <para>The contents of the initial configuration file is self explanatory:</para>
   <para>
     <programlisting>
-# Tpda-Qrt
+# QDepo
 # Database connection configuration
 # Valid options for driver are:
 #  cubrid | firebird | postgresql | mysql | sqlite

@@ -9,7 +9,7 @@
 <!ENTITY legal    SYSTEM "legal.xml">
 ]>
 <book>
-  <title>Tpda - QRT manual</title>
+  <title>QDepo manual</title>
   <bookinfo>
     <author>
       <firstname>Ştefan</firstname>

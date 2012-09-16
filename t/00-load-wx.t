@@ -22,11 +22,11 @@ BEGIN {
 
 use_ok('Wx');
 diag( "using Wx: $Wx::VERSION" );
-use_ok('TpdaQrt::Wx::Notebook');
-use_ok('TpdaQrt::Wx::Dialog::Progress');
-use_ok('TpdaQrt::Wx::Dialog::Help');
-use_ok('TpdaQrt::Wx::Dialog::Login');
-use_ok('TpdaQrt::Wx::App');
-use_ok('TpdaQrt::Wx::View');
-use_ok('TpdaQrt::Wx::ToolBar');
-use_ok('TpdaQrt::Wx::Controller');
+use_ok('QDepo::Wx::Notebook');
+use_ok('QDepo::Wx::Dialog::Progress');
+use_ok('QDepo::Wx::Dialog::Help');
+use_ok('QDepo::Wx::Dialog::Login');
+use_ok('QDepo::Wx::App');
+use_ok('QDepo::Wx::View');
+use_ok('QDepo::Wx::ToolBar');
+use_ok('QDepo::Wx::Controller');

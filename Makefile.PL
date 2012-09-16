@@ -1,5 +1,5 @@
 #
-# Makefile.PL for tpda-qrt
+# Makefile.PL for qdepo
 #
 # Copyright (C) 2010-2012 Stefan Suciu
 # GNU General Public License v3
@@ -11,8 +11,8 @@ use warnings;
 
 use inc::Module::Install;
 
-name 'TpdaQrt';
-all_from 'lib/TpdaQrt.pm';
+name 'QDepo';
+all_from 'lib/QDepo.pm';
 
 my $guitk = 0;
 
@@ -79,11 +79,11 @@ recommends 'ODF::lpOD'         => '0';
 test_requires 'Test::More' => '0.47';
 
 install_share 'share';
-install_script 'bin/tpda-qrt';
+install_script 'bin/qdepo';
 
 # Cleanup test output files
 makemaker_args(
-    clean => { FILES => qq(*.xls *.od? tpdaqrt-test.db) },
+    clean => { FILES => qq(*.xls *.od? qdepo-test.db) },
 );
 
 WriteAll;

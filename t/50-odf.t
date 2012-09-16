@@ -1,5 +1,5 @@
 #
-# TpdaQrt::Output::ODF test script
+# QDepo::Output::ODF test script
 #
 
 use strict;
@@ -10,7 +10,7 @@ use Test::More;
 use lib qw( lib ../lib );
 
 BEGIN {
-    eval { require TpdaQrt::Output::ODF; };
+    eval { require QDepo::Output::ODF; };
     if ($@) {
         plan( skip_all => 'ODF::lpOD is required for this test' );
     }
@@ -32,7 +32,7 @@ my $cols = scalar @{$test_data[0]};
 # diag("cols = $cols");
 
 # Create new spreadsheet
-ok( my $doc = TpdaQrt::Output::ODF->new( 'test.ods', $rows, $cols ), 'new' );
+ok( my $doc = QDepo::Output::ODF->new( 'test.ods', $rows, $cols ), 'new' );
 
 ok($doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths');
 

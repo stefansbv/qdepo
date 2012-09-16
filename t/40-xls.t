@@ -1,5 +1,5 @@
 #
-# TpdaQrt::Output::Excel test script
+# QDepo::Output::Excel test script
 #
 
 use strict;
@@ -10,7 +10,7 @@ use Test::More;
 use lib qw( lib ../lib );
 
 BEGIN {
-    eval { require TpdaQrt::Output::Excel; };
+    eval { require QDepo::Output::Excel; };
     if ($@) {
         plan( skip_all => 'Spreadsheet::WriteExcel is required for this test' );
     }
@@ -32,7 +32,7 @@ my $cols = scalar @{$test_data[0]};
 # diag("cols = $cols");
 
 # Create new spreadsheet
-ok( my $doc = TpdaQrt::Output::Excel->new( 'test.xls', $rows, $cols ), 'new' );
+ok( my $doc = QDepo::Output::Excel->new( 'test.xls', $rows, $cols ), 'new' );
 
 ok($doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths');
 

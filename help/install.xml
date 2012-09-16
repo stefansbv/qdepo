@@ -7,8 +7,8 @@ listed in Makefile.PL, than install like any other standard Perl
 module:</para>
 <para>
   <programlisting>
-    % tar xaf Tpda-Qrt-0.XX.tar.gz
-    % cd Tpda-Qrt-0.XX
+    % tar xaf QDepo-0.XX.tar.gz
+    % cd QDepo-0.XX
     % make
     % make test
     % make install
@@ -20,7 +20,7 @@ directory is initialized automaticaly.  The following command will
 list all the defined configurations.</para>
 <para>
   <programlisting>
-    % tpda-qrt -l
+    % qdepo -l
   </programlisting>
 </para>
 <para>
@@ -29,7 +29,7 @@ After a fresh instalation only a configuration named
 <para>A new configuration (project) can be created like this:</para>
 <para>
   <programlisting>
-    % tpda-qrt -i <sgmltag>&lt;config-name&gt;</sgmltag>
+    % qdepo -i <sgmltag>&lt;config-name&gt;</sgmltag>
   </programlisting>
 </para>
 <para>Then edit the <emphasis>connection.yml</emphasis> configuration

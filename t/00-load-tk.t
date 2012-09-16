@@ -1,5 +1,5 @@
 #
-# TpdaQrt Tk use test script
+# QDepo Tk use test script
 #
 use strict;
 
@@ -23,10 +23,10 @@ BEGIN {
 
 use_ok('Tk');
 diag( "using Tk: $Tk::VERSION" );
-use_ok('TpdaQrt::Tk::Dialog::Help');
-use_ok('TpdaQrt::Tk::Dialog::Login');
-use_ok('TpdaQrt::Tk::View');
-use_ok('TpdaQrt::Tk::TB');
-use_ok('TpdaQrt::Tk::Controller');
+use_ok('QDepo::Tk::Dialog::Help');
+use_ok('QDepo::Tk::Dialog::Login');
+use_ok('QDepo::Tk::View');
+use_ok('QDepo::Tk::TB');
+use_ok('QDepo::Tk::Controller');
 
 #-- done

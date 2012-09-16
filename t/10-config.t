@@ -1,5 +1,5 @@
 #
-# TpdaQrt::Config test script
+# QDepo::Config test script
 #
 # Inspired from the Class::Singleton test script by Andy Wardley
 
@@ -10,7 +10,7 @@ use Test::More tests => 11;
 
 use lib qw( lib ../lib );
 
-use TpdaQrt::Config;
+use QDepo::Config;
 
 my $args = {
     cfname => 'test',
@@ -21,13 +21,13 @@ my $args = {
 #-- Check the one instance functionality
 
 # No instance if instance() not called yet
-ok( !TpdaQrt::Config->has_instance(), 'no TpdaQrt::Config instance yet' );
+ok( !QDepo::Config->has_instance(), 'no QDepo::Config instance yet' );
 
-my $c1 = TpdaQrt::Config->instance($args);
-ok( $c1->isa('TpdaQrt::Config'), 'created TpdaQrt::Config instance 1' );
+my $c1 = QDepo::Config->instance($args);
+ok( $c1->isa('QDepo::Config'), 'created QDepo::Config instance 1' );
 
-my $c2 = TpdaQrt::Config->instance();
-ok( $c2->isa('TpdaQrt::Config'), 'created TpdaQrt::Config instance 2' );
+my $c2 = QDepo::Config->instance();
+ok( $c2->isa('QDepo::Config'), 'created QDepo::Config instance 2' );
 
 is( $c1, $c2, 'both instances are the same object' );
 
