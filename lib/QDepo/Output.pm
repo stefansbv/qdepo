@@ -100,6 +100,7 @@ sub generate_output_excel {
         return;
     };
 
+    # Rows count used only for user messages
     my $rows_cnt = $self->count_rows($sql, $bind);
     unless ($rows_cnt) {
         $self->{model}->message_log("II SQL: $sql");
@@ -177,7 +178,17 @@ sub generate_output_csv {
         return;
     };
 
+    # Rows count used only for user messages
     my $rows_cnt = $self->count_rows($sql, $bind);
+    unless ($rows_cnt) {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II SQL: No output rows!");
+        return;
+    }
+    else {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II Count: $rows_cnt total rows");
+    }
 
     my $doc = QDepo::Output::Csv->new($outfile);
 
@@ -235,7 +246,17 @@ sub generate_output_calc {
         return;
     };
 
+    # Rows count used for user messages and for sheet initialization
     my $rows_cnt = $self->count_rows($sql, $bind);
+    unless ($rows_cnt) {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II SQL: No output rows!");
+        return;
+    }
+    else {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II Count: $rows_cnt total rows");
+    }
 
     #--- Select
 
@@ -308,7 +329,17 @@ sub generate_output_odf {
         return;
     };
 
+    # Rows count used for user messages and for sheet initialization
     my $rows_cnt = $self->count_rows($sql, $bind);
+    unless ($rows_cnt) {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II SQL: No output rows!");
+        return;
+    }
+    else {
+        $self->{model}->message_log("II SQL: $sql");
+        $self->{model}->message_log("II Count: $rows_cnt total rows");
+    }
 
     #--- Select
 
@@ -354,24 +385,26 @@ sub generate_output_odf {
 
 =head2 count_rows
 
-Count rows. Build the count SQL query using the from clause from the
-query from the qdf file.
-
-TODO: Improve to support GROUP BY | ORDER and so ...
+Count rows. Build the I<COUNT> SQL query using the I<FROM> clause from
+the query.
 
 =cut
 
 sub count_rows {
     my ($self, $sql, $bind) = @_;
 
-    # Capture everything after the last "FROM"
-    my ($from) = $sql =~ m/FROM.*FROM(.*)/ims;
+    # Capture everything after the first "FROM"
+    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
+    unless ($from) {
+        $self->{model}->message_log("EE Failed to extract FROM clause!");
+        return;
+    }
 
     #--- Count
 
     my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
 
-    # $self->{model}->message_log("II SQL: $cnt_sql");
+    $self->{model}->message_log("II SQL: $cnt_sql");
 
     my $rows_cnt;
     try {

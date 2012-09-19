@@ -1,23 +1,4 @@
 
-* LIMITATION
-
-To find out how many rows would be retrieved, the SQL SELECT statement
-is transformed from something like:
-
-SELECT *
-FROM table
-
-to:
-
-SELECT COUNT(*)
-FROM table
-
-using a simple regexp, everyting after the FROM keyword is captured
-and used to made a SELECT COUNT statement.  This work well for simple
-SQL SELECT statements but will fail for one that use SELECT FROM
-(SELECT from )...
-
-
 * BUG
 
 White frame in Windows XP if database server is not available.
@@ -25,7 +6,7 @@ White frame in Windows XP if database server is not available.
 
 * BUG
 
-SOLVED:
+SOLVED!
 
 Segmentation fault on exit after an output generation with progress
 dialog.
@@ -36,3 +17,5 @@ generation, without a progress dialog, then is NO Segmentation fault.
 Added a '$self->{dialog} = undef' statement in DESTROY!
 
 :D
+
+# EOF
