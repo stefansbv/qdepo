@@ -16,11 +16,11 @@ QDepo::FileIO - QDepo XML file operations module.
 
 =head1 VERSION
 
-Version 0.38
+Version 0.39
 
 =cut
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 

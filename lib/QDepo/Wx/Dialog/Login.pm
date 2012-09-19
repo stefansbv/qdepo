@@ -174,7 +174,7 @@ Stefan Suciu, C<< <stefan@s2i2.ro> >>
 
 =head1 VERSION
 
-Version 0.38
+Version 0.39
 
 =head1 BUGS
 
