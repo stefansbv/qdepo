@@ -227,19 +227,28 @@ sub _config_file_load {
 
 =head2 get_configs
 
-Get the connections configs list.
+Get the connections configs list.  If connection file exist than add
+to connections list and return it.
 
 =cut
 
 sub get_configs {
     my $self = shift;
 
-    return QDepo::Config::Utils->find_subdirs( $self->cfdb );
+    my $list = QDepo::Config::Utils->find_subdirs( $self->cfdb );
+
+    my @connections;
+    foreach my $cfg_name ( @{$list} ) {
+        my $ccfn = $self->conn_cfg_filename($cfg_name);
+        push @connections, $cfg_name if -f $ccfn;
+    }
+
+    return \@connections;
 }
 
 =head2 list_configs
 
-List all existing connection configurations.
+List all existing connection configurations names (mnemonics).
 
 =cut
 
@@ -250,11 +259,7 @@ sub list_configs {
 
     print "Connection configurations:\n";
     foreach my $cfg_name ( @{$conn_list} ) {
-        my $ccfn = $self->conn_cfg_filename($cfg_name);
-        # If connection file exist than list as connection name
-        if (-f $ccfn) {
-            print "  > $cfg_name\n";
-        }
+        print "  > $cfg_name\n";
     }
     print ' in ', $self->cfdb, "\n";
 
