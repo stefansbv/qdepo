@@ -327,7 +327,7 @@ Create toolbar
 sub _create_toolbar {
     my $self = shift;
 
-    my $tb = QDepo::Wx::ToolBar->new( $self, wxADJUST_MINSIZE );
+    my $tb = QDepo::Wx::ToolBar->new( $self,  ); # wxADJUST_MINSIZE#
 
     my ( $toolbars, $attribs ) = $self->toolbar_names();
 
@@ -424,15 +424,15 @@ Create the report page (tab) on the notebook
 sub _create_report_page {
     my $self = shift;
 
-    $self->{_list} = Wx::Perl::ListCtrl->new(
+    $self->{qlist} = Wx::Perl::ListCtrl->new(
         $self->{_nb}{p1}, -1,
         [ -1, -1 ],
         [ -1, -1 ],
         Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
     );
 
-    $self->{_list}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
-    $self->{_list}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 337 );
+    $self->{qlist}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
+    $self->{qlist}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 337 );
 
     #-- Controls
 
@@ -467,7 +467,7 @@ sub _create_report_page {
         Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Query list ', ),
         wxVERTICAL, );
 
-    $repo_top_sz->Add( $self->{_list}, 1, wxEXPAND, 3 );
+    $repo_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
 
     #-- Middle
 
@@ -704,6 +704,19 @@ sub _create_config_page {
 
     #-- Controls
 
+    $self->{dlist} = Wx::Perl::ListCtrl->new(
+        $self->{_nb}{p4}, -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
+    );
+
+    $self->{dlist}->InsertColumn( 0, '#', wxLIST_FORMAT_LEFT, 50 );
+    $self->{dlist}
+        ->InsertColumn( 1, 'Mnemonic', wxLIST_FORMAT_LEFT, 100 );
+    $self->{dlist}
+        ->InsertColumn( 2, 'Description', wxLIST_FORMAT_LEFT, 237 );
+
     #- Log text control
 
     $self->{log} = Wx::StyledTextCtrl->new(
@@ -745,7 +758,14 @@ sub _create_config_page {
 
     my $conf_main_sz = Wx::FlexGridSizer->new( 2, 1, 5, 5 );
 
-    #-- Top - removed :)
+    #-- Top
+
+    my $conf_top_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Connection ', ),
+        wxVERTICAL, );
+
+    $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
 
     #-- Bottom
 
@@ -758,10 +778,11 @@ sub _create_config_page {
 
     #--
 
-    # $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
+    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
     $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
 
     $conf_main_sz->AddGrowableRow(0);
+    $conf_main_sz->AddGrowableRow(1);
     $conf_main_sz->AddGrowableCol(0);
 
     $self->{_nb}{p4}->SetSizer($conf_main_sz);
@@ -852,9 +873,9 @@ Return the list control handler.
 =cut
 
 sub get_listcontrol {
-    my $self = shift;
+    my ($self, $name) = @_;
 
-    return $self->{_list};
+    return $self->{$name};
 }
 
 =head2 get_controls_list
@@ -946,9 +967,9 @@ Set text item from list control row and col
 =cut
 
 sub set_list_text {
-    my ($self, $row, $col, $text) = @_;
+    my ($self, $lname, $row, $col, $text) = @_;
 
-    $self->get_listcontrol->SetItemText( $row, $col, $text );
+    $self->get_listcontrol($lname)->SetItemText( $row, $col, $text );
 
     return;
 }
@@ -961,13 +982,13 @@ the existing value.
 =cut
 
 sub list_item_edit {
-    my ( $self, $row, $nrcrt, $title ) = @_;
+    my ( $self, $lname, $row, $nrcrt, $title ) = @_;
 
     if ($nrcrt) {
-        $self->set_list_text($row, 0, $nrcrt);
+        $self->set_list_text($lname, $row, 0, $nrcrt);
     }
     if ($title) {
-        $self->set_list_text($row, 1, $title);
+        $self->set_list_text($lname, $row, 1, $title);
     }
 
     return;
@@ -980,9 +1001,9 @@ Select the first/last item in list.
 =cut
 
 sub list_item_select {
-    my ($self, $what) = @_;
+    my ($self, $lname, $what) = @_;
 
-    my $items_no = $self->get_list_max_index() + 1;
+    my $items_no = $self->get_list_max_index($lname) + 1;
 
     return unless $items_no > 0;             # nothing to select
 
@@ -994,8 +1015,8 @@ sub list_item_select {
 
     return unless defined $item;
 
-    $self->get_listcontrol->Select( $item, 1 );
-    $self->get_listcontrol->EnsureVisible($item);
+    $self->get_listcontrol($lname)->Select( $item, 1 );
+    $self->get_listcontrol($lname)->EnsureVisible($item);
 
     return;
 }
@@ -1007,9 +1028,9 @@ Return the maximum index from the list control (item count - 1).
 =cut
 
 sub get_list_max_index {
-    my $self = shift;
+    my ($self, $lname) = @_;
 
-    return ( $self->get_listcontrol->GetItemCount() - 1 );
+    return ( $self->get_listcontrol($lname)->GetItemCount() - 1 );
 }
 
 =head2 get_list_selected_index
@@ -1019,9 +1040,9 @@ Return the selected index from the list control.
 =cut
 
 sub get_list_selected_index {
-    my $self = shift;
+    my ($self, $lname) = @_;
 
-    return $self->get_listcontrol->GetSelection();
+    return $self->get_listcontrol($lname)->GetSelection();
 }
 
 =head2 list_item_insert
@@ -1031,12 +1052,13 @@ Insert item in list control.
 =cut
 
 sub list_item_insert {
-    my ( $self, $item, $nrcrt, $title, $file ) = @_;
+    my ( $self, $lname, $item, $nrcrt, $title, $file ) = @_;
 
-    $self->list_item_string_insert($item);
-    $self->set_list_text($item, 0, $nrcrt);
-    $self->set_list_text($item, 1, $title);
+    $self->list_item_string_insert($lname, $item);
+    $self->set_list_text($lname, $item, 0, $nrcrt);
+    $self->set_list_text($lname, $item, 1, $title);
     $self->set_list_item_data(
+        $lname,
         $item,
         {
             file  => $file,
@@ -1054,15 +1076,15 @@ Set list item data.
 =cut
 
 sub set_list_item_data {
-    my ($self, $item, $data_new) = @_;
+    my ($self, $lname, $item, $data_new) = @_;
 
-    my $data = $self->get_list_item_data($item);
+    my $data = $self->get_list_item_data($lname, $item);
 
     while ( my ( $key, $value ) = each( %{$data_new} ) ) {
         $data->{$key} = $value;
     }
 
-    $self->get_listcontrol->SetItemData( $item, $data );
+    $self->get_listcontrol($lname)->SetItemData( $item, $data );
 
     return;
 }
@@ -1074,9 +1096,9 @@ Set list item data.
 =cut
 
 sub get_list_item_data {
-    my ($self, $item) = @_;
+    my ($self, $lname, $item) = @_;
 
-    return $self->get_listcontrol->GetItemData( $item );
+    return $self->get_listcontrol($lname)->GetItemData( $item );
 }
 
 =head2 toggle_mark
@@ -1088,20 +1110,20 @@ Toggle delete mark on list item.
 sub toggle_mark {
     my ($self, $item) = @_;
 
-    my $data = $self->get_list_item_data($item);
+    my $data = $self->get_list_item_data('qlist', $item);
 
     if ( exists $data->{mark} ) {
         ( $data->{mark} == 1 )
-            ? $self->set_list_item_data($item, { mark => 0 } )
-            : $self->set_list_item_data($item, { mark => 1 } )
+            ? $self->set_list_item_data('qlist', $item, { mark => 0 } )
+            : $self->set_list_item_data('qlist', $item, { mark => 1 } )
             ;
     }
     else {
-        $self->set_list_item_data($item, { mark => 1 } ); # set mark
+        $self->set_list_item_data('qlist', $item, { mark => 1 } ); # set mark
     }
 
     # Keep a count of marks
-    $self->get_list_item_data($item)->{mark} == 1
+    $self->get_list_item_data('qlist', $item)->{mark} == 1
         ? $self->_model->{_marks}++
         : $self->_model->{_marks}--
         ;
@@ -1116,9 +1138,9 @@ Insert string item in list control
 =cut
 
 sub list_item_string_insert {
-    my ($self, $item) = @_;
+    my ($self, $lname, $item) = @_;
 
-    $self->get_listcontrol->InsertStringItem( $item, 'dummy' );
+    $self->get_listcontrol($lname)->InsertStringItem( $item, 'dummy' );
 
     return;
 }
@@ -1130,8 +1152,8 @@ Delete list control item
 =cut
 
 sub list_item_clear {
-    my ($self, $item) = @_;
-    $self->get_listcontrol->DeleteItem($item);
+    my ($self, $lname, $item) = @_;
+    $self->get_listcontrol($lname)->DeleteItem($item);
 }
 
 =head2 list_item_clear_all
@@ -1141,9 +1163,9 @@ Delete all list control items.
 =cut
 
 sub list_item_clear_all {
-    my ($self) = @_;
+    my ($self, $lname) = @_;
 
-    $self->get_listcontrol->DeleteAllItems;
+    $self->get_listcontrol($lname)->DeleteAllItems;
 }
 
 =head2 list_remove_item
@@ -1153,16 +1175,16 @@ Remove item from list control and select the first item.
 =cut
 
 sub list_remove_item {
-    my $self = shift;
+    my ($self, $lname) = @_;
 
-    my $item = $self->get_list_selected_index();
-    my $file = $self->get_list_item_data($item);
+    my $item = $self->get_list_selected_index($lname);
+    my $file = $self->get_list_item_data($lname, $item);
 
     # Remove from list
-    $self->list_item_clear($item);
+    $self->list_item_clear($lname, $item);
 
     # Set item 0 selected
-    $self->list_item_select('first');
+    $self->list_item_select($lname, 'first');
 
     return $file;
 }
@@ -1176,21 +1198,20 @@ Log configuration options with data from the Config module
 sub log_config_options {
     my $self = shift;
 
-    my $cfg  = QDepo::Config->instance();
-    my $path = $cfg->output;
+    my $path = $self->_cfg->output;
 
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
     }
 }
 
-=head2 list_populate_all
+=head2 querylist_populate
 
 Populate list with items.
 
 =cut
 
-sub list_populate_all {
+sub querylist_populate {
     my $self = shift;
 
     my $items = $self->_model->load_qdf_data_wx();
@@ -1201,32 +1222,67 @@ sub list_populate_all {
     my @indices = sort { $a <=> $b } keys %{$items};
 
     # Clear list
-    $self->list_item_clear_all();
+    $self->list_item_clear_all('qlist');
 
     foreach my $idx ( @indices ) {
         my $nrcrt = $items->{$idx}{nrcrt};
         my $title = $items->{$idx}{title};
         my $file  = $items->{$idx}{file};
 
-        $self->list_item_insert($idx, $nrcrt, $title, $file);
+        $self->list_item_insert('qlist', $idx, $nrcrt, $title, $file);
     }
 
     return;
 }
 
-=head2 list_populate_item
+=head2 connlist_populate
+
+Populate list with items.
+
+=cut
+
+sub connlist_populate {
+    my $self = shift;
+
+    my $items = $self->_cfg->get_configs;
+
+    return unless @{$items};
+
+    # Sort case-insensitively
+    my @mnemonics = sort {uc($a) cmp uc($b)} @{$items};
+
+    # Clear list
+    $self->list_item_clear_all('dlist');
+
+    my $idx = 0;
+    foreach my $mnemonic (@mnemonics) {
+        my $nrcrt = $idx + 1;
+        $self->list_item_insert('dlist', $idx, $nrcrt, $mnemonic, '');
+        $idx++;
+    }
+
+    return;
+}
+
+=head2 querylist_add_item
 
 Add new item in list control.
 
 =cut
 
-sub list_populate_item {
+sub querylist_add_item {
     my ( $self, $rec ) = @_;
 
     my ($idx) = keys %{$rec};
     my $r     = $rec->{$idx};
 
-    $self->list_item_insert( $idx, $r->{nrcrt}, $r->{title}, $r->{file} );
+    $self->list_item_insert(
+        'qlist',
+        $idx,
+        $r->{nrcrt},
+        $r->{title},
+        $r->{file}
+    );
 
     return;
 }
@@ -1240,13 +1296,12 @@ Populate controls with data from XML
 sub controls_populate {
     my $self = shift;
 
-    my $item = $self->get_list_selected_index();
-    my $lidata = $self->get_list_item_data($item);
+    my $item = $self->get_list_selected_index('qlist');
+    my $lidata = $self->get_list_item_data('qlist', $item);
     my $file = $lidata->{file};
     my ($data) = $self->_model->read_qdf_data_file( $item, $file );
 
-    my $cfg     = QDepo::Config->instance();
-    my $qdfpath = $cfg->qdfpath;
+    my $qdfpath = $self->_cfg->qdfpath;
 
     # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;
@@ -1276,8 +1331,8 @@ Toggle sql replace
 
     $mode ||= $self->_model->get_appmode;
 
-    my $item = $self->get_list_selected_index();
-    my $lidata = $self->get_list_item_data($item);
+    my $item = $self->get_list_selected_index('qlist');
+    my $lidata = $self->get_list_item_data('qlist', $item);
     my $file   = $lidata->{file};
     my ($data) = $self->_model->read_qdf_data_file($item, $file);
 
@@ -1295,7 +1350,7 @@ Toggle sql replace
 sub get_qdf_data_file_wx {
     my ($self, $item) = @_;
 
-    my $lidata = $self->get_list_item_data($item);
+    my $lidata = $self->get_list_item_data('qlist', $item);
     my $file   = $lidata->{file};
 
     return $file;
@@ -1574,9 +1629,9 @@ sub controls_read_page {
 }
 
 sub toggle_list_enable {
-    my ($self, $state) = @_;
+    my ($self, $lname, $state) = @_;
 
-    $self->get_listcontrol()->Enable($state);
+    $self->get_listcontrol($lname)->Enable($state);
 
     return;
 }
@@ -1643,7 +1698,7 @@ sub event_handler_for_list {
     my ($self, $calllback) = @_;
 
     #- List controll
-    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol, $calllback;
+    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol('qlist'), $calllback;
 
     return;
 }

@@ -96,10 +96,11 @@ sub start {
 
     $self->set_event_handlers();
     $self->set_app_mode('idle');
-    $self->_view->list_populate_all();
-    if ( $self->_view->get_list_max_index() >= 0) {
+    $self->_view->querylist_populate();
+    $self->_view->connlist_populate();
+    if ( $self->_view->get_list_max_index('qlist') >= 0) {
         # We have items
-        $self->_view->list_item_select('first');
+        $self->_view->list_item_select('qlist', 'first');
         $self->_model->on_item_selected();
         $self->set_app_mode('sele');
     }
@@ -130,7 +131,7 @@ sub set_app_mode {
     my ( $self, $mode ) = @_;
 
     if ( $mode eq 'sele' ) {
-        my $item_no = $self->_view->get_list_max_index() + 1;
+        my $item_no = $self->_view->get_list_max_index('qlist') + 1;
 
         # Set mode to 'idle' if no items
         $mode = 'idle' if $item_no <= 0;
@@ -174,7 +175,7 @@ Edit mode.
 sub on_screen_mode_edit {
     my $self = shift;
 
-    $self->_view->toggle_list_enable();
+    $self->_view->toggle_list_enable('qlist');
     $self->_view->toggle_sql_replace('edit');
 
     return;
@@ -330,7 +331,7 @@ sub toggle_interface_controls {
     my $is_edit = $self->_model->is_appmode('edit') ? 1 : 0;
 
     # Toggle List control state
-    $self->_view->toggle_list_enable( !$is_edit );
+    $self->_view->toggle_list_enable('qlist', !$is_edit );
 
     # Controls by page Enabled in edit mode
     foreach my $page (qw(para list conf sql )) {

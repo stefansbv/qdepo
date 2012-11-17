@@ -225,6 +225,18 @@ sub _config_file_load {
     return QDepo::Config::Utils->load($yaml_file);
 }
 
+=head2 get_configs
+
+Get the connections configs list.
+
+=cut
+
+sub get_configs {
+    my $self = shift;
+
+    return QDepo::Config::Utils->find_subdirs( $self->cfdb );
+}
+
 =head2 list_configs
 
 List all existing connection configurations.
@@ -234,8 +246,7 @@ List all existing connection configurations.
 sub list_configs {
     my $self = shift;
 
-    my $dbpath = $self->cfdb;
-    my $conn_list = QDepo::Config::Utils->find_subdirs($dbpath);
+    my $conn_list = $self->get_configs;
 
     print "Connection configurations:\n";
     foreach my $cfg_name ( @{$conn_list} ) {
@@ -245,7 +256,9 @@ sub list_configs {
             print "  > $cfg_name\n";
         }
     }
-    print " in '$dbpath'\n";
+    print ' in ', $self->cfdb, "\n";
+
+    return;
 }
 
 =head2 init_configs

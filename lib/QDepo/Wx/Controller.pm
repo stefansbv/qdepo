@@ -136,10 +136,10 @@ sub set_event_handlers {
     $self->_view->event_handler_for_tb_button(
         'tb_ad',
         sub {
-            my $items_no = $self->_view->get_list_max_index();
+            my $items_no = $self->_view->get_list_max_index('qlist');
             my $rec = $self->_model->report_add($items_no + 1);
-            $self->_view->list_populate_item($rec);
-            $self->_view->list_item_select('last');
+            $self->_view->querylist_add_item($rec);
+            $self->_view->list_item_select('qlist', 'last');
             $self->_model->on_item_selected();
             $self->set_app_mode('edit');
         }
@@ -173,8 +173,8 @@ Get the sql text string from the QDF file, prepare it for execution.
 sub process_sql {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index();
-    my $lidata = $self->_view->get_list_item_data($item);
+    my $item = $self->_view->get_list_selected_index('qlist');
+    my $lidata = $self->_view->get_list_item_data('qlist', $item);
     my ($data) = $self->_model->read_qdf_data_file($item, $lidata->{file} );
     $self->_model->run_export($data);
 
@@ -190,18 +190,18 @@ Toggle mark on list item.
 sub toggle_mark_item {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index();
+    my $item = $self->_view->get_list_selected_index('qlist');
 
     $self->_view->toggle_mark($item);
 
-    my $data = $self->_view->get_list_item_data($item);
+    my $data = $self->_view->get_list_item_data('qlist', $item);
 
     my $nrcrt = $data->{nrcrt};
     if ( exists $data->{mark} ) {
         $nrcrt = "$nrcrt D" if $data->{mark} == 1;
     }
 
-    $self->_view->list_item_edit( $item, $nrcrt );
+    $self->_view->list_item_edit('qlist', $item, $nrcrt );
 
     return;
 }
@@ -215,9 +215,9 @@ Scan all items and remove marked ones.
 sub list_remove_marked {
     my $self = shift;
 
-    my $max_index = $self->_view->get_list_max_index();
+    my $max_index = $self->_view->get_list_max_index('qlist');
     foreach my $item (0..$max_index) {
-        my $data = $self->_view->get_list_item_data($item);
+        my $data = $self->_view->get_list_item_data('qlist', $item);
         while ( my ( $key, $value ) = each( %{$data} ) ) {
             if ( $key eq 'mark' and $data->{mark} == 1 ) {
                 $self->_model->report_remove( $data->{file} );
@@ -282,7 +282,7 @@ sub guide {
 sub save_qdf_data {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index();
+    my $item = $self->_view->get_list_selected_index('qlist');
     my $file = $self->_view->get_qdf_data_file_wx($item);
     my $head = $self->_view->controls_read_page('list');
     my $para = $self->_view->controls_read_page('para');
@@ -293,7 +293,7 @@ sub save_qdf_data {
     my $title = $head->[0]{title};
 
     # Update title in list
-    $self->_view->list_item_edit( $item, undef, $title);
+    $self->_view->list_item_edit('qlist', $item, undef, $title);
 
     return;
 }
