@@ -6,8 +6,6 @@ use utf8;
 
 use English;
 use Wx ':everything';
-use Wx::Event qw(EVT_CLOSE EVT_CHOICE EVT_MENU EVT_TOOL EVT_BUTTON
-                 EVT_AUINOTEBOOK_PAGE_CHANGED EVT_LIST_ITEM_SELECTED);
 
 require QDepo::Wx::App;
 
@@ -158,6 +156,26 @@ sub set_event_handlers {
         'tb_ls',
         sub {
             $self->_model->set_choice($_[1]->GetString);
+        }
+    );
+
+    #- Load button
+    $self->_view->event_handler_for_button(
+        'btn_load',
+        sub {
+            print "Load config...\n";
+        }
+    );
+
+    #- Default button
+    $self->_view->event_handler_for_button(
+        'btn_defa',
+        sub {
+            my $item = $self->_view->get_list_selected_index('dlist');
+            if (defined $item) {
+                $self->_view->clear_default_mark_all();
+                $self->_view->set_default_mark( $item, 1 );
+            }
         }
     );
 

@@ -64,7 +64,7 @@ sub new {
     $self->AddPage( $self->{p1}, 'Query List' );
     $self->AddPage( $self->{p2}, 'Parameters' );
     $self->AddPage( $self->{p3}, 'SQL Query' );
-    $self->AddPage( $self->{p4}, 'Set / Log' );
+    $self->AddPage( $self->{p4}, 'Admin' );
 
     return $self;
 }

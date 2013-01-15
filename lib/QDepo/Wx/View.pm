@@ -6,7 +6,7 @@ use warnings;
 use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
-    EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED
+    EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
 use Wx::STC;
@@ -715,7 +715,26 @@ sub _create_config_page {
     $self->{dlist}
         ->InsertColumn( 1, 'Mnemonic', wxLIST_FORMAT_LEFT, 100 );
     $self->{dlist}
-        ->InsertColumn( 2, 'Description', wxLIST_FORMAT_LEFT, 237 );
+        ->InsertColumn( 2, 'Default', wxLIST_FORMAT_LEFT, 60 );
+    $self->{dlist}
+        ->InsertColumn( 3, 'Description', wxLIST_FORMAT_LEFT, 180 );
+
+    #-- Button
+
+    $self->{btn_load} = Wx::Button->new(
+        $self->{_nb}{p4},
+        -1,
+        q{Load},
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
+    $self->{btn_defa} = Wx::Button->new(
+        $self->{_nb}{p4},
+        -1,
+        q{Default},
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
 
     #- Log text control
 
@@ -756,7 +775,7 @@ sub _create_config_page {
 
     #--- Layout
 
-    my $conf_main_sz = Wx::FlexGridSizer->new( 2, 1, 5, 5 );
+    my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 1, 5 );
 
     #-- Top
 
@@ -766,6 +785,12 @@ sub _create_config_page {
         wxVERTICAL, );
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
+
+    #-- Middle
+
+    my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $h_sizer->Add( $self->{btn_load}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25);
+    $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
 
     #-- Bottom
 
@@ -779,10 +804,11 @@ sub _create_config_page {
     #--
 
     $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
+    $conf_main_sz->Add( $h_sizer, 1, wxALIGN_CENTRE);
     $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
 
     $conf_main_sz->AddGrowableRow(0);
-    $conf_main_sz->AddGrowableRow(1);
+    $conf_main_sz->AddGrowableRow(2);
     $conf_main_sz->AddGrowableCol(0);
 
     $self->{_nb}{p4}->SetSizer($conf_main_sz);
@@ -1695,10 +1721,18 @@ sub event_handler_for_tb_choice {
 }
 
 sub event_handler_for_list {
-    my ($self, $calllback) = @_;
+    my ($self, $name, $calllback) = @_;
 
     #- List controll
-    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol('qlist'), $calllback;
+    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol($name), $calllback;
+
+    return;
+}
+
+sub event_handler_for_button {
+    my ($self, $name, $calllback) = @_;
+
+    EVT_BUTTON( $self, $self->{$name}, $calllback );
 
     return;
 }
@@ -1713,6 +1747,36 @@ sub on_close_window {
     my ($self, ) = @_;
 
     $self->Destroy;
+}
+
+=head2 set_default_mark
+
+
+
+=cut
+
+sub set_default_mark {
+    my ($self, $item, $flag) = @_;
+
+    my $data = $self->get_list_item_data('dlist', $item);
+
+    $self->set_list_item_data('dlist', $item, { default => $flag } ); # set mark
+
+    $self->set_list_text('dlist', $item, 2, 'yes');
+
+    return;
+}
+
+sub clear_default_mark_all {
+    my $self = shift;
+
+    my $max_index = $self->get_list_max_index('dlist');
+    for my $item (0..$max_index) {
+        $self->set_default_mark($item, 0);
+        $self->set_list_text('dlist', $item, 2, '');
+    }
+
+    return;
 }
 
 =head1 AUTHOR

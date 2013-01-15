@@ -275,10 +275,19 @@ sub set_event_handlers {
         }
     );
 
-    #-- List
+    #-- Query List
     $self->_view->event_handler_for_list(
+        'qlist',
         sub {
             $self->_model->on_item_selected();
+        }
+    );
+
+    #-- DB Configs List
+    $self->_view->event_handler_for_list(
+        'dlist',
+        sub {
+            print "Item selected\n";
         }
     );
 
