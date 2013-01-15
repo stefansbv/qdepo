@@ -728,10 +728,19 @@ sub _create_config_page {
         [ -1, -1 ],
         [ -1, -1 ],
     );
+
     $self->{btn_defa} = Wx::Button->new(
         $self->{_nb}{p4},
         -1,
         q{Default},
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
+
+    $self->{btn_add} = Wx::Button->new(
+        $self->{_nb}{p4},
+        -1,
+        q{Add},
         [ -1, -1 ],
         [ -1, -1 ],
     );
@@ -791,6 +800,7 @@ sub _create_config_page {
     my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
     $h_sizer->Add( $self->{btn_load}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25);
     $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
+    $h_sizer->Add( $self->{btn_add},  1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
 
     #-- Bottom
 
