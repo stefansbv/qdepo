@@ -64,30 +64,30 @@ sub start {
 
     # Try until connected or canceled
     my $return_string = '';
-    while ( !$self->_model->is_connected ) {
-        $self->_model->db_connect();
-        my $message = $self->_model->get_exception();
-        if ($message) {
-            my ($type, $mesg) = split /#/, $message, 2;
-            if ($type =~ m{fatal}imx) {
-                my $message = 'Connection error! Shutting down...';
-                $self->_view->dialog_error($message, $mesg);
-                $return_string = 'shutdown';
-                last;
-            }
-        }
+    # while ( !$self->_model->is_connected ) {
+    #     $self->_model->db_connect();
+    #     my $message = $self->_model->get_exception();
+    #     if ($message) {
+    #         my ($type, $mesg) = split /#/, $message, 2;
+    #         if ($type =~ m{fatal}imx) {
+    #             my $message = 'Connection error! Shutting down...';
+    #             $self->_view->dialog_error($message, $mesg);
+    #             $return_string = 'shutdown';
+    #             last;
+    #         }
+    #     }
 
-        # Try with the login dialog if still not connected
-        if ( !$self->_model->is_connected ) {
-            $return_string = $self->dialog_login();
-            last if $return_string eq 'shutdown';
-        }
-    }
+    #     # Try with the login dialog if still not connected
+    #     if ( !$self->_model->is_connected ) {
+    #         $return_string = $self->dialog_login();
+    #         last if $return_string eq 'shutdown';
+    #     }
+    # }
 
-    if ($return_string eq 'shutdown') {
-        $self->close_app;
-        return;
-    }
+    # if ($return_string eq 'shutdown') {
+    #     $self->close_app;
+    #     return;
+    # }
 
     #-- Start
 

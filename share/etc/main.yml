@@ -3,13 +3,5 @@
 ---
 interface:
   widgetset: Wx
-  path:
-    toolbar: etc/interfaces/toolbar.yml
-    menubar: etc/interfaces/menubar.yml
-templates:
-  qdf: template/template.qdf
-  connection: template/connection.yml
 resource:
   icons: etc/interfaces/icons
-helpfile:
-  name: english.txt

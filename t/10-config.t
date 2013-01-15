@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 11;
+use Test::More tests => 7;
 
 use lib qw( lib ../lib );
 
@@ -43,18 +43,6 @@ ok( $c1->widgetset =~ m{Tk|Wx}i,
         . $c1->widgetset
         . '" and not "Wx or Tk" in config' );
 
-# interface::path::toolbar YML file
-ok( -f $c1->ymltoolbar, '"toolbar.yml" file exists' )
-    or diag( '"toolbar.yml" file defined as "'
-        . $c1->ymltoolbar
-        . '" not exists' );
-
-# interface::path::menubar YML file
-ok( -f $c1->ymlmenubar, '"menubar.yml" file exists' )
-    or diag( '"menubar.yml" file defined as "'
-        . $c1->ymlmenubar
-        . '" not exists' );
-
 # resource::icons
 ok( -d $c1->icons, '"icons" path exists' )
     or diag( '"icons" path defined as "'
@@ -64,18 +52,6 @@ ok( -d $c1->icons, '"icons" path exists' )
 ok( -f $c1->connfile, '"connfile" file exists' )
     or diag( '"connfile" file defined as "'
         . $c1->connfile
-        . '" not exists' );
-
-# templates::connection YML file
-ok( -f $c1->ymlconnection, '"connection.yml" file exists' )
-    or diag( '"connection.yml" file defined as "'
-        . $c1->ymlconnection
-        . '" not exists' );
-
-# templates::qdf YML file
-ok( -f $c1->qdftemplate, '"template.qdf" file exists' )
-    or diag( '"template.qdf" file defined as "'
-        . $c1->qdftemplate
         . '" not exists' );
 
 # end tests

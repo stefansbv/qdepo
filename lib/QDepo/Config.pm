@@ -3,7 +3,6 @@ package QDepo::Config;
 use strict;
 use warnings;
 
-use Hash::Merge qw(merge);
 use File::HomeDir;
 use File::ShareDir qw(dist_dir);
 use File::UserConfig;
@@ -108,31 +107,20 @@ sub _config_main_load {
         cfdb   => catdir( $configpath, 'db' ),
         user   => $args->{user},                   # make accessors for user
         pass   => $args->{pass},                   # and pass
+        cfname => $args->{cfname},
     };
 
-    # Merge args hashref
-    my $methods_new = merge($base_methods_hr, $args);
-
-    $self->_make_accessors($methods_new);
+    $self->_make_accessors($base_methods_hr);
 
     # Main config file name, load
     my $main_fqn = catfile( $configpath, $args->{cfgmain} );
-
-    my $msg = qq{\nConfiguration error: \n Can't read 'main.conf'};
-    $msg .= qq{\n  from '$main_fqn'!};
-    my $maincfg = $self->_config_file_load( $main_fqn, $msg );
+    my $maincfg  = $self->_config_file_load( $main_fqn);
 
     my $main_hr = {
-        widgetset => $maincfg->{interface}{widgetset},    # Wx or Tk
-        ymltoolbar =>
-            catfile( $configpath, $maincfg->{interface}{path}{toolbar} ),
-        ymlmenubar =>
-            catfile( $configpath, $maincfg->{interface}{path}{menubar} ),
-        icons => catdir( $configpath, $maincfg->{resource}{icons} ),
-        ymlconnection =>
-            catdir( $configpath, $maincfg->{templates}{connection} ),
-        qdftemplate => catfile( $configpath, $maincfg->{templates}{qdf} ),
-        helpfile => $maincfg->{helpfile}{name},
+        widgetset => $maincfg->{interface}{widgetset},
+        helpfile  => $maincfg->{helpfile}{name},
+        icons     => catdir( $configpath, $maincfg->{resource}{icons} ),
+        tmpl_qdf  => catfile( $configpath, 'template/template.qdf' ),
     };
 
     if ( $self->can('cfname') ) {
@@ -168,13 +156,7 @@ sub _config_conn_load {
 
     # Connection
     my $conn_file = $self->connfile;
-
-    my $msg = qq{\nConfiguration error, to fix, run\n\n};
-    $msg   .= qq{ qdepo -init };
-    $msg   .= $self->cfname . qq{\n\n};
-    $msg   .= qq{then edit: $conn_file\n};
-    my $cfg_data = $self->_config_file_load($conn_file, $msg);
-
+    my $cfg_data = $self->_config_file_load($conn_file);
     $cfg_data->{cfgconnfile} = $conn_file; # accessor for connection file
 
     $self->_make_accessors($cfg_data);
@@ -194,12 +176,12 @@ at restart.
 sub _config_interface_load {
     my $self = shift;
 
-    my $cfg_toolbar = $self->_config_file_load($self->ymltoolbar);
-    my $cfg_menubar = $self->_config_file_load($self->ymlmenubar);
-
-    my $methods = merge($cfg_toolbar, $cfg_menubar);
-
-    $self->_make_accessors($methods);
+    foreach my $section (qw{toolbar menubar}) {
+        my $yml_file
+            = catfile( $self->cfpath, 'etc', 'interfaces', "$section.yml" );
+        my $interface = $self->_config_file_load($yml_file);
+        $self->_make_accessors($interface);
+    }
 
     return;
 }
@@ -276,9 +258,9 @@ configuration file from template.
 sub init_configs {
     my ( $self, $conn_name ) = @_;
 
-    my $conn_tmpl = $self->ymlconnection;
     my $conn_path = catdir( $self->cfpath, 'db', $conn_name, 'etc' );
     my $conn_qdfp = catdir( $self->cfpath, 'db', $conn_name, 'qdf' );
+    my $conn_tmpl = catfile( $self->cfpath, 'template/connection.yml' );
     my $conn_file = $self->conn_cfg_filename($conn_name);
 
     if ( -f $conn_file ) {

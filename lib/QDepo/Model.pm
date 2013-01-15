@@ -580,7 +580,7 @@ sub report_add {
 
     my $new_qdf_file = $self->report_name();
 
-    my $src_fqn = $self->_cfg->qdftemplate;
+    my $src_fqn = $self->_cfg->tmpl_qdf;
     my $dst_fqn = catfile($self->_cfg->qdfpath, $new_qdf_file);
 
     if ( !-f $dst_fqn ) {
