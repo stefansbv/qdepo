@@ -62,7 +62,7 @@ sub close_app {
     my $self = shift;
 
     my $event = Wx::CommandEvent->new( 9999, -1 );
-    $self->_view->GetEventHandler()->AddPendingEvent($event);
+    $self->view->GetEventHandler()->AddPendingEvent($event);
 }
 
 =head2 _init
@@ -74,9 +74,24 @@ Init App.
 sub _init {
     my $self = shift;
 
-    my $app = QDepo::Wx::App->create($self->_model);
+    my $app = QDepo::Wx::App->create($self->model);
     $self->{_app}  = $app;
     $self->{_view} = $app->{_view};
+
+    return;
+}
+
+=head2 start_delay
+
+Show message, delay the database connection. Delay not yet
+implemented.
+
+=cut
+
+sub start_delay {
+    my $self = shift;
+
+    $self->connect_dialog();
 
     return;
 }
@@ -88,23 +103,45 @@ Login dialog.
 =cut
 
 sub dialog_login {
-    my $self = shift;
+    my ($self, $error) = @_;
 
     require QDepo::Wx::Dialog::Login;
     my $pd = QDepo::Wx::Dialog::Login->new();
 
     my $return_string = '';
-    my $dialog = $pd->login( $self->_view );
+    my $dialog = $pd->login( $self->view, $error );
     if ( $dialog->ShowModal != &Wx::wxID_CANCEL ) {
         $return_string = $dialog->get_login();
     }
     else {
-        $return_string = 'shutdown';
+        $return_string = 'cancel';
     }
 
     $dialog->Destroy;
 
     return $return_string;
+}
+
+sub get_text_dialog {
+    my $self = shift;
+
+    my $dialog = Wx::TextEntryDialog->new(
+        $self->view,
+        "Enter configuration name",
+        "Entry dialog",
+    );
+
+    my $name;
+    if ( $dialog->ShowModal == wxID_CANCEL ) {
+        Wx::LogMessage("User cancelled the dialog");
+    }
+    else {
+        $name = $dialog->GetValue;
+    }
+
+    $dialog->Destroy;
+
+    return $name;
 }
 
 =head2 set_event_handlers_keys
@@ -131,20 +168,20 @@ sub set_event_handlers {
     $self->SUPER::set_event_handlers();
 
     #-- Add new report
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_ad',
         sub {
-            my $items_no = $self->_view->get_list_max_index('qlist');
-            my $rec = $self->_model->report_add($items_no + 1);
-            $self->_view->querylist_add_item($rec);
-            $self->_view->list_item_select('qlist', 'last');
-            $self->_model->on_item_selected();
+            my $items_no = $self->view->get_list_max_index('qlist');
+            my $rec = $self->model->report_add($items_no + 1);
+            $self->view->querylist_add_item($rec);
+            $self->view->list_item_select('qlist', 'last');
+            $self->model->on_item_selected();
             $self->set_app_mode('edit');
         }
     );
 
     #-- Remove report
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_rm',
         sub {
             $self->toggle_mark_item();
@@ -152,30 +189,10 @@ sub set_event_handlers {
     );
 
     #- Choice
-    $self->_view->event_handler_for_tb_choice(
+    $self->view->event_handler_for_tb_choice(
         'tb_ls',
         sub {
-            $self->_model->set_choice($_[1]->GetString);
-        }
-    );
-
-    #- Load button
-    $self->_view->event_handler_for_button(
-        'btn_load',
-        sub {
-            print "Load config...\n";
-        }
-    );
-
-    #- Default button
-    $self->_view->event_handler_for_button(
-        'btn_defa',
-        sub {
-            my $item = $self->_view->get_list_selected_index('dlist');
-            if (defined $item) {
-                $self->_view->clear_default_mark_all();
-                $self->_view->set_default_mark( $item, 1 );
-            }
+            $self->model->set_choice($_[1]->GetString);
         }
     );
 
@@ -191,10 +208,10 @@ Get the sql text string from the QDF file, prepare it for execution.
 sub process_sql {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index('qlist');
-    my $lidata = $self->_view->get_list_item_data('qlist', $item);
-    my ($data) = $self->_model->read_qdf_data_file($item, $lidata->{file} );
-    $self->_model->run_export($data);
+    my $item = $self->view->get_list_selected_index('qlist');
+    my $lidata = $self->view->get_list_item_data('qlist', $item);
+    my ($data) = $self->model->read_qdf_data_file($item, $lidata->{file} );
+    $self->model->run_export($data);
 
     return;
 }
@@ -208,18 +225,18 @@ Toggle mark on list item.
 sub toggle_mark_item {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index('qlist');
+    my $item = $self->view->get_list_selected_index('qlist');
 
-    $self->_view->toggle_mark($item);
+    $self->view->toggle_mark($item);
 
-    my $data = $self->_view->get_list_item_data('qlist', $item);
+    my $data = $self->view->get_list_item_data('qlist', $item);
 
     my $nrcrt = $data->{nrcrt};
     if ( exists $data->{mark} ) {
         $nrcrt = "$nrcrt D" if $data->{mark} == 1;
     }
 
-    $self->_view->list_item_edit('qlist', $item, $nrcrt );
+    $self->view->list_item_edit('qlist', $item, $nrcrt );
 
     return;
 }
@@ -233,12 +250,12 @@ Scan all items and remove marked ones.
 sub list_remove_marked {
     my $self = shift;
 
-    my $max_index = $self->_view->get_list_max_index('qlist');
+    my $max_index = $self->view->get_list_max_index('qlist');
     foreach my $item (0..$max_index) {
-        my $data = $self->_view->get_list_item_data('qlist', $item);
+        my $data = $self->view->get_list_item_data('qlist', $item);
         while ( my ( $key, $value ) = each( %{$data} ) ) {
             if ( $key eq 'mark' and $data->{mark} == 1 ) {
-                $self->_model->report_remove( $data->{file} );
+                $self->model->report_remove( $data->{file} );
             }
         }
     }
@@ -261,7 +278,7 @@ sub about {
     my $PROGRAM_NAME = ' QDepo ';
     my $PROGRAM_DESC = 'QDepo - Query Deposit';
     my $PROGRAM_VER  = $QDepo::VERSION;
-    my $LICENSE = $cfg->get_license;
+    my $LICENSE = QDepo::Config::Utils->get_license();
 
     my $about = Wx::AboutDialogInfo->new;
 
@@ -287,7 +304,7 @@ Quick help dialog.
 sub guide {
     my $self = shift;
 
-    my $gui = $self->_view;
+    my $gui = $self->view;
 
     require QDepo::Wx::Dialog::Help;
     my $gd = QDepo::Wx::Dialog::Help->new;
@@ -300,18 +317,18 @@ sub guide {
 sub save_qdf_data {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index('qlist');
-    my $file = $self->_view->get_qdf_data_file_wx($item);
-    my $head = $self->_view->controls_read_page('list');
-    my $para = $self->_view->controls_read_page('para');
-    my $body = $self->_view->controls_read_page('sql');
+    my $item = $self->view->get_list_selected_index('qlist');
+    my $file = $self->view->get_qdf_data_file_wx($item);
+    my $head = $self->view->controls_read_page('list');
+    my $para = $self->view->controls_read_page('para');
+    my $body = $self->view->controls_read_page('sql');
 
-    $self->_model->write_qdf_data_file( $file, $head, $para, $body );
+    $self->model->write_qdf_data_file( $file, $head, $para, $body );
 
     my $title = $head->[0]{title};
 
     # Update title in list
-    $self->_view->list_item_edit('qlist', $item, undef, $title);
+    $self->view->list_item_edit('qlist', $item, undef, $title);
 
     return;
 }

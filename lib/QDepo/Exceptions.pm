@@ -7,12 +7,12 @@ use Exception::Base
     'QDepo::Exception::Db',
     'QDepo::Exception::Db::Connect' => {
         isa               => 'QDepo::Exception::Db',
-        has               => [qw( usermsg logmsg attrib )],
+        has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
     },
     'QDepo::Exception::Db::SQL' => {
         isa               => 'QDepo::Exception::Db',
-        has               => [qw( usermsg logmsg attrib )],
+        has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
     };
 

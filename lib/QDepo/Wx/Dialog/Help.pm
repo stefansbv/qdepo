@@ -42,7 +42,7 @@ sub show_html_help {
 
     my $cfg = QDepo::Config->instance();
 
-    my $htb_file = $cfg->get_help_file('htmlhelp.htb');
+    my $htb_file = $cfg->get_resource_file('help','htmlhelp.htb');
 
     $self->{help}->AddBook( $htb_file, 1 );
     $self->{help}->DisplayContents;

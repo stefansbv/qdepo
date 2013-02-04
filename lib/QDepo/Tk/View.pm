@@ -1451,13 +1451,13 @@ sub log_config_options {
     }
 }
 
-=head2 list_populate_all
+=head2 querylist_populate
 
 Populate list.
 
 =cut
 
-sub list_populate_all {
+sub querylist_populate {
     my $self = shift;
 
     $self->_model->load_qdf_data_tk();
@@ -1480,6 +1480,18 @@ sub list_populate_all {
     }
 
     return 1;
+}
+
+=head2 connlist_populate
+
+Populate list with items.
+
+=cut
+
+sub connlist_populate {
+    my $self = shift;
+
+    return;
 }
 
 =head2 list_populate_item

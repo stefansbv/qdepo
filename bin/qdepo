@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#! perl
 # +---------------------------------------------------------------------------+
 # | Name     : QDepo                                                          |
 # |          : also formerly known as "TPDA - Query Repository Tool"          |
@@ -37,11 +37,7 @@ use QDepo::Config;
 # or if usage was explicitly requested.
 my $help    = q{};
 my $man     = q{};
-my $version;
-my $list;
-my $init    = q{};
-my $user;
-my $pass;
+my ($init, $verbose, $list, $user, $pass, $default);
 
 # if ( is_interactive() ) {
 #     print "Running interactively\n";
@@ -52,55 +48,70 @@ if ( @ARGV > 0 ) {
     GetOptions(
         'help|?'    => \$help,
         'man'       => \$man,
-        'version'   => \$version,
-        'list'      => \$list,
+        'verbose'   => \$verbose,
+        'list:s'    => \$list,
         'user=s'    => \$user,
         'password=s'=> \$pass,
         'init:s'    => \$init,
+        'default=s' => \$default,
         ),
         or pod2usage(2);
 }
-if ( $man or $help or $version or $#ARGV >= 0 ) {
+if ( $man or $help or $#ARGV >= 0 ) {
     pod2usage( VERBOSE => 2 ) if $man;
-    if ($version) { qdepo_version(); exit 0; }
     if ($help)    { qdepo_version(); pod2usage(1); }
 }
 
-my $cfname = shift;         # Runtime configuration name or database name
+my $mnemonic = shift;
 
 #- Options
 my $opts = {};
 
-# Check 'list' and 'init' options first
-if ( defined $list xor $init ) {
+# Check for the 'list' option
+if ( defined $list ) {
 
     # Initialize configurations
-    my $cfg = QDepo::Config->instance();
+    my $cfg = QDepo::Config->instance( { list => $list } );
 
-    if ( $list ) {
-        $cfg->list_configs();
-        exit 0;
-    }
-    if ( $init ) {
-        $cfg->init_configs($init);
-        exit 0;
-    }
-}
+    $cfg->list_mnemonics($list);
 
-# Check connection configuration name option last
-if ( $cfname ) {
-
-    # Other options
-    $opts->{user} = $user;
-    $opts->{pass} = $pass;
-    $opts->{cfname} = $cfname;
-
-    # Go and run the app
-    QDepo->new( $opts )->run;
-
-    print "Normal exit.\n";
     exit 0;
 }
+
+# Check for the 'init' option
+if ($init) {
+
+    # Initialize configurations
+    my $cfg = QDepo::Config->instance( { init => $init } );
+
+    print "Creating $init...\r";
+    my $name = $cfg->new_config_tree($init);
+    print "Creating $name... done\n";
+
+    exit 0;
+}
+
+# Check for the 'default' option
+if ( $default ) {
+
+    # Initialize configurations
+    my $cfg = QDepo::Config->instance( { default => $default } );
+
+    $cfg->set_default_mnemonic($default);
+
+    exit 0;
+}
+
+# Other options
+$opts->{user} = $user;
+$opts->{pass} = $pass;
+$opts->{mnemonic} = $mnemonic;
+
+# Go and run the app
+QDepo->new( $opts )->run;
+
+print "Normal exit.\n";
+exit 0;
 
 # If no other option, usage
 qdepo_version();

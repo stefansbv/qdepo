@@ -14,10 +14,9 @@ use lib qw( lib ../lib );
 use QDepo::Config;
 
 my $args = {
-    cfname  => 'test',
-    cfgmain => 'etc/main.yml',
-    user    => undef,
-    pass    => undef,
+    mnemonic => 'test',
+    user     => undef,
+    pass     => undef,
 };
 
 my $c1 = QDepo::Config->instance( $args );

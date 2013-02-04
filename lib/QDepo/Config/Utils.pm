@@ -4,9 +4,13 @@ use warnings;
 use strict;
 
 use File::Basename;
+use File::Copy;
 use File::Find::Rule;
 use File::Path 2.07 qw( make_path );
-use File::Copy;
+use File::ShareDir qw(dist_dir);
+use File::Spec::Functions qw(catfile);
+use File::Slurp qw(read_file);
+use Try::Tiny;
 use YAML::Tiny;
 
 =head1 NAME
@@ -29,17 +33,26 @@ our $VERSION = '0.39';
 
 =head1 METHODS
 
-=head2 load
+=head2 load_yaml
 
 Use YAML::Tiny to load a YAML file and return as a Perl hash data
 structure.
 
 =cut
 
-sub load {
+sub load_yaml {
     my ( $self, $yaml_file ) = @_;
 
-    return YAML::Tiny::LoadFile( $yaml_file );
+    my $conf;
+    try {
+        $conf = YAML::Tiny::LoadFile($yaml_file);
+    }
+    catch {
+        my $msg = YAML::Tiny->errstr;
+        die " but failed to load because:\n $msg\n";
+    };
+
+    return $conf;
 }
 
 =head2 create_path
@@ -132,6 +145,75 @@ sub find_subdirs {
     my @dbs = map { basename($_); } @subdirs;
 
     return \@dbs;
+}
+
+sub save_default_yaml {
+    my ( $self, $yaml_file, $key, $value ) = @_;
+
+    my $yaml
+        = ( -f $yaml_file )
+        ? YAML::Tiny->read($yaml_file)
+        : YAML::Tiny->new;
+
+    $yaml->[0]->{$key} = $value;    # add new key => value
+
+    $yaml->write($yaml_file);
+
+    return;
+}
+
+=head2 get_licence
+
+Slurp licence file and return the text string.  Return only the title
+if the license file is not found, just to be on the save side.
+
+=cut
+
+sub get_license {
+    my $self = shift;
+
+    my $message = <<'END_LICENSE';
+
+                      GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+END_LICENSE
+
+    my $license = catfile( dist_dir('QDepo'), 'license', 'gpl.txt' );
+
+    if (-f $license) {
+        return read_file($license);
+    }
+    else {
+        return $message;
+    }
+}
+
+=head2 get_help_text
+
+Return help file path.
+
+=cut
+
+sub get_help_text {
+    my $self = shift;
+
+    my $message = <<'END_HELP';
+
+                     The HELP file is missing or misconfigured!
+
+END_HELP
+
+    my $help_file = catfile( dist_dir('QDepo'), 'help', $self->helpfile);
+    if (-f $help_file) {
+        return  read_file( $help_file, binmode => ':utf8' );
+    }
+    else {
+        return $message;
+    }
 }
 
 =head1 AUTHOR

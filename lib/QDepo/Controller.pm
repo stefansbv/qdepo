@@ -3,8 +3,10 @@ package QDepo::Controller;
 use strict;
 use warnings;
 
+use Try::Tiny;
 use QDepo::Config;
 use QDepo::Model;
+use QDepo::Exceptions;
 
 =head1 NAME
 
@@ -49,66 +51,109 @@ sub new {
     return $self;
 }
 
+=head2 cfg
+
+Return config instance variable
+
+=cut
+
+sub cfg {
+    my $self = shift;
+
+    return $self->{_cfg};
+}
+
 =head2 start
 
-Try to connect first even if we have no user and pass. Retry and show
-login dialog, until connected unless fatal error message received from
-the RDBMS.
+Connect if user and pass or if driver is SQLite. Retry and show login
+dialog, until connected or fatal error message received from the
+RDBMS.
 
 =cut
 
 sub start {
     my $self = shift;
 
-    $self->_view->log_config_options();
+    my $driver = $self->cfg->connection->{driver};
+    if (   ( $self->cfg->user and $self->cfg->pass )
+        or ( $driver eq 'sqlite' ) )
+    {
+        $self->model->db_connect();
+    }
 
-    # Try until connected or canceled
-    my $return_string = '';
-    # while ( !$self->_model->is_connected ) {
-    #     $self->_model->db_connect();
-    #     my $message = $self->_model->get_exception();
-    #     if ($message) {
-    #         my ($type, $mesg) = split /#/, $message, 2;
-    #         if ($type =~ m{fatal}imx) {
-    #             my $message = 'Connection error! Shutting down...';
-    #             $self->_view->dialog_error($message, $mesg);
-    #             $return_string = 'shutdown';
-    #             last;
-    #         }
-    #     }
+    # Retry until connected or canceled
+    $self->start_delay()
+        unless ( $self->model->is_connected
+        or $self->cfg->connection->{driver} eq 'sqlite' );
 
-    #     # Try with the login dialog if still not connected
-    #     if ( !$self->_model->is_connected ) {
-    #         $return_string = $self->dialog_login();
-    #         last if $return_string eq 'shutdown';
-    #     }
-    # }
+    #- Start
 
-    # if ($return_string eq 'shutdown') {
-    #     $self->close_app;
-    #     return;
-    # }
-
-    #-- Start
-
-    my $default = $self->_view->get_choice_default();
-    $self->_model->set_choice($default);
+    my $default = $self->view->get_choice_default();
+    $self->model->set_choice($default);
 
     $self->set_event_handlers();
     $self->set_app_mode('idle');
-    $self->_view->querylist_populate();
-    $self->_view->connlist_populate();
-    if ( $self->_view->get_list_max_index('qlist') >= 0) {
-        # We have items
-        $self->_view->list_item_select('qlist', 'first');
-        $self->_model->on_item_selected();
+
+    $self->view->connlist_populate();
+    if ( $self->view->get_list_max_index('dlist') >= 0) {
+        $self->view->list_item_select('dlist', 'default');
+    }
+
+    $self->view->querylist_populate();
+    if ( $self->view->get_list_max_index('qlist') >= 0) {
+        $self->view->list_item_select('qlist', 'first');
+        $self->model->on_item_selected();
         $self->set_app_mode('sele');
     }
 
     return;
 }
 
-=head2 login_dialog
+=head2 connect_dialog
+
+Show login dialog until connected or canceled.  Called with delay from
+Tk::Controller (not yet).
+
+=cut
+
+sub connect_dialog {
+    my $self = shift;
+
+    my $error;
+
+  TRY:
+    while ( not $self->model->is_connected ) {
+
+        # Show login dialog if still not connected
+        my $return_string = $self->dialog_login($error);
+        if ($return_string eq 'cancel') {
+            $self->model->message_log(qq{II Login cancelled});
+            last TRY;
+        }
+
+        # Try to connect only if user and pass are provided
+        if ($self->cfg->user and $self->cfg->pass ) {
+            try {
+                $self->model->db_connect();
+            }
+            catch {
+                if ( my $e = Exception::Base->catch($_) ) {
+                    if ( $e->isa('QDepo::Exception::Db::Connect') ) {
+                        $error = $e->usermsg;
+                        warn $e->logmsg;
+                    }
+                }
+            };
+        }
+        else {
+            $error = 'User and password required';
+        }
+    }
+
+    return;
+}
+
+=head2 dialog_login
 
 Login dialog.
 
@@ -131,13 +176,13 @@ sub set_app_mode {
     my ( $self, $mode ) = @_;
 
     if ( $mode eq 'sele' ) {
-        my $item_no = $self->_view->get_list_max_index('qlist') + 1;
+        my $item_no = $self->view->get_list_max_index('qlist') + 1;
 
         # Set mode to 'idle' if no items
         $mode = 'idle' if $item_no <= 0;
     }
 
-    $self->_model->set_mode($mode);
+    $self->model->set_mode($mode);
 
     my %method_for = (
         idle => 'on_screen_mode_idle',
@@ -175,8 +220,8 @@ Edit mode.
 sub on_screen_mode_edit {
     my $self = shift;
 
-    $self->_view->toggle_list_enable('qlist');
-    $self->_view->toggle_sql_replace('edit');
+    $self->view->toggle_list_enable('qlist');
+    $self->view->toggle_sql_replace('edit');
 
     return;
 }
@@ -190,7 +235,7 @@ Select mode.
 sub on_screen_mode_sele {
     my $self = shift;
 
-    $self->_view->toggle_sql_replace('sele');
+    $self->view->toggle_sql_replace('sele');
 
     return;
 }
@@ -207,7 +252,7 @@ sub set_event_handlers {
     #- Base menu
 
     #-- Exit
-    $self->_view->event_handler_for_menu(
+    $self->view->event_handler_for_menu(
         'mn_qt',
         sub {
             $self->on_quit;
@@ -215,7 +260,7 @@ sub set_event_handlers {
     );
 
     #-- Help
-    $self->_view->event_handler_for_menu(
+    $self->view->event_handler_for_menu(
         'mn_gd',
         sub {
             $self->guide;
@@ -223,7 +268,7 @@ sub set_event_handlers {
     );
 
     #-- About
-    $self->_view->event_handler_for_menu(
+    $self->view->event_handler_for_menu(
         'mn_ab',
         sub {
             $self->about;
@@ -233,20 +278,20 @@ sub set_event_handlers {
     #- Toolbar
 
     #-- Edit mode
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_ed',
         sub {
-            $self->_model->is_appmode('edit')
+            $self->model->is_appmode('edit')
                 ? $self->set_app_mode('sele')
                 : $self->set_app_mode('edit');
         }
     );
 
     #-- Save
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_sv',
         sub {
-            if ( $self->_model->is_appmode('edit') ) {
+            if ( $self->model->is_appmode('edit') ) {
                 $self->save_qdf_data();
                 $self->set_app_mode('sele');
             }
@@ -254,21 +299,21 @@ sub set_event_handlers {
     );
 
     #- Run
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_go',
         sub {
-            if ($self->_model->is_connected ) {
-                $self->_view->dialog_progress('Export data');
+            if ($self->model->is_connected ) {
+                $self->view->dialog_progress('Export data');
                 $self->process_sql();        # in Controller Wx | Tk
             }
             else {
-                $self->_view->dialog_error( 'Error', 'Not connected!' );
+                $self->view->dialog_error( 'Error', 'Not connected!' );
             }
         }
     );
 
     #-- Quit
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_qt',
         sub {
             $self->on_quit;
@@ -276,43 +321,73 @@ sub set_event_handlers {
     );
 
     #-- Query List
-    $self->_view->event_handler_for_list(
+    $self->view->event_handler_for_list(
         'qlist',
         sub {
-            $self->_model->on_item_selected();
+            $self->model->on_item_selected();
         }
     );
 
     #-- DB Configs List
-    $self->_view->event_handler_for_list(
+    $self->view->event_handler_for_list(
         'dlist',
         sub {
-            print "Item selected\n";
+            $self->toggle_admin_buttons();
+        }
+    );
+
+    #- Admin panel
+
+    #-- Load button
+    $self->view->event_handler_for_button(
+        'btn_load',
+        sub {
+            print "Load config...\n";
+        }
+    );
+
+    #-- Default button
+    $self->view->event_handler_for_button(
+        'btn_defa',
+        sub {
+            $self->set_default_mnemonic();
+        }
+    );
+
+    #-- Add button
+    $self->view->event_handler_for_button(
+        'btn_add',
+        sub {
+            my $name = $self->get_text_dialog();
+            if ($name) {
+                my $new = $self->cfg->config_new($name);
+                $self->model->message_log(qq{II New connection: '$new'});
+            }
         }
     );
 
     return;
 }
 
-=head2 _model
+=head2 model
 
 Return model instance variable.
 
 =cut
 
-sub _model {
+sub model {
     my $self = shift;
 
     return $self->{_model};
 }
 
-=head2 _view
+=head2 view
 
 Return view instance variable.
 
 =cut
 
-sub _view {
+sub view {
     my $self = shift;
 
     return $self->{_view};
@@ -328,19 +403,19 @@ the application.
 sub toggle_interface_controls {
     my $self = shift;
 
-    my ( $toolbars, $attribs ) = $self->{_view}->toolbar_names();
+    my ( $toolbars, $attribs ) = $self->view->toolbar_names();
 
-    my $mode = $self->_model->get_appmode();
+    my $mode = $self->model->get_appmode();
 
     foreach my $name ( @{$toolbars} ) {
         my $status = $attribs->{$name}{state}{$mode};
-        $self->_view->enable_tool( $name, $status );
+        $self->view->enable_tool( $name, $status );
     }
 
-    my $is_edit = $self->_model->is_appmode('edit') ? 1 : 0;
+    my $is_edit = $self->model->is_appmode('edit') ? 1 : 0;
 
     # Toggle List control state
-    $self->_view->toggle_list_enable('qlist', !$is_edit );
+    $self->view->toggle_list_enable('qlist', !$is_edit );
 
     # Controls by page Enabled in edit mode
     foreach my $page (qw(para list conf sql )) {
@@ -360,7 +435,7 @@ sub toggle_controls_page {
     my ($self, $page, $is_edit) = @_;
 
     my $get = 'get_controls_'.$page;
-    my $controls = $self->_view->$get();
+    my $controls = $self->view->$get();
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
@@ -373,7 +448,7 @@ sub toggle_controls_page {
                 $state = 'disabled';
             }
 
-            $self->_view->set_editable($name, $state, $color);
+            $self->view->set_editable($name, $state, $color);
         }
     }
 
@@ -405,9 +480,9 @@ sub on_quit {
 
     print "Shuting down...\n";
 
-    if ( $self->_model->has_marks() ) {
+    if ( $self->model->has_marks() ) {
         my $msg = 'Delete marked reports and quit?';
-        my $answer = $self->_view->action_confirmed($msg);
+        my $answer = $self->view->action_confirmed($msg);
         if ($answer eq 'yes') {
             $self->list_remove_marked();
         }
@@ -416,7 +491,7 @@ sub on_quit {
         }
     }
 
-    $self->_view->on_close_window(@_);
+    $self->view->on_close_window(@_);
 }
 
 =head2 list_remove_marked
@@ -428,6 +503,35 @@ Remove marked items.
 sub list_remove_marked {
 
     print 'list_remove_marked not implemented in ', __PACKAGE__, "\n";
+
+    return;
+}
+
+sub set_default_mnemonic {
+    my $self = shift;
+
+    my $item = $self->view->get_list_selected_index('dlist');
+    if (defined $item) {
+        $self->view->clear_default_mark();
+        my $mnemonic = $self->view->set_default_mark($item);
+        $self->cfg->set_default_mnemonic($mnemonic);
+    }
+
+    $self->toggle_admin_buttons();
+
+    return;
+}
+
+sub toggle_admin_buttons {
+    my $self = shift;
+
+    my $item = $self->view->get_default_mark('dlist');
+    my $sele = $self->view->get_list_selected_index('dlist');
+
+    my $enable = $item == $sele ? 1 : 0;
+
+    $self->view->get_control_named('btn_load')->Enable($enable);
+    $self->view->get_control_named('btn_defa')->Enable(not $enable);
 
     return;
 }

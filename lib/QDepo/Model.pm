@@ -81,14 +81,13 @@ sub _cfg {
 
 =head2 db_connect
 
-Database connection
+Database connection.  Connect to database or retry to connect.
 
 =cut
 
 sub db_connect {
     my $self = shift;
 
-    # Connect to database or retry to connect
     if (QDepo::Db->has_instance) {
         $self->{_dbh} = QDepo::Db->instance->db_connect($self)->dbh;
     }
@@ -96,22 +95,7 @@ sub db_connect {
         $self->{_dbh} = QDepo::Db->instance($self)->dbh;
     }
 
-    my $conninfo = $self->_cfg->conninfo;
-    my $driver = $conninfo->{driver};
-    my $dbname = $conninfo->{dbname};
-    my $host   = $conninfo->{host} || 'localhost';
-
-    # Is realy connected ?
-    if ( blessed $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
-        $self->get_connection_observable->set(1);    # assuming yes
-        $self->message_log("II Connected to \"$dbname\" with '$driver', on '$host'");
-    }
-    else {
-        $self->get_connection_observable->set(0);    # no ;)
-        $self->message_log("EE Connection to '$dbname' failed");
-    }
-
-    return $self;
+    return;
 }
 
 =head2 is_connected
@@ -466,7 +450,7 @@ sub run_export {
 
     $self->message_log('II Running data export ...');
 
-    my $outpath = $self->_cfg->output->{path};
+    my $outpath = $self->_cfg->output();
     if ( !-d $outpath ) {
         $self->message_status('Wrong output path!', 0);
         $self->message_log("EE Wrong output path '$outpath'");
@@ -580,7 +564,7 @@ sub report_add {
 
     my $new_qdf_file = $self->report_name();
 
-    my $src_fqn = $self->_cfg->tmpl_qdf;
+    my $src_fqn = $self->_cfg->qdf_tmpl;
     my $dst_fqn = catfile($self->_cfg->qdfpath, $new_qdf_file);
 
     if ( !-f $dst_fqn ) {

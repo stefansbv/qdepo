@@ -60,7 +60,7 @@ sub _init {
 
     my $cfg = QDepo::Config->instance($args);
 
-    my $widgetset = $cfg->widgetset();
+    my $widgetset = $cfg->cfiface->{widgetset};
 
     unless ($widgetset) {
         ouch "ConfigError", "Required configuration not found: 'widgetset'";

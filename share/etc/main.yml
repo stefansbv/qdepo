@@ -5,3 +5,5 @@ interface:
   widgetset: Wx
 resource:
   icons: etc/interfaces/icons
+output:
+  path: /tmp

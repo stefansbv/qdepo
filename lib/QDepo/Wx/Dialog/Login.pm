@@ -33,7 +33,9 @@ Login dialog GUI.
 =cut
 
 sub login {
-    my ( $class, $view ) = @_;
+    my ( $class, $view, $error ) = @_;
+
+    $error ||= q{};
 
     my $dlg = $class->SUPER::new(
         $view, -1, q{Login},
@@ -66,9 +68,14 @@ sub login {
     my $flex_sz = Wx::FlexGridSizer->new( 2, 2, 5, 10 );
 
     # Label - user
-    my $user_label
-        = Wx::StaticText->new( $dlg, -1, q{User:}, [ -1, -1 ], [ -1, -1 ], 0,
-        );
+    my $user_label = Wx::StaticText->new(
+        $dlg,
+        -1,
+        q{User},
+        [ -1, -1 ],
+        [ -1, -1 ],
+        0,
+    );
     $flex_sz->Add( $user_label, 0, wxTOP | wxLEFT, 5 );
 
     # Text control - user
@@ -81,9 +88,13 @@ sub login {
     $flex_sz->Add( $dlg->{user_ctrl}, 0, wxEXPAND, 0 );
 
     # Label - password
-    my $pass_label
-        = Wx::StaticText->new( $dlg, -1, q{Password:}, [ -1, -1 ], [ -1, -1 ],
-        );
+    my $pass_label = Wx::StaticText->new(
+        $dlg,
+        -1,
+        q{Password},
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
     $flex_sz->Add( $pass_label, 0, wxTOP | wxLEFT, 5 );
 
     # Text control - password
@@ -99,22 +110,50 @@ sub login {
 
     $vbox_sz->Add( 5, 5, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5 );   # spacer
 
-    # Line
-    my $line = Wx::StaticLine->new(
-        $dlg, -1,
+    # Line 1
+    my $line1 = Wx::StaticLine->new(
+        $dlg,
+        -1,
         [ -1, -1 ],
         [ -1, -1 ],
         wxLI_HORIZONTAL,
     );
-    $vbox_sz->Add( $line, 0, wxGROW | wxALL, 0 );
+    $vbox_sz->Add( $line1, 0, wxGROW | wxALL, 0 );
+
+    # Label - message
+    my $mesg_label = Wx::StaticText->new(
+        $dlg,
+        -1,
+        $error,
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
+    $vbox_sz->Add( $mesg_label, 0, wxTOP | wxCENTER, 5 );
+
+    $vbox_sz->Add(-1, 5);                   # vertical space
+
+    # Line 2
+    my $line2 = Wx::StaticLine->new(
+        $dlg,
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        wxLI_HORIZONTAL,
+    );
+    $vbox_sz->Add( $line2, 0, wxGROW | wxALL, 0 );
 
     my $ok_cancel_box = Wx::BoxSizer->new(wxHORIZONTAL);
     $vbox_sz->Add( $ok_cancel_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5 );
 
     # Button - OK
-    my $ok_btn
-        = Wx::Button->new( $dlg, wxID_OK, q{&OK}, [ -1, -1 ], [ -1, -1 ], 0,
-        );
+    my $ok_btn = Wx::Button->new(
+        $dlg,
+        wxID_OK,
+        q{&OK},
+        [ -1, -1 ],
+        [ -1, -1 ],
+        0,
+    );
     $ok_cancel_box->Add( $ok_btn, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5 );
 
     # Button - Cancel
@@ -162,7 +201,7 @@ sub get_login {
         $cfg->pass($pass);
     }
     else {
-        $return_string = 'else';
+        $return_string = 'cancel';
     }
 
     return $return_string;

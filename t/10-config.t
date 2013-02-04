@@ -6,16 +6,16 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 use lib qw( lib ../lib );
 
 use QDepo::Config;
 
 my $args = {
-    cfname => 'test',
-    user   => undef,
-    pass   => undef,
+    mnemonic => 'test',
+    user     => undef,
+    pass     => undef,
 };
 
 #-- Check the one instance functionality
@@ -36,7 +36,7 @@ is( $c1, $c2, 'both instances are the same object' );
 # Configuration: etc/main.yml
 
 # interface::widgetset: Tk
-ok( $c1->widgetset =~ m{Tk|Wx}i,
+ok( $c1->cfiface->{widgetset} =~ m{Tk|Wx}i,
     'interface has expected config value for "widgetset"'
     )
     or diag( '"widgetset" defined as "'
@@ -47,11 +47,6 @@ ok( $c1->widgetset =~ m{Tk|Wx}i,
 ok( -d $c1->icons, '"icons" path exists' )
     or diag( '"icons" path defined as "'
         . $c1->icons
-        . '" not exists' );
-
-ok( -f $c1->connfile, '"connfile" file exists' )
-    or diag( '"connfile" file defined as "'
-        . $c1->connfile
         . '" not exists' );
 
 # end tests

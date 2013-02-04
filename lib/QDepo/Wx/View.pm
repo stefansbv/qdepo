@@ -90,25 +90,25 @@ sub new {
     return $self;
 }
 
-=head2 _model
+=head2 model
 
 Return model instance
 
 =cut
 
-sub _model {
+sub model {
     my $self = shift;
 
     $self->{_model};
 }
 
-=head2 _cfg
+=head2 cfg
 
 Return config instance variable
 
 =cut
 
-sub _cfg {
+sub cfg {
     my $self = shift;
 
     return $self->{_cfg};
@@ -123,14 +123,14 @@ Define the model callbacks
 sub _set_model_callbacks {
     my $self = shift;
 
-    my $co = $self->_model->get_connection_observable;
+    my $co = $self->model->get_connection_observable;
     $co->add_callback( sub { $self->toggle_status_cn( $_[0] ); } );
 
     # When the status changes, update gui components
-    my $apm = $self->_model->get_appmode_observable;
+    my $apm = $self->model->get_appmode_observable;
     $apm->add_callback( sub { $self->update_gui_components } );
 
-    my $upd = $self->_model->get_itemchanged_observable;
+    my $upd = $self->model->get_itemchanged_observable;
     $upd->add_callback(
         sub {
             $self->controls_populate;
@@ -138,13 +138,13 @@ sub _set_model_callbacks {
         }
     );
 
-    my $so = $self->_model->get_stdout_observable;
+    my $so = $self->model->get_stdout_observable;
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
-    my $xo = $self->_model->get_message_observable;
+    my $xo = $self->model->get_message_observable;
     $xo->add_callback( sub{ $self->log_msg( @_ ) } );
 
-    my $pr = $self->_model->get_progress_observable;
+    my $pr = $self->model->get_progress_observable;
     $pr->add_callback( sub{ $self->progress_update( @_ ) } );
 
     return;
@@ -161,7 +161,7 @@ module.
 sub update_gui_components {
     my $self = shift;
 
-    my $mode = $self->_model->get_appmode;
+    my $mode = $self->model->get_appmode;
 
     $self->set_status( $mode, 'md' );    # update statusbar
 
@@ -189,7 +189,7 @@ sub _create_menu {
 
     $self->{_menu} = $menu;
 
-    $self->make_menus( $self->_cfg->menubar );
+    $self->make_menus( $self->cfg->menubar );
 
     $self->SetMenuBar($menu);
 
@@ -250,7 +250,7 @@ the screen (and also the name of the module).
 sub get_app_menus_list {
     my $self = shift;
 
-    my $attribs = $self->_cfg->appmenubar;
+    my $attribs = $self->cfg->appmenubar;
     my $menus   = QDepo::Utils->sort_hash_by_id($attribs);
 
     my @menulist;
@@ -331,7 +331,7 @@ sub _create_toolbar {
 
     my ( $toolbars, $attribs ) = $self->toolbar_names();
 
-    my $ico_path = $self->_cfg->icons;
+    my $ico_path = $self->cfg->icons;
 
     $tb->make_toolbar_buttons( $toolbars, $attribs, $ico_path );
 
@@ -353,7 +353,7 @@ sub toolbar_names {
     my $self = shift;
 
     # Get ToolBar button atributes
-    my $attribs = $self->_cfg->toolbar;
+    my $attribs = $self->cfg->toolbar;
 
     my $toolbars = QDepo::Utils->sort_hash_by_id($attribs);
 
@@ -728,6 +728,7 @@ sub _create_config_page {
         [ -1, -1 ],
         [ -1, -1 ],
     );
+    $self->{btn_load}->Enable(0);
 
     $self->{btn_defa} = Wx::Button->new(
         $self->{_nb}{p4},
@@ -736,6 +737,7 @@ sub _create_config_page {
         [ -1, -1 ],
         [ -1, -1 ],
     );
+    $self->{btn_defa}->Enable(0);
 
     $self->{btn_add} = Wx::Button->new(
         $self->{_nb}{p4},
@@ -902,13 +904,13 @@ sub get_choice_default {
 #     return $self->{_tb}->get_choice_options($idx);
 # }
 
-=head2 get_listcontrol
+=head2 get_control_named
 
 Return the list control handler.
 
 =cut
 
-sub get_listcontrol {
+sub get_control_named {
     my ($self, $name) = @_;
 
     return $self->{$name};
@@ -1005,9 +1007,17 @@ Set text item from list control row and col
 sub set_list_text {
     my ($self, $lname, $row, $col, $text) = @_;
 
-    $self->get_listcontrol($lname)->SetItemText( $row, $col, $text );
+    $self->get_control_named($lname)->SetItemText( $row, $col, $text );
 
     return;
+}
+
+sub get_list_text {
+    my ($self, $lname, $row, $col) = @_;
+
+    my $text = $self->get_control_named($lname)->GetItemText( $row, $col );
+
+    return $text;
 }
 
 =head2 list_item_edit
@@ -1044,15 +1054,16 @@ sub list_item_select {
     return unless $items_no > 0;             # nothing to select
 
     my $item
-        = $what eq 'first' ? 0
-        : $what eq 'last'  ? ($items_no - 1)
-        :                    undef # default
+        = $what eq 'first'   ? 0
+        : $what eq 'last'    ? ($items_no - 1)
+        : $what eq 'default' ? $self->get_default_mark($lname)
+        :                      undef # default
         ;
 
     return unless defined $item;
 
-    $self->get_listcontrol($lname)->Select( $item, 1 );
-    $self->get_listcontrol($lname)->EnsureVisible($item);
+    $self->get_control_named($lname)->Select( $item, 1 );
+    $self->get_control_named($lname)->EnsureVisible($item);
 
     return;
 }
@@ -1066,7 +1077,7 @@ Return the maximum index from the list control (item count - 1).
 sub get_list_max_index {
     my ($self, $lname) = @_;
 
-    return ( $self->get_listcontrol($lname)->GetItemCount() - 1 );
+    return ( $self->get_control_named($lname)->GetItemCount() - 1 );
 }
 
 =head2 get_list_selected_index
@@ -1078,7 +1089,7 @@ Return the selected index from the list control.
 sub get_list_selected_index {
     my ($self, $lname) = @_;
 
-    return $self->get_listcontrol($lname)->GetSelection();
+    return $self->get_control_named($lname)->GetSelection();
 }
 
 =head2 list_item_insert
@@ -1120,7 +1131,7 @@ sub set_list_item_data {
         $data->{$key} = $value;
     }
 
-    $self->get_listcontrol($lname)->SetItemData( $item, $data );
+    $self->get_control_named($lname)->SetItemData( $item, $data );
 
     return;
 }
@@ -1134,7 +1145,7 @@ Set list item data.
 sub get_list_item_data {
     my ($self, $lname, $item) = @_;
 
-    return $self->get_listcontrol($lname)->GetItemData( $item );
+    return $self->get_control_named($lname)->GetItemData( $item );
 }
 
 =head2 toggle_mark
@@ -1160,8 +1171,8 @@ sub toggle_mark {
 
     # Keep a count of marks
     $self->get_list_item_data('qlist', $item)->{mark} == 1
-        ? $self->_model->{_marks}++
-        : $self->_model->{_marks}--
+        ? $self->model->{_marks}++
+        : $self->model->{_marks}--
         ;
 
     return;
@@ -1176,7 +1187,7 @@ Insert string item in list control
 sub list_item_string_insert {
     my ($self, $lname, $item) = @_;
 
-    $self->get_listcontrol($lname)->InsertStringItem( $item, 'dummy' );
+    $self->get_control_named($lname)->InsertStringItem( $item, 'dummy' );
 
     return;
 }
@@ -1189,7 +1200,7 @@ Delete list control item
 
 sub list_item_clear {
     my ($self, $lname, $item) = @_;
-    $self->get_listcontrol($lname)->DeleteItem($item);
+    $self->get_control_named($lname)->DeleteItem($item);
 }
 
 =head2 list_item_clear_all
@@ -1201,7 +1212,7 @@ Delete all list control items.
 sub list_item_clear_all {
     my ($self, $lname) = @_;
 
-    $self->get_listcontrol($lname)->DeleteAllItems;
+    $self->get_control_named($lname)->DeleteAllItems;
 }
 
 =head2 list_remove_item
@@ -1234,7 +1245,7 @@ Log configuration options with data from the Config module
 sub log_config_options {
     my $self = shift;
 
-    my $path = $self->_cfg->output;
+    my $path = $self->cfg->output;
 
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
@@ -1250,7 +1261,7 @@ Populate list with items.
 sub querylist_populate {
     my $self = shift;
 
-    my $items = $self->_model->load_qdf_data_wx();
+    my $items = $self->model->load_qdf_data_wx();
 
     return unless scalar keys %{$items};
 
@@ -1280,7 +1291,7 @@ Populate list with items.
 sub connlist_populate {
     my $self = shift;
 
-    my $items = $self->_cfg->get_configs;
+    my $items = $self->cfg->get_mnemonics;
 
     return unless @{$items};
 
@@ -1290,10 +1301,16 @@ sub connlist_populate {
     # Clear list
     $self->list_item_clear_all('dlist');
 
+    # Get default mnamonic
+    my $default = $self->cfg->mnemonic();
+
     my $idx = 0;
     foreach my $mnemonic (@mnemonics) {
         my $nrcrt = $idx + 1;
         $self->list_item_insert('dlist', $idx, $nrcrt, $mnemonic, '');
+        if ($mnemonic eq $default) {
+            $self->set_default_mark($idx);
+        }
         $idx++;
     }
 
@@ -1335,9 +1352,9 @@ sub controls_populate {
     my $item = $self->get_list_selected_index('qlist');
     my $lidata = $self->get_list_item_data('qlist', $item);
     my $file = $lidata->{file};
-    my ($data) = $self->_model->read_qdf_data_file( $item, $file );
+    my ($data) = $self->model->read_qdf_data_file( $item, $file );
 
-    my $qdfpath = $self->_cfg->qdfpath;
+    my $qdfpath = $self->cfg->qdfpath;
 
     # Just filename, remove path config path
     my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;
@@ -1365,12 +1382,12 @@ Toggle sql replace
  sub toggle_sql_replace {
     my ($self, $mode) = @_;
 
-    $mode ||= $self->_model->get_appmode;
+    $mode ||= $self->model->get_appmode;
 
     my $item = $self->get_list_selected_index('qlist');
     my $lidata = $self->get_list_item_data('qlist', $item);
     my $file   = $lidata->{file};
-    my ($data) = $self->_model->read_qdf_data_file($item, $file);
+    my ($data) = $self->model->read_qdf_data_file($item, $file);
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
@@ -1401,7 +1418,7 @@ Replace sql text control
 sub control_replace_sql_text {
     my ($self, $sqltext, $params) = @_;
 
-    my ($newtext) = $self->_model->string_replace_pos($sqltext, $params);
+    my ($newtext) = $self->model->string_replace_pos($sqltext, $params);
 
     # Write new text to control
     $self->control_set_value('sql', $newtext);
@@ -1473,7 +1490,7 @@ sub toggle_status_cn {
 
     if ($status) {
         $self->set_status( 'connectyes16', 'cn' );
-        $self->set_status( $self->_cfg->conninfo->{dbname},
+        $self->set_status( $self->cfg->connection->{dbname},
             'db', 'darkgreen' );
     }
     else {
@@ -1520,7 +1537,7 @@ sub progress_update {
         and $self->{progress}->isa('QDepo::Wx::Dialog::Progress') )
     {
         my $continue = $self->{progress}->update($count);
-        $self->_model->set_continue($continue);
+        $self->model->set_continue($continue);
     }
 
     return;
@@ -1667,7 +1684,7 @@ sub controls_read_page {
 sub toggle_list_enable {
     my ($self, $lname, $state) = @_;
 
-    $self->get_listcontrol($lname)->Enable($state);
+    $self->get_control_named($lname)->Enable($state);
 
     return;
 }
@@ -1733,8 +1750,7 @@ sub event_handler_for_tb_choice {
 sub event_handler_for_list {
     my ($self, $name, $calllback) = @_;
 
-    #- List controll
-    EVT_LIST_ITEM_SELECTED $self, $self->get_listcontrol($name), $calllback;
+    EVT_LIST_ITEM_SELECTED $self, $self->get_control_named($name), $calllback;
 
     return;
 }
@@ -1761,28 +1777,53 @@ sub on_close_window {
 
 =head2 set_default_mark
 
-
+Create a data atribute used for marking the default item.
 
 =cut
 
 sub set_default_mark {
-    my ($self, $item, $flag) = @_;
+    my ($self, $item) = @_;
 
     my $data = $self->get_list_item_data('dlist', $item);
-
-    $self->set_list_item_data('dlist', $item, { default => $flag } ); # set mark
-
+    $self->set_list_item_data('dlist', $item, { default => 1 } );
     $self->set_list_text('dlist', $item, 2, 'yes');
 
-    return;
+    return $self->get_list_text('dlist', $item, 1);
 }
 
-sub clear_default_mark_all {
+=head2 get_default_mark
+
+Scan the list items and return the one with the B<default> attribute set.
+
+=cut
+
+sub get_default_mark {
+    my ($self, $lname) = @_;
+
+    my $max_index = $self->get_list_max_index('dlist');
+    my $mark_item = 0;
+    for my $item (0..$max_index) {
+        my $data = $self->get_list_item_data('dlist', $item);
+        if (exists $data->{default} and $data->{default} == 1) {
+            $mark_item = $item;
+        }
+    }
+
+    return $mark_item;
+}
+
+=head2 clear_default_mark
+
+Clear the B<default> attribute mark for all list items.
+
+=cut
+
+sub clear_default_mark {
     my $self = shift;
 
     my $max_index = $self->get_list_max_index('dlist');
     for my $item (0..$max_index) {
-        $self->set_default_mark($item, 0);
+        $self->set_list_item_data('dlist', $item, { default => 0 } );
         $self->set_list_text('dlist', $item, 2, '');
     }
 

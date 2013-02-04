@@ -6,10 +6,10 @@ use warnings;
 use File::HomeDir;
 use File::ShareDir qw(dist_dir);
 use File::UserConfig;
-use File::Spec::Functions;
+use File::Spec::Functions qw(catdir catfile canonpath);
 use File::Slurp;
 
-use QDepo::Config::Utils;
+require QDepo::Config::Utils;
 
 use base qw(Class::Singleton Class::Accessor);
 
@@ -52,26 +52,69 @@ sub _new_instance {
 
     my $self = bless {}, $class;
 
-    $args->{cfgmain} = 'etc/main.yml'; # hardcoded main config file name
+    $args->{cfgdefa} = 'default.yml';    # default mnemonic config file
 
-    # Load configuration and create accessors
-    $self->_config_main_load($args);
-    if ( $args->{cfname} ) {
+    print "Loading configuration files ...\n" if $args->{verbose};
+
+    $self->init_configurations($args);
+
+    # Load main configs and create accessors
+    $self->load_main_config($args);
+    if ( $args->{mnemonic} ) {
+
         # If no config name don't bother to load this
-        $self->_config_conn_load($args);
-        $self->_config_interface_load();
+        $self->load_interfaces_config();
+
+        # Application configs
+        $self->load_runtime_config();
     }
 
     return $self;
 }
 
-=head2 _make_accessors
+=head2 init_configurations
+
+Initialize basic configuration options.
+
+=cut
+
+sub init_configurations {
+    my ( $self, $args ) = @_;
+
+    my $configpath = File::UserConfig->new(
+        dist     => 'QDepo',
+        sharedir => 'share',
+    )->configdir;
+
+    my $base_methods_hr = {
+        cfpath  => $configpath,
+        user    => $args->{user},                 # make accessors for user
+        pass    => $args->{pass},                 # and pass
+        verbose => $args->{verbose},
+        dbpath  => catdir( $configpath, 'db' ),
+        default => catfile( $configpath, 'etc', $args->{cfgdefa} ),
+    };
+
+    $self->make_accessors($base_methods_hr);
+
+    # Fallback to the default mnemonic from default.yml if exists
+    # unless list or init argument provied on the CLI
+    $args->{mnemonic} = $self->get_default_mnemonic()
+        unless ( $args->{mnemonic}
+            or defined( $args->{list} )
+            or defined( $args->{init} )
+            or $args->{default} );
+
+    return;
+}
+
+=head2 make_accessors
 
 Automatically make accessors for the hash keys.
 
 =cut
 
-sub _make_accessors {
+sub make_accessors {
     my ( $self, $cfg_hr ) = @_;
 
     __PACKAGE__->mk_accessors( keys %{$cfg_hr} );
@@ -82,7 +125,23 @@ sub _make_accessors {
     }
 }
 
-=head2 _config_main_load
+=head2 configdir
+
+Return application configuration directory.  The config name is an
+optional parameter with default as the current application config
+name.
+
+=cut
+
+sub configdir {
+    my ( $self, $mnemonic ) = @_;
+
+    $mnemonic ||= $self->mnemonic;
+
+    return catdir( $self->dbpath, $mnemonic );
+}
+
+=head2 load_main_config
 
 Initialize configuration variables from arguments, also initialize the
 user configuration tree if not exists, with the I<File::UserConfig>
@@ -94,77 +153,29 @@ Make accessors.
 
 =cut
 
-sub _config_main_load {
-    my ( $self, $args ) = @_;
-
-    my $configpath = File::UserConfig->new(
-        dist     => 'QDepo',
-        sharedir => 'share',
-    )->configdir;
-
-    my $base_methods_hr = {
-        cfpath => $configpath,
-        cfdb   => catdir( $configpath, 'db' ),
-        user   => $args->{user},                   # make accessors for user
-        pass   => $args->{pass},                   # and pass
-        cfname => $args->{cfname},
-    };
-
-    $self->_make_accessors($base_methods_hr);
+sub load_main_config {
+    my ($self, $args) = @_;
 
     # Main config file name, load
-    my $main_fqn = catfile( $configpath, $args->{cfgmain} );
-    my $maincfg  = $self->_config_file_load( $main_fqn);
+    my $main_fqn = catfile( $self->cfpath, 'etc', 'main.yml' );
+    my $maincfg  = $self->config_data_from($main_fqn);
 
     my $main_hr = {
-        widgetset => $maincfg->{interface}{widgetset},
-        helpfile  => $maincfg->{helpfile}{name},
-        icons     => catdir( $configpath, $maincfg->{resource}{icons} ),
-        tmpl_qdf  => catfile( $configpath, 'template/template.qdf' ),
+        cfiface  => $maincfg->{interface},
+        icons    => catdir( $self->cfpath, $maincfg->{resource}{icons} ),
+        output   => canonpath( $maincfg->{output}{path} ),
+        qdf_tmpl => catfile( $self->cfpath, 'template', 'template.qdf' ),
     };
 
-    if ( $self->can('cfname') ) {
-        my $cfname = $self->cfname;
-        $main_hr->{connfile}
-            = catfile( $self->cfdb, $cfname, 'etc', 'connection.yml' );
-        $main_hr->{qdfpath} = catdir( $self->cfdb, $cfname, 'qdf' );
-    }
+    # Setup when GUI runtime
+    $main_hr->{mnemonic} = $args->{mnemonic} if $args->{mnemonic};
 
-    my @accessor = keys %{$main_hr};
-
-    $self->_make_accessors($main_hr);
-
-    return $maincfg;
-}
-
-=head2 _config_conn_load
-
-Initialize the runtime connection configuration file name and path and
-some miscellaneous info from the main configuration file.
-
-The B<connection> configuration is special.  More than one connection
-configuration is allowed and the name of the used connection is known
-only at runtime from the I<cfname> argument.
-
-Load the connection configuration file.  This is treated separately
-because the path is only known at runtime.
-
-=cut
-
-sub _config_conn_load {
-    my ( $self, $args ) = @_;
-
-    # Connection
-    my $conn_file = $self->connfile;
-    my $cfg_data = $self->_config_file_load($conn_file);
-    $cfg_data->{cfgconnfile} = $conn_file; # accessor for connection file
-
-    $self->_make_accessors($cfg_data);
+    $self->make_accessors($main_hr);
 
     return;
 }
 
-=head2 _config_interface_load
+=head2 load_interfaces_config
 
 Process the main configuration file and automaticaly load all the
 other defined configuration files.  That means if we add a YAML
@@ -173,95 +184,237 @@ at restart.
 
 =cut
 
-sub _config_interface_load {
+sub load_interfaces_config {
     my $self = shift;
 
-    foreach my $section (qw{toolbar menubar}) {
-        my $yml_file
-            = catfile( $self->cfpath, 'etc', 'interfaces', "$section.yml" );
-        my $interface = $self->_config_file_load($yml_file);
-        $self->_make_accessors($interface);
+    foreach my $section (qw{toolbar.yml menubar.yml}) {
+        my $interface_file
+            = catfile( $self->cfpath, 'etc', 'interfaces', $section );
+        my $interface = $self->config_data_from($interface_file);
+        $self->make_accessors($interface);
     }
 
     return;
 }
 
-=head2 _config_file_load
+=head2 load_runtime_config
 
-Load a generic config file in YAML format and return the Perl data
-structure.  Die, if can't read file.
+Initialize the runtime connection configuration file name and path.
+
+The B<connection> configuration is special.  More than one connection
+configuration is allowed and the name of the used connection is
+processed at runtime from the I<mnemonic> argument, or from a default
+configuration.
 
 =cut
 
-sub _config_file_load {
-    my ($self, $yaml_file) = @_;
+sub load_runtime_config {
+    my $self = shift;
 
-    # print "YAML file: $yaml_file\n";
-    if (! -f $yaml_file) {
-        my $msg = qq{\nConfiguration error: \n Can't read configurations};
-        $msg   .= qq{\n  from '$yaml_file'!};
-        print "$msg\n";
-        die;
-    }
+    die "No mnemonic was set!\n" unless $self->can('mnemonic');
 
-    return QDepo::Config::Utils->load($yaml_file);
+    my $mnemonic = $self->mnemonic;
+    my $dbpath   = $self->dbpath;
+
+    #- Connection data
+    my $yml = catfile( $dbpath, $mnemonic, 'etc', 'connection.yml' );
+    my $connection_data = $self->config_data_from($yml);
+
+    #-  Accessors
+
+    #-- Connection
+    $self->make_accessors($connection_data);
+
+    #-- Qdf files path
+    my $hash_ref = {};
+    $hash_ref->{qdfpath} = catdir( $dbpath, $mnemonic, 'qdf' );
+
+    $self->make_accessors($hash_ref);
+
+    return;
 }
 
-=head2 get_configs
+=head2 list_mnemonics
+
+List all mnemonics or the selected one with details.
+
+=cut
+
+sub list_mnemonics {
+    my ( $self, $mnemonic ) = @_;
+
+    $mnemonic ||= q{};    # default empty
+
+    if ($mnemonic) {
+        $self->list_mnemonic_details_for($mnemonic);
+    }
+    else {
+        $self->list_mnemonics_all();
+    }
+
+    return;
+}
+
+=head2 list_mnemonics_all
+
+List all the configured mnemonics.
+
+=cut
+
+sub list_mnemonics_all {
+    my $self = shift;
+
+    my $mnemonics = $self->get_mnemonics();
+
+    my $cc_no = scalar @{$mnemonics};
+    if ( $cc_no == 0 ) {
+        print "Configurations (mnemonics): none\n";
+        print ' in ', $self->dbpath, "\n";
+        return;
+    }
+
+    my $default = $self->get_default_mnemonic();
+
+    print "Configurations (mnemonics):\n";
+    foreach my $name ( @{$mnemonics} ) {
+        my $d = $default eq $name ? '*' : ' ';
+        print " ${d}> $name\n";
+    }
+
+    print ' in ', $self->dbpath, "\n";
+
+    return;
+}
+
+=head2 list_mnemonic_details_for
+
+List details about the configuration name (mnemonic) if exists.
+
+=cut
+
+sub list_mnemonic_details_for {
+    my ($self, $mnemonic) = @_;
+
+    my $conn_ref = $self->get_details_for($mnemonic);
+
+    unless (scalar %{$conn_ref} ) {
+        print "Configuration mnemonic '$mnemonic' not found!\n";
+        return;
+    }
+
+    print "Configuration:\n";
+    print "  > mnemonic: $mnemonic\n";
+    while ( my ( $key, $value ) = each( %{ $conn_ref->{connection} } ) ) {
+        print sprintf( "%*s", 11, $key ), ' = ';
+        print $value if defined $value;
+        print "\n";
+    }
+    print ' in ', $self->dbpath, "\n";
+
+    return;
+}
+
+=head2 get_details_for
+
+Return the connection configuration details.  Check the name and
+return the reference only if the name matches.
+
+=cut
+
+sub get_details_for {
+    my ($self, $mnemonic) = @_;
+
+    my $conn_file = $self->config_file_name($mnemonic);
+    my $conlst    = $self->get_mnemonics();
+
+    my $conn_ref = {};
+    if ( grep { $mnemonic eq $_ } @{$conlst} ) {
+        my $cfg_file = $self->config_file_name($mnemonic);
+        $conn_ref = $self->config_data_from($conn_file);
+    }
+
+    return $conn_ref;
+}
+
+=head2 config_data_from
+
+Load a config file and return the Perl data structure.  It loads a
+file in Config::General format or in YAML::Tiny format, depending on
+the extension of the file.
+
+=cut
+
+sub config_data_from {
+    my ( $self, $conf_file, $not_fatal ) = @_;
+
+    if ( !-f $conf_file ) {
+        print " $conf_file ... not found\n" if $self->verbose;
+        if ($not_fatal) {
+            return;
+        }
+        else {
+            my $msg = 'Configuration error!';
+            $msg .= $self->verbose ? '' : ", file not found:\n$conf_file";
+            die $msg;
+        }
+    }
+    else {
+        print " $conf_file ... found\n" if $self->verbose;
+    }
+
+    return QDepo::Config::Utils->load_yaml($conf_file);
+}
+
+=head2 config_file_name
+
+Return full path to a configuration file.  Default is the connection
+configuration file.
+
+=cut
+
+sub config_file_name {
+    my ( $self, $cfg_name, $cfg_file ) = @_;
+
+    $cfg_file ||= catfile('etc', 'connection.yml');
+
+    return catfile( $self->configdir($cfg_name), $cfg_file);
+}
+
+=head2 get_mnemonics
 
 Get the connections configs list.  If connection file exist than add
 to connections list and return it.
 
 =cut
 
-sub get_configs {
+sub get_mnemonics {
     my $self = shift;
 
-    my $list = QDepo::Config::Utils->find_subdirs( $self->cfdb );
+    my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
 
     my @connections;
     foreach my $cfg_name ( @{$list} ) {
-        my $ccfn = $self->conn_cfg_filename($cfg_name);
+        my $ccfn = $self->config_file_name($cfg_name);
         push @connections, $cfg_name if -f $ccfn;
     }
 
     return \@connections;
 }
 
-=head2 list_configs
-
-List all existing connection configurations names (mnemonics).
-
-=cut
-
-sub list_configs {
-    my $self = shift;
-
-    my $conn_list = $self->get_configs;
-
-    print "Connection configurations:\n";
-    foreach my $cfg_name ( @{$conn_list} ) {
-        print "  > $cfg_name\n";
-    }
-    print ' in ', $self->cfdb, "\n";
-
-    return;
-}
-
-=head2 init_configs
+=head2 config_new
 
 Create new connection configuration directory and install new
 configuration file from template.
 
 =cut
 
-sub init_configs {
+sub new_config_tree {
     my ( $self, $conn_name ) = @_;
 
     my $conn_path = catdir( $self->cfpath, 'db', $conn_name, 'etc' );
     my $conn_qdfp = catdir( $self->cfpath, 'db', $conn_name, 'qdf' );
     my $conn_tmpl = catfile( $self->cfpath, 'template/connection.yml' );
-    my $conn_file = $self->conn_cfg_filename($conn_name);
+    my $conn_file = $self->config_file_name($conn_name);
 
     if ( -f $conn_file ) {
         print "Connection configuration exists, can't overwrite.\n";
@@ -272,97 +425,55 @@ sub init_configs {
     QDepo::Config::Utils->create_conn_cfg_tree( $conn_tmpl, $conn_path,
         $conn_qdfp, $conn_file, );
 
-    print "New configuration: $conn_name\n";
+    return $conn_name;
 }
 
-=head2 conn_cfg_filename
+=head2 get_resource_file
 
-Return full path to connection file.
+Return resource file path.
 
 =cut
 
-sub conn_cfg_filename {
-    my ($self, $cfname) = @_;
+sub get_resource_file {
+    my ($self, $dir, $file_name) = @_;
 
-    return catfile($self->cfpath, 'db', $cfname, 'etc', 'connection.yml');
+    return catfile( $self->cfpath, $dir, $file_name );
 }
 
-=head2 xresource_file
+=head2 get_default_mnemonic
 
-X resource file path.
+Set mnemonic to the value read from the optional L<default.yml>
+configuration file.
 
 =cut
 
-sub xresource_file {
+sub get_default_mnemonic {
     my $self = shift;
 
-    return catfile( $self->cfpath, 'etc', 'xresource.xrdb' );
-}
-
-=head2 get_licence
-
-Slurp licence file and return the text string.  Return only the title
-if the license file is not found, just to be on the save side.
-
-=cut
-
-sub get_license {
-    my $self = shift;
-
-    my $message = <<'END_LICENSE';
-
-                      GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-END_LICENSE
-
-    my $license = catfile( dist_dir('QDepo'), 'license', 'gpl.txt' );
-
-    if (-f $license) {
-        return read_file($license);
+    my $defaultapp_fqn = $self->default();
+    if (-f $defaultapp_fqn) {
+        my $cfg_hr = $self->config_data_from($defaultapp_fqn);
+        return $cfg_hr->{mnemonic};
     }
     else {
-        return $message;
+        $self->{_log}->info("No valid default found, using 'test'");
+        return 'test';
     }
 }
 
-=head2 get_help_text
+=head2 set_default_mnemonic
 
-Return help file path.
-
-=cut
-
-sub get_help_text {
-    my $self = shift;
-
-    my $message = <<'END_HELP';
-
-                     The HELP file is missing or misconfigured!
-
-END_HELP
-
-    my $help_file = catfile( dist_dir('QDepo'), 'help', $self->helpfile);
-    if (-f $help_file) {
-        return  read_file( $help_file, binmode => ':utf8' );
-    }
-    else {
-        return $message;
-    }
-}
-
-=head2 get_help_file
-
-Return help file path.
+Save the default mnemonic in the configs.
 
 =cut
 
-sub get_help_file {
-    my ($self, $help_file) = @_;
+sub set_default_mnemonic {
+    my ($self, $arg) = @_;
 
-    return catfile( dist_dir('QDepo'), 'help', $help_file);
+    QDepo::Config::Utils->save_default_yaml(
+        $self->default, 'mnemonic', $arg );
+
+    return;
 }
 
 =head1 AUTHOR
