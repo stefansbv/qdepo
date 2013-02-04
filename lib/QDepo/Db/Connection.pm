@@ -3,8 +3,12 @@ package QDepo::Db::Connection;
 use strict;
 use warnings;
 
+use Scalar::Util qw(blessed);
 use DBI;
-use QDepo::Config;
+use Try::Tiny;
+use QDepo::Exceptions;
+
+require QDepo::Config;
 
 =head1 NAME
 
@@ -58,12 +62,13 @@ sub _connect {
     my ($self, $model) = @_;
 
     my $inst = QDepo::Config->instance;
-    my $conf = $inst->conninfo;
+    my $conf = $inst->connection;
 
     $conf->{user} = $inst->user;    # add user and pass to
     $conf->{pass} = $inst->pass;    #  connection options
 
     my $driver = $conf->{driver};
+    my $dbname = $conf->{dbname};
     my $db;
 
   SWITCH: for ( $driver ) {
@@ -99,13 +104,23 @@ sub _connect {
     }
 
     $self->{dbc} = $db;
-    $self->{dbh} = $db->db_connect($conf);
 
-    my $username = defined $self->{dbh}->{Username}
-        ? $self->{dbh}->{Username}
-        : 'undef?'
-        ;
-    print "Connected as $username\n";
+    try {
+        $self->{dbh} = $db->db_connect($conf);
+        if (blessed $model) {
+            $model->get_connection_observable->set(1);
+        }
+    }
+    catch {
+        if ( my $e = Exception::Base->catch($_) ) {
+            if ( $e->isa('QDepo::Exception::Db::Connect') ) {
+                $e->throw;      # rethrow the exception
+            }
+            else {
+                die "Error!: $_\n";
+            }
+        }
+    };
 
     return;
 }

@@ -3,10 +3,9 @@ package QDepo::Db::Connection::Cubrid;
 use strict;
 use warnings;
 
-use Regexp::Common;
-use DBI;
-use Ouch;
+use QDepo::Exceptions;
 use Try::Tiny;
+use DBI;
 
 =head1 NAME
 
@@ -58,35 +57,21 @@ Connect to the database.
 sub db_connect {
     my ( $self, $conf ) = @_;
 
-    try {
-        $self->{_dbh} = DBI->connect(
-            "dbi:cubrid:"
-                . "database="
-                . $conf->{dbname}
-                . ";host="
-                . $conf->{host}
-                . ";port="
-                . $conf->{port},
-            $conf->{user},
-            $conf->{pass},
-            {   FetchHashKeyName => 'NAME_lc',
-                AutoCommit       => 1,
-                RaiseError       => 1,
-                PrintError       => 0,
-                LongReadLen      => 524288,
-            }
-        );
-    }
-    catch {
-        my $error_msg = $_;
-        my $user_message = $self->parse_db_error($error_msg);
-        if ( $self->{model} and $self->{model}->can('exception_log') ) {
-            $self->{model}->exception_log($user_message);
+    my ($dbname, $host, $port) = @{$conf}{qw(dbname host port)};
+    my ($driver, $user, $pass) = @{$conf}{qw(driver user pass)};
+
+    my $dsn = qq{dbi:cubrid:database=$dbname;host=$host;port=$port};
+
+    $self->{_dbh} = DBI->connect(
+        $dsn, $user, $pass,
+        {   FetchHashKeyName => 'NAME_lc',
+            AutoCommit       => 1,
+            RaiseError       => 1,
+            PrintError       => 0,
+            LongReadLen      => 524288,
+            HandleError      => sub { $self->handle_error() },
         }
-        else {
-            ouch 'ConnError','Connection failed!';
-        }
-    };
+    );
 
     ## Date format ISO ???
     ## UTF-8 ???
@@ -94,49 +79,29 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-=head2 parse_db_error
+=head2 handle_error
 
-Parse a database connection error message, and translate it for the
-user.
-
-TODO: Extend with specific errors like authentication error...
+Log errors.
 
 =cut
 
-sub parse_db_error {
-    my ($self, $cb) = @_;
+sub handle_error {
+    my $self = shift;
 
-    print "\nCB: $cb\n\n";
-
-    my $message_type =
-         $cb eq q{}                                          ? "nomessage"
-       : $cb =~ m/Unknown host name/smi                      ? "unknownhost"
-       : $cb =~ m/Cannot communicate with server/smi         ? "unknownport"
-       : $cb =~ m/CUBRID DBMS Error/smi                      ? "dbmserror"
-       :                                                       "unknown";
-
-    # Analize and translate
-
-    my ( $type, $name ) = split /:/, $message_type, 2;
-    $name = $name ? $name : '';
-
-    my $translations = {
-        dbmserror   => "fatal#Database error",
-        nomessage   => "weird#Error without message!",
-        unknownhost => "fatal#Network problem, unknown host name",
-        unknownport => "fatal#Network problem, check server port",
-        unknown     => "fatal#Database error",
-    };
-
-    my $message;
-    if (exists $translations->{$type} ) {
-        $message = $translations->{$type};
+    if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        QDepo::Exception::Db::SQL->throw(
+            logmsg  => $self->{_dbh}->errstr,
+            usermsg => 'SQL error',
+        );
     }
     else {
-        print "EE: Translation error!\n";
+        QDepo::Exception::Db::Connect->throw(
+            logmsg  => DBI->errstr,
+            usermsg => 'Connection error!',
+        );
     }
 
-    return $message;
+    return;
 }
 
 =head1 AUTHOR

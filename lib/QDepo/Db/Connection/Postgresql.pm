@@ -3,10 +3,9 @@ package QDepo::Db::Connection::Postgresql;
 use strict;
 use warnings;
 
-use Regexp::Common;
-use DBI;
-use Ouch;
+use QDepo::Exceptions;
 use Try::Tiny;
+use DBI;
 
 =head1 NAME
 
@@ -58,91 +57,53 @@ Connect to the database.
 sub db_connect {
     my ( $self, $conf ) = @_;
 
-    try {
-        $self->{_dbh} = DBI->connect(
-            "dbi:Pg:"
-                . "dbname="
-                . $conf->{dbname}
-                . ";host="
-                . $conf->{host}
-                . ";port="
-                . $conf->{port},
-            $conf->{user},
-            $conf->{pass},
-            {   FetchHashKeyName => 'NAME_lc',
-                AutoCommit       => 1,
-                RaiseError       => 1,
-                PrintError       => 0,
-                LongReadLen      => 524288,
-            }
-        );
-    }
-    catch {
-        my $user_message = $self->parse_db_error($_);
-        if ( $self->{model} and $self->{model}->can('exception_log') ) {
-            $self->{model}->exception_log($user_message);
+    my ($dbname, $host, $port) = @{$conf}{qw(dbname host port)};
+    my ($driver, $user, $pass) = @{$conf}{qw(driver user pass)};
+
+    my $dsn = qq{dbi:Pg:dbname=$dbname;host=$host;port=$port};
+
+    $self->{_dbh} = DBI->connect(
+        $dsn, $user, $pass,
+        {   FetchHashKeyName => 'NAME_lc',
+            AutoCommit       => 1,
+            RaiseError       => 1,
+            PrintError       => 0,
+            LongReadLen      => 524288,
+            HandleError      => sub { $self->handle_error() },
+            pg_enable_utf8   => 1,
         }
-        else {
-            ouch 'ConnError','Connection failed!';
-        }
-    };
+    );
 
     ## Date format
     # set: datestyle = 'iso' in postgresql.conf
     ##
-    $self->{_dbh}{pg_enable_utf8} = 1;
-
-    # $log->info("Connected to '$conf->{dbname}'");
 
     return $self->{_dbh};
 }
 
-=head2 parse_db_error
+=head2 handle_error
 
-Parse a database error message, and translate it for the user.
-
-TODO check if RDBMS specific and/or maybe version specific.
+Log errors.
 
 =cut
 
-sub parse_db_error {
-    my ($self, $pg) = @_;
+sub handle_error {
+    my $self = shift;
 
-    print "\nPG: $pg\n\n";
-
-    my $message_type =
-         $pg eq q{}                                          ? "nomessage"
-       : $pg =~ m/database ($RE{quoted}) does not exist/smi  ? "dbnotfound:$1"
-       : $pg =~ m/authentication failed .* ($RE{quoted})/smi ? "password:$1"
-       : $pg =~ m/no password supplied/smi                   ? "password"
-       : $pg =~ m/role ($RE{quoted}) does not exist/smi      ? "username:$1"
-       : $pg =~ m/no route to host/smi                       ? "network"
-       :                                                       "unknown";
-
-    # Analize and translate
-
-    my ( $type, $name ) = split /:/, $message_type, 2;
-    $name = $name ? $name : '';
-
-    my $translations = {
-        nomessage   => "weird#Error without message!",
-        dbnotfound  => "fatal#Database $name not found!",
-        password    => "info#Authentication failed for $name",
-        password    => "info#Authentication failed, password?",
-        username    => "info#User name $name not found!",
-        network     => "fatal#Network problem",
-        unknown     => "fatal#Database error",
-    };
-
-    my $message;
-    if (exists $translations->{$type} ) {
-        $message = $translations->{$type};
+    if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        QDepo::Exception::Db::SQL->throw(
+            logmsg  => $self->{_dbh}->errstr,
+            usermsg => 'SQL error',
+        );
     }
     else {
-        print "EE: Translation error!\n";
+        QDepo::Exception::Db::Connect->throw(
+            logmsg  => DBI->errstr,
+            usermsg => 'Connection error!',
+        );
     }
 
-    return $message;
+    return;
 }
 
 =head1 AUTHOR
