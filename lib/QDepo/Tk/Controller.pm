@@ -62,7 +62,7 @@ Generate close event.
 sub close_app {
     my $self = shift;
 
-    $self->_view->on_close_window;
+    $self->view->on_close_window;
 }
 
 =head2 _init
@@ -74,11 +74,30 @@ Init App.
 sub _init {
     my $self = shift;
 
-    my $view = QDepo::Tk::View->new($self->_model);
+    my $view = QDepo::Tk::View->new($self->model);
     $self->{_app}  = $view;                  # an alias as for Wx ...
     $self->{_view} = $view;
 
     $self->fix_geometry;
+
+    return;
+}
+
+=head2 start_delay
+
+Show message, delay the database connection.
+
+=cut
+
+sub start_delay {
+    my $self = shift;
+
+    $self->{_view}->after(
+        500,
+        sub {
+            $self->connect_dialog();
+        }
+    );
 
     return;
 }
@@ -95,7 +114,7 @@ sub dialog_login {
     require QDepo::Tk::Dialog::Login;
     my $pd = QDepo::Tk::Dialog::Login->new;
 
-    return $pd->login( $self->_view );
+    return $pd->login( $self->view );
 }
 
 =head2 fix_geometry
@@ -107,7 +126,7 @@ Add 4px to the width of the window to better fit the MListbox.
 sub fix_geometry {
     my $self = shift;
 
-    my $geom = $self->_view->get_geometry;
+    my $geom = $self->view->get_geometry;
 
     my ($width) = $geom =~ m{(\d+)x};
 
@@ -115,7 +134,7 @@ sub fix_geometry {
 
     $geom =~ s{(\d+)x}{${width}x};
 
-    $self->_view->geometry($geom);
+    $self->view->geometry($geom);
 
     return;
 }
@@ -132,23 +151,23 @@ sub set_event_handlers_keys {
     #-- Make some key bindings
 
     #-- Quit Ctrl-q
-    $self->_view->bind(
+    $self->view->bind(
         '<Control-q>' => sub {
             $self->on_quit;
         }
     );
 
     #-- Reload - F5
-    $self->_view->bind(
+    $self->view->bind(
         '<F5>' => sub {
-            $self->_model->is_appmode('edit')
+            $self->model->is_appmode('edit')
                 ? $self->record_reload()
-                : $self->_view->set_status( 'Not edit mode', 'ms', 'orange' );
+                : $self->view->set_status( 'Not edit mode', 'ms', 'orange' );
         }
     );
 
     #-- Execute run - F9
-    $self->_view->bind(
+    $self->view->bind(
         '<F9>' => sub {
         }
     );
@@ -168,19 +187,19 @@ sub set_event_handlers {
     $self->SUPER::set_event_handlers();
 
     #-- Add new report
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_ad',
         sub {
-            my $rec = $self->_model->report_add();
-            $self->_view->list_populate_item($rec);
-            $self->_view->list_item_select('last');
-            $self->_model->on_item_selected();
+            my $rec = $self->model->report_add();
+            $self->view->list_populate_item($rec);
+            $self->view->list_item_select('last');
+            $self->model->on_item_selected();
             $self->set_app_mode('edit');
         }
     );
 
     #-- Remove report
-    $self->_view->event_handler_for_tb_button(
+    $self->view->event_handler_for_tb_button(
         'tb_rm',
         sub {
             $self->toggle_mark_item();
@@ -188,10 +207,10 @@ sub set_event_handlers {
     );
 
     #- Choice
-    $self->_view->event_handler_for_tb_choice(
+    $self->view->event_handler_for_tb_choice(
         'tb_ls',
         sub {
-            $self->_model->set_choice( $_[0] );
+            $self->model->set_choice( $_[0] );
         }
     );
 
@@ -207,9 +226,9 @@ Get the sql text string from the QDF file, prepare it for execution.
 sub process_sql {
     my $self = shift;
 
-    my $item   = $self->_view->get_list_selected_index();
-    my ($data) = $self->_model->read_qdf_data_file($item);
-    $self->_model->run_export($data);
+    my $item   = $self->view->get_list_selected_index();
+    my ($data) = $self->model->read_qdf_data_file($item);
+    $self->model->run_export($data);
 
     return;
 }
@@ -223,15 +242,15 @@ Toggle mark on list item.
 sub toggle_mark_item {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index();
+    my $item = $self->view->get_list_selected_index();
 
-    my $rec = $self->_model->get_qdf_data_tk($item, 'toggle mark');
+    my $rec = $self->model->get_qdf_data_tk($item, 'toggle mark');
     my $nrcrt = $rec->{nrcrt};
     if ( exists $rec->{mark} ) {
         $nrcrt = "$nrcrt D" if $rec->{mark} == 1;
     }
 
-    $self->_view->list_item_edit( $item, $nrcrt );
+    $self->view->list_item_edit( $item, $nrcrt );
 
     return;
 }
@@ -245,10 +264,10 @@ Scan the list items and delete the marked ones.
 sub list_remove_marked {
     my $self = shift;
 
-    my $recs = $self->_model->get_qdf_data_tk();
+    my $recs = $self->model->get_qdf_data_tk();
     foreach my $idx ( keys %{$recs} ) {
         if ( exists $recs->{$idx}{mark} and $recs->{$idx}{mark} == 1 ) {
-            $self->_model->report_remove($recs->{$idx}{file});
+            $self->model->report_remove($recs->{$idx}{file});
         }
     }
 
@@ -264,7 +283,7 @@ Quick help dialog.
 sub guide {
     my $self = shift;
 
-    my $gui = $self->_view;
+    my $gui = $self->view;
 
     require QDepo::Tk::Dialog::Help;
     my $gd = QDepo::Tk::Dialog::Help->new;
@@ -283,7 +302,7 @@ About application dialog.
 sub about {
     my $self = shift;
 
-    my $gui = $self->_view;
+    my $gui = $self->view;
 
     # Create a dialog.
     my $dbox = $gui->DialogBox(
@@ -348,18 +367,18 @@ sub about {
 sub save_qdf_data {
     my $self = shift;
 
-    my $item = $self->_view->get_list_selected_index();
-    my $file = $self->_model->get_qdf_data_file_tk($item);
-    my $head = $self->_view->controls_read_page('list');
-    my $para = $self->_view->controls_read_page('para');
-    my $body = $self->_view->controls_read_page('sql');
+    my $item = $self->view->get_list_selected_index();
+    my $file = $self->model->get_qdf_data_file_tk($item);
+    my $head = $self->view->controls_read_page('list');
+    my $para = $self->view->controls_read_page('para');
+    my $body = $self->view->controls_read_page('sql');
 
-    $self->_model->write_qdf_data_file( $file, $head, $para, $body );
+    $self->model->write_qdf_data_file( $file, $head, $para, $body );
 
     my $title = $head->[0]{title};
 
     # Update title in list
-    $self->_view->list_item_edit( $item, undef, $title);
+    $self->view->list_item_edit( $item, undef, $title);
 
     return;
 }

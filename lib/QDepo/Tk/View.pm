@@ -53,7 +53,7 @@ sub new {
 
     #- Load resource file, if found
 
-    my $resource = $self->{_cfg}->xresource_file();
+    my $resource = $self->{_cfg}->get_resource_file('etc', 'xresource.xrdb');
     if ($resource) {
         if ( -f $resource ) {
             $model->message_log("II: Reading resource from '$resource'");
@@ -2062,6 +2062,12 @@ sub event_handler_for_list {
     $self->get_listcontrol->bindRows(
         '<Button-1>', $calllback,
     );
+
+    return;
+}
+
+sub event_handler_for_button {
+    my ($self, $name, $calllback) = @_;
 
     return;
 }

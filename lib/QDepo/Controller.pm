@@ -139,8 +139,9 @@ sub connect_dialog {
             catch {
                 if ( my $e = Exception::Base->catch($_) ) {
                     if ( $e->isa('QDepo::Exception::Db::Connect') ) {
+                        my $logmsg = $e->logmsg;
                         $error = $e->usermsg;
-                        warn $e->logmsg;
+                        $self->model->message_log(qq{EE $logmsg});
                     }
                 }
             };

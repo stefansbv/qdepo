@@ -132,17 +132,12 @@ sub login {
         my $user = $euser->get;
         my $pass = $epass->get;
 
-        if ( $user && $pass ) {
-            my $cfg = QDepo::Config->instance();
-            $cfg->user($user);
-            $cfg->pass($pass);
-        }
-        else {
-            $return_string = 'else';
-        }
+        my $cfg = QDepo::Config->instance();
+        $cfg->user($user) if $user;
+        $cfg->pass($pass) if $pass;
     }
     else {
-        $return_string = 'shutdown';
+        $return_string = 'cancel';
     }
 
     return $return_string;
