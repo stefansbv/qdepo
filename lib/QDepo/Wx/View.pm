@@ -1301,7 +1301,7 @@ sub connlist_populate {
     # Clear list
     $self->list_item_clear_all('dlist');
 
-    # Get default mnamonic
+    # Get default mnemonic
     my $default = $self->cfg->mnemonic();
 
     my $idx = 0;

@@ -50,14 +50,10 @@ sub new {
 
     #-- Panels
 
-    $self->{p1} = Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize );
-    $self->{p2} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
-
-    $self->{p3} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
-    $self->{p4} =
-        Wx::Panel->new( $self, -1, wxDefaultPosition, wxDefaultSize, );
+    $self->{p1} = Wx::Panel->new( $self, -1, [ -1, -1 ], [ -1, -1 ] );
+    $self->{p2} = Wx::Panel->new( $self, -1, [ -1, -1 ], [ -1, -1 ] );
+    $self->{p3} = Wx::Panel->new( $self, -1, [ -1, -1 ], [ -1, -1 ] );
+    $self->{p4} = Wx::Panel->new( $self, -1, [ -1, -1 ], [ -1, -1 ] );
 
     #--- Pages
 
