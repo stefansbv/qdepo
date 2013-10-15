@@ -1,6 +1,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0">
-  <xsl:import href="../../utils/docbook-xsl/htmlhelp/htmlhelp.xsl"/>
+  <xsl:import href="../../../utils/docbook-xsl/htmlhelp/htmlhelp.xsl"/>
   <xsl:param name="generate.legalnotice.link" select="1"/>
   <xsl:param name="suppress.navigation" select="0"/>
   <xsl:param name="html.stylesheet" select="'reference.css'"/>
