@@ -81,7 +81,7 @@ sub db_connect {
     catch {
         my $user_message = $self->parse_db_error($_);
         if ( $self->{model} and $self->{model}->can('exception_log') ) {
-            $self->{model}->exception_log($user_message);
+             $self->{model}->exception_log($user_message);
         }
         else {
             ouch 'ConnError','Connection failed!';
@@ -90,7 +90,7 @@ sub db_connect {
 
     ## Date format
     ## Default format: ISO
-    $self->{_dbh}->{ib_timestampformat} = '%y-%m-%d %H:%M';
+    $self->{_dbh}->{ib_timestampformat} = '%Y-%m-%d %H:%M';
     $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
     $self->{_dbh}->{ib_timeformat}      = '%H:%M';
 
@@ -145,6 +145,155 @@ sub parse_db_error {
     }
 
     return $message;
+}
+
+=head2 table_info_short
+
+Table info 'short'.  The 'table_info' method from the Firebird driver
+doesn't seem to be reliable.
+
+=cut
+
+sub table_info_short {
+    my ( $self, $table ) = @_;
+
+    $table = uc $table;
+
+    my $sql = qq(SELECT RDB\$FIELD_POSITION AS pos
+                    , LOWER(r.RDB\$FIELD_NAME) AS name
+                    , r.RDB\$DEFAULT_VALUE AS defa
+                    , r.RDB\$NULL_FLAG AS is_nullable
+                    , f.RDB\$FIELD_LENGTH AS length
+                    , f.RDB\$FIELD_PRECISION AS prec
+                    , CASE
+                        WHEN f.RDB\$FIELD_SCALE > 0 THEN (f.RDB\$FIELD_SCALE)
+                        WHEN f.RDB\$FIELD_SCALE < 0 THEN (f.RDB\$FIELD_SCALE * -1)
+                        ELSE 0
+                      END AS scale
+                    , CASE f.RDB\$FIELD_TYPE
+                        WHEN 261 THEN 'blob'
+                        WHEN 14  THEN 'char'
+                        WHEN 40  THEN 'cstring'
+                        WHEN 11  THEN 'd_float'
+                        WHEN 27  THEN 'double'
+                        WHEN 10  THEN 'float'
+                        WHEN 16  THEN
+                          CASE f.RDB\$FIELD_SCALE
+                            WHEN 0 THEN 'int64'
+                            ELSE 'numeric'
+                          END
+                        WHEN 8   THEN
+                          CASE f.RDB\$FIELD_SCALE
+                            WHEN 0 THEN 'integer'
+                            ELSE 'numeric'
+                          END
+                        WHEN 9   THEN 'quad'
+                        WHEN 7   THEN
+                          CASE f.RDB\$FIELD_SCALE
+                            WHEN 0 THEN 'smallint'
+                            ELSE 'numeric'
+                          END
+                        WHEN 12  THEN 'date'
+                        WHEN 13  THEN 'time'
+                        WHEN 35  THEN 'timestamp'
+                        WHEN 37  THEN 'varchar'
+                      ELSE 'UNKNOWN'
+                      END AS type
+                    FROM RDB\$RELATION_FIELDS r
+                       LEFT JOIN RDB\$FIELDS f
+                            ON r.RDB\$FIELD_SOURCE = f.RDB\$FIELD_NAME
+                    WHERE r.RDB\$RELATION_NAME = '$table'
+                    ORDER BY r.RDB\$FIELD_POSITION;
+    );
+
+    $self->{_dbh}{ChopBlanks} = 1;    # trim CHAR fields
+
+    my $flds_ref;
+    try {
+        my $sth = $self->{_dbh}->prepare($sql);
+        $sth->execute;
+        $flds_ref = $sth->fetchall_hashref('name');
+    }
+    catch {
+        $self->{model}->exception_log("Transaction aborted because $_");
+    };
+
+    return $flds_ref;
+}
+
+=head2 table_keys
+
+Get the primary key field name of the table.
+
+=cut
+
+sub table_keys {
+    my ( $self, $table, $foreign ) = @_;
+
+    my $type = 'PRIMARY KEY';
+    $type = 'FOREIGN KEY' if $foreign;
+
+    $table = uc $table;
+
+    my $sql = qq( SELECT LOWER(s.RDB\$FIELD_NAME) AS column_name
+                     FROM RDB\$INDEX_SEGMENTS s
+                        LEFT JOIN RDB\$INDICES i
+                          ON i.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc
+                          ON rc.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$REF_CONSTRAINTS refc
+                          ON rc.RDB\$CONSTRAINT_NAME = refc.RDB\$CONSTRAINT_NAME
+                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc2
+                          ON rc2.RDB\$CONSTRAINT_NAME = refc.RDB\$CONST_NAME_UQ
+                        LEFT JOIN RDB\$INDICES i2
+                          ON i2.RDB\$INDEX_NAME = rc2.RDB\$INDEX_NAME
+                        LEFT JOIN RDB\$INDEX_SEGMENTS s2
+                          ON i2.RDB\$INDEX_NAME = s2.RDB\$INDEX_NAME
+                      WHERE i.RDB\$RELATION_NAME = '$table'
+                        AND rc.RDB\$CONSTRAINT_TYPE = '$type'
+    );
+
+    $self->{_dbh}{AutoCommit} = 1;    # disable transactions
+    $self->{_dbh}{RaiseError} = 0;
+
+    my $pkf;
+    try {
+        $pkf = $self->{_dbh}->selectcol_arrayref($sql);
+    }
+    catch {
+        $self->{model}->exception_log("Transaction aborted because $_");
+    };
+
+    return $pkf;
+}
+
+=head2 table_exists
+
+Check if table exists in the database.
+
+=cut
+
+sub table_exists {
+    my ( $self, $table ) = @_;
+
+    $table = uc $table;
+
+    my $sql = qq(SELECT COUNT(RDB\$RELATION_NAME)
+                     FROM RDB\$RELATIONS
+                     WHERE RDB\$SYSTEM_FLAG=0
+                         AND RDB\$VIEW_BLR IS NULL
+                         AND RDB\$RELATION_NAME = '$table';
+    );
+
+    my $val_ret;
+    try {
+        ($val_ret) = $self->{_dbh}->selectrow_array($sql);
+    }
+    catch {
+        $self->{model}->exception_log("Transaction aborted because $_");
+    };
+
+    return $val_ret;
 }
 
 =head1 AUTHOR
