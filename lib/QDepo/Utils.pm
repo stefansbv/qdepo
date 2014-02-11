@@ -2,6 +2,7 @@ package QDepo::Utils;
 
 use strict;
 use warnings;
+use Encode qw(is_utf8 decode);
 
 =head1 NAME
 
@@ -171,6 +172,14 @@ sub ins_underline_mark {
     substr( $label, $position, 0 ) = '&';
 
     return $label;
+}
+
+sub decode_unless_utf {
+    my ($self, $value) = @_;
+
+    $value = decode( 'utf8', $value ) unless is_utf8($value);
+
+    return $value;
 }
 
 =head1 AUTHOR
