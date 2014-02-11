@@ -35,7 +35,6 @@ Constructor method.
 =cut
 
 sub new {
-
     my ( $class, $gui ) = @_;
 
     #- The Notebook
@@ -58,7 +57,7 @@ sub new {
     #--- Pages
 
     $self->AddPage( $self->{p1}, 'Query List' );
-    $self->AddPage( $self->{p2}, 'Parameters' );
+    $self->AddPage( $self->{p2}, 'Param/Field' );
     $self->AddPage( $self->{p3}, 'SQL Query' );
     $self->AddPage( $self->{p4}, 'Admin' );
 
