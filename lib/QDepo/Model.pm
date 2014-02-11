@@ -6,14 +6,18 @@ use warnings;
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
+use SQL::Statement;
 use Scalar::Util qw(blessed);
 
+use QDepo::ItemData;
 use QDepo::Config;
 use QDepo::FileIO;
 use QDepo::Observable;
 use QDepo::Db;
 use QDepo::Output;
 use QDepo::Utils;
+
+use Data::Printer;
 
 =head1 NAME
 
@@ -56,11 +60,12 @@ sub new {
         _progress    => QDepo::Observable->new(),
         _continue    => QDepo::Observable->new(),
         _cfg         => QDepo::Config->instance(),
+        _dbh         => undef,
         _lds         => {},                 # list data structure
         _marks       => 0,
+        _file        => undef,
+        _itemdata    => undef,
     };
-
-    $self->{fio} = QDepo::FileIO->new($self);
 
     bless $self, $class;
 
@@ -75,8 +80,40 @@ Return config instance variable
 
 sub _cfg {
     my $self = shift;
-
     return $self->{_cfg};
+}
+
+sub dbh {
+    my $self = shift;
+    return $self->{_dbh};
+}
+
+=head2 dbc
+
+Return the Connection module handler.
+
+=cut
+
+sub dbc {
+    my $self = shift;
+    my $db = QDepo::Db->instance;
+    return $db->dbc;
+}
+
+sub itemdata {
+    my $self = shift;
+    return $self->{_itemdata};
+}
+
+sub get_query_file {
+    my $self = shift;
+    return $self->{_file};
+}
+
+sub set_query_file {
+    my ($self, $file) = @_;
+    $self->{_file} = $file;
+    return;
 }
 
 =head2 db_connect
@@ -120,7 +157,6 @@ Get connection observable status
 
 sub get_connection_observable {
     my $self = shift;
-
     return $self->{_connected};
 }
 
@@ -132,7 +168,6 @@ Get STDOUT observable status.
 
 sub get_stdout_observable {
     my $self = shift;
-
     return $self->{_stdout};
 }
 
@@ -144,9 +179,7 @@ Set mode
 
 sub set_mode {
     my ( $self, $mode ) = @_;
-
     $self->get_appmode_observable->set($mode);
-
     return;
 }
 
@@ -158,13 +191,9 @@ Return true if application mode is L<$ck_mode>.
 
 sub is_appmode {
     my ( $self, $ck_mode ) = @_;
-
     my $mode = $self->get_appmode_observable->get;
-
     return unless $mode;
-
     return 1 if $mode eq $ck_mode;
-
     return;
 }
 
@@ -176,7 +205,6 @@ Return add mode observable status
 
 sub get_appmode_observable {
     my $self = shift;
-
     return $self->{_appmode};
 }
 
@@ -188,7 +216,6 @@ Return application mode
 
 sub get_appmode {
     my $self = shift;
-
     return $self->get_appmode_observable->get;
 }
 
@@ -200,11 +227,8 @@ Put a message on the status bar.
 
 sub message_status {
     my ( $self, $line, $sb_id ) = @_;
-
     $sb_id = 0 if not defined $sb_id;
-
     $self->get_stdout_observable->set($line);
-
     return;
 }
 
@@ -216,7 +240,6 @@ Get message observable object.
 
 sub get_message_observable {
     my $self = shift;
-
     return $self->{_message};
 }
 
@@ -228,7 +251,6 @@ Log a user message on a Tk/Wx text controll.
 
 sub message_log {
     my ( $self, $message ) = @_;
-
     $self->get_message_observable->set($message);
 }
 
@@ -240,7 +262,6 @@ Update progress value.
 
 sub progress_update {
     my ( $self, $count ) = @_;
-
     $self->get_progress_observable->set($count);
 }
 
@@ -252,20 +273,36 @@ Get progres observable status.
 
 sub get_progress_observable {
     my $self = shift;
-
     return $self->{_progress};
 }
 
 =head2 on_item_selected
 
-On list item selection make the event observable.
+On list item selection make the event observable and store the item
+index.
 
 =cut
 
 sub on_item_selected {
-    my $self = shift;
+    my ($self, $item, $data) = @_;
 
-    $self->get_itemchanged_observable->set( 1 );
+    $self->set_query_file( $data->{file} );
+    my $itemdata = $self->read_qdf_data_file;
+    $self->{_itemdata} = QDepo::ItemData->new($itemdata);
+    $self->get_itemchanged_observable->set($item);
+
+    return;
+}
+
+=head2 get_query_item
+
+Get the item index.
+
+=cut
+
+sub get_query_item {
+    my $self = shift;
+    $self->get_itemchanged_observable->get;
 }
 
 =head2 load_qdf_data_wx
@@ -279,7 +316,9 @@ controls, so we don't need a data structure in the Model.
 sub load_qdf_data_wx {
     my $self = shift;
 
-    my $data_ref = $self->{fio}->get_titles();
+    my $fio = QDepo::FileIO->new($self);
+
+    my $data_ref = $fio->get_titles();
 
     my $indecs = 0;
     my $titles = {};
@@ -308,7 +347,9 @@ a data structure used to fill the List control.
 sub load_qdf_data_tk {
     my $self = shift;
 
-    my $data_ref = $self->{fio}->get_titles();
+    my $fio = QDepo::FileIO->new($self);
+
+    my $data_ref = $fio->get_titles();
 
     my $indecs = 0;
     my $titles = {};
@@ -425,6 +466,58 @@ sub get_qdf_data_file_tk {
     return $self->{_lds}{$item}{file};
 }
 
+sub get_sql_stmt {
+    my $self = shift;
+
+    my ($bind, $sql) = $self->string_replace_for_run(
+        $self->itemdata->sql,
+        $self->itemdata->params,
+    );
+    $sql =~ s{;$}{}m;                         # remove final ';'
+
+    return ($bind, $sql);
+}
+
+sub get_columns_list {
+    my $self = shift;
+
+    my $parser = SQL::Parser->new();
+
+    my ($bind, $sql_text) = $self->get_sql_stmt;
+
+    $parser->parse($sql_text);
+
+    #-- Table
+    my $tables_ref   = $parser->structure->{org_table_names};
+    my $table = $tables_ref->[0];
+
+    #-- Columns
+    my $all_cols_ref;
+    if ( $self->dbc->can('table_info_short') ) {
+        $all_cols_ref = $self->dbc->table_info_short($table);
+    }
+    else {
+        $self->message_log("WW Not implemented: 'table_info_short'");
+    }
+    my $sql_cols_ref = $parser->structure->{org_col_names};
+    unless (ref $sql_cols_ref) {
+        print "get cols in other way...\n";
+    }
+
+    # p $all_cols_ref;
+    # p $sql_cols_ref;
+
+    my $cols_list;
+    foreach my $field (@$sql_cols_ref) {
+        my $type = $all_cols_ref->{$field}{type};
+        push @$cols_list, { name => $field, type => $type };
+    }
+
+    p $cols_list;
+
+    return $cols_list;
+}
+
 =head2 run_export
 
 Run SQL query and generate output data in selected data format
@@ -434,34 +527,28 @@ TODO: Check if exists and selected at least one qdf in list
 =cut
 
 sub run_export {
-    my ($self, $data) = @_;
+    my $self = shift;
 
-    my ($bind, $sqltext) = $self->string_replace_for_run(
-        $data->{body}{sql},
-        $data->{parameters},
-    );
-
-    unless (($bind and $sqltext)) {
-        $self->message_status('Parameter error!', 0);
+    my ($bind, $sqltext) = $self->get_sql_stmt;
+    unless ( $bind and $sqltext ) {
+        $self->message_status( 'Parameter error!', 0 );
         return;
     }
 
-    my $outfile = $data->{header}{output};
+    my $outfile = $self->itemdata->output;
 
     $self->message_log('II Running data export ...');
 
-    my $outpath = $self->_cfg->output();
+    my $outpath = $self->cfg->output();
     if ( !-d $outpath ) {
         $self->message_status('Wrong output path!', 0);
-        $self->message_log("EE Wrong output path '$outpath'");
+        $self->message_log("EE Wrong output path: '$outpath'");
         return;
     }
 
-    my $option = $self->get_choice();
-
+    my $option  = $self->get_choice();
     my $out_fqn = catfile($outpath, $outfile);
-
-    my $output = QDepo::Output->new($self);
+    my $output  = QDepo::Output->new($self);
 
     # trim SQL text;
     $sqltext = QDepo::Utils->trim($sqltext);
@@ -496,18 +583,16 @@ sub run_export {
 
 Get all contents from the selected QDF title (file).
 
-For Wx the file parameter is required.
-
 =cut
 
 sub read_qdf_data_file {
-    my ($self, $item, $file) = @_;
+    my $self = shift;
 
-    $file ||= $self->get_qdf_data_file_tk($item);
+    #$file ||= $self->get_qdf_data_file_tk($item); ??? Tk
+    my $file = $self->get_query_file;
+    my $fio = QDepo::FileIO->new($self);
 
-    my $ddata_ref = $self->{fio}->get_details($file);
-
-    return ( $ddata_ref, $file );
+    return $fio->get_details($file);
 }
 
 =head2 get_itemchanged_observable
@@ -543,7 +628,8 @@ sub write_qdf_data_file {
         body       => $body,
     };
 
-    $self->{fio}->xml_update($file, $record);
+    my $fio = QDepo::FileIO->new($self);
+    $fio->xml_update($file, $record);
 
     my ($name, $path, $ext) = fileparse( $file, qr/\.[^\.]*/ );
     $self->message_log("II Saved '${name}$ext'");
@@ -564,8 +650,8 @@ sub report_add {
 
     my $new_qdf_file = $self->report_name();
 
-    my $src_fqn = $self->_cfg->qdf_tmpl;
-    my $dst_fqn = catfile($self->_cfg->qdfpath, $new_qdf_file);
+    my $src_fqn = $self->cfg->qdf_tmpl;
+    my $dst_fqn = catfile($self->cfg->qdfpath, $new_qdf_file);
 
     if ( !-f $dst_fqn ) {
         $self->message_log("II Create new report from template ...");
@@ -578,7 +664,8 @@ sub report_add {
         }
 
         # Read the title and the file name from the new file
-        my $data_ref = $self->{fio}->get_title($dst_fqn);
+        my $fio = QDepo::FileIO->new($self);
+        my $data_ref = $fio->get_title($dst_fqn);
 
         if (defined $items_no) {
             $data_ref = $self->append_list_record_wx($data_ref, $items_no);
@@ -607,7 +694,9 @@ Try to fill the gaps between numbers in file names
 sub report_name {
     my $self = shift;
 
-    my $reports_ref = $self->{fio}->get_file_list();
+    my $fio = QDepo::FileIO->new($self);
+
+    my $reports_ref = $fio->get_file_list();
 
     my $files_no = scalar @{$reports_ref};
 
@@ -686,9 +775,7 @@ Set choice to value
 
 sub set_choice {
     my ($self, $choice) = @_;
-
     $self->message_log("II Output format set to '$choice'");
-
     $self->get_choice_observable->set($choice);
 }
 
@@ -700,7 +787,6 @@ Return choice to value
 
 sub get_choice {
     my $self = shift;
-
     return $self->get_choice_observable->get;
 }
 
@@ -712,7 +798,6 @@ Return choice observable status.
 
 sub get_choice_observable {
     my $self = shift;
-
     return $self->{_choice};
 }
 
@@ -787,7 +872,6 @@ Get exception observable status.
 
 sub get_exception_observable {
     my $self = shift;
-
     return $self->{_exception};
 }
 
@@ -799,7 +883,6 @@ Log an exception.
 
 sub exception_log {
     my ( $self, $message ) = @_;
-
     $self->get_exception_observable->set($message);
 }
 
@@ -811,11 +894,8 @@ Get exception message and then clear it.
 
 sub get_exception {
     my $self = shift;
-
     my $exception = $self->get_exception_observable->get;
-
     $self->get_exception_observable->set();  # clear
-
     return $exception;
 }
 
@@ -828,7 +908,6 @@ indicator to stop the output file generation process.
 
 sub get_continue_observable {
     my $self = shift;
-
     return $self->{_continue};
 }
 
@@ -841,9 +920,7 @@ activated (Wx only).
 
 sub set_continue {
     my ( $self, $cont ) = @_;
-
     $self->get_continue_observable->set($cont);
-
     return;
 }
 
@@ -855,7 +932,6 @@ Return true if there are items marked for deletion.
 
 sub has_marks {
     my $self = shift;
-
     return $self->{_marks} > 0 ? 1 : 0;
 }
 

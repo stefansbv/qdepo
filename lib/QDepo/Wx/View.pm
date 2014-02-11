@@ -133,7 +133,7 @@ sub _set_model_callbacks {
     my $upd = $self->model->get_itemchanged_observable;
     $upd->add_callback(
         sub {
-            $self->controls_populate;
+            $self->form_populate;
             $self->toggle_sql_replace;
         }
     );
@@ -184,15 +184,10 @@ files.
 
 sub _create_menu {
     my $self = shift;
-
     my $menu = Wx::MenuBar->new;
-
     $self->{_menu} = $menu;
-
     $self->make_menus( $self->cfg->menubar );
-
     $self->SetMenuBar($menu);
-
     return;
 }
 
@@ -211,9 +206,7 @@ sub make_menus {
 
     #- Create menus
     foreach my $menu_name ( @{$menus} ) {
-
         $self->{$menu_name} = Wx::Menu->new();
-
         my @popups
             = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
         foreach my $id (@popups) {
@@ -223,7 +216,6 @@ sub make_menus {
                 $attribs->{$menu_name}{id} . $id,    # menu Id
             );
         }
-
         $self->{_menu}->Insert(
             $position,
             $self->{$menu_name},
@@ -232,7 +224,6 @@ sub make_menus {
                 $attribs->{$menu_name}{underline}
             ),
         );
-
         $position++;
     }
 
@@ -431,8 +422,8 @@ sub _create_report_page {
         Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
     );
 
-    $self->{qlist}->InsertColumn( 0, '#',           wxLIST_FORMAT_LEFT, 50  );
-    $self->{qlist}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 337 );
+    $self->{qlist}->InsertColumn( 0, '#',          wxLIST_FORMAT_LEFT, 50  );
+    $self->{qlist}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 345 );
 
     #-- Controls
 
@@ -458,7 +449,7 @@ sub _create_report_page {
 
     #--- Layout
 
-    my $repo_main_sz = Wx::FlexGridSizer->new( 4, 1, 5, 5 );
+    my $repo_main_sz = Wx::FlexGridSizer->new( 4, 1, 0, 5 );
 
     #-- Top
 
@@ -566,6 +557,28 @@ sub _create_para_page {
     $self->{value5} =
       Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
+    $self->{tlist} = Wx::Perl::ListCtrl->new(
+        $self->{_nb}{p2}, -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
+    );
+
+    $self->{tlist}->InsertColumn( 0, '#',    wxLIST_FORMAT_LEFT, 50 );
+    $self->{tlist}->InsertColumn( 1, 'Name', wxLIST_FORMAT_LEFT, 150 );
+    $self->{tlist}->InsertColumn( 2, 'Type', wxLIST_FORMAT_LEFT, 195 );
+
+    #-- Button
+
+    $self->{btn_refr} = Wx::Button->new(
+        $self->{_nb}{p2},
+        -1,
+        q{Refresh},
+        [ -1, -1 ],
+        [ -1, 22 ],
+    );
+    $self->{btn_refr}->Enable(1);
+
     #-- Layout
 
     my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
@@ -596,17 +609,45 @@ sub _create_para_page {
 
     $para_fgs->AddGrowableCol(2);
 
-    my $para_main_sz = Wx::BoxSizer->new(wxHORIZONTAL);
+    #-- Layout
 
-    my $para_sbs =
+    my $para_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 0 );
+
+    #-- Top
+
+    my $para_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p2}, -1, ' Parameters ', ), wxVERTICAL,
-      );
+        Wx::StaticBox->new( $self->{_nb}{p2}, -1, ' Parameters ', ),
+        wxHORIZONTAL, );
 
-    $para_sbs->Add( $para_fgs, 0, wxEXPAND, 3 );
-    $para_main_sz->Add( $para_sbs, 1, wxALL | wxGROW, 5 );
+    $para_top_sz->Add( $para_fgs, 1, wxEXPAND, 3 );
 
-    $self->{_nb}{p2}->SetSizer( $para_main_sz );
+    #-- Middle
+
+    my $h_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    # $h_sizer->Add(-1, 15);
+    $h_sizer->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
+
+    #-- Bottom
+
+    my $para_bot_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $self->{_nb}{p2}, -1, ' Fields ', ),
+        wxVERTICAL, );
+
+    $para_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
+
+    #--
+
+    $para_main_sz->Add( $para_top_sz, 1, wxALL | wxGROW, 5 );
+    $para_main_sz->Add( $h_sizer,     1, wxALIGN_CENTRE );
+    $para_main_sz->Add( $para_bot_sz, 1, wxALL | wxGROW, 5 );
+
+    $para_main_sz->AddGrowableRow(2);
+    $para_main_sz->AddGrowableCol(0);
+
+    $self->{_nb}{p2}->SetSizer($para_main_sz);
+
+    return;
 }
 
 =head2 _create_sql_page
@@ -712,12 +753,9 @@ sub _create_config_page {
     );
 
     $self->{dlist}->InsertColumn( 0, '#', wxLIST_FORMAT_LEFT, 50 );
-    $self->{dlist}
-        ->InsertColumn( 1, 'Mnemonic', wxLIST_FORMAT_LEFT, 100 );
-    $self->{dlist}
-        ->InsertColumn( 2, 'Default', wxLIST_FORMAT_LEFT, 60 );
-    $self->{dlist}
-        ->InsertColumn( 3, 'Description', wxLIST_FORMAT_LEFT, 180 );
+    $self->{dlist}->InsertColumn( 1, 'Mnemonic', wxLIST_FORMAT_LEFT, 100 );
+    $self->{dlist}->InsertColumn( 2, 'Default', wxLIST_FORMAT_LEFT, 60 );
+    $self->{dlist}->InsertColumn( 3, 'Description', wxLIST_FORMAT_LEFT, 185 );
 
     #-- Button
 
@@ -726,7 +764,7 @@ sub _create_config_page {
         -1,
         q{Load},
         [ -1, -1 ],
-        [ -1, -1 ],
+        [ -1, 22 ],
     );
     $self->{btn_load}->Enable(0);
 
@@ -735,7 +773,7 @@ sub _create_config_page {
         -1,
         q{Default},
         [ -1, -1 ],
-        [ -1, -1 ],
+        [ -1, 22 ],
     );
     $self->{btn_defa}->Enable(0);
 
@@ -744,7 +782,7 @@ sub _create_config_page {
         -1,
         q{Add},
         [ -1, -1 ],
-        [ -1, -1 ],
+        [ -1, 22 ],
     );
 
     #- Log text control
@@ -874,7 +912,6 @@ Return a toolbar button by name.
 
 sub get_toolbar_btn {
     my ( $self, $name ) = @_;
-
     return $self->{_tb}->get_toolbar_btn($name);
 }
 
@@ -886,23 +923,8 @@ Return the choice default option, the first element in the array.
 
 sub get_choice_default {
     my $self = shift;
-
     return $self->{_tb}->get_choice_options(0);
 }
-
-# =head2 get_choice
-
-# Return the selected choice.
-
-# =cut
-
-# sub get_choice {
-#     my ($self, $name) = @_;
-
-#     my $idx = $self->get_toolbar_btn($name)->GetCurrentSelection;
-
-#     return $self->{_tb}->get_choice_options($idx);
-# }
 
 =head2 get_control_named
 
@@ -912,7 +934,6 @@ Return the list control handler.
 
 sub get_control_named {
     my ($self, $name) = @_;
-
     return $self->{$name};
 }
 
@@ -965,7 +986,6 @@ Return a AoH with information regarding the controls from the SQL page.
 
 sub get_controls_sql {
     my $self = shift;
-
     return [
         { sql => [ $self->{sql}, 'normal'  , 'white', 's' ] },
     ];
@@ -982,7 +1002,6 @@ None at this time.
 
 sub get_controls_conf {
     my $self = shift;
-
     return [];
 }
 
@@ -994,7 +1013,6 @@ Return the control instance by name.
 
 sub get_control_by_name {
     my ($self, $name) = @_;
-
     return $self->{$name};
 }
 
@@ -1006,17 +1024,13 @@ Set text item from list control row and col
 
 sub set_list_text {
     my ($self, $lname, $row, $col, $text) = @_;
-
     $self->get_control_named($lname)->SetItemText( $row, $col, $text );
-
     return;
 }
 
 sub get_list_text {
     my ($self, $lname, $row, $col) = @_;
-
     my $text = $self->get_control_named($lname)->GetItemText( $row, $col );
-
     return $text;
 }
 
@@ -1029,14 +1043,12 @@ the existing value.
 
 sub list_item_edit {
     my ( $self, $lname, $row, $nrcrt, $title ) = @_;
-
     if ($nrcrt) {
         $self->set_list_text($lname, $row, 0, $nrcrt);
     }
     if ($title) {
         $self->set_list_text($lname, $row, 1, $title);
     }
-
     return;
 }
 
@@ -1048,7 +1060,6 @@ Select the first/last item in list.
 
 sub list_item_select {
     my ($self, $lname, $what) = @_;
-
     my $items_no = $self->get_list_max_index($lname) + 1;
 
     return unless $items_no > 0;             # nothing to select
@@ -1076,7 +1087,6 @@ Return the maximum index from the list control (item count - 1).
 
 sub get_list_max_index {
     my ($self, $lname) = @_;
-
     return ( $self->get_control_named($lname)->GetItemCount() - 1 );
 }
 
@@ -1088,7 +1098,6 @@ Return the selected index from the list control.
 
 sub get_list_selected_index {
     my ($self, $lname) = @_;
-
     return $self->get_control_named($lname)->GetSelection();
 }
 
@@ -1106,8 +1115,7 @@ sub list_item_insert {
     $self->set_list_text($lname, $item, 1, $title);
     $self->set_list_item_data(
         $lname,
-        $item,
-        {
+        $item, {
             file  => $file,
             nrcrt => $nrcrt,
         },
@@ -1124,15 +1132,11 @@ Set list item data.
 
 sub set_list_item_data {
     my ($self, $lname, $item, $data_new) = @_;
-
     my $data = $self->get_list_item_data($lname, $item);
-
     while ( my ( $key, $value ) = each( %{$data_new} ) ) {
         $data->{$key} = $value;
     }
-
     $self->get_control_named($lname)->SetItemData( $item, $data );
-
     return;
 }
 
@@ -1144,7 +1148,6 @@ Set list item data.
 
 sub get_list_item_data {
     my ($self, $lname, $item) = @_;
-
     return $self->get_control_named($lname)->GetItemData( $item );
 }
 
@@ -1211,7 +1214,6 @@ Delete all list control items.
 
 sub list_item_clear_all {
     my ($self, $lname) = @_;
-
     $self->get_control_named($lname)->DeleteAllItems;
 }
 
@@ -1244,9 +1246,7 @@ Log configuration options with data from the Config module
 
 sub log_config_options {
     my $self = shift;
-
     my $path = $self->cfg->output;
-
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
     }
@@ -1317,6 +1317,27 @@ sub connlist_populate {
     return;
 }
 
+sub fieldlist_populate {
+    my $self = shift;
+
+    my $items = $self->model->get_columns_list;
+
+    return unless @{$items};
+
+    # Clear list
+    $self->list_item_clear_all('tlist');
+
+    my $idx = 0;
+    foreach my $rec ( @{$items} ) {
+        my $nrcrt = $idx + 1;
+        $self->list_item_insert( 'tlist', $idx, $nrcrt, $rec->{name},
+            $rec->{type} );
+        $idx++;
+    }
+
+    return;
+}
+
 =head2 querylist_add_item
 
 Add new item in list control.
@@ -1340,35 +1361,33 @@ sub querylist_add_item {
     return;
 }
 
-=head2 controls_populate
+=head2 form_populate
 
-Populate controls with data from XML
+Populate form controls with data from the qdf file.
 
 =cut
 
-sub controls_populate {
+sub form_populate {
     my $self = shift;
 
-    my $item = $self->get_list_selected_index('qlist');
-    my $lidata = $self->get_list_item_data('qlist', $item);
-    my $file = $lidata->{file};
-    my ($data) = $self->model->read_qdf_data_file( $item, $file );
-
-    my $qdfpath = $self->cfg->qdfpath;
-
-    # Just filename, remove path config path
-    my $file_rel = File::Spec->abs2rel( $file, $qdfpath ) ;
-
     #-- Header
-    $data->{header}{filename} = $file_rel;
-    $self->controls_write_page('list', $data->{header} );
+
+    my $data = {};
+    $data->{title}       = $self->model->itemdata->title;
+    $data->{filename}    = $self->model->itemdata->filename;
+    $data->{output}      = $self->model->itemdata->output;
+    $data->{description} = $self->model->itemdata->descr;
+    $self->controls_write_page( 'list', $data );
 
     #-- Parameters
-    my $para = QDepo::Utils->params_to_hash( $data->{parameters} );
-    $self->controls_write_page('para', $para );
+
+    my $para = QDepo::Utils->params_to_hash( $self->model->itemdata->params );
+    $self->controls_write_page( 'para', $para );
 
     #-- SQL
-    $self->controls_write_page('sql', $data->{body} );
+
+    $self->controls_write_page( 'sql',
+        { sql => $self->model->itemdata->sql } );
 
     return;
 }
@@ -1384,10 +1403,7 @@ Toggle sql replace
 
     $mode ||= $self->model->get_appmode;
 
-    my $item = $self->get_list_selected_index('qlist');
-    my $lidata = $self->get_list_item_data('qlist', $item);
-    my $file   = $lidata->{file};
-    my ($data) = $self->model->read_qdf_data_file($item, $file);
+    my $data = $self->model->read_qdf_data_file;
 
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
@@ -1402,11 +1418,7 @@ Toggle sql replace
 
 sub get_qdf_data_file_wx {
     my ($self, $item) = @_;
-
-    my $lidata = $self->get_list_item_data('qlist', $item);
-    my $file   = $lidata->{file};
-
-    return $file;
+    return $self->get_list_item_data('qlist', $item)->{file};
 }
 
 =head2 control_replace_sql_text
@@ -1416,12 +1428,11 @@ Replace sql text control
 =cut
 
 sub control_replace_sql_text {
-    my ($self, $sqltext, $params) = @_;
-
-    my ($newtext) = $self->model->string_replace_pos($sqltext, $params);
+    my ( $self, $sqltext, $params ) = @_;
+    my ($newtext) = $self->model->string_replace_pos( $sqltext, $params );
 
     # Write new text to control
-    $self->control_set_value('sql', $newtext);
+    $self->control_set_value( 'sql', $newtext );
 }
 
 =head2 log_msg
@@ -1432,11 +1443,8 @@ Set log message
 
 sub log_msg {
     my ( $self, $message ) = @_;
-
     my $control = $self->get_control_by_name('log');
-
     $self->control_write_s( $control, $message, 'append' );
-
     return;
 }
 
@@ -1553,9 +1561,7 @@ sub control_set_value {
     my ($self, $name, $value) = @_;
 
     $value ||= q{};                 # empty
-
     my $control = $self->get_control_by_name($name);
-
     $self->control_write_s($control, $value);
 
     return;

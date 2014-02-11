@@ -201,18 +201,13 @@ sub set_event_handlers {
 
 =head2 process_sql
 
-Get the sql text string from the QDF file, prepare it for execution.
+Get the SQL text string from the QDF file, prepare it for execution.
 
 =cut
 
 sub process_sql {
     my $self = shift;
-
-    my $item = $self->view->get_list_selected_index('qlist');
-    my $lidata = $self->view->get_list_item_data('qlist', $item);
-    my ($data) = $self->model->read_qdf_data_file($item, $lidata->{file} );
-    $self->model->run_export($data);
-
+    $self->model->run_export;
     return;
 }
 
@@ -225,7 +220,7 @@ Toggle mark on list item.
 sub toggle_mark_item {
     my $self = shift;
 
-    my $item = $self->view->get_list_selected_index('qlist');
+    my $item = $self->model->get_query_item;
 
     $self->view->toggle_mark($item);
 
@@ -317,7 +312,7 @@ sub guide {
 sub save_qdf_data {
     my $self = shift;
 
-    my $item = $self->view->get_list_selected_index('qlist');
+    my $item = $self->model->get_query_item;
     my $file = $self->view->get_qdf_data_file_wx($item);
     my $head = $self->view->controls_read_page('list');
     my $para = $self->view->controls_read_page('para');

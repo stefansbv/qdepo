@@ -102,7 +102,9 @@ sub start {
     $self->view->querylist_populate();
     if ( $self->view->get_list_max_index('qlist') >= 0) {
         $self->view->list_item_select('qlist', 'first');
-        $self->model->on_item_selected();
+        my $item = $self->view->get_list_selected_index('qlist');
+        my $data = $self->view->get_list_item_data('qlist', $item);
+        $self->model->on_item_selected($item, $data);
         $self->set_app_mode('sele');
     }
 
@@ -315,24 +317,23 @@ sub set_event_handlers {
 
     #-- Quit
     $self->view->event_handler_for_tb_button(
-        'tb_qt',
-        sub {
+        'tb_qt', sub {
             $self->on_quit;
         }
     );
 
     #-- Query List
     $self->view->event_handler_for_list(
-        'qlist',
-        sub {
-            $self->model->on_item_selected();
+        'qlist', sub {
+            my $item = $self->view->get_list_selected_index('qlist');
+            my $data = $self->view->get_list_item_data('qlist', $item);
+            $self->model->on_item_selected($item, $data);
         }
     );
 
     #-- DB Configs List
     $self->view->event_handler_for_list(
-        'dlist',
-        sub {
+        'dlist', sub {
             $self->toggle_admin_buttons();
         }
     );
@@ -341,29 +342,33 @@ sub set_event_handlers {
 
     #-- Load button
     $self->view->event_handler_for_button(
-        'btn_load',
-        sub {
+        'btn_load', sub {
             print "Load config...\n";
         }
     );
 
     #-- Default button
     $self->view->event_handler_for_button(
-        'btn_defa',
-        sub {
+        'btn_defa', sub {
             $self->set_default_mnemonic();
         }
     );
 
     #-- Add button
     $self->view->event_handler_for_button(
-        'btn_add',
-        sub {
+        'btn_add', sub {
             my $name = $self->get_text_dialog();
             if ($name) {
                 my $new = $self->cfg->config_new($name);
                 $self->model->message_log(qq{II New connection: '$new'});
             }
+        }
+    );
+
+    #-- Refresh button
+    $self->view->event_handler_for_button(
+        'btn_refr', sub {
+            $self->view->fieldlist_populate;
         }
     );
 
