@@ -5,6 +5,7 @@ use warnings;
 use Carp;
 
 use Text::CSV_XS;
+use QDepo::Utils;
 
 =head1 NAME
 
@@ -86,7 +87,8 @@ sub create_row {
     chomp(@data);
 
     # Data
-    # Could use $csv->print ($io, $colref) for eficiency
+    # Could use $csv->print ($io, $colref) for eficiency?
+    @data = map { QDepo::Utils->decode_unless_utf($_) } @data;
     my $status = $self->{csv}->combine( @data );
     # print " status $status\n";
     my $line   = $self->{csv}->string();

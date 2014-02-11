@@ -5,6 +5,7 @@ use warnings;
 use Carp;
 
 use Spreadsheet::WriteExcel;
+use QDepo::Utils;
 
 =head1 NAME
 
@@ -146,7 +147,7 @@ sub create_row {
     my $cols = scalar @{$fields};
 
     for ( my $col = 0 ; $col < $cols; $col++ ) {
-        my $data = $fields->[$col];
+        my $data = QDepo::Utils->decode_unless_utf( $fields->[$col] );
         $self->{sheet}->write( $row, $col, $data, $self->{fmt}->{$fmt_name} );
         if (defined $data) {
             $self->store_max_len($col, length $data);

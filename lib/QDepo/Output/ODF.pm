@@ -6,7 +6,6 @@ use warnings;
 use Carp;
 
 use ODF::lpOD;
-use Encode qw(encode);
 
 =head1 NAME
 
@@ -83,15 +82,15 @@ sub _create_doc {
 
 =head2 create_row
 
-Create a row of data; format not imlemented yet.
+Create a row of data; format not implemented yet.
 
 =cut
 
 sub create_row {
-    my ($self, $row, $data, $fmt_name) = @_;
+    my ($self, $row, $fields, $fmt_name) = @_;
 
     for ( my $col = 0 ; $col < $self->{doc_cols} ; $col++ ) {
-        my $data = encode('utf-8', $data->[$col]);
+        my $data = $fields->[$col];
         $self->{sheet}->get_cell($row,$col)->set_value($data);
         if (defined $data) {
             $self->store_max_len( $col, length $data );

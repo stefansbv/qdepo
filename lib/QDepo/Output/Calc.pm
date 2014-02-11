@@ -5,7 +5,6 @@ use warnings;
 use Carp;
 
 use OpenOffice::OODoc 2.103;
-use Encode qw(encode);
 
 =head1 NAME
 
@@ -85,12 +84,12 @@ Create a row of data; format not imlemented yet.
 =cut
 
 sub create_row {
-    my ($self, $row, $data, $fmt_name) = @_;
+    my ($self, $row, $fields, $fmt_name) = @_;
 
-    my $cols = scalar @{$data};
+    my $cols = scalar @{$fields};
 
     for ( my $col = 0 ; $col < $cols ; $col++ ) {
-        my $data = encode('utf-8', $data->[$col]);
+        my $data = $fields->[$col];
         $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
         # if (defined $data) {
         #     $self->store_max_len( $col, length $data );
