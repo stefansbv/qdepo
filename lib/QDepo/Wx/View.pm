@@ -11,12 +11,16 @@ use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
 use Wx::Perl::ListCtrl;
 use Wx::STC;
 
+
 use QDepo::Config;
 use QDepo::Wx::Notebook;
 use QDepo::Wx::ToolBar;
+use QDepo::Wx::ListCtrl;
 use QDepo::Utils;
 
 use base 'Wx::Frame';
+
+use Data::Printer;
 
 =head1 NAME
 
@@ -415,15 +419,12 @@ Create the report page (tab) on the notebook
 sub _create_report_page {
     my $self = shift;
 
-    $self->{qlist} = Wx::Perl::ListCtrl->new(
-        $self->{_nb}{p1}, -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-        Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
-    );
+    $self->model->init_data_table('qlist');
+    my $dt = $self->model->get_data_table_for('qlist');
+    $self->{qlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p1}, $dt );
 
-    $self->{qlist}->InsertColumn( 0, '#',          wxLIST_FORMAT_LEFT, 50  );
-    $self->{qlist}->InsertColumn( 1, 'Query name', wxLIST_FORMAT_LEFT, 345 );
+    my $header = $self->model->init_header();
+    $self->{qlist}->add_columns($header);
 
     #-- Controls
 
@@ -1252,36 +1253,6 @@ sub log_config_options {
     }
 }
 
-=head2 querylist_populate
-
-Populate list with items.
-
-=cut
-
-sub querylist_populate {
-    my $self = shift;
-
-    my $items = $self->model->load_qdf_data_wx();
-
-    return unless scalar keys %{$items};
-
-    # Populate list in sorted order
-    my @indices = sort { $a <=> $b } keys %{$items};
-
-    # Clear list
-    $self->list_item_clear_all('qlist');
-
-    foreach my $idx ( @indices ) {
-        my $nrcrt = $items->{$idx}{nrcrt};
-        my $title = $items->{$idx}{title};
-        my $file  = $items->{$idx}{file};
-
-        $self->list_item_insert('qlist', $idx, $nrcrt, $title, $file);
-    }
-
-    return;
-}
-
 =head2 connlist_populate
 
 Populate list with items.
@@ -1834,6 +1805,45 @@ sub clear_default_mark {
     }
 
     return;
+}
+
+# New list functions
+
+sub refresh_list {
+    my ($self, $name) = @_;
+    die "List name is required for 'refresh_list'" unless $name;
+    $self->{$name}->RefreshList;
+    return;
+}
+
+sub select_list_item {
+    my ($self, $lname, $what) = @_;
+
+    die "List name is required for 'refresh_list'" unless $lname;
+
+    my $items_no = $self->{$lname}->GetItemCount();
+
+    return unless $items_no > 0;             # nothing to select
+
+    my $item
+        = $what eq 'first'   ? 0
+        : $what eq 'last'    ? ($items_no - 1)
+        : $what eq 'default' ? $self->get_default_mark($lname)
+        :                      $what # default
+        ;
+
+    return unless defined $item and $item =~ m {^[0-9]+$};
+
+    $self->{$lname}->set_selection($item);
+    $self->{$lname}->EnsureVisible($item);
+
+    return $item;
+}
+
+sub selected_list_item {
+    my ($self, $name) = @_;
+    die "List name is required for 'refresh_list'" unless $name;
+    return $self->{$name}->get_selection;
 }
 
 =head1 AUTHOR

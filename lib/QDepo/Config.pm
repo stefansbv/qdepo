@@ -456,7 +456,8 @@ sub get_default_mnemonic {
         return $cfg_hr->{mnemonic};
     }
     else {
-        $self->{_log}->info("No valid default found, using 'test'");
+        # $self->{_log}->info("No valid default found, using 'test'");
+        print "No valid default found, using 'test'\n";
         return 'test';
     }
 }

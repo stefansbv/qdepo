@@ -16,6 +16,7 @@ use QDepo::Observable;
 use QDepo::Db;
 use QDepo::Output;
 use QDepo::Utils;
+use QDepo::ListDataTable;
 
 use Data::Printer;
 
@@ -65,6 +66,7 @@ sub new {
         _marks       => 0,
         _file        => undef,
         _itemdata    => undef,
+        _dt          => {},
     };
 
     bless $self, $class;
@@ -78,7 +80,7 @@ Return config instance variable
 
 =cut
 
-sub _cfg {
+sub cfg {
     my $self = shift;
     return $self->{_cfg};
 }
@@ -276,16 +278,17 @@ sub get_progress_observable {
     return $self->{_progress};
 }
 
-=head2 on_item_selected
+=head2 on_item_selected_load
 
 On list item selection make the event observable and store the item
 index.
 
 =cut
 
-sub on_item_selected {
-    my ($self, $item, $data) = @_;
+sub on_item_selected_load {
+    my ($self, $item) = @_;
 
+    my $data = $self->get_qdf_data_tk($item);
     $self->set_query_file( $data->{file} );
     my $itemdata = $self->read_qdf_data_file;
     $self->{_itemdata} = QDepo::ItemData->new($itemdata);
@@ -313,29 +316,29 @@ controls, so we don't need a data structure in the Model.
 
 =cut
 
-sub load_qdf_data_wx {
-    my $self = shift;
+# sub load_qdf_data_wx {
+#     my $self = shift;
 
-    my $fio = QDepo::FileIO->new($self);
+#     my $fio = QDepo::FileIO->new($self);
 
-    my $data_ref = $fio->get_titles();
+#     my $data_ref = $fio->get_titles();
 
-    my $indecs = 0;
-    my $titles = {};
+#     my $indecs = 0;
+#     my $titles = {};
 
-    # Format titles
-    foreach my $rec ( @{$data_ref} ) {
-        if (ref $rec) {
+#     # Format titles
+#     foreach my $rec ( @{$data_ref} ) {
+#         if (ref $rec) {
 
-            # Make records
-            $titles->{$indecs} = $rec;
-            $titles->{$indecs}{nrcrt} = $indecs + 1;
-            $indecs++;
-        }
-    }
+#             # Make records
+#             $titles->{$indecs} = $rec;
+#             $titles->{$indecs}{nrcrt} = $indecs + 1;
+#             $indecs++;
+#         }
+#     }
 
-    return $titles;
-}
+#     return $titles;
+# }
 
 =head2 load_qdf_data_tk
 
@@ -933,6 +936,40 @@ Return true if there are items marked for deletion.
 sub has_marks {
     my $self = shift;
     return $self->{_marks} > 0 ? 1 : 0;
+}
+
+sub report_cols_list {
+    my $self = shift;
+    return [
+        {   field => 'nrcrt',
+            label => '#',
+            align => 'left',
+            width => 50,
+        },
+        {   field => 'title',
+            label => 'Query name',
+            align => 'left',
+            width => 345,
+        },
+    ];
+}
+
+sub init_header {
+    my $self = shift;
+    return $self->report_cols_list;
+}
+
+sub init_data_table {
+    my ($self, $list) = @_;
+    die "List name is required for 'init_data_table'" unless $list;
+    $self->{_dt}{$list} = QDepo::ListDataTable->new;
+    return;
+}
+
+sub get_data_table_for {
+    my ($self, $list) = @_;
+    die "List name is required for 'init_data_table'" unless $list;
+    return $self->{_dt}{$list};
 }
 
 =head1 AUTHOR

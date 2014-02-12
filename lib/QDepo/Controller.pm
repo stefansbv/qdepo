@@ -1,5 +1,6 @@
 package QDepo::Controller;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -7,6 +8,8 @@ use Try::Tiny;
 use QDepo::Config;
 use QDepo::Model;
 use QDepo::Exceptions;
+
+use Data::Printer;
 
 =head1 NAME
 
@@ -94,17 +97,20 @@ sub start {
     $self->set_event_handlers();
     $self->set_app_mode('idle');
 
+    # Connections list
     $self->view->connlist_populate();
     if ( $self->view->get_list_max_index('dlist') >= 0) {
         $self->view->list_item_select('dlist', 'default');
     }
 
-    $self->view->querylist_populate();
-    if ( $self->view->get_list_max_index('qlist') >= 0) {
-        $self->view->list_item_select('qlist', 'first');
-        my $item = $self->view->get_list_selected_index('qlist');
-        my $data = $self->view->get_list_item_data('qlist', $item);
-        $self->model->on_item_selected($item, $data);
+    # Query list (from qdf)
+    $self->querylist_populate();
+    my $dt = $self->model->get_data_table_for('qlist');
+    my $rec_no = $dt->get_item_count;
+    if ( $rec_no >= 0) {
+        $self->view->select_list_item('qlist', 'first');
+        # my $sel = $self->view->selected_list_item('qlist');
+        # say "selected: $sel";
         $self->set_app_mode('sele');
     }
 
@@ -325,9 +331,8 @@ sub set_event_handlers {
     #-- Query List
     $self->view->event_handler_for_list(
         'qlist', sub {
-            my $item = $self->view->get_list_selected_index('qlist');
-            my $data = $self->view->get_list_item_data('qlist', $item);
-            $self->model->on_item_selected($item, $data);
+            my $item = $self->view->{qlist}->GetFirstSelected;
+            $self->model->on_item_selected_load($item);
         }
     );
 
@@ -538,6 +543,43 @@ sub toggle_admin_buttons {
 
     $self->view->get_control_named('btn_load')->Enable($enable);
     $self->view->get_control_named('btn_defa')->Enable(not $enable);
+
+    return;
+}
+
+=head2 querylist_populate
+
+Populate list with items.
+
+=cut
+
+sub querylist_populate {
+    my $self = shift;
+
+    $self->model->load_qdf_data_tk; # init
+
+    my $items = $self->model->get_qdf_data_tk;
+
+    return unless scalar keys %{$items};
+
+    my $dt = $self->model->get_data_table_for('qlist');
+
+    my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
+
+    my $colslist = $self->model->report_cols_list;
+
+    my $row = 0;
+    foreach my $idx ( @indices ) {
+        my $col = 0;
+        foreach my $meta ( @{$colslist} ) {
+            my $value = $items->{$idx}{ $meta->{field} };
+            $dt->set_value( $row, $col, $value );
+            $col++;
+        }
+        $row++;
+    }
+
+    $self->view->refresh_list('qlist');
 
     return;
 }
