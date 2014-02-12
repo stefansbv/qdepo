@@ -7,7 +7,7 @@ use File::Spec::Functions qw(abs2rel);
 use Wx qw[:everything];
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
-    EVT_LIST_ITEM_ACTIVATED EVT_LIST_ITEM_SELECTED);
+    EVT_LIST_ITEM_SELECTED);
 use Wx::Perl::ListCtrl;
 use Wx::STC;
 
@@ -20,7 +20,7 @@ use QDepo::Utils;
 
 use base 'Wx::Frame';
 
-use Data::Printer;
+#use Data::Printer;
 
 =head1 NAME
 
@@ -420,10 +420,10 @@ sub _create_report_page {
     my $self = shift;
 
     $self->model->init_data_table('qlist');
-    my $dt = $self->model->get_data_table_for('qlist');
-    $self->{qlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p1}, $dt );
+    my $dtq = $self->model->get_data_table_for('qlist');
+    $self->{qlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p1}, $dtq );
 
-    my $header = $self->model->init_header();
+    my $header = $self->model->get_query_list_cols;
     $self->{qlist}->add_columns($header);
 
     #-- Controls
@@ -558,16 +558,23 @@ sub _create_para_page {
     $self->{value5} =
       Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    $self->{tlist} = Wx::Perl::ListCtrl->new(
-        $self->{_nb}{p2}, -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-        Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
-    );
+    $self->model->init_data_table('tlist');
+    my $dtt = $self->model->get_data_table_for('tlist');
+    $self->{tlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p2}, $dtt );
 
-    $self->{tlist}->InsertColumn( 0, '#',    wxLIST_FORMAT_LEFT, 50 );
-    $self->{tlist}->InsertColumn( 1, 'Name', wxLIST_FORMAT_LEFT, 150 );
-    $self->{tlist}->InsertColumn( 2, 'Type', wxLIST_FORMAT_LEFT, 195 );
+    my $header = $self->model->get_table_list_cols;
+    $self->{tlist}->add_columns($header);
+
+    # $self->{tlist} = Wx::Perl::ListCtrl->new(
+    #     $self->{_nb}{p2}, -1,
+    #     [ -1, -1 ],
+    #     [ -1, -1 ],
+    #     Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
+    # );
+
+    # $self->{tlist}->InsertColumn( 0, '#',    wxLIST_FORMAT_LEFT, 50 );
+    # $self->{tlist}->InsertColumn( 1, 'Name', wxLIST_FORMAT_LEFT, 150 );
+    # $self->{tlist}->InsertColumn( 2, 'Type', wxLIST_FORMAT_LEFT, 195 );
 
     #-- Button
 
@@ -1282,27 +1289,6 @@ sub connlist_populate {
         if ($mnemonic eq $default) {
             $self->set_default_mark($idx);
         }
-        $idx++;
-    }
-
-    return;
-}
-
-sub fieldlist_populate {
-    my $self = shift;
-
-    my $items = $self->model->get_columns_list;
-
-    return unless @{$items};
-
-    # Clear list
-    $self->list_item_clear_all('tlist');
-
-    my $idx = 0;
-    foreach my $rec ( @{$items} ) {
-        my $nrcrt = $idx + 1;
-        $self->list_item_insert( 'tlist', $idx, $nrcrt, $rec->{name},
-            $rec->{type} );
         $idx++;
     }
 

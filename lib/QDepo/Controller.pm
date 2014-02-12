@@ -109,8 +109,6 @@ sub start {
     my $rec_no = $dt->get_item_count;
     if ( $rec_no >= 0) {
         $self->view->select_list_item('qlist', 'first');
-        # my $sel = $self->view->selected_list_item('qlist');
-        # say "selected: $sel";
         $self->set_app_mode('sele');
     }
 
@@ -333,6 +331,8 @@ sub set_event_handlers {
         'qlist', sub {
             my $item = $self->view->{qlist}->GetFirstSelected;
             $self->model->on_item_selected_load($item);
+            # Refresh columns list
+            $self->fieldlist_populate;
         }
     );
 
@@ -373,7 +373,7 @@ sub set_event_handlers {
     #-- Refresh button
     $self->view->event_handler_for_button(
         'btn_refr', sub {
-            $self->view->fieldlist_populate;
+            $self->fieldlist_populate;
         }
     );
 
@@ -549,16 +549,16 @@ sub toggle_admin_buttons {
 
 =head2 querylist_populate
 
-Populate list with items.
+Populate the query list.
 
 =cut
 
 sub querylist_populate {
     my $self = shift;
 
-    $self->model->load_qdf_data_tk; # init
+    $self->model->load_qdf_data;             # init
 
-    my $items = $self->model->get_qdf_data_tk;
+    my $items = $self->model->get_qdf_data;
 
     return unless scalar keys %{$items};
 
@@ -566,12 +566,12 @@ sub querylist_populate {
 
     my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
 
-    my $colslist = $self->model->report_cols_list;
+    my $columns_ref = $self->model->get_query_list_cols;
 
     my $row = 0;
     foreach my $idx ( @indices ) {
         my $col = 0;
-        foreach my $meta ( @{$colslist} ) {
+        foreach my $meta ( @{$columns_ref} ) {
             my $value = $items->{$idx}{ $meta->{field} };
             $dt->set_value( $row, $col, $value );
             $col++;
@@ -580,6 +580,33 @@ sub querylist_populate {
     }
 
     $self->view->refresh_list('qlist');
+
+    return;
+}
+
+sub fieldlist_populate {
+    my $self = shift;
+
+    my $items = $self->model->get_columns_list;
+
+    return unless @{$items};
+
+    my $dt = $self->model->get_data_table_for('tlist');
+
+    my $columns_ref = $self->model->get_table_list_cols;
+
+    my $row = 0;
+    foreach my $rec ( @{$items} ) {
+        my $col = 0;
+        foreach my $meta ( @{$columns_ref} ) {
+            my $value = $rec->{ $meta->{field} };
+            $dt->set_value( $row, $col, $value );
+            $col++;
+        }
+        $row++;
+    }
+
+    $self->view->refresh_list('tlist');
 
     return;
 }

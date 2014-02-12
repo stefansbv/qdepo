@@ -288,7 +288,7 @@ index.
 sub on_item_selected_load {
     my ($self, $item) = @_;
 
-    my $data = $self->get_qdf_data_tk($item);
+    my $data = $self->get_qdf_data($item);
     $self->set_query_file( $data->{file} );
     my $itemdata = $self->read_qdf_data_file;
     $self->{_itemdata} = QDepo::ItemData->new($itemdata);
@@ -308,46 +308,14 @@ sub get_query_item {
     $self->get_itemchanged_observable->get;
 }
 
-=head2 load_qdf_data_wx
-
-Return the titles and file names from all the QDF files to fill the
-List control. The Wx List control has a feature to store data in the
-controls, so we don't need a data structure in the Model.
-
-=cut
-
-# sub load_qdf_data_wx {
-#     my $self = shift;
-
-#     my $fio = QDepo::FileIO->new($self);
-
-#     my $data_ref = $fio->get_titles();
-
-#     my $indecs = 0;
-#     my $titles = {};
-
-#     # Format titles
-#     foreach my $rec ( @{$data_ref} ) {
-#         if (ref $rec) {
-
-#             # Make records
-#             $titles->{$indecs} = $rec;
-#             $titles->{$indecs}{nrcrt} = $indecs + 1;
-#             $indecs++;
-#         }
-#     }
-
-#     return $titles;
-# }
-
-=head2 load_qdf_data_tk
+=head2 load_qdf_data
 
 Read the titles and file names from all the QDF files and store in
 a data structure used to fill the List control.
 
 =cut
 
-sub load_qdf_data_tk {
+sub load_qdf_data {
     my $self = shift;
 
     my $fio = QDepo::FileIO->new($self);
@@ -405,14 +373,14 @@ sub append_list_record_tk {
     return {$idx => $rec};
 }
 
-=head2 get_qdf_data_tk
+=head2 get_qdf_data
 
 Get data from List data structure, for single item or all.  Toggle
 delete mark on items if L<$toggle_mark> parameter is true.
 
 =cut
 
-sub get_qdf_data_tk {
+sub get_qdf_data {
     my ( $self, $item, $toggle_mark ) = @_;
 
     my $data;
@@ -463,62 +431,8 @@ Get data file full path from data structure attached to the  List.
 
 sub get_qdf_data_file_tk {
     my ($self, $item) = @_;
-
     return unless defined $item;
-
     return $self->{_lds}{$item}{file};
-}
-
-sub get_sql_stmt {
-    my $self = shift;
-
-    my ($bind, $sql) = $self->string_replace_for_run(
-        $self->itemdata->sql,
-        $self->itemdata->params,
-    );
-    $sql =~ s{;$}{}m;                         # remove final ';'
-
-    return ($bind, $sql);
-}
-
-sub get_columns_list {
-    my $self = shift;
-
-    my $parser = SQL::Parser->new();
-
-    my ($bind, $sql_text) = $self->get_sql_stmt;
-
-    $parser->parse($sql_text);
-
-    #-- Table
-    my $tables_ref   = $parser->structure->{org_table_names};
-    my $table = $tables_ref->[0];
-
-    #-- Columns
-    my $all_cols_ref;
-    if ( $self->dbc->can('table_info_short') ) {
-        $all_cols_ref = $self->dbc->table_info_short($table);
-    }
-    else {
-        $self->message_log("WW Not implemented: 'table_info_short'");
-    }
-    my $sql_cols_ref = $parser->structure->{org_col_names};
-    unless (ref $sql_cols_ref) {
-        print "get cols in other way...\n";
-    }
-
-    # p $all_cols_ref;
-    # p $sql_cols_ref;
-
-    my $cols_list;
-    foreach my $field (@$sql_cols_ref) {
-        my $type = $all_cols_ref->{$field}{type};
-        push @$cols_list, { name => $field, type => $type };
-    }
-
-    p $cols_list;
-
-    return $cols_list;
 }
 
 =head2 run_export
@@ -591,7 +505,6 @@ Get all contents from the selected QDF title (file).
 sub read_qdf_data_file {
     my $self = shift;
 
-    #$file ||= $self->get_qdf_data_file_tk($item); ??? Tk
     my $file = $self->get_query_file;
     my $fio = QDepo::FileIO->new($self);
 
@@ -938,7 +851,9 @@ sub has_marks {
     return $self->{_marks} > 0 ? 1 : 0;
 }
 
-sub report_cols_list {
+### Virtual lists
+
+sub get_query_list_cols {
     my $self = shift;
     return [
         {   field => 'nrcrt',
@@ -954,9 +869,25 @@ sub report_cols_list {
     ];
 }
 
-sub init_header {
+sub get_table_list_cols {
     my $self = shift;
-    return $self->report_cols_list;
+    return [
+        {   field => 'recno',
+            label => '#',
+            align => 'left',
+            width => 50,
+        },
+        {   field => 'name',
+            label => 'Name',
+            align => 'left',
+            width => 150,
+        },
+        {   field => 'type',
+            label => 'Type',
+            align => 'left',
+            width => 195,
+        },
+    ];
 }
 
 sub init_data_table {
@@ -970,6 +901,64 @@ sub get_data_table_for {
     my ($self, $list) = @_;
     die "List name is required for 'init_data_table'" unless $list;
     return $self->{_dt}{$list};
+}
+
+### Column types
+
+sub get_sql_stmt {
+    my $self = shift;
+
+    my ($bind, $sql) = $self->string_replace_for_run(
+        $self->itemdata->sql,
+        $self->itemdata->params,
+    );
+    $sql =~ s{;$}{}m;                         # remove final ';'
+
+    return ($bind, $sql);
+}
+
+sub get_columns_list {
+    my $self = shift;
+
+    my $parser = SQL::Parser->new();
+
+    my ($bind, $sql_text) = $self->get_sql_stmt;
+
+    $parser->parse($sql_text);
+
+    #-- Table
+    my $tables_ref   = $parser->structure->{org_table_names};
+    my $table = $tables_ref->[0];
+
+    #-- Columns
+    my $all_cols_ref;
+    if ( $self->dbc->can('table_info_short') ) {
+        $all_cols_ref = $self->dbc->table_info_short($table);
+    }
+    else {
+        $self->message_log("WW Not implemented: 'table_info_short'");
+    }
+    my $sql_cols_ref = $parser->structure->{org_col_names};
+
+    # For SELECT * FROM ...
+    unless (ref $sql_cols_ref) {
+        $sql_cols_ref = [ keys %{$all_cols_ref} ];
+    }
+
+    #p $all_cols_ref;
+    #p $sql_cols_ref;
+
+    my $cols_ref;
+    my $recno = 1;
+    foreach my $field ( @{$sql_cols_ref} ) {
+        my $type = $all_cols_ref->{$field}{type};
+        push @{$cols_ref}, { recno => $recno, name => $field, type => $type };
+        $recno++;
+    }
+
+    #p $cols_ref;
+
+    return $cols_ref;
 }
 
 =head1 AUTHOR
