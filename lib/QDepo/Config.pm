@@ -392,13 +392,20 @@ sub get_mnemonics {
 
     my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
 
-    my @connections;
-    foreach my $cfg_name ( @{$list} ) {
-        my $ccfn = $self->config_file_name($cfg_name);
-        push @connections, $cfg_name if -f $ccfn;
+    my $default = $self->get_default_mnemonic;
+
+    my @mnx;
+    my $idx = 0;
+    foreach my $name ( @{$list} ) {
+        my $ccfn = $self->config_file_name($name);
+        if ( -f $ccfn ) {
+            push @mnx,
+                { recno => $idx + 1, mnemonic => $name };
+            $idx++;
+        }
     }
 
-    return \@connections;
+    return \@mnx;
 }
 
 =head2 config_new
