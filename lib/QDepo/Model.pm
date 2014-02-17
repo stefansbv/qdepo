@@ -7,7 +7,6 @@ use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
-use Scalar::Util qw(blessed);
 
 use QDepo::ItemData;
 use QDepo::Config;
@@ -63,7 +62,6 @@ sub new {
         _cfg         => QDepo::Config->instance(),
         _dbh         => undef,
         _lds         => {},                 # list data structure
-        _marks       => 0,
         _file        => undef,
         _itemdata    => undef,
         _dt          => {},
@@ -286,8 +284,10 @@ index.
 =cut
 
 sub on_item_selected_load {
-    my ($self, $item) = @_;
+    my $self = shift;
 
+    my $dt   = $self->get_data_table_for('qlist');
+    my $item = $dt->get_item_selected;
     my $data = $self->get_qdf_data($item);
     $self->set_query_file( $data->{file} );
     my $itemdata = $self->read_qdf_data_file;
@@ -340,13 +340,13 @@ sub load_qdf_data {
     return;
 }
 
-=head2 append_list_record_wx
+=head2 append_list_record
 
 Return a new record for the list data structure.
 
 =cut
 
-sub append_list_record_wx {
+sub append_list_record {
     my ($self, $rec, $idx) = @_;
 
     $rec->{nrcrt} = $idx + 1;
@@ -361,78 +361,30 @@ Append and return a new record in the list data structure.
 
 =cut
 
-sub append_list_record_tk {
-    my ($self, $rec) = @_;
+# sub append_list_record_tk {
+#     my ($self, $rec) = @_;
 
-    my @items = sort keys %{ $self->{_lds} };
-    my $idx = scalar @items == 0 ? 0 : $#items + 1;
+#     my @items = sort keys %{ $self->{_lds} };
+#     my $idx = scalar @items == 0 ? 0 : $#items + 1;
 
-    $rec->{nrcrt} = $idx + 1;
-    $self->{_lds}{$idx} = $rec;
+#     $rec->{nrcrt} = $idx + 1;
+#     $self->{_lds}{$idx} = $rec;
 
-    return {$idx => $rec};
-}
+#     return {$idx => $rec};
+# }
 
 =head2 get_qdf_data
 
-Get data from List data structure, for single item or all.  Toggle
-delete mark on items if L<$toggle_mark> parameter is true.
+Get data from List data structure, for single item or all.
 
 =cut
 
 sub get_qdf_data {
-    my ( $self, $item, $toggle_mark ) = @_;
+    my ( $self, $item ) = @_;
 
-    my $data;
-    if ( defined $item ) {
-        $self->toggle_mark($item) if $toggle_mark;
-        $data = $self->{_lds}{$item};
-    }
-    else {
-        $data = $self->{_lds};
-    }
-
-    return $data;
-}
-
-=head2 toggle_mark
-
-Toggle deleted mark on list item.
-
-=cut
-
-sub toggle_mark {
-    my ($self, $item) = @_;
-
-    if ( exists $self->{_lds}{$item}{mark} ) {
-        $self->{_lds}{$item}{mark} == 1
-            ? ($self->{_lds}{$item}{mark} = 0)
-            : ($self->{_lds}{$item}{mark} = 1)
-            ;
-    }
-    else {
-        $self->{_lds}{$item}{mark} = 1; # set mark
-    }
-
-    # Keep a count of marks
-    $self->{_lds}{$item}{mark} == 1
-        ? $self->{_marks}++
-        : $self->{_marks}--
-        ;
-
-    return;
-}
-
-=head2 get_qdf_data_file_tk
-
-Get data file full path from data structure attached to the  List.
-
-=cut
-
-sub get_qdf_data_file_tk {
-    my ($self, $item) = @_;
-    return unless defined $item;
-    return $self->{_lds}{$item}{file};
+    return ( defined $item )
+        ? $self->{_lds}{$item}
+        : $self->{_lds};
 }
 
 =head2 run_export
@@ -555,55 +507,47 @@ sub write_qdf_data_file {
 
 =head2 report_add
 
-Create new QDF file from template.
-
-If the L<$items_no> parameter is defined, then the Wx interface is used.
+Create new QDF file from template.  The L<$item_new> parameter is
+mandatory.
 
 =cut
 
 sub report_add {
-    my ($self, $items_no) = @_;
+    my ($self, $item_new) = @_;
+
+    die "The new item parameter is required for 'report_add'\n"
+        unless defined $item_new;
 
     my $new_qdf_file = $self->report_name();
 
     my $src_fqn = $self->cfg->qdf_tmpl;
     my $dst_fqn = catfile($self->cfg->qdfpath, $new_qdf_file);
 
-    if ( !-f $dst_fqn ) {
-        $self->message_log("II Create new report from template ...");
-        if ( copy( $src_fqn, $dst_fqn ) ) {
-            $self->message_log("II Made: '$new_qdf_file'");
-        }
-        else {
-            $self->message_log("EE Failed: $!");
-            return;
-        }
+    if ( -f $dst_fqn ) {
+        $self->message_log("EE File exists! ($dst_fqn)");
+        return;
+    }
 
-        # Read the title and the file name from the new file
-        my $fio = QDepo::FileIO->new($self);
-        my $data_ref = $fio->get_title($dst_fqn);
-
-        if (defined $items_no) {
-            $data_ref = $self->append_list_record_wx($data_ref, $items_no);
-        }
-        else {
-            $data_ref = $self->append_list_record_tk($data_ref);
-        }
-
-        return $data_ref;
+    $self->message_log("II Create new report from template ...");
+    if ( copy( $src_fqn, $dst_fqn ) ) {
+        $self->message_log("II Made: '$new_qdf_file'");
     }
     else {
-        $self->message_log("EE File exists! ($dst_fqn)");
+        $self->message_log("EE Failed: $!");
+        return;
     }
 
-    return;
+    # Read the title and the file name from the new file
+    my $fio      = QDepo::FileIO->new($self);
+    my $data_ref = $fio->get_title($dst_fqn);
+
+    return $self->append_list_record($data_ref, $item_new);
 }
 
 =head2 report_name
 
-Create report name.
-Find a new number to create a file name like raport-nnnnn.xml
-Try to fill the gaps between numbers in file names
+Create report name.  Find a new number to create a file name like
+raport-nnnnn.xml Try to fill the gaps between numbers in file names
 
 =cut
 
@@ -840,17 +784,6 @@ sub set_continue {
     return;
 }
 
-=head2 has_marks
-
-Return true if there are items marked for deletion.
-
-=cut
-
-sub has_marks {
-    my $self = shift;
-    return $self->{_marks} > 0 ? 1 : 0;
-}
-
 ### Virtual lists
 
 sub get_query_list_cols {
@@ -886,6 +819,32 @@ sub get_table_list_cols {
             label => 'Type',
             align => 'left',
             width => 195,
+        },
+    ];
+}
+
+sub get_db_list_cols {
+    my $self = shift;
+    return [
+        {   field => 'recno',
+            label => '#',
+            align => 'left',
+            width => 50,
+        },
+        {   field => 'mnemonic',
+            label => 'Mnemonic',
+            align => 'left',
+            width => 100,
+        },
+        {   field => 'default',
+            label => 'Default',
+            align => 'left',
+            width => 60,
+        },
+        {   field => 'description',
+            label => 'Description',
+            align => 'left',
+            width => 185,
         },
     ];
 }
@@ -945,9 +904,6 @@ sub get_columns_list {
         $sql_cols_ref = [ keys %{$all_cols_ref} ];
     }
 
-    #p $all_cols_ref;
-    #p $sql_cols_ref;
-
     my $cols_ref;
     my $recno = 1;
     foreach my $field ( @{$sql_cols_ref} ) {
@@ -956,9 +912,27 @@ sub get_columns_list {
         $recno++;
     }
 
-    #p $cols_ref;
-
     return $cols_ref;
+}
+
+sub dlist_default_item {
+    my $self = shift;
+
+    my $mnemonx = $self->cfg->get_mnemonics;
+    my $default = $self->cfg->get_default_mnemonic;
+    my ($idx, $item) = (0, undef);
+    foreach my $mnx ( @{$mnemonx} ) {
+        if ($mnx->{mnemonic} eq $default) {
+            $item = $idx;
+            last;
+        }
+        $idx++;
+    }
+
+    my $dt = $self->get_data_table_for('dlist');
+    $dt->set_item_default($item);
+
+    return $item;
 }
 
 =head1 AUTHOR

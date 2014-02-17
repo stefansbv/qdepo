@@ -8,9 +8,7 @@ use Wx qw[:everything];
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
-use Wx::Perl::ListCtrl;
 use Wx::STC;
-
 
 use QDepo::Config;
 use QDepo::Wx::Notebook;
@@ -565,17 +563,6 @@ sub _create_para_page {
     my $header = $self->model->get_table_list_cols;
     $self->{tlist}->add_columns($header);
 
-    # $self->{tlist} = Wx::Perl::ListCtrl->new(
-    #     $self->{_nb}{p2}, -1,
-    #     [ -1, -1 ],
-    #     [ -1, -1 ],
-    #     Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
-    # );
-
-    # $self->{tlist}->InsertColumn( 0, '#',    wxLIST_FORMAT_LEFT, 50 );
-    # $self->{tlist}->InsertColumn( 1, 'Name', wxLIST_FORMAT_LEFT, 150 );
-    # $self->{tlist}->InsertColumn( 2, 'Type', wxLIST_FORMAT_LEFT, 195 );
-
     #-- Button
 
     $self->{btn_refr} = Wx::Button->new(
@@ -753,17 +740,12 @@ sub _create_config_page {
 
     #-- Controls
 
-    $self->{dlist} = Wx::Perl::ListCtrl->new(
-        $self->{_nb}{p4}, -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-        Wx::wxLC_REPORT | Wx::wxLC_SINGLE_SEL,
-    );
+    $self->model->init_data_table('dlist');
+    my $dt = $self->model->get_data_table_for('dlist');
+    $self->{dlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p4}, $dt );
 
-    $self->{dlist}->InsertColumn( 0, '#', wxLIST_FORMAT_LEFT, 50 );
-    $self->{dlist}->InsertColumn( 1, 'Mnemonic', wxLIST_FORMAT_LEFT, 100 );
-    $self->{dlist}->InsertColumn( 2, 'Default', wxLIST_FORMAT_LEFT, 60 );
-    $self->{dlist}->InsertColumn( 3, 'Description', wxLIST_FORMAT_LEFT, 185 );
+    my $header = $self->model->get_db_list_cols;
+    $self->{dlist}->add_columns($header);
 
     #-- Button
 
@@ -934,13 +916,13 @@ sub get_choice_default {
     return $self->{_tb}->get_choice_options(0);
 }
 
-=head2 get_control_named
+=head2 get_control
 
 Return the list control handler.
 
 =cut
 
-sub get_control_named {
+sub get_control {
     my ($self, $name) = @_;
     return $self->{$name};
 }
@@ -1024,69 +1006,6 @@ sub get_control_by_name {
     return $self->{$name};
 }
 
-=head2 set_list_text
-
-Set text item from list control row and col
-
-=cut
-
-sub set_list_text {
-    my ($self, $lname, $row, $col, $text) = @_;
-    $self->get_control_named($lname)->SetItemText( $row, $col, $text );
-    return;
-}
-
-sub get_list_text {
-    my ($self, $lname, $row, $col) = @_;
-    my $text = $self->get_control_named($lname)->GetItemText( $row, $col );
-    return $text;
-}
-
-=head2 list_item_edit
-
-Edit and existing item. If undef is passed for nrcrt or title, keep
-the existing value.
-
-=cut
-
-sub list_item_edit {
-    my ( $self, $lname, $row, $nrcrt, $title ) = @_;
-    if ($nrcrt) {
-        $self->set_list_text($lname, $row, 0, $nrcrt);
-    }
-    if ($title) {
-        $self->set_list_text($lname, $row, 1, $title);
-    }
-    return;
-}
-
-=head2 list_item_select
-
-Select the first/last item in list.
-
-=cut
-
-sub list_item_select {
-    my ($self, $lname, $what) = @_;
-    my $items_no = $self->get_list_max_index($lname) + 1;
-
-    return unless $items_no > 0;             # nothing to select
-
-    my $item
-        = $what eq 'first'   ? 0
-        : $what eq 'last'    ? ($items_no - 1)
-        : $what eq 'default' ? $self->get_default_mark($lname)
-        :                      undef # default
-        ;
-
-    return unless defined $item;
-
-    $self->get_control_named($lname)->Select( $item, 1 );
-    $self->get_control_named($lname)->EnsureVisible($item);
-
-    return;
-}
-
 =head2 get_list_max_index
 
 Return the maximum index from the list control (item count - 1).
@@ -1095,155 +1014,7 @@ Return the maximum index from the list control (item count - 1).
 
 sub get_list_max_index {
     my ($self, $lname) = @_;
-    return ( $self->get_control_named($lname)->GetItemCount() - 1 );
-}
-
-=head2 get_list_selected_index
-
-Return the selected index from the list control.
-
-=cut
-
-sub get_list_selected_index {
-    my ($self, $lname) = @_;
-    return $self->get_control_named($lname)->GetSelection();
-}
-
-=head2 list_item_insert
-
-Insert item in list control.
-
-=cut
-
-sub list_item_insert {
-    my ( $self, $lname, $item, $nrcrt, $title, $file ) = @_;
-
-    $self->list_item_string_insert($lname, $item);
-    $self->set_list_text($lname, $item, 0, $nrcrt);
-    $self->set_list_text($lname, $item, 1, $title);
-    $self->set_list_item_data(
-        $lname,
-        $item, {
-            file  => $file,
-            nrcrt => $nrcrt,
-        },
-    );    # set data
-
-    return;
-}
-
-=head2 set_list_item_data
-
-Set list item data.
-
-=cut
-
-sub set_list_item_data {
-    my ($self, $lname, $item, $data_new) = @_;
-    my $data = $self->get_list_item_data($lname, $item);
-    while ( my ( $key, $value ) = each( %{$data_new} ) ) {
-        $data->{$key} = $value;
-    }
-    $self->get_control_named($lname)->SetItemData( $item, $data );
-    return;
-}
-
-=head2 get_list_item_data
-
-Set list item data.
-
-=cut
-
-sub get_list_item_data {
-    my ($self, $lname, $item) = @_;
-    return $self->get_control_named($lname)->GetItemData( $item );
-}
-
-=head2 toggle_mark
-
-Toggle delete mark on list item.
-
-=cut
-
-sub toggle_mark {
-    my ($self, $item) = @_;
-
-    my $data = $self->get_list_item_data('qlist', $item);
-
-    if ( exists $data->{mark} ) {
-        ( $data->{mark} == 1 )
-            ? $self->set_list_item_data('qlist', $item, { mark => 0 } )
-            : $self->set_list_item_data('qlist', $item, { mark => 1 } )
-            ;
-    }
-    else {
-        $self->set_list_item_data('qlist', $item, { mark => 1 } ); # set mark
-    }
-
-    # Keep a count of marks
-    $self->get_list_item_data('qlist', $item)->{mark} == 1
-        ? $self->model->{_marks}++
-        : $self->model->{_marks}--
-        ;
-
-    return;
-}
-
-=head2 list_item_string_insert
-
-Insert string item in list control
-
-=cut
-
-sub list_item_string_insert {
-    my ($self, $lname, $item) = @_;
-
-    $self->get_control_named($lname)->InsertStringItem( $item, 'dummy' );
-
-    return;
-}
-
-=head2 list_item_clear
-
-Delete list control item
-
-=cut
-
-sub list_item_clear {
-    my ($self, $lname, $item) = @_;
-    $self->get_control_named($lname)->DeleteItem($item);
-}
-
-=head2 list_item_clear_all
-
-Delete all list control items.
-
-=cut
-
-sub list_item_clear_all {
-    my ($self, $lname) = @_;
-    $self->get_control_named($lname)->DeleteAllItems;
-}
-
-=head2 list_remove_item
-
-Remove item from list control and select the first item.
-
-=cut
-
-sub list_remove_item {
-    my ($self, $lname) = @_;
-
-    my $item = $self->get_list_selected_index($lname);
-    my $file = $self->get_list_item_data($lname, $item);
-
-    # Remove from list
-    $self->list_item_clear($lname, $item);
-
-    # Set item 0 selected
-    $self->list_item_select($lname, 'first');
-
-    return $file;
+    return ( $self->get_control($lname)->GetItemCount() - 1 );
 }
 
 =head2 log_config_options
@@ -1258,64 +1029,6 @@ sub log_config_options {
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
     }
-}
-
-=head2 connlist_populate
-
-Populate list with items.
-
-=cut
-
-sub connlist_populate {
-    my $self = shift;
-
-    my $items = $self->cfg->get_mnemonics;
-
-    return unless @{$items};
-
-    # Sort case-insensitively
-    my @mnemonics = sort {uc($a) cmp uc($b)} @{$items};
-
-    # Clear list
-    $self->list_item_clear_all('dlist');
-
-    # Get default mnemonic
-    my $default = $self->cfg->mnemonic();
-
-    my $idx = 0;
-    foreach my $mnemonic (@mnemonics) {
-        my $nrcrt = $idx + 1;
-        $self->list_item_insert('dlist', $idx, $nrcrt, $mnemonic, '');
-        if ($mnemonic eq $default) {
-            $self->set_default_mark($idx);
-        }
-        $idx++;
-    }
-
-    return;
-}
-
-=head2 querylist_add_item
-
-Add new item in list control.
-
-=cut
-
-sub querylist_add_item {
-    my ( $self, $rec ) = @_;
-
-    my ($idx) = keys %{$rec};
-    my $r     = $rec->{$idx};
-
-    $self->list_item_insert(
-        'qlist',
-        $idx,
-        $r->{nrcrt},
-        $r->{title},
-        $r->{file}
-    );
-
-    return;
 }
 
 =head2 form_populate
@@ -1371,11 +1084,6 @@ Toggle sql replace
     }
 
     return;
-}
-
-sub get_qdf_data_file_wx {
-    my ($self, $item) = @_;
-    return $self->get_list_item_data('qlist', $item)->{file};
 }
 
 =head2 control_replace_sql_text
@@ -1647,7 +1355,7 @@ sub controls_read_page {
 sub toggle_list_enable {
     my ($self, $lname, $state) = @_;
 
-    $self->get_control_named($lname)->Enable($state);
+    $self->get_control($lname)->Enable($state);
 
     return;
 }
@@ -1713,7 +1421,7 @@ sub event_handler_for_tb_choice {
 sub event_handler_for_list {
     my ($self, $name, $calllback) = @_;
 
-    EVT_LIST_ITEM_SELECTED $self, $self->get_control_named($name), $calllback;
+    EVT_LIST_ITEM_SELECTED $self, $self->get_control($name), $calllback;
 
     return;
 }
@@ -1738,62 +1446,7 @@ sub on_close_window {
     $self->Destroy;
 }
 
-=head2 set_default_mark
-
-Create a data atribute used for marking the default item.
-
-=cut
-
-sub set_default_mark {
-    my ($self, $item) = @_;
-
-    my $data = $self->get_list_item_data('dlist', $item);
-    $self->set_list_item_data('dlist', $item, { default => 1 } );
-    $self->set_list_text('dlist', $item, 2, 'yes');
-
-    return $self->get_list_text('dlist', $item, 1);
-}
-
-=head2 get_default_mark
-
-Scan the list items and return the one with the B<default> attribute set.
-
-=cut
-
-sub get_default_mark {
-    my ($self, $lname) = @_;
-
-    my $max_index = $self->get_list_max_index('dlist');
-    my $mark_item = 0;
-    for my $item (0..$max_index) {
-        my $data = $self->get_list_item_data('dlist', $item);
-        if (exists $data->{default} and $data->{default} == 1) {
-            $mark_item = $item;
-        }
-    }
-
-    return $mark_item;
-}
-
-=head2 clear_default_mark
-
-Clear the B<default> attribute mark for all list items.
-
-=cut
-
-sub clear_default_mark {
-    my $self = shift;
-
-    my $max_index = $self->get_list_max_index('dlist');
-    for my $item (0..$max_index) {
-        $self->set_list_item_data('dlist', $item, { default => 0 } );
-        $self->set_list_text('dlist', $item, 2, '');
-    }
-
-    return;
-}
-
-# New list functions
+#--  List functions
 
 sub refresh_list {
     my ($self, $name) = @_;
@@ -1814,7 +1467,6 @@ sub select_list_item {
     my $item
         = $what eq 'first'   ? 0
         : $what eq 'last'    ? ($items_no - 1)
-        : $what eq 'default' ? $self->get_default_mark($lname)
         :                      $what # default
         ;
 
@@ -1824,12 +1476,6 @@ sub select_list_item {
     $self->{$lname}->EnsureVisible($item);
 
     return $item;
-}
-
-sub selected_list_item {
-    my ($self, $name) = @_;
-    die "List name is required for 'refresh_list'" unless $name;
-    return $self->{$name}->get_selection;
 }
 
 =head1 AUTHOR

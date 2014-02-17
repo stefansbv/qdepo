@@ -9,8 +9,6 @@ use QDepo::Config;
 use QDepo::Model;
 use QDepo::Exceptions;
 
-use Data::Printer;
-
 =head1 NAME
 
 QDepo::Controller - The Controller.
@@ -98,19 +96,18 @@ sub start {
     $self->set_app_mode('idle');
 
     # Connections list
-    $self->view->connlist_populate();
-    if ( $self->view->get_list_max_index('dlist') >= 0) {
-        $self->view->list_item_select('dlist', 'default');
-    }
+    $self->populate_connlist;
 
     # Query list (from qdf)
-    $self->querylist_populate();
+    $self->populate_querylist;
     my $dt = $self->model->get_data_table_for('qlist');
     my $rec_no = $dt->get_item_count;
     if ( $rec_no >= 0) {
         $self->view->select_list_item('qlist', 'first');
         $self->set_app_mode('sele');
     }
+
+    $self->populate_fieldlist;
 
     return;
 }
@@ -329,17 +326,23 @@ sub set_event_handlers {
     #-- Query List
     $self->view->event_handler_for_list(
         'qlist', sub {
-            my $item = $self->view->{qlist}->GetFirstSelected;
-            $self->model->on_item_selected_load($item);
-            # Refresh columns list
-            $self->fieldlist_populate;
+            my ( $view, $event ) = @_;
+            my $item = $event->GetIndex;
+            my $dt   = $self->model->get_data_table_for('qlist');
+            $dt->set_item_selected($item);
+            # Refresh controlls
+            $self->model->on_item_selected_load;
         }
     );
 
     #-- DB Configs List
     $self->view->event_handler_for_list(
         'dlist', sub {
-            $self->toggle_admin_buttons();
+            my ( $view, $event ) = @_;
+            my $item = $event->GetIndex;
+            my $dt   = $self->model->get_data_table_for('dlist');
+            $dt->set_item_selected($item);
+            $self->toggle_admin_buttons;
         }
     );
 
@@ -364,7 +367,8 @@ sub set_event_handlers {
         'btn_add', sub {
             my $name = $self->get_text_dialog();
             if ($name) {
-                my $new = $self->cfg->config_new($name);
+                # TODO
+                my $new = $self->cfg->new_config_tree($name);
                 $self->model->message_log(qq{II New connection: '$new'});
             }
         }
@@ -373,7 +377,7 @@ sub set_event_handlers {
     #-- Refresh button
     $self->view->event_handler_for_button(
         'btn_refr', sub {
-            $self->fieldlist_populate;
+            $self->populate_fieldlist;
         }
     );
 
@@ -491,11 +495,12 @@ sub on_quit {
 
     print "Shuting down...\n";
 
-    if ( $self->model->has_marks() ) {
+    my $dt = $self->model->get_data_table_for('qlist');
+    if ( $dt->has_items_marked ) {
         my $msg = 'Delete marked reports and quit?';
         my $answer = $self->view->action_confirmed($msg);
         if ($answer eq 'yes') {
-            $self->list_remove_marked();
+            $self->list_remove_marked;
         }
         elsif ($answer eq 'cancel') {
             return;
@@ -521,14 +526,24 @@ sub list_remove_marked {
 sub set_default_mnemonic {
     my $self = shift;
 
-    my $item = $self->view->get_list_selected_index('dlist');
-    if (defined $item) {
-        $self->view->clear_default_mark();
-        my $mnemonic = $self->view->set_default_mark($item);
-        $self->cfg->set_default_mnemonic($mnemonic);
+    my $dt = $self->model->get_data_table_for('dlist');
+
+    my $item_defa = $dt->get_item_default;
+    if (defined $item_defa) {
+        $dt->set_value( $item_defa, 2, '' ); # clear label
     }
 
-    $self->toggle_admin_buttons();
+    my $item_sele = $dt->get_item_selected;
+    if ( defined $item_sele ) {
+        my $mnemonic = $dt->get_value( $item_sele, 1 );
+        $dt->set_value( $item_sele, 2, 'yes' );
+        $dt->set_item_default($item_sele);
+        print "set default: $item_sele : $mnemonic\n";
+        $self->cfg->set_default_mnemonic($mnemonic);
+        $self->toggle_admin_buttons;
+    }
+
+    $self->view->refresh_list('dlist');
 
     return;
 }
@@ -536,24 +551,26 @@ sub set_default_mnemonic {
 sub toggle_admin_buttons {
     my $self = shift;
 
-    my $item = $self->view->get_default_mark('dlist');
-    my $sele = $self->view->get_list_selected_index('dlist');
+    my $dt        = $self->model->get_data_table_for('dlist');
+    my $item_sele = $dt->get_item_selected;
+    my $item_defa = $dt->get_item_default;
 
-    my $enable = $item == $sele ? 1 : 0;
+    return unless defined($item_sele) and defined($item_defa);
 
-    $self->view->get_control_named('btn_load')->Enable($enable);
-    $self->view->get_control_named('btn_defa')->Enable(not $enable);
+    my $enable = $item_sele == $item_defa ? 1 : 0;
+    $self->view->get_control('btn_load')->Enable($enable);
+    $self->view->get_control('btn_defa')->Enable(not $enable);
 
     return;
 }
 
-=head2 querylist_populate
+=head2 populate_querylist
 
 Populate the query list.
 
 =cut
 
-sub querylist_populate {
+sub populate_querylist {
     my $self = shift;
 
     $self->model->load_qdf_data;             # init
@@ -566,12 +583,12 @@ sub querylist_populate {
 
     my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
 
-    my $columns_ref = $self->model->get_query_list_cols;
+    my $columns_meta = $self->model->get_query_list_cols;
 
     my $row = 0;
     foreach my $idx ( @indices ) {
         my $col = 0;
-        foreach my $meta ( @{$columns_ref} ) {
+        foreach my $meta ( @{$columns_meta} ) {
             my $value = $items->{$idx}{ $meta->{field} };
             $dt->set_value( $row, $col, $value );
             $col++;
@@ -584,21 +601,21 @@ sub querylist_populate {
     return;
 }
 
-sub fieldlist_populate {
+sub populate_fieldlist {
     my $self = shift;
 
-    my $items = $self->model->get_columns_list;
+    my $columns = $self->model->get_columns_list;
 
-    return unless @{$items};
+    return unless @{$columns};
 
     my $dt = $self->model->get_data_table_for('tlist');
 
-    my $columns_ref = $self->model->get_table_list_cols;
+    my $columns_meta = $self->model->get_table_list_cols;
 
     my $row = 0;
-    foreach my $rec ( @{$items} ) {
+    foreach my $rec ( @{$columns} ) {
         my $col = 0;
-        foreach my $meta ( @{$columns_ref} ) {
+        foreach my $meta ( @{$columns_meta} ) {
             my $value = $rec->{ $meta->{field} };
             $dt->set_value( $row, $col, $value );
             $col++;
@@ -607,6 +624,44 @@ sub fieldlist_populate {
     }
 
     $self->view->refresh_list('tlist');
+
+    return;
+}
+
+=head2 populate_connlist
+
+Populate list with items.
+
+=cut
+
+sub populate_connlist {
+    my $self = shift;
+
+    my $mnemonics_ref = $self->cfg->get_mnemonics;
+
+    return unless @{$mnemonics_ref};
+
+    my $dt = $self->model->get_data_table_for('dlist');
+
+    my $columns_meta = $self->model->get_db_list_cols;
+
+    my $row = 0;
+    foreach my $rec ( @{$mnemonics_ref} ) {
+        my $col = 0;
+        foreach my $meta ( @{$columns_meta} ) {
+            my $value = $rec->{ $meta->{field} } // '';
+            $dt->set_value( $row, $col, $value );
+            $col++;
+        }
+        $row++;
+    }
+
+    $self->model->dlist_default_item;
+
+    my $item = $dt->get_item_default;
+    $item = $dt->set_value( $item, 2, 'yes' );
+
+    $self->view->refresh_list('dlist');
 
     return;
 }

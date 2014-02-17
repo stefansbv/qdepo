@@ -77,15 +77,29 @@ sub toggle_item_marked {
     die "Undefined item parameter for 'toggle_item_marked'"
         unless defined $item;
 
+    my $mark = 0;
     my $poz = firstidx { $_ == $item } @{ $self->{marked} };
     if ( $poz >= 0 ) {
         splice @{ $self->{marked} }, $poz, 1;
     }
     else {
         push @{ $self->{marked} }, $item;
+        $mark = 1;
     }
 
-    return;
+    return $mark;
+}
+
+sub get_items_marked {
+    my $self = shift;
+    return \@{ $self->{marked} };
+}
+
+sub has_items_marked {
+    my $self = shift;
+    return ref $self->{marked}
+        ? scalar @{ $self->{marked} }
+        : 0;
 }
 
 1;

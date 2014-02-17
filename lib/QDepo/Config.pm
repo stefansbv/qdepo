@@ -408,7 +408,7 @@ sub get_mnemonics {
     return \@mnx;
 }
 
-=head2 new_config_tree
+=head2 config_new
 
 Create new connection configuration directory and install new
 configuration file from template.

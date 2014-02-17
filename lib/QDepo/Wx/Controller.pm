@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use utf8;
 
-use English;
 use Wx ':everything';
 
 require QDepo::Wx::App;
@@ -152,7 +151,6 @@ Set shortcut keys.
 
 sub set_event_handlers_keys {
     my $self = shift;
-
     return;
 }
 
@@ -169,29 +167,21 @@ sub set_event_handlers {
 
     #-- Add new report
     $self->view->event_handler_for_tb_button(
-        'tb_ad',
-        sub {
-            my $items_no = $self->view->get_list_max_index('qlist');
-            my $rec = $self->model->report_add($items_no + 1);
-            $self->view->querylist_add_item($rec);
-            $self->view->list_item_select('qlist', 'last');
-            $self->model->on_item_selected();
-            $self->set_app_mode('edit');
+        'tb_ad', sub {
+            $self->add_new_report;
         }
     );
 
     #-- Remove report
     $self->view->event_handler_for_tb_button(
-        'tb_rm',
-        sub {
+        'tb_rm', sub {
             $self->toggle_mark_item();
         }
     );
 
     #- Choice
     $self->view->event_handler_for_tb_choice(
-        'tb_ls',
-        sub {
+        'tb_ls', sub {
             $self->model->set_choice($_[1]->GetString);
         }
     );
@@ -213,25 +203,22 @@ sub process_sql {
 
 =head2 toggle_mark_item
 
-Toggle mark on list item.
+Toggle deleted mark on list item.
 
 =cut
 
 sub toggle_mark_item {
     my $self = shift;
 
-    my $item = $self->model->get_query_item;
-
-    $self->view->toggle_mark($item);
-
-    my $data = $self->view->get_list_item_data('qlist', $item);
-
-    my $nrcrt = $data->{nrcrt};
-    if ( exists $data->{mark} ) {
-        $nrcrt = "$nrcrt D" if $data->{mark} == 1;
-    }
-
-    $self->view->list_item_edit('qlist', $item, $nrcrt );
+    my $item  = $self->model->get_query_item;
+    my $dt    = $self->model->get_data_table_for('qlist');
+    my $mark  = $dt->toggle_item_marked($item);
+    my $label = $dt->get_value( $item, 0 );
+    $mark
+        ? $label .= ' D'
+        : $label =~ s{ D}{}g;
+    $dt->set_value( $item, 0, $label );
+    $self->view->refresh_list('qlist');
 
     return;
 }
@@ -245,17 +232,46 @@ Scan all items and remove marked ones.
 sub list_remove_marked {
     my $self = shift;
 
-    my $max_index = $self->view->get_list_max_index('qlist');
-    foreach my $item (0..$max_index) {
-        my $data = $self->view->get_list_item_data('qlist', $item);
-        while ( my ( $key, $value ) = each( %{$data} ) ) {
-            if ( $key eq 'mark' and $data->{mark} == 1 ) {
-                $self->model->report_remove( $data->{file} );
-            }
-        }
+    my $dt    = $self->model->get_data_table_for('qlist');
+    my $items = $dt->get_items_marked;
+    foreach my $item ( @{$items} ) {
+        my $data = $self->model->get_qdf_data($item);
+        $self->model->report_remove( $data->{file} );
     }
 
     return;
+}
+
+sub add_new_report {
+    my $self = shift;
+
+    my $dt       = $self->model->get_data_table_for('qlist');
+    my $item_new = $dt->get_item_count;
+    my $rec      = $self->model->report_add($item_new);
+    my $item     = $self->add_qlist_item($rec);
+    $dt->set_item_selected($item);
+    $self->model->on_item_selected_load;
+    $self->view->select_list_item('qlist', 'last');
+    $self->set_app_mode('edit');
+
+    return;
+}
+
+sub add_qlist_item {
+    my ($self, $rec) = @_;
+
+    my $dt = $self->model->get_data_table_for('qlist');
+
+    my @items;
+    foreach my $item ( keys %{$rec} ) {
+        $dt->set_value( $item, 0, $rec->{$item}{nrcrt} );
+        $dt->set_value( $item, 1, $rec->{$item}{title} );
+        push @items, $item;
+    }
+
+    $self->view->refresh_list('qlist');
+
+    return $items[0];                      # it's only 1
 }
 
 =head2 about
@@ -313,7 +329,7 @@ sub save_qdf_data {
     my $self = shift;
 
     my $item = $self->model->get_query_item;
-    my $file = $self->view->get_qdf_data_file_wx($item);
+    my $file = $self->model->get_query_file;
     my $head = $self->view->controls_read_page('list');
     my $para = $self->view->controls_read_page('para');
     my $body = $self->view->controls_read_page('sql');
@@ -323,7 +339,8 @@ sub save_qdf_data {
     my $title = $head->[0]{title};
 
     # Update title in list
-    $self->view->list_item_edit('qlist', $item, undef, $title);
+    my $dt = $self->model->get_data_table_for('qlist');
+    $dt->set_value( $item, 1, $title);
 
     return;
 }
