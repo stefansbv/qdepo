@@ -89,10 +89,10 @@ sub db_connect {
     };
 
     ## Date format
-    ## Default format: ISO
-    $self->{_dbh}->{ib_timestampformat} = '%Y-%m-%d %H:%M';
-    $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%d';
-    $self->{_dbh}->{ib_timeformat}      = '%H:%M';
+    ## Default format: ISO8601
+    $self->{_dbh}->{ib_timestampformat} = '%Y-%m-%dT%H:%M';
+    $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%dT';
+    $self->{_dbh}->{ib_timeformat}      = 'T%H:%M';
 
     $self->{_dbh}{ib_enable_utf8} = 1;
 
