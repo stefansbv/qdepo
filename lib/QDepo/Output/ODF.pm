@@ -1,11 +1,14 @@
 package QDepo::Output::ODF;
 
-use 5.010_000;                   # minimum version nedeed by ODF::lpOD
+use 5.010001;                   # minimum version nedeed by ODF::lpOD
 use strict;
 use warnings;
 use Carp;
 
 use ODF::lpOD;
+use QDepo::Utils;
+
+use Data::Dumper;
 
 =head1 NAME
 
@@ -63,6 +66,9 @@ Create the ODF spreadsheet document.
 sub _create_doc {
     my ( $self, $sheet_name ) = @_;
 
+    # lpod->set_input_charset('utf-8');
+    # lpod->debug(1);
+
     $self->{doc} = odf_document->create('spreadsheet');
 
     my $contexte = $self->{doc}->get_body();
@@ -87,12 +93,18 @@ Create a row of data; format not implemented yet.
 =cut
 
 sub create_row {
-    my ($self, $row, $fields, $fmt_name) = @_;
-
-    for ( my $col = 0 ; $col < $self->{doc_cols} ; $col++ ) {
+    my ( $self, $row, $fields, $col_types ) = @_;
+    print "\n";
+    print "new row $row\n";
+    for ( my $col = 0; $col < $self->{doc_cols}; $col++ ) {
         my $data = $fields->[$col];
-        $self->{sheet}->get_cell($row,$col)->set_value($data);
-        if (defined $data) {
+        # my $data = QDepo::Utils->decode_unless_utf( $fields->[$col] );
+        print "data for col $col\n";
+        if ($row == 83) {
+            print Dumper $data;
+        }
+        $self->{sheet}->get_cell( $row, $col )->set_value($data);
+        if ( defined $data ) {
             $self->store_max_len( $col, length $data );
         }
     }

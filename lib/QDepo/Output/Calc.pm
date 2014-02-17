@@ -49,7 +49,7 @@ sub new {
     $self->{lenghts} = [];      # Array to hold max lenghts for each col
     $self->{max_len} = 30;      # Max column width
 
-    $self->_create_doc('TesT', $doc_rows, $doc_cols);
+    $self->_create_doc('Page1', $doc_rows, $doc_cols);
 
     return $self;
 }
@@ -84,12 +84,12 @@ Create a row of data; format not imlemented yet.
 =cut
 
 sub create_row {
-    my ($self, $row, $fields, $fmt_name) = @_;
+    my ( $self, $row, $fields, $col_types ) = @_;
 
     my $cols = scalar @{$fields};
 
-    for ( my $col = 0 ; $col < $cols ; $col++ ) {
-        my $data = $fields->[$col];
+    for ( my $col = 0; $col < $cols; $col++ ) {
+        my $data = odfDecodeText( $fields->[$col] );
         $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
         # if (defined $data) {
         #     $self->store_max_len( $col, length $data );

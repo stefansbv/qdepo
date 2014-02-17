@@ -80,7 +80,7 @@ sub _create_doc {
     my %fmt;
 
     # Header format
-    $fmt{'h_fmt'} = $self->{workbook}->addformat(
+    $fmt{h_fmt} = $self->{workbook}->addformat(
         size   => 8,
         color  => 'black',
         align  => 'center',
@@ -89,7 +89,7 @@ sub _create_doc {
     );
 
     # String format
-    $fmt{'s_fmt'} = $self->{workbook}->addformat(
+    $fmt{char_fmt} = $self->{workbook}->addformat(
         size   => 8,
         color  => 'black',
         align  => 'left',
@@ -97,7 +97,7 @@ sub _create_doc {
     );
 
     # String wrap format
-    $fmt{'sw_fmt'} = $self->{workbook}->addformat(
+    $fmt{varchar_fmt} = $self->{workbook}->addformat(
         size      => 8,
         color     => 'black',
         align     => 'left',
@@ -107,7 +107,7 @@ sub _create_doc {
     );
 
     # Numeric format
-    $fmt{'n_fmt'} = $self->{workbook}->addformat(
+    $fmt{numeric_fmt} = $self->{workbook}->addformat(
         size       => 8,
         color      => 'black',
         num_format => '#,##0.00',
@@ -115,15 +115,31 @@ sub _create_doc {
     );
 
     # Numeric format INTEGER
-    $fmt{'nint_fmt'} = $self->{workbook}->addformat(
+    $fmt{integer_fmt} = $self->{workbook}->addformat(
         size       => 8,
         color      => 'black',
         num_format => '#,##0',
         border     => 1,
     );
 
+    # Numeric format INTEGER
+    $fmt{smallint_fmt} = $self->{workbook}->addformat(
+        size       => 8,
+        color      => 'black',
+        num_format => '#,##0',
+        border     => 1,
+    );
+
+    # Date format DMY
+    $fmt{date_fmt} = $self->{workbook}->addformat(
+        color      => 'black',
+        num_format => 'dd.mm.yyyy',
+        border     => 1,
+        align      => 'center',
+    );
+
     # Char format CNP (numeric)
-    $fmt{'cnp_fmt'} = $self->{workbook}->addformat(
+    $fmt{cnp_fmt} = $self->{workbook}->addformat(
         size       => 8,
         color      => 'black',
         num_format => 0x01,
@@ -142,16 +158,25 @@ Create a row of data; format not implemented yet.
 =cut
 
 sub create_row {
-    my ($self, $row, $fields, $fmt_name) = @_;
+    my ( $self, $row, $fields, $col_types ) = @_;
 
     my $cols = scalar @{$fields};
 
-    for ( my $col = 0 ; $col < $cols; $col++ ) {
-        my $data = QDepo::Utils->decode_unless_utf( $fields->[$col] );
-        $self->{sheet}->write( $row, $col, $data, $self->{fmt}->{$fmt_name} );
-        if (defined $data) {
-            $self->store_max_len($col, length $data);
+    for ( my $col = 0; $col < $cols; $col++ ) {
+        my $data     = QDepo::Utils->decode_unless_utf( $fields->[$col] );
+        my $col_type = $col_types->[$col];
+        my $col_fmt  = defined $col_type ? "${col_type}_fmt" : 'h_fmt';
+        if ( $col_type and $col_type =~ /date/ ) {
+            # Date/Time must be in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
+            $self->{sheet}->write_date_time( $row, $col, $data,
+                $self->{fmt}{$col_fmt} );
         }
+        else {
+            $self->{sheet}
+                ->write( $row, $col, $data, $self->{fmt}{$col_fmt} );
+        }
+
+        $self->store_max_len( $col, length $data ) if $data;
     }
 
     return;
