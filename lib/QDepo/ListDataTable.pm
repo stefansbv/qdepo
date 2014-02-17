@@ -8,6 +8,8 @@ package QDepo::ListDataTable;
 use strict;
 use warnings;
 
+use List::MoreUtils qw/firstidx/;
+
 sub new {
     my $class = shift;
 
@@ -23,7 +25,7 @@ sub new {
 sub set_value {
     my ($self, $row, $col, $value) = @_;
     $self->{data}[$row][$col] = $value;
-    return;
+    return $value;
 }
 
 sub get_value {
@@ -39,6 +41,51 @@ sub get_data {
 sub get_item_count {
     my $self = shift;
     return scalar @{ $self->get_data };
+}
+
+sub get_item_default {
+    my $self = shift;
+    return $self->{default};
+}
+
+sub set_item_default {
+    my ($self, $item) = @_;
+    $self->{default} = $item;
+    return;
+}
+
+sub get_item_selected {
+    my $self = shift;
+    return $self->{selected};
+}
+
+sub set_item_selected {
+    my ($self, $item) = @_;
+    $self->{selected} = $item;
+    return;
+}
+
+=head2 toggle_item_marked
+
+Add item if not present, delete if present.
+
+=cut
+
+sub toggle_item_marked {
+    my ($self, $item) = @_;
+
+    die "Undefined item parameter for 'toggle_item_marked'"
+        unless defined $item;
+
+    my $poz = firstidx { $_ == $item } @{ $self->{marked} };
+    if ( $poz >= 0 ) {
+        splice @{ $self->{marked} }, $poz, 1;
+    }
+    else {
+        push @{ $self->{marked} }, $item;
+    }
+
+    return;
 }
 
 1;
