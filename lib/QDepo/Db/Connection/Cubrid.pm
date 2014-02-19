@@ -89,13 +89,13 @@ sub handle_error {
     my $self = shift;
 
     if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
-        QDepo::Exception::Db::SQL->throw(
+        Exception::Db::SQL->throw(
             logmsg  => $self->{_dbh}->errstr,
             usermsg => 'SQL error',
         );
     }
     else {
-        QDepo::Exception::Db::Connect->throw(
+        Exception::Db::Connect->throw(
             logmsg  => DBI->errstr,
             usermsg => 'Connection error!',
         );

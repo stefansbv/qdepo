@@ -113,11 +113,17 @@ sub _connect {
     }
     catch {
         if ( my $e = Exception::Base->catch($_) ) {
-            if ( $e->isa('QDepo::Exception::Db::Connect') ) {
+            if ( $e->isa('Exception::Db::Connect') ) {
+                print "*** Rethrow...\n";
                 $e->throw;      # rethrow the exception
             }
             else {
-                die "Error!: $_\n";
+                print 'DBError: ', $e->can('logmsg') ? $e->logmsg : $_
+                    if $inst->verbose;
+                Exception::Db::Connect->throw(
+                    logmsg  => "error#$_",
+                    usermsg => 'error#Database error',
+                );
             }
         }
     };

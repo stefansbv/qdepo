@@ -3,7 +3,7 @@ package QDepo::Db;
 use strict;
 use warnings;
 
-# use Log::Log4perl qw(get_logger);
+use Scalar::Util qw(blessed);
 
 use QDepo::Db::Connection;
 
@@ -75,7 +75,6 @@ Return database handle.
 
 sub dbh {
     my $self = shift;
-
     return $self->{conn}{dbh};
 }
 
@@ -87,7 +86,6 @@ Module instance
 
 sub dbc {
     my $self = shift;
-
     return $self->{conn}{dbc};
 }
 
@@ -100,9 +98,8 @@ Destroy method.
 sub DESTROY {
     my $self = shift;
 
-    if ( defined $self->{conn}{dbh} ) {
+    if ( blessed $self->{conn}{dbh} and $self->{conn}{dbh}->isa('DBI::db') ) {
         $self->{conn}{dbh}->disconnect;
-        print "Disconnected\n";
     }
 
     return;

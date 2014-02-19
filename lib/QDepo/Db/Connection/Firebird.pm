@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Regexp::Common;
-use DBI;
-use Ouch;
+use QDepo::Exceptions;
 use Try::Tiny;
+use DBI;
 
 =head1 NAME
 
@@ -40,9 +40,7 @@ sub new {
     my ($class, $model) = @_;
 
     my $self = {};
-
     $self->{model} = $model;
-
     bless $self, $class;
 
     return $self;
@@ -57,69 +55,82 @@ Connect to database
 sub db_connect {
     my ($self, $conf) = @_;
 
-    try {
-        $self->{_dbh} = DBI->connect(
-            "dbi:Firebird:"
-                . "dbname="
-                . $conf->{dbname}
-                . ";host="
-                . $conf->{host}
-                . ";port="
-                . $conf->{port}
-                . ";ib_dialect=3"
-                . ";ib_charset=UTF8",
-            $conf->{user},
-            $conf->{pass},
-            {   FetchHashKeyName => 'NAME_lc',
-                AutoCommit       => 1,
-                RaiseError       => 1,
-                PrintError       => 0,
-                LongReadLen      => 524288,
-            }
-        );
-    }
-    catch {
-        my $user_message = $self->parse_db_error($_);
-        if ( $self->{model} and $self->{model}->can('exception_log') ) {
-             $self->{model}->exception_log($user_message);
-        }
-        else {
-            ouch 'ConnError','Connection failed!';
-        }
-    };
+    my ( $dbname, $host, $port ) = @{$conf}{qw(dbname host port)};
+    my ( $driver, $user, $pass ) = @{$conf}{qw(driver user pass)};
 
-    ## Date format
-    ## Default format: ISO8601
-    $self->{_dbh}->{ib_timestampformat} = '%Y-%m-%dT%H:%M';
-    $self->{_dbh}->{ib_dateformat}      = '%Y-%m-%dT';
-    $self->{_dbh}->{ib_timeformat}      = 'T%H:%M';
+    my $dsn = qq{dbi:Firebird:dbname=$dbname;host=$host;port=$port};
+    $dsn   .= q{;ib_dialect=3;ib_charset=UTF8};
 
-    $self->{_dbh}{ib_enable_utf8} = 1;
+    $self->{_dbh} = DBI->connect(
+        $dsn, $user, $pass, {
+            FetchHashKeyName   => 'NAME_lc',
+            LongReadLen        => 524288,
+            AutoCommit         => 1,
+            RaiseError         => 0,
+            PrintError         => 0,
+            ib_enable_utf8     => 1,
+            ib_timestampformat => '%Y-%m-%dT%H:%M',
+            ib_dateformat      => '%Y-%m-%dT',
+            ib_timeformat      => 'T%H:%M',
+            HandleError        => sub { $self->handle_error() },
+        }
+    );                                       # date format: ISO8601
 
     return $self->{_dbh};
 }
 
-=head2 parse_db_error
+=head2 handle_error
 
-Parse a database error message, and translate it for the user.
-
-RDBMS specific (and maybe version specific?).
+Handle errors.  Makes a distinction between a connection error and
+other errors.
 
 =cut
 
-sub parse_db_error {
-    my ($self, $fb) = @_;
+sub handle_error {
+    my $self = shift;
 
-    print "\nFB: $fb\n\n";
+    if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        my $errorstr = $self->{_dbh}->errstr;
+        Exception::Db::SQL->throw(
+            logmsg  => $errorstr,
+            usermsg => $self->parse_error($errorstr),
+        );
+    }
+    else {
+        my $errorstr = DBI->errstr;
+        Exception::Db::Connect->throw(
+            logmsg  => $errorstr,
+            usermsg => $self->parse_error($errorstr),
+        );
+    }
 
-    my $message_type =
-         $fb eq q{}                                          ? "nomessage"
-       : $fb =~ m/operation for file ($RE{quoted})/smi       ? "dbnotfound:$1"
-       : $fb =~ m/user name and password/smi                 ? "userpass"
-       : $fb =~ m/no route to host/smi                       ? "network"
-       : $fb =~ m/network request to host ($RE{quoted})/smi  ? "nethost:$1"
-       : $fb =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi ? "driver:$1"
-       :                                                       "unknown";
+    return;
+}
+
+=head2 parse_error
+
+Parse a database error message, and translate it for the user.
+
+=cut
+
+sub parse_error {
+    my ( $self, $fb ) = @_;
+
+    # my $log = get_logger();
+
+    # print "\nFB: $fb\n\n";
+
+    my $message_type
+        = $fb eq q{} ? "nomessage"
+        : $fb =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
+        : $fb =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
+        : $fb =~ m/Your user name and password/smi      ? "userpass"
+        : $fb =~ m/no route to host/smi                 ? "network"
+        : $fb =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
+        : $fb =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi
+                                                        ? "driver:$1"
+        : $fb =~ m/not connected/smi                    ? "notconn"
+        :                                                 "unknown";
 
     # Analize and translate
 
@@ -127,21 +138,23 @@ sub parse_db_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        nomessage   => "weird#Error without message",
-        driver      => "fatal#Database driver $name not found",
-        dbnotfound  => "fatal#Database $name not found",
-        userpass    => "info#Authentication failed, password?",
-        nethost     => "fatal#Network problem: host $name",
-        network     => "fatal#Network problem",
-        unknown     => "fatal#Database error",
+        driver      => "error#Database driver $name not found",
+        dbnotfound  => "error#Database $name not found",
+        relnotfound => "error#Relation $name not found",
+        userpass    => "error#Authentication failed",
+        nethost     => "error#Network problem: host $name",
+        network     => "error#Network problem",
+        unknown     => "error#Database error",
+        notconn     => "error#Not connected",
     };
 
     my $message;
-    if (exists $translations->{$type} ) {
+    if ( exists $translations->{$type} ) {
         $message = $translations->{$type};
     }
     else {
-        print "EE: Translation error!\n";
+        # $log->error('EE: Translation error for: $fb!');
+        print "EE: Translation error for: $fb!\n";
     }
 
     return $message;
@@ -215,7 +228,8 @@ sub table_info_short {
         $flds_ref = $sth->fetchall_hashref('name');
     }
     catch {
-        $self->{model}->exception_log("Transaction aborted because $_");
+        # $self->{model}->exception_log("Transaction aborted because $_");
+        print "Transaction aborted because $_\n";
     };
 
     return $flds_ref;
