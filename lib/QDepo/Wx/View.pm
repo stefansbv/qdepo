@@ -204,7 +204,7 @@ sub make_menus {
 
     $position = $position ||= 0;    # default
 
-    my $menus = QDepo::Utils->sort_hash_by_id($attribs);
+    my $menus = QDepo::Utils->sort_hash_by('id', $attribs);
 
     #- Create menus
     foreach my $menu_name ( @{$menus} ) {
@@ -244,7 +244,7 @@ sub get_app_menus_list {
     my $self = shift;
 
     my $attribs = $self->cfg->appmenubar;
-    my $menus   = QDepo::Utils->sort_hash_by_id($attribs);
+    my $menus   = QDepo::Utils->sort_hash_by('id', $attribs);
 
     my @menulist;
     foreach my $menu_name ( @{$menus} ) {
@@ -348,7 +348,7 @@ sub toolbar_names {
     # Get ToolBar button atributes
     my $attribs = $self->cfg->toolbar;
 
-    my $toolbars = QDepo::Utils->sort_hash_by_id($attribs);
+    my $toolbars = QDepo::Utils->sort_hash_by('id', $attribs);
 
     return ( $toolbars, $attribs );
 }
@@ -1162,13 +1162,12 @@ sub toggle_status_cn {
     my ( $self, $status ) = @_;
 
     if ($status) {
-        $self->set_status( 'connectyes16', 'cn' );
-        $self->set_status( $self->cfg->connection->{dbname},
-            'db', 'darkgreen' );
+        my $user = $self->cfg->connection->{user};
+        my $db   = $self->cfg->connection->{dbname};
+        $self->set_status( "${user}\@${db}", 'db', 'darkgreen' );
     }
     else {
-        $self->set_status( 'connectno16', 'cn' );
-        $self->set_status( '',            'db' );
+        $self->set_status( 'No DB', 'db' );
     }
 
     return;
