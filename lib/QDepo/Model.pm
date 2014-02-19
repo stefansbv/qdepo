@@ -8,6 +8,7 @@ use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
 
+use QDepo::Exceptions;
 use QDepo::ItemData;
 use QDepo::Config;
 use QDepo::FileIO;
@@ -83,9 +84,26 @@ sub cfg {
     return $self->{_cfg};
 }
 
+=head2 dbh
+
+Return the database handler.
+
+=cut
+
 sub dbh {
     my $self = shift;
-    return $self->{_dbh};
+
+    if ( QDepo::Db->has_instance ) {
+        my $db = QDepo::Db->instance;
+        return $db->dbh if $self->is_connected;
+    }
+
+    Exception::Db::Connect->throw(
+        usermsg => 'Please restart and login',
+        logmsg  => 'error#Not connected',
+    );
+
+    return;
 }
 
 =head2 dbc
@@ -96,8 +114,7 @@ Return the Connection module handler.
 
 sub dbc {
     my $self = shift;
-    my $db = QDepo::Db->instance;
-    return $db->dbc;
+    return QDepo::Db->instance->dbc;
 }
 
 sub itemdata {
@@ -391,8 +408,6 @@ sub get_qdf_data {
 
 Run SQL query and generate output data in selected data format
 
-TODO: Check if exists and selected at least one qdf in list
-
 =cut
 
 sub run_export {
@@ -613,15 +628,13 @@ sub report_remove {
         return;
     }
 
-    print "Remove '$file' ";
-    # Rename file as backup
     my $file_bak = "$file.bak";
     if ( move($file, $file_bak) ) {
-        print " done\n";
+        $self->message_log("II Removed '$file'");
         return 1;
     }
     else {
-        print " failed\n";
+        $self->message_log("II Remove '$file' failed");
     }
 
     return;
@@ -664,7 +677,7 @@ sub get_choice_observable {
 =head2 string_replace_for_run
 
 Prepare SQL text string for execution.  Replace the 'valueN' string
-with with '?'.  Create an array of parameter values, used for binding.
+with '?'.  Create an array of parameter values, used for binding.
 
 Need to check if number of parameters match number of 'valueN' strings
 in SQL statement text and print an error if not.
@@ -810,7 +823,7 @@ sub get_table_list_cols {
             align => 'left',
             width => 50,
         },
-        {   field => 'name',
+        {   field => 'field',
             label => 'Name',
             align => 'left',
             width => 150,
@@ -886,33 +899,33 @@ sub get_columns_list {
     $parser->parse($sql_text);
 
     #-- Table
-    my $tables_ref   = $parser->structure->{org_table_names};
+    my $tables_ref = $parser->structure->{org_table_names};
     my $table = $tables_ref->[0];
 
     #-- Columns
-    my $all_cols_ref;
+    my $all_cols_href;
     if ( $self->dbc->can('table_info_short') ) {
-        $all_cols_ref = $self->dbc->table_info_short($table);
+        $all_cols_href = $self->dbc->table_info_short($table);
     }
     else {
         $self->message_log("WW Not implemented: 'table_info_short'");
     }
-    my $sql_cols_ref = $parser->structure->{org_col_names};
+    my $sql_cols_aref = $parser->structure->{org_col_names};
 
     # For SELECT * FROM ...
-    unless (ref $sql_cols_ref) {
-        $sql_cols_ref = [ keys %{$all_cols_ref} ];
+    unless (ref $sql_cols_aref) {
+        $sql_cols_aref = QDepo::Utils->sort_hash_by('pos', $all_cols_href);
     }
 
-    my $cols_ref;
-    my $recno = 1;
-    foreach my $field ( @{$sql_cols_ref} ) {
-        my $type = $all_cols_ref->{$field}{type};
-        push @{$cols_ref}, { recno => $recno, name => $field, type => $type };
-        $recno++;
+    my $cols_aref;
+    my $row = 0;
+    foreach my $field ( @{$sql_cols_aref} ) {
+        my $type = $all_cols_href->{$field}{type};
+        push @{$cols_aref}, { field => $field, type => $type, recno => $row };
+        $row++
     }
 
-    return $cols_ref;
+    return ($cols_aref, $sql_cols_aref);
 }
 
 sub dlist_default_item {
