@@ -60,7 +60,6 @@ Return config instance variable
 
 sub cfg {
     my $self = shift;
-
     return $self->{_cfg};
 }
 
@@ -82,11 +81,6 @@ sub start {
         $self->model->db_connect();
     }
 
-    # Retry until connected or canceled
-    $self->start_delay()
-        unless ( $self->model->is_connected
-        or $self->cfg->connection->{driver} eq 'sqlite' );
-
     #- Start
 
     my $default = $self->view->get_choice_default();
@@ -106,8 +100,6 @@ sub start {
         $self->view->select_list_item('qlist', 'first');
         $self->set_app_mode('sele');
     }
-
-    $self->populate_fieldlist;
 
     return;
 }
@@ -141,7 +133,7 @@ sub connect_dialog {
             }
             catch {
                 if ( my $e = Exception::Base->catch($_) ) {
-                    if ( $e->isa('QDepo::Exception::Db::Connect') ) {
+                    if ( $e->isa('Exception::Db::Connect') ) {
                         my $logmsg = $e->logmsg;
                         $error = $e->usermsg;
                         $self->model->message_log(qq{EE $logmsg});
@@ -164,9 +156,7 @@ Login dialog.
 =cut
 
 sub dialog_login {
-
     print 'dialog_login not implemented in ', __PACKAGE__, "\n";
-
     return;
 }
 
@@ -211,7 +201,6 @@ Idle mode.
 
 sub on_screen_mode_idle {
     my $self = shift;
-
     return;
 }
 
@@ -223,10 +212,8 @@ Edit mode.
 
 sub on_screen_mode_edit {
     my $self = shift;
-
     $self->view->toggle_list_enable('qlist');
     $self->view->toggle_sql_replace('edit');
-
     return;
 }
 
@@ -238,9 +225,7 @@ Select mode.
 
 sub on_screen_mode_sele {
     my $self = shift;
-
     $self->view->toggle_sql_replace('sele');
-
     return;
 }
 
@@ -306,13 +291,15 @@ sub set_event_handlers {
     $self->view->event_handler_for_tb_button(
         'tb_go',
         sub {
-            if ($self->model->is_connected ) {
-                $self->view->dialog_progress('Export data');
-                $self->process_sql();        # in Controller Wx | Tk
+            unless ($self->model->is_connected ) {
+                # Retry until connected or canceled
+                $self->start_delay()
+                    unless ( $self->model->is_connected
+                             or $self->cfg->connection->{driver} eq 'sqlite' );
             }
-            else {
-                $self->view->dialog_error( 'Error', 'Not connected!' );
-            }
+            return unless $self->model->is_connected;
+            $self->view->dialog_progress('Export data');
+            $self->process_sql();        # in Controller Wx | Tk
         }
     );
 
@@ -538,7 +525,6 @@ sub set_default_mnemonic {
         my $mnemonic = $dt->get_value( $item_sele, 1 );
         $dt->set_value( $item_sele, 2, 'yes' );
         $dt->set_item_default($item_sele);
-        print "set default: $item_sele : $mnemonic\n";
         $self->cfg->set_default_mnemonic($mnemonic);
         $self->toggle_admin_buttons;
     }
@@ -604,9 +590,9 @@ sub populate_querylist {
 sub populate_fieldlist {
     my $self = shift;
 
-    my $columns = $self->model->get_columns_list;
+    my ( $columns, $header ) = $self->model->get_columns_list;
 
-    return unless @{$columns};
+    return unless @{$header};
 
     my $dt = $self->model->get_data_table_for('tlist');
 
