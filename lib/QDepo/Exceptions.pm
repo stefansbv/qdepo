@@ -4,14 +4,14 @@ use strict;
 use warnings;
 
 use Exception::Base
-    'QDepo::Exception::Db',
-    'QDepo::Exception::Db::Connect' => {
-        isa               => 'QDepo::Exception::Db',
+    'Exception::Db',
+    'Exception::Db::Connect' => {
+        isa               => 'Exception::Db',
         has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
     },
-    'QDepo::Exception::Db::SQL' => {
-        isa               => 'QDepo::Exception::Db',
+    'Exception::Db::SQL' => {
+        isa               => 'Exception::Db',
         has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
     };
