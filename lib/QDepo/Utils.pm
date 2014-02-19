@@ -51,12 +51,12 @@ items.
 
 =cut
 
-sub sort_hash_by_id {
-    my ( $self, $attribs ) = @_;
+sub sort_hash_by {
+    my ( $self, $key, $attribs ) = @_;
 
     #-- Sort by id
     #- Keep only key and id for sorting
-    my %temp = map { $_ => $attribs->{$_}{id} } keys %{$attribs};
+    my %temp = map { $_ => $attribs->{$_}{$key} } keys %{$attribs};
 
     #- Sort with  ST
     my @attribs = map { $_->[0] }
