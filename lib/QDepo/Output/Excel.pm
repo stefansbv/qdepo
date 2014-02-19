@@ -102,7 +102,7 @@ sub _create_doc {
         color     => 'black',
         align     => 'left',
         border    => 1,
-        text_wrap => 1,
+        #text_wrap => 1,
         border    => 1,
     );
 
@@ -151,6 +151,19 @@ sub _create_doc {
     return;
 }
 
+sub create_header_row {
+    my ( $self, $row, $col_data ) = @_;
+
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = QDepo::Utils->decode_unless_utf($rec);
+        $self->{sheet}->write( $row, $col, $data, $self->{fmt}{h_fmt} );
+        $col++;
+    }
+
+    return;
+}
+
 =head2 create_row
 
 Create a row of data; format not implemented yet.
@@ -158,25 +171,24 @@ Create a row of data; format not implemented yet.
 =cut
 
 sub create_row {
-    my ( $self, $row, $fields, $col_types ) = @_;
+    my ( $self, $row, $col_data ) = @_;
 
-    my $cols = scalar @{$fields};
-
-    for ( my $col = 0; $col < $cols; $col++ ) {
-        my $data     = QDepo::Utils->decode_unless_utf( $fields->[$col] );
-        my $col_type = $col_types->[$col];
-        my $col_fmt  = defined $col_type ? "${col_type}_fmt" : 'h_fmt';
-        if ( $col_type and $col_type =~ /date/ ) {
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = QDepo::Utils->decode_unless_utf( $rec->{contents} );
+        my $type = $rec->{type};
+        my $cfmt = defined $type ? "${type}_fmt" : 'varchar_fmt';
+        if ( $type and $type =~ /date/ ) {
             # Date/Time must be in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
             $self->{sheet}->write_date_time( $row, $col, $data,
-                $self->{fmt}{$col_fmt} );
+                                             $self->{fmt}{$cfmt} );
         }
         else {
             $self->{sheet}
-                ->write( $row, $col, $data, $self->{fmt}{$col_fmt} );
+                ->write( $row, $col, $data, $self->{fmt}{$cfmt} );
         }
-
         $self->store_max_len( $col, length $data ) if $data;
+        $col++;
     }
 
     return;

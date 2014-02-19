@@ -77,6 +77,19 @@ sub _create_doc {
     return;
 }
 
+sub create_header_row {
+    my ( $self, $row, $col_data ) = @_;
+
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = QDepo::Utils->decode_unless_utf($rec);
+        $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
+        $col++;
+    }
+
+    return;
+}
+
 =head2 create_row
 
 Create a row of data; format not imlemented yet.
@@ -84,16 +97,19 @@ Create a row of data; format not imlemented yet.
 =cut
 
 sub create_row {
-    my ( $self, $row, $fields, $col_types ) = @_;
+    my ( $self, $row, $col_data ) = @_;
 
-    my $cols = scalar @{$fields};
-
-    for ( my $col = 0; $col < $cols; $col++ ) {
-        my $data = odfDecodeText( $fields->[$col] );
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = odfDecodeText( $rec->{contents} );
+        my $type = $rec->{type};
+        if ( $type and $type =~ /date/ ) {
+            # Date/Time is in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
+            # TODO: format date/time
+        }
         $self->{doc}->cellValue( $self->{sheet}, $row, $col, $data );
-        # if (defined $data) {
-        #     $self->store_max_len( $col, length $data );
-        # }
+        $self->store_max_len( $col, length $data ) if $data;
+        $col++;
     }
 
     return;

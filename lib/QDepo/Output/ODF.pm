@@ -86,6 +86,19 @@ sub _create_doc {
     return;
 }
 
+sub create_header_row {
+    my ( $self, $row, $col_data ) = @_;
+
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = QDepo::Utils->decode_unless_utf($rec);
+        $self->{sheet}->get_cell( $row, $col )->set_value($data);
+        $col++;
+    }
+
+    return;
+}
+
 =head2 create_row
 
 Create a row of data; format not implemented yet.
@@ -93,20 +106,19 @@ Create a row of data; format not implemented yet.
 =cut
 
 sub create_row {
-    my ( $self, $row, $fields, $col_types ) = @_;
-    print "\n";
-    print "new row $row\n";
-    for ( my $col = 0; $col < $self->{doc_cols}; $col++ ) {
-        my $data = $fields->[$col];
-        # my $data = QDepo::Utils->decode_unless_utf( $fields->[$col] );
-        print "data for col $col\n";
-        if ($row == 83) {
-            print Dumper $data;
+    my ( $self, $row, $col_data ) = @_;
+
+    my $col = 0;
+    foreach my $rec ( @{$col_data} ) {
+        my $data = $rec->{contents};
+        my $type = $rec->{type};
+        if ( $type and $type =~ /date/ ) {
+            # Date/Time is in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
+            # TODO: format date/time
         }
         $self->{sheet}->get_cell( $row, $col )->set_value($data);
-        if ( defined $data ) {
-            $self->store_max_len( $col, length $data );
-        }
+        $self->store_max_len( $col, length $data ) if $data;
+        $col++;
     }
 
     return;

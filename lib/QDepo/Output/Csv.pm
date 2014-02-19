@@ -73,6 +73,16 @@ sub _create_doc {
     return $csv_o;
 }
 
+sub create_header_row {
+    my ( $self, undef, $col_data ) = @_;
+
+    my $status = $self->{csv}->combine( @{$col_data} );
+    my $line = $self->{csv}->string();
+    print { $self->{csv_fh} } "$line\n";
+
+    return;
+}
+
 =head2 create_row
 
 Create a row of data.
@@ -80,17 +90,15 @@ Create a row of data.
 =cut
 
 sub create_row {
-    my ($self, undef, $data) = @_;
+    my ( $self, undef, $col_data ) = @_;
 
-    my @data = map { defined $_ ? $_ : "" } @{$data};
-
-    chomp(@data);
-
-    # Data
-    # Could use $csv->print ($io, $colref) for eficiency?
-    @data = map { QDepo::Utils->decode_unless_utf($_) } @data;
-    my $status = $self->{csv}->combine( @data );
-    # print " status $status\n";
+    my @row_data = ();
+    foreach my $rec ( @{$col_data} ) {
+        my $data = $rec->{contents} // "";
+        $data = QDepo::Utils->decode_unless_utf($data) if $data;
+        push @row_data, $data;
+    }
+    my $status = $self->{csv}->combine( @row_data );
     my $line   = $self->{csv}->string();
     print { $self->{csv_fh} } "$line\n";
 
