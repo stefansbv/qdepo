@@ -10,6 +10,10 @@ use Exception::Base
         has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
     },
+    'Exception::Db::Connect::Auth' => {
+        isa               => 'Exception::Db::Connect',
+    },
+
     'Exception::Db::SQL' => {
         isa               => 'Exception::Db',
         has               => [qw( usermsg logmsg )],

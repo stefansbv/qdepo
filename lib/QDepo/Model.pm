@@ -92,17 +92,21 @@ Return the database handler.
 
 sub dbh {
     my $self = shift;
-
     if ( QDepo::Db->has_instance ) {
         my $db = QDepo::Db->instance;
-        return $db->dbh if $self->is_connected;
+        if ( $self->is_connected ) {
+            return $db->dbh;
+        }
+        else {
+            Exception::Db::Connect->throw(
+                logmsg  => "error#Not connected",
+                usermsg => 'error#Database error',
+            );
+        }
     }
-
-    Exception::Db::Connect->throw(
-        usermsg => 'Please restart and login',
-        logmsg  => 'error#Not connected',
-    );
-
+    else {
+        return $self->db_connect_inst->dbh;
+    }
     return;
 }
 
@@ -114,7 +118,22 @@ Return the Connection module handler.
 
 sub dbc {
     my $self = shift;
-    return QDepo::Db->instance->dbc;
+    if ( QDepo::Db->has_instance ) {
+        my $db = QDepo::Db->instance;
+        if ( $self->is_connected ) {
+            return $db->dbc;
+        }
+        else {
+            Exception::Db::Connect->throw(
+                logmsg  => "error#Not connected",
+                usermsg => 'error#Database error',
+            );
+        }
+    }
+    else {
+        return $self->db_connect_inst->dbc;
+    }
+    return;
 }
 
 sub itemdata {
@@ -139,17 +158,9 @@ Database connection.  Connect to database or retry to connect.
 
 =cut
 
-sub db_connect {
+sub db_connect_inst {
     my $self = shift;
-
-    if (QDepo::Db->has_instance) {
-        $self->{_dbh} = QDepo::Db->instance->db_connect($self)->dbh;
-    }
-    else {
-        $self->{_dbh} = QDepo::Db->instance($self)->dbh;
-    }
-
-    return;
+    return QDepo::Db->instance->db_connect($self);
 }
 
 =head2 is_connected
@@ -160,9 +171,6 @@ Return true if connected
 
 sub is_connected {
     my $self = shift;
-
-    # TODO: What if the connection is lost?
-
     return $self->get_connection_observable->get;
 }
 
@@ -372,24 +380,6 @@ sub append_list_record {
     return {$idx => $rec};
 }
 
-=head2 append_list_record_tk
-
-Append and return a new record in the list data structure.
-
-=cut
-
-# sub append_list_record_tk {
-#     my ($self, $rec) = @_;
-
-#     my @items = sort keys %{ $self->{_lds} };
-#     my $idx = scalar @items == 0 ? 0 : $#items + 1;
-
-#     $rec->{nrcrt} = $idx + 1;
-#     $self->{_lds}{$idx} = $rec;
-
-#     return {$idx => $rec};
-# }
-
 =head2 get_qdf_data
 
 Get data from List data structure, for single item or all.
@@ -398,7 +388,6 @@ Get data from List data structure, for single item or all.
 
 sub get_qdf_data {
     my ( $self, $item ) = @_;
-
     return ( defined $item )
         ? $self->{_lds}{$item}
         : $self->{_lds};
@@ -486,7 +475,6 @@ Return observable status on item changed ???
 
 sub get_itemchanged_observable {
     my $self = shift;
-
     return $self->{_itemchanged};
 }
 

@@ -80,21 +80,6 @@ sub _init {
     return;
 }
 
-=head2 start_delay
-
-Show message, delay the database connection. Delay not yet
-implemented.
-
-=cut
-
-sub start_delay {
-    my $self = shift;
-
-    $self->connect_dialog();
-
-    return;
-}
-
 =head2 dialog_login
 
 Login dialog.
@@ -186,18 +171,6 @@ sub set_event_handlers {
         }
     );
 
-    return;
-}
-
-=head2 process_sql
-
-Get the SQL text string from the QDF file, prepare it for execution.
-
-=cut
-
-sub process_sql {
-    my $self = shift;
-    $self->model->run_export;
     return;
 }
 

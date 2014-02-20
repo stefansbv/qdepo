@@ -105,6 +105,13 @@ sub _connect {
 
     $self->{dbc} = $db;
 
+    unless ($inst->user and $inst->pass ) {
+        Exception::Db::Connect::Auth->throw(
+            logmsg  => "info#Need user and pass",
+            usermsg => 'info#Realy need user and pass',
+        );
+    }
+
     try {
         $self->{dbh} = $db->db_connect($conf);
         if (blessed $model) {

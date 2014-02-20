@@ -78,7 +78,7 @@ sub start {
     if (   ( $self->cfg->user and $self->cfg->pass )
         or ( $driver eq 'sqlite' ) )
     {
-        $self->model->db_connect();
+        $self->db_connect;
     }
 
     #- Start
@@ -106,8 +106,7 @@ sub start {
 
 =head2 connect_dialog
 
-Show login dialog until connected or canceled.  Called with delay from
-Tk::Controller (not yet).
+Show login dialog until connected or canceled.
 
 =cut
 
@@ -129,7 +128,7 @@ sub connect_dialog {
         # Try to connect only if user and pass are provided
         if ($self->cfg->user and $self->cfg->pass ) {
             try {
-                $self->model->db_connect();
+                $self->model->dbh;
             }
             catch {
                 if ( my $e = Exception::Base->catch($_) ) {
@@ -292,14 +291,12 @@ sub set_event_handlers {
         'tb_go',
         sub {
             unless ($self->model->is_connected ) {
-                # Retry until connected or canceled
-                $self->start_delay()
-                    unless ( $self->model->is_connected
-                             or $self->cfg->connection->{driver} eq 'sqlite' );
+                $self->db_connect;
             }
-            return unless $self->model->is_connected;
-            $self->view->dialog_progress('Export data');
-            $self->process_sql();        # in Controller Wx | Tk
+            if ($self->model->is_connected ) {
+                $self->view->dialog_progress('Export data');
+                $self->model->run_export;
+            }
         }
     );
 
@@ -338,7 +335,7 @@ sub set_event_handlers {
     #-- Load button
     $self->view->event_handler_for_button(
         'btn_load', sub {
-            print "Load config...\n";
+            print "Load config... (not implemented)\n";
         }
     );
 
@@ -364,7 +361,10 @@ sub set_event_handlers {
     #-- Refresh button
     $self->view->event_handler_for_button(
         'btn_refr', sub {
-            $self->populate_fieldlist;
+            $self->db_connect unless $self->model->is_connected;
+            if ($self->model->is_connected ) {
+                $self->populate_fieldlist;
+            }
         }
     );
 
@@ -379,7 +379,6 @@ Return model instance variable.
 
 sub model {
     my $self = shift;
-
     return $self->{_model};
 }
 
@@ -391,7 +390,6 @@ Return view instance variable.
 
 sub view {
     my $self = shift;
-
     return $self->{_view};
 }
 
@@ -649,6 +647,21 @@ sub populate_connlist {
 
     $self->view->refresh_list('dlist');
 
+    return;
+}
+
+sub db_connect {
+    my $self = shift;
+    unless ($self->model->is_connected ) {
+        try { $self->model->dbh; }
+        catch {
+            if ( my $e = Exception::Base->catch($_) ) {
+                if ( $e->isa('Exception::Db::Connect::Auth') ) {
+                    $self->connect_dialog();
+                }
+            }
+        };
+    }
     return;
 }
 
