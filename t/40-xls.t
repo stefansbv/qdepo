@@ -39,9 +39,9 @@ my $test_data_row = [
 ];
 
 # Create new spreadsheet
-ok( my $doc = QDepo::Output::Excel->new( 'test.xls', 1, 3 ), 'new' );
+ok my $doc = QDepo::Output::Excel->new( 'test.xls', 1, 3 ), 'new';
 
-ok($doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths');
+ok $doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths';
 
 # Fill
 is $doc->create_header_row( 0, $test_data_header), undef, "header row";
