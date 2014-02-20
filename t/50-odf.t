@@ -15,32 +15,37 @@ BEGIN {
         plan( skip_all => 'ODF::lpOD is required for this test' );
     }
     else {
-        plan tests => 7;
+        plan tests => 5;
     }
 }
 
-my @test_data = (
-    [ 'id', 'firstname', 'lastname' ],
-    [ 1,    'John',       'Doe' ],
-    [ 2,    'Jane ',      'Doe' ],
-    [ 3,    'Jane – Eve', 'Doe' ], # use a dash: \x{2013}
-);
-
-my $rows = scalar @test_data;
-my $cols = scalar @{$test_data[0]};
-
-# diag("rows = $rows");
-# diag("cols = $cols");
+my $test_data_header = [qw(id firstname lastname)];
+my $test_data_row = [
+    {   contents => 1,
+        field    => "id",
+        recno    => 1,
+        type     => "integer"
+    },
+    {   contents => "Joe",
+        field    => "firstname",
+        recno    => 1,
+        type     => "varchar"
+    },
+    {   contents => "Doe",
+        field    => "lastname",
+        recno    => 1,
+        type     => "varchar"
+    },
+];
 
 # Create new spreadsheet
-ok( my $doc = QDepo::Output::ODF->new( 'test.ods', $rows, $cols ), 'new' );
+ok my $doc = QDepo::Output::ODF->new( 'test.ods', 2, 3 ), 'new';
 
-ok($doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths');
+ok $doc->init_lengths( [qw{id firstname lastname}] ), 'init lengths' ;
 
 # Fill
-for ( my $row = 0 ; $row < $rows ; $row++ ) {
-    is $doc->create_row( $row, $test_data[$row]), undef, "row $row";
-}
+is $doc->create_header_row( 0, $test_data_header), undef, "header row";
+is $doc->create_row( 1, $test_data_row ), undef, 'Create 1 row of data';
 
 # Close
 ok( my ($out) = $doc->create_done(), 'done' );
