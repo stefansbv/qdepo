@@ -13,7 +13,6 @@ use Exception::Base
     'Exception::Db::Connect::Auth' => {
         isa               => 'Exception::Db::Connect',
     },
-
     'Exception::Db::SQL' => {
         isa               => 'Exception::Db',
         has               => [qw( usermsg logmsg )],

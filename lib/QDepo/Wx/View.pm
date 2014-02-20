@@ -18,8 +18,6 @@ use QDepo::Utils;
 
 use base 'Wx::Frame';
 
-#use Data::Printer;
-
 =head1 NAME
 
 QDepo::Wx::App - Wx Perl application class
@@ -112,7 +110,6 @@ Return config instance variable
 
 sub cfg {
     my $self = shift;
-
     return $self->{_cfg};
 }
 
@@ -295,7 +292,6 @@ Return a menu popup by name
 
 sub get_menu_popup_item {
     my ( $self, $name ) = @_;
-
     return $self->{$name};
 }
 
@@ -307,7 +303,6 @@ Return the menu bar handler
 
 sub get_menubar {
     my $self = shift;
-
     return $self->{_menu};
 }
 
@@ -363,9 +358,7 @@ State can come as 0|1 and normal|disabled.
 
 sub enable_tool {
     my ( $self, $btn_name, $state ) = @_;
-
     $self->{_tb}->enable_tool( $btn_name, $state );
-
     return;
 }
 
@@ -392,7 +385,6 @@ Return the status bar handler
 
 sub get_statusbar {
     my $self = shift;
-
     return $self->{_sb};
 }
 
@@ -404,7 +396,6 @@ Return the notebook handler
 
 sub get_notebook {
     my $self = shift;
-
     return $self->{_nb};
 }
 

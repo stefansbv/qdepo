@@ -18,8 +18,6 @@ use QDepo::Output;
 use QDepo::Utils;
 use QDepo::ListDataTable;
 
-use Data::Printer;
-
 =head1 NAME
 
 QDepo::Wx::Model - The Model.
