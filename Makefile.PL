@@ -59,9 +59,9 @@ requires 'DBI'                   => '1.53';
 requires 'DBD::SQLite'           => '1.29';  # for testing
 requires 'HTML::TreeBuilder'     => '0';     # for XML::Twig tests
 requires 'XML::Twig'             => '3.26';
-requires 'Ouch'                  => '0.0401';
-#requires 'Hash::Merge'           => '0';
 requires 'Regexp::Common'        => '0';
+requires 'SQL::Statement'        => '0';
+requires 'Exception::Base'       => '0';
 
 #-- Database
 recommends 'DBD::cubrid'   => '1.32';
