@@ -103,7 +103,7 @@ sub dbh {
         }
     }
     else {
-        return $self->db_connect_inst->dbh;
+        return $self->db_connect_new->dbh;
     }
     return;
 }
@@ -129,7 +129,7 @@ sub dbc {
         }
     }
     else {
-        return $self->db_connect_inst->dbc;
+        return $self->db_connect_new->dbc;
     }
     return;
 }
@@ -150,13 +150,13 @@ sub set_query_file {
     return;
 }
 
-=head2 db_connect
+=head2 db_connect_new
 
-Database connection.  Connect to database or retry to connect.
+Database connection instance.  Connect to database or retry to connect.
 
 =cut
 
-sub db_connect_inst {
+sub db_connect_new {
     my $self = shift;
     return QDepo::Db->instance->db_connect($self);
 }
@@ -875,6 +875,17 @@ sub get_sql_stmt {
     return ($bind, $sql);
 }
 
+=head2 get_columns_list
+
+The list of the columns.
+
+First parse the SQL query and get the column list from it.  If it has
+a column list return it, if not (for ex. when using: SELECT * FROM...)
+than use the table info to get the column list and return that
+instead.
+
+=cut
+
 sub get_columns_list {
     my $self = shift;
 
@@ -896,9 +907,10 @@ sub get_columns_list {
     else {
         $self->message_log("WW Not implemented: 'table_info_short'");
     }
+
     my $sql_cols_aref = $parser->structure->{org_col_names};
 
-    # For SELECT * FROM ...
+    # When using: SELECT * FROM...
     unless (ref $sql_cols_aref) {
         $sql_cols_aref = QDepo::Utils->sort_hash_by('pos', $all_cols_href);
     }
