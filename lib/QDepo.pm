@@ -4,8 +4,6 @@ use 5.008009;
 use strict;
 use warnings;
 
-use Ouch;
-
 require QDepo::Config;
 
 =head1 NAME
@@ -63,7 +61,7 @@ sub _init {
     my $widgetset = $cfg->cfiface->{widgetset};
 
     unless ($widgetset) {
-        ouch "ConfigError", "Required configuration not found: 'widgetset'";
+        die "Required configuration not found: 'widgetset'\n";
     }
 
     if ( $widgetset =~ m{wx}ix ) {

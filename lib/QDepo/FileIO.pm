@@ -2,7 +2,6 @@ package QDepo::FileIO;
 
 use strict;
 use warnings;
-use Ouch;
 
 use File::Find::Rule;
 use XML::Twig;
@@ -151,7 +150,7 @@ sub _xml_read_simple {
         # are present
     }
     else {
-        ouch 404, "Can't find file: $file!";
+        die "Can't find file: $file!\n";
     }
 
     return $xml_data;
@@ -241,7 +240,7 @@ Update an XML file with the new values from record.
 sub xml_update {
     my ($self, $file, $rec) = @_;
 
-    ouch 404, "No valid XML file parameter" unless -f $file;
+    die "Not a valid XML file parameter\n" unless -f $file;
 
     my $old = $file;
     my $new = "$file.tmp.$$";
@@ -268,7 +267,7 @@ sub xml_update {
         $twig->parsefile($file);    # build it (the twig...)
     }
     else {
-        ouch 404, "No report file!";
+        die "No report file!\n";
         return;
     }
 
