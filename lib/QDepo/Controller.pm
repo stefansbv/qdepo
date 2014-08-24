@@ -659,7 +659,9 @@ sub db_connect {
                     $self->connect_dialog();
                 }
                 elsif ( $e->isa('Exception::Db::Connect') ) {
-                    print $e->usermsg;
+                    my $logmsg = $e->usermsg;
+                    $self->view->dialog_error('Not connected.', $logmsg);
+                    $self->model->message_log(qq{EE $logmsg});
                     $self->view->set_status( 'No DB!', 'db', 'red' );
                 }
             }

@@ -62,7 +62,7 @@ sub db_connect {
 
     unless (-f $dbname) {
         print "DB: $dbname not found\n";
-        my $errorstr = "The $dbname database does not exists! Aborting.";
+        my $errorstr = "The $dbname database does not exists!";
         Exception::Db::Connect->throw(
             logmsg  => $errorstr,
             usermsg => $errorstr,
