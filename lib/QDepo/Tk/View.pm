@@ -2,7 +2,6 @@ package QDepo::Tk::View;
 
 use strict;
 use warnings;
-use Ouch;
 
 use File::Spec::Functions qw(abs2rel);
 use Tk;
@@ -1385,13 +1384,13 @@ sub list_item_edit {
 # sub list_item_clear {
 #     my ($self, $item) = @_;
 
-#     ouch 'NoItem', 'EE: Nothing selected!' unless defined $item;
+#     die "EE: Nothing selected!\n" unless defined $item;
 
 #     eval {
 #         $self->get_listcontrol->delete($item);
 #     };
 #     if ($@) {
-#         ouch 'NoItem', 'EE: List item remove failes!';
+#         die "EE: List item remove failes!\n";
 #     }
 
 #     return;

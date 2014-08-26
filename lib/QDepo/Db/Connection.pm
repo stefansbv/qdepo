@@ -105,7 +105,7 @@ sub _connect {
 
     $self->{dbc} = $db;
 
-    unless ($inst->user and $inst->pass ) {
+    if ( ( !$inst->user and !$inst->pass ) and ( $driver ne 'sqlite' ) ) {
         Exception::Db::Connect::Auth->throw(
             logmsg  => "info#Need user and pass",
             usermsg => 'info#Realy need user and pass',
@@ -121,7 +121,7 @@ sub _connect {
     catch {
         if ( my $e = Exception::Base->catch($_) ) {
             if ( $e->isa('Exception::Db::Connect') ) {
-                print "*** Rethrow...\n";
+                print "*** Rethrow Exception::Db::Connect...\n";
                 $e->throw;      # rethrow the exception
             }
             else {

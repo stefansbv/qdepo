@@ -3,10 +3,11 @@ package QDepo::Db::Connection::Mysql;
 use strict;
 use warnings;
 
-use Regexp::Common;
 use DBI;
-use Ouch;
 use Try::Tiny;
+use Regexp::Common;
+
+use QDepo::Exceptions;
 
 =head1 NAME
 
@@ -41,9 +42,7 @@ sub new {
     my ($class, $model) = @_;
 
     my $self = {};
-
     $self->{model} = $model;
-
     bless $self, $class;
 
     return $self;
@@ -58,55 +57,66 @@ Connect to the database.
 sub db_connect {
     my ($self, $conf) = @_;
 
-    try {
-        $self->{_dbh} = DBI->connect(
-            "dbi:mysql:"
-                . "database="
-                . $conf->{dbname}
-                . ";host="
-                . $conf->{host}
-                . ";port="
-                . $conf->{port},
-            $conf->{user},
-            $conf->{pass},
-            {   FetchHashKeyName => 'NAME_lc',
-                AutoCommit       => 1,
-                RaiseError       => 1,
-                PrintError       => 0,
-                #LongReadLen      => 524288,
-            }
-        );
-    }
-    catch {
-        my $user_message = $self->parse_db_error($_);
-        if ( $self->{model} and $self->{model}->can('exception_log') ) {
-            $self->{model}->exception_log($user_message);
-        }
-        else {
-            ouch 'ConnError','Connection failed!';
-        }
-    };
+    my ( $dbname, $host, $port ) = @{$conf}{qw(dbname host port)};
+    my ( $driver, $user, $pass ) = @{$conf}{qw(driver user pass)};
 
-    #$self->{_dbh}{pg_enable_utf8} = 1;
+    my $dsn = qq{dbi:mysql:database=$dbname;host=$host;port=$port};
+
+    $self->{_dbh} = DBI->connect(
+        $dsn, $user, $pass, {
+            FetchHashKeyName   => 'NAME_lc',
+            LongReadLen        => 524288,
+            AutoCommit         => 1,
+            RaiseError         => 0,
+            PrintError         => 0,
+            HandleError        => sub { $self->handle_error() },
+        }
+    );
 
     return $self->{_dbh};
+}
+
+=head2 handle_error
+
+Handle errors.  Makes a distinction between a connection error and
+other errors.
+
+=cut
+
+sub handle_error {
+    my $self = shift;
+
+    if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        my $errorstr = $self->{_dbh}->errstr;
+        Exception::Db::SQL->throw(
+            logmsg  => $errorstr,
+            usermsg => $self->parse_error($errorstr),
+        );
+    }
+    else {
+        my $errorstr = DBI->errstr;
+        Exception::Db::Connect->throw(
+            logmsg  => $errorstr,
+            usermsg => $self->parse_error($errorstr),
+        );
+    }
+
+    return;
 }
 
 =head2 parse_db_error
 
 Parse a database error message, and translate it for the user.
 
-TODO check if RDBMS specific and/or maybe version specific.
-
 =cut
 
 sub parse_db_error {
     my ($self, $mi) = @_;
 
-    print "\nMY: $mi\n\n";
+    #print "\nMY: $mi\n\n";
 
-    my $message_type =
-         $mi eq q{}                                          ? "nomessage"
+    my $message_type
+        = $mi eq q{}                                         ? "nomessage"
        : $mi =~ m/Access denied for user ($RE{quoted})/smi   ? "password:$1"
        : $mi =~ m/Can't connect to local MySQL server/smi    ? "nolocalconn"
        : $mi =~ m/Can't connect to MySQL server on ($RE{quoted})/smi ? "nethost:$1"

@@ -3,10 +3,11 @@ package QDepo::Db::Connection::Firebird;
 use strict;
 use warnings;
 
-use Regexp::Common;
-use QDepo::Exceptions;
-use Try::Tiny;
 use DBI;
+use Try::Tiny;
+use Regexp::Common;
+
+use QDepo::Exceptions;
 
 =head1 NAME
 

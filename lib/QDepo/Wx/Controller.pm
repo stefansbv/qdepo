@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 
 use Wx ':everything';
+# use Wx qw(wxVERSION_STRING);
 
 require QDepo::Wx::App;
 
@@ -260,7 +261,14 @@ sub about {
 
     # Framework version
     my $PROGRAM_NAME = ' QDepo ';
-    my $PROGRAM_DESC = 'QDepo - Query Deposit';
+    my $wx_version   = wxVERSION_STRING;
+    my $PROGRAM_DESC = qq{
+Query Deposit
+
+wxPerl $Wx::VERSION, $wx_version
+
+};
+
     my $PROGRAM_VER  = $QDepo::VERSION;
     my $LICENSE = QDepo::Config::Utils->get_license();
 
@@ -268,11 +276,11 @@ sub about {
 
     $about->SetName($PROGRAM_NAME);
     $about->SetVersion($PROGRAM_VER);
-    $about->SetDescription("$PROGRAM_DESC");
-    $about->SetCopyright('(c) 2010-2012 Ştefan Suciu <stefan@s2i2.ro>');
+    $about->SetDescription($PROGRAM_DESC);
+    $about->SetCopyright('(c) 2010-2014 Ştefan Suciu <stefan@s2i2.ro>');
     $about->SetLicense($LICENSE);
     $about->SetWebSite( 'http://qdepo.s2i2.ro/', 'The QDepo web site');
-    $about->AddDeveloper( 'Ştefan Suciu <stefan@s2i2.ro>' );
+    $about->AddDeveloper( 'Ștefan Suciu <stefan@s2i2.ro>' );
 
     Wx::AboutBox( $about );
 

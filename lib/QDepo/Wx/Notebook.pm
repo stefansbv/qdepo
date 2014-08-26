@@ -56,10 +56,10 @@ sub new {
 
     #--- Pages
 
-    $self->AddPage( $self->{p1}, 'Query List' );
-    $self->AddPage( $self->{p2}, 'Param/Field' );
-    $self->AddPage( $self->{p3}, 'SQL Query' );
-    $self->AddPage( $self->{p4}, 'Admin' );
+    $self->AddPage( $self->{p1}, 'Query list' );
+    $self->AddPage( $self->{p2}, 'Param/Fields' );
+    $self->AddPage( $self->{p3}, 'SQL query' );
+    $self->AddPage( $self->{p4}, 'Configs/Log' );
 
     return $self;
 }

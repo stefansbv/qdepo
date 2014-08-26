@@ -1,6 +1,5 @@
 package QDepo::Controller;
 
-use 5.010;
 use strict;
 use warnings;
 
@@ -652,12 +651,18 @@ sub populate_connlist {
 
 sub db_connect {
     my $self = shift;
-    unless ($self->model->is_connected ) {
+    unless ( $self->model->is_connected ) {
         try { $self->model->dbh; }
         catch {
             if ( my $e = Exception::Base->catch($_) ) {
                 if ( $e->isa('Exception::Db::Connect::Auth') ) {
                     $self->connect_dialog();
+                }
+                elsif ( $e->isa('Exception::Db::Connect') ) {
+                    my $logmsg = $e->usermsg;
+                    $self->view->dialog_error('Not connected.', $logmsg);
+                    $self->model->message_log(qq{EE $logmsg});
+                    $self->view->set_status( 'No DB!', 'db', 'red' );
                 }
             }
         };

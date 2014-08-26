@@ -1,10 +1,8 @@
 package QDepo;
 
-use 5.008009;
+use 5.010001;
 use strict;
 use warnings;
-
-use Ouch;
 
 require QDepo::Config;
 
@@ -63,7 +61,7 @@ sub _init {
     my $widgetset = $cfg->cfiface->{widgetset};
 
     unless ($widgetset) {
-        ouch "ConfigError", "Required configuration not found: 'widgetset'";
+        die "Required configuration not found: 'widgetset'\n";
     }
 
     if ( $widgetset =~ m{wx}ix ) {
@@ -75,7 +73,7 @@ sub _init {
         $self->{gui} = QDepo::Tk::Controller->new();
     }
     else {
-        ouch "ConfigError", "Unknown widget set!: '$widgetset'";
+        die "Unknown widget set!: '$widgetset'\n";
     }
 
     $self->{gui}->start();    # stuff to run at start
@@ -91,9 +89,7 @@ Execute the application
 
 sub run {
     my $self = shift;
-
     $self->{gui}{_app}->MainLoop();
-
     return;
 }
 

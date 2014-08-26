@@ -1155,10 +1155,11 @@ sub toggle_status_cn {
     if ($status) {
         my $user = $self->cfg->connection->{user};
         my $db   = $self->cfg->connection->{dbname};
+        return unless $user and $db;
         $self->set_status( "${user}\@${db}", 'db', 'darkgreen' );
     }
     else {
-        $self->set_status( 'No DB', 'db' );
+        $self->set_status( 'No DB!', 'db', 'red' );
     }
 
     return;
