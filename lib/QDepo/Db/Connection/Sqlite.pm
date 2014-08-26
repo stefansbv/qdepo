@@ -11,18 +11,6 @@ use Regexp::Common;
 
 use QDepo::Exceptions;
 
-=head1 NAME
-
-QDepo::Db::Connection::Sqlite - Connect to a PostgreSQL database.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
 =head1 SYNOPSIS
 
     use QDepo::Db::Connection::Sqlite;
@@ -30,8 +18,6 @@ our $VERSION = '0.39';
     my $db = QDepo::Db::Connection::Sqlite->new();
 
     $db->db_connect($connection);
-
-=head1 METHODS
 
 =head2 new
 
@@ -58,18 +44,17 @@ Connect to database
 sub db_connect {
     my ( $self, $conf ) = @_;
 
-    my ($dbname, $driver) = @{$conf}{qw(dbname driver)};
+    my ($dbpath, $driver) = @{$conf}{qw(dbname driver)};
 
-    unless (-f $dbname) {
-        print "DB: $dbname not found\n";
-        my $errorstr = "The $dbname database does not exists!";
+    unless (-f $dbpath) {
+        print "DB: $dbpath not found\n";
         Exception::Db::Connect->throw(
-            logmsg  => $errorstr,
-            usermsg => $errorstr,
+            logmsg  => "The $dbpath database does not exists!",
+            usermsg => 'Not connected',
         );
     }
 
-    my $dsn = qq{dbi:SQLite:dbname=$dbname};
+    my $dsn = qq{dbi:SQLite:dbname=$dbpath};
 
     $self->{_dbh} = DBI->connect(
         $dsn, undef, undef,
@@ -207,24 +192,4 @@ sub table_info_short {
     return $flds_ref;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Db::Connection::Sqlite
+1;

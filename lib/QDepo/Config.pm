@@ -74,7 +74,8 @@ sub _new_instance {
 
 =head2 init_configurations
 
-Initialize basic configuration options.
+Initialize basic configuration options.  Initialize the user
+configuration tree if not exists, with the I<File::UserConfig> module.
 
 =cut
 
@@ -143,11 +144,8 @@ sub configdir {
 
 =head2 load_main_config
 
-Initialize configuration variables from arguments, also initialize the
-user configuration tree if not exists, with the I<File::UserConfig>
-module.
-
-Load the main configuration file and return a HoH data structure.
+Initialize configuration variables from arguments.  Load the main
+configuration file and return a HoH data structure.
 
 Make accessors.
 
