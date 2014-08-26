@@ -5,6 +5,7 @@ package QDepo::Controller;
 use strict;
 use warnings;
 
+use Locale::TextDomain 1.20 qw(QDepo);
 use Try::Tiny;
 use QDepo::Config;
 use QDepo::Config::Toolbar;
@@ -284,7 +285,7 @@ sub set_event_handlers {
                 $self->db_connect;
             }
             if ($self->model->is_connected ) {
-                $self->view->dialog_progress('Export data');
+                $self->view->dialog_progress(__ 'Export data');
                 $self->model->run_export;
             }
         }
@@ -325,7 +326,7 @@ sub set_event_handlers {
     #-- Load button
     $self->view->event_handler_for_button(
         'btn_load', sub {
-            print "Load config... (not implemented)\n";
+            warn "Load config... (not implemented)\n";
         }
     );
 
@@ -451,9 +452,7 @@ Save .qdf file.
 =cut
 
 sub save_qdf_data {
-
-    print 'save_qdf_data not implemented in ', __PACKAGE__, "\n";
-
+    warn 'save_qdf_data not implemented in ', __PACKAGE__, "\n";
     return;
 }
 
@@ -491,9 +490,7 @@ Remove marked items.
 =cut
 
 sub list_remove_marked {
-
     print 'list_remove_marked not implemented in ', __PACKAGE__, "\n";
-
     return;
 }
 

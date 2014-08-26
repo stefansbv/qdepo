@@ -6,8 +6,18 @@ use 5.010001;
 use strict;
 use warnings;
 
+use Locale::TextDomain 1.20 qw(QDepo);
+use Locale::Messages qw(bind_textdomain_filter);
+
 require QDepo::Config;
 require QDepo::Wx::Controller;
+
+BEGIN {
+    # Stolen from Sqitch...
+    # Force Locale::TextDomain to encode in UTF-8 and to decode all messages.
+    $ENV{OUTPUT_CHARSET} = 'UTF-8';
+    bind_textdomain_filter 'QDepo' => \&Encode::decode_utf8;
+}
 
 =head1 SYNOPSIS
 

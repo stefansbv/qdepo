@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use utf8;
 
+use Locale::TextDomain 1.20 qw(QDepo);
 use Wx qw(wxID_CANCEL wxVERSION_STRING);
 
 require QDepo::Wx::App;
@@ -101,13 +102,13 @@ sub get_text_dialog {
 
     my $dialog = Wx::TextEntryDialog->new(
         $self->view,
-        "Enter configuration name",
-        "Entry dialog",
+        __ "Enter configuration name",
+        __ "Entry dialog",
     );
 
     my $name;
     if ( $dialog->ShowModal == wxID_CANCEL ) {
-        Wx::LogMessage("User cancelled the dialog");
+        Wx::LogMessage(__ "User cancelled the dialog");
     }
     else {
         $name = $dialog->GetValue;

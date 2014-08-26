@@ -4,7 +4,6 @@ package QDepo::Config::Toolbar;
 
 use Mouse;
 use Locale::TextDomain 1.20 qw(QDepo);
-use namespace::autoclean;
 
 has 'toolnames' => (
     traits  => ['Array'],
@@ -25,10 +24,10 @@ has 'tool' => (
     isa     => 'HashRef',
     default => sub {
         {   'tb_go' => {
-                'tooltip' => 'Run',
+                'tooltip' => __ 'Run',
                 'icon'    => 'navforward16',
                 'sep'     => 'after',
-                'help'    => 'Execute query',
+                'help'    => __ 'Execute query',
                 'type'    => '_item_normal',
                 'id'      => '1006',
                 'state'   => {
@@ -38,10 +37,10 @@ has 'tool' => (
                 }
             },
             'tb_ad' => {
-                'tooltip' => 'Add query',
+                'tooltip' => __ 'Add query',
                 'icon'    => 'actitemadd16',
                 'sep'     => 'none',
-                'help'    => 'Create new query definition file',
+                'help'    => __ 'Create new qdf file',
                 'type'    => '_item_normal',
                 'id'      => '1003',
                 'state'   => {
@@ -61,10 +60,10 @@ has 'tool' => (
                 }
             },
             'tb_qt' => {
-                'tooltip' => 'Quit',
+                'tooltip' => __ 'Quit',
                 'icon'    => 'actexit16',
                 'sep'     => 'none',
-                'help'    => 'Quit the application',
+                'help'    => __ 'Quit the application',
                 'type'    => '_item_normal',
                 'id'      => '1007',
                 'state'   => {
@@ -74,10 +73,10 @@ has 'tool' => (
                 }
             },
             'tb_rm' => {
-                'tooltip' => 'Remove query',
+                'tooltip' => __ 'Remove query',
                 'icon'    => 'actitemdelete16',
                 'sep'     => 'after',
-                'help'    => 'Remove query definition file',
+                'help'    => __ 'Remove the qdf file',
                 'type'    => '_item_normal',
                 'id'      => '1004',
                 'state'   => {
@@ -87,10 +86,10 @@ has 'tool' => (
                 }
             },
             'tb_sv' => {
-                'tooltip' => 'Save metadata',
+                'tooltip' => __ 'Save metadata',
                 'icon'    => 'filesave16',
                 'sep'     => 'after',
-                'help'    => 'Save query definition file',
+                'help'    => __ 'Save metadata',
                 'type'    => '_item_normal',
                 'id'      => '1002',
                 'state'   => {
@@ -100,10 +99,10 @@ has 'tool' => (
                 }
             },
             'tb_ed' => {
-                'tooltip' => 'Edit metadata',
+                'tooltip' => __ 'Edit metadata',
                 'icon'    => 'edit16',
                 'sep'     => 'none',
-                'help'    => 'Edit mode on/off',
+                'help'    => __ 'Toggle edit mode',
                 'type'    => '_item_check',
                 'id'      => '1001',
                 'state'   => {

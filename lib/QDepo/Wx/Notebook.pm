@@ -5,6 +5,7 @@ package QDepo::Wx::Notebook;
 use strict;
 use warnings;
 
+use Locale::TextDomain 1.20 qw(QDepo);
 use Wx qw(:everything);  # TODO: Eventualy change this!
 use Wx::AUI;
 
@@ -44,10 +45,10 @@ sub new {
 
     #--- Pages
 
-    $self->AddPage( $self->{p1}, 'Query list' );
-    $self->AddPage( $self->{p2}, 'Param/Fields' );
-    $self->AddPage( $self->{p3}, 'SQL query' );
-    $self->AddPage( $self->{p4}, 'Configs/Log' );
+    $self->AddPage( $self->{p1}, __ 'Query list' );
+    $self->AddPage( $self->{p2}, __ 'Parameters' );
+    $self->AddPage( $self->{p3}, __ 'SQL' );
+    $self->AddPage( $self->{p4}, __ 'Admin' );
 
     return $self;
 }

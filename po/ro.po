@@ -1,0 +1,186 @@
+# Romanian translations for QDepo package.
+# Copyright (C) 2014 Stefan Suciu
+# This file is distributed under the same license as the QDepo package.
+# Automatically generated, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: QDepo 0.50\n"
+"Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
+"POT-Creation-Date: 2014-08-26 18:27+0300\n"
+"PO-Revision-Date: 2014-08-26 18:29+0200\n"
+"Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
+"Language-Team: none\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Generator: Poedit 1.6.8\n"
+
+#: lib/QDepo/Controller.pm:288
+msgid "Export data"
+msgstr "Exportă"
+
+#: lib/QDepo/Wx/View.pm:401
+msgid "Title"
+msgstr "Titlu"
+
+#: lib/QDepo/Wx/View.pm:405
+msgid "Query file"
+msgstr "Fișier interogare"
+
+#: lib/QDepo/Wx/View.pm:409
+msgid "Output file"
+msgstr "Fișier ieșire"
+
+#: lib/QDepo/Wx/View.pm:413
+msgid "Template"
+msgstr "Model"
+
+#: lib/QDepo/Wx/View.pm:429
+msgid " Query list "
+msgstr "Listă interogări"
+
+#: lib/QDepo/Wx/View.pm:438
+msgid " Header "
+msgstr "Antet"
+
+#: lib/QDepo/Wx/View.pm:463
+msgid " Description "
+msgstr "Descriere"
+
+#: lib/QDepo/Wx/View.pm:495
+msgid "Label"
+msgstr "Etichetă"
+
+#: lib/QDepo/Wx/View.pm:497
+msgid "Description"
+msgstr "Descriere"
+
+#: lib/QDepo/Wx/View.pm:499
+msgid "Value"
+msgstr "Valori"
+
+#: lib/QDepo/Wx/View.pm:587
+msgid " Parameters "
+msgstr "Parametri"
+
+#: lib/QDepo/Wx/View.pm:601
+msgid " Fields "
+msgstr "Câmpuri"
+
+#: lib/QDepo/Wx/View.pm:633
+msgid " SQL "
+msgstr "SQL"
+
+#: lib/QDepo/Wx/View.pm:794
+msgid " Connection "
+msgstr "Conexiune"
+
+#: lib/QDepo/Wx/View.pm:810
+msgid " Log "
+msgstr "Log"
+
+#: lib/QDepo/Wx/View.pm:837
+msgid "Error"
+msgstr "Eroare"
+
+#: lib/QDepo/Wx/View.pm:854
+msgid "Confirm"
+msgstr "Confirmă"
+
+#: lib/QDepo/Wx/Notebook.pm:48
+msgid "Query list"
+msgstr "Listă interogări"
+
+#: lib/QDepo/Wx/Notebook.pm:49
+msgid "Parameters"
+msgstr "Parametri"
+
+#: lib/QDepo/Wx/Notebook.pm:50
+msgid "SQL"
+msgstr "SQL"
+
+#: lib/QDepo/Wx/Notebook.pm:51
+msgid "Admin"
+msgstr "Administrare"
+
+#: lib/QDepo/Wx/Controller.pm:105
+msgid "Enter configuration name"
+msgstr "Introdu numele configurației"
+
+#: lib/QDepo/Wx/Controller.pm:106
+msgid "Entry dialog"
+msgstr ""
+
+#: lib/QDepo/Wx/Controller.pm:111
+msgid "User cancelled the dialog"
+msgstr ""
+
+#: lib/QDepo/Config/Menu.pm:27
+msgid "App"
+msgstr "Aplicație"
+
+#: lib/QDepo/Config/Menu.pm:32 lib/QDepo/Config/Toolbar.pm:63
+msgid "Quit"
+msgstr "Exit"
+
+#: lib/QDepo/Config/Menu.pm:41
+msgid "Help"
+msgstr "Ajutor"
+
+#: lib/QDepo/Config/Menu.pm:46
+msgid "Manual"
+msgstr "Manual"
+
+#: lib/QDepo/Config/Menu.pm:53
+msgid "About"
+msgstr "Despre"
+
+#: lib/QDepo/Config/Toolbar.pm:27
+msgid "Run"
+msgstr "Execută"
+
+#: lib/QDepo/Config/Toolbar.pm:30
+msgid "Execute query"
+msgstr ""
+
+#: lib/QDepo/Config/Toolbar.pm:40
+msgid "Add query"
+msgstr ""
+
+#: lib/QDepo/Config/Toolbar.pm:43
+msgid "Create new qdf file"
+msgstr ""
+
+#: lib/QDepo/Config/Toolbar.pm:66
+msgid "Quit the application"
+msgstr "Închide aplicația"
+
+#: lib/QDepo/Config/Toolbar.pm:76
+msgid "Remove query"
+msgstr ""
+
+#: lib/QDepo/Config/Toolbar.pm:79
+msgid "Remove the qdf file"
+msgstr ""
+
+#: lib/QDepo/Config/Toolbar.pm:89 lib/QDepo/Config/Toolbar.pm:92
+msgid "Save metadata"
+msgstr "Salvare"
+
+#: lib/QDepo/Config/Toolbar.pm:102
+msgid "Edit metadata"
+msgstr "Editare"
+
+#: lib/QDepo/Config/Toolbar.pm:105
+msgid "Toggle edit mode"
+msgstr ""
+
+#~ msgid "Param/Fields"
+#~ msgstr "Param/Câmpuri"
+
+#~ msgid "Configs/Log"
+#~ msgstr "Configurări"

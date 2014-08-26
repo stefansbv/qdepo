@@ -5,6 +5,7 @@ package QDepo::Wx::View;
 use strict;
 use warnings;
 
+use Locale::TextDomain 1.20 qw(QDepo);
 use File::Spec::Functions qw(abs2rel);
 use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
           wxHORIZONTAL wxVERTICAL wxTOP wxLEFT wxRIGHT wxALL wxGROW
@@ -397,19 +398,19 @@ sub _create_report_page {
 
     #-- Controls
 
-    my $repo_lbl1 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Title', );
+    my $repo_lbl1 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Title', );
     $self->{title} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Query file', );
+    my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Query file', );
     $self->{filename} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl3 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Output file', );
+    my $repo_lbl3 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Output file', );
     $self->{output} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, 'Template', );
+    my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Template', );
     $self->{template} =
         Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
@@ -425,7 +426,7 @@ sub _create_report_page {
 
     my $repo_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Query list ', ),
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Query list ', ),
         wxVERTICAL, );
 
     $repo_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
@@ -434,7 +435,7 @@ sub _create_report_page {
 
     my $repo_mid_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Header ', ), wxVERTICAL, );
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Header ', ), wxVERTICAL, );
 
     my $repo_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
 
@@ -459,7 +460,7 @@ sub _create_report_page {
 
     my $repo_bot_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, ' Description ', ),
+        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Description ', ),
         wxVERTICAL, );
 
     $repo_bot_sz->Add( $self->{description}, 1, wxEXPAND );
@@ -491,11 +492,11 @@ sub _create_para_page {
     #-- Controls
 
     my $para_tit_lbl1 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, 'Label', );
+      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Label', );
     my $para_tit_lbl2 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, 'Description', );
+      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Description', );
     my $para_tit_lbl3 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, 'Value', );
+      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Value', );
 
     my $para_lbl1 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value1', );
     $self->{descr1} =
@@ -583,7 +584,7 @@ sub _create_para_page {
 
     my $para_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p2}, -1, ' Parameters ', ),
+        Wx::StaticBox->new( $self->{_nb}{p2}, -1, __ ' Parameters ', ),
         wxHORIZONTAL, );
 
     $para_top_sz->Add( $para_fgs, 1, wxEXPAND, 3 );
@@ -597,7 +598,7 @@ sub _create_para_page {
     #-- Bottom
 
     my $para_bot_sz = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p2}, -1, ' Fields ', ),
+        Wx::StaticBox->new( $self->{_nb}{p2}, -1, __ ' Fields ', ),
         wxVERTICAL, );
 
     $para_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
@@ -629,7 +630,7 @@ sub _create_sql_page {
 
     #-- Controls
 
-    my $sql_sb = Wx::StaticBox->new( $self->{_nb}{p3}, -1, ' SQL ', );
+    my $sql_sb = Wx::StaticBox->new( $self->{_nb}{p3}, -1, __ ' SQL ', );
 
     $self->{sql} = Wx::StyledTextCtrl->new(
         $self->{_nb}{p3},
@@ -790,7 +791,7 @@ sub _create_config_page {
 
     my $conf_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Connection ', ),
+        Wx::StaticBox->new( $self->{_nb}{p4}, -1, __ ' Connection ', ),
         wxVERTICAL, );
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
@@ -806,7 +807,7 @@ sub _create_config_page {
 
     my $conf_bot_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p4}, -1, ' Log ', ),
+        Wx::StaticBox->new( $self->{_nb}{p4}, -1, __ ' Log ', ),
         wxVERTICAL, );
 
     $conf_bot_sz->Add( $self->{log}, 1, wxEXPAND );
@@ -833,7 +834,7 @@ Error message dialog.
 sub dialog_error {
     my ( $self, $message, $details ) = @_;
 
-    Wx::MessageBox( "$message\n$details", 'Error', wxOK | wxICON_ERROR,
+    Wx::MessageBox( "$message\n$details", __ 'Error', wxOK | wxICON_ERROR,
         $self );
 
     return;
@@ -850,7 +851,7 @@ sub action_confirmed {
 
     my ($answer) = Wx::MessageBox(
         $msg,
-        'Confirm',
+        __ 'Confirm',
         wxYES_NO | wxCANCEL,
         undef,
     );
@@ -1251,7 +1252,7 @@ sub control_write {
         $self->$sub_name($control->{$name}[0], $value, $state);
     }
     else {
-        print "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
+        warn "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
     }
 
     return;

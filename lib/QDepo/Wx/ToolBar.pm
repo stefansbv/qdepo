@@ -5,6 +5,7 @@ package QDepo::Wx::ToolBar;
 use strict;
 use warnings;
 
+use Locale::TextDomain 1.20 qw(QDepo);
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
 
@@ -66,7 +67,6 @@ sub set_initial_mode {
 
         # Initial state disabled, except quit button
         next if $name eq 'tb_qt';
-
         $self->enable_tool( $name, 0 );    # 0 = disabled
     }
     return;
@@ -127,7 +127,6 @@ Create a list toolbar button. Not used.
 =cut
 
 sub _item_list {
-
     my ( $self, $name, $attribs ) = @_;
 
     # 'sep' must be at least empty string in config;
@@ -143,9 +142,7 @@ sub _item_list {
     );
 
     $self->{$name}->SetStringSelection( $self->{options}[0] ); # default
-
     $self->AddControl( $self->{$name} );
-
     $self->AddSeparator if $attribs->{sep} =~ m{after};
 
     return;
@@ -159,7 +156,6 @@ Return a toolbar button by name.
 
 sub get_toolbar_btn {
     my ( $self, $name ) = @_;
-
     return $self->{$name};
 }
 
@@ -171,7 +167,6 @@ Return all options or the name of the option with index
 
 sub get_choice_options {
     my ( $self, $index ) = @_;
-
     if ( defined $index ) {
         return $self->{options}[$index];
     }
@@ -228,11 +223,8 @@ Toggle a toolbar checkbutton.  State can come as 0 | 1.
 
 sub toggle_tool_check {
     my ( $self, $btn_name, $state ) = @_;
-
     my $tb_btn_id = $self->get_toolbar_btn($btn_name)->GetId;
-
     $self->ToggleTool( $tb_btn_id, $state );
-
     return;
 }
 
@@ -240,15 +232,11 @@ sub toggle_tool_check {
 
 Create and return a bitmap object, of any type.
 
-TODO: Put (replace) full path to the iconfile to attribs
-
 =cut
 
 sub make_bitmap {
     my ( $self, $ico_path, $icon ) = @_;
-
     my $bmp = Wx::Bitmap->new( $ico_path . "/$icon.gif", wxBITMAP_TYPE_ANY, );
-
     return $bmp;
 }
 
