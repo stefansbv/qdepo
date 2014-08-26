@@ -224,9 +224,9 @@ List all the configured mnemonics.
 sub list_mnemonics_all {
     my $self = shift;
 
-    my $mnemonics = $self->get_mnemonics();
+    my @mnemonics = map { $_->{mnemonic} } @{ $self->get_mnemonics };
 
-    my $cc_no = scalar @{$mnemonics};
+    my $cc_no = scalar @mnemonics;
     if ( $cc_no == 0 ) {
         print "Configurations (mnemonics): none\n";
         print ' in ', $self->dbpath, "\n";
@@ -236,7 +236,7 @@ sub list_mnemonics_all {
     my $default = $self->get_default_mnemonic();
 
     print "Configurations (mnemonics):\n";
-    foreach my $name ( @{$mnemonics} ) {
+    foreach my $name ( @mnemonics ) {
         my $d = $default eq $name ? '*' : ' ';
         print " ${d}> $name\n";
     }
@@ -285,10 +285,10 @@ sub get_details_for {
     my ($self, $mnemonic) = @_;
 
     my $conn_file = $self->config_file_name($mnemonic);
-    my $conlst    = $self->get_mnemonics();
+    my @mnemonics = map { $_->{mnemonic} } @{ $self->get_mnemonics };
 
     my $conn_ref = {};
-    if ( grep { $mnemonic eq $_ } @{$conlst} ) {
+    if ( grep { $mnemonic eq $_ } @mnemonics ) {
         my $cfg_file = $self->config_file_name($mnemonic);
         $conn_ref = $self->config_data_from($conn_file);
     }
@@ -359,8 +359,7 @@ sub get_mnemonics {
     foreach my $name ( @{$list} ) {
         my $ccfn = $self->config_file_name($name);
         if ( -f $ccfn ) {
-            push @mnx,
-                { recno => $idx + 1, mnemonic => $name };
+            push @mnx, { recno => $idx + 1, mnemonic => $name };
             $idx++;
         }
     }
@@ -423,8 +422,7 @@ sub get_default_mnemonic {
         return $cfg_hr->{mnemonic};
     }
     else {
-        # $self->{_log}->info("No valid default found, using 'test'");
-        print "No valid default found, using 'test'\n";
+        warn "No valid default mnemonic found, using 'test'\n";
         return 'test';
     }
 }

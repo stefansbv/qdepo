@@ -22,3 +22,5 @@ htmlhelp.chm
 *.chm
 toc.hhc
 *.old
+.build/
+.last_cover_stats
