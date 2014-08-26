@@ -1,5 +1,7 @@
 package QDepo::Db::Connection;
 
+# ABSTRACT: Connect to various databases
+
 use strict;
 use warnings;
 
@@ -9,28 +11,6 @@ use Try::Tiny;
 use QDepo::Exceptions;
 
 require QDepo::Config;
-
-=head1 NAME
-
-QDepo::Db::Connection - Connect to various databases.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-Connect to a database.
-
-    use QDepo::Db::Connection;
-
-    my $dbh = QDepo::Db::Connection->new();
-
-=head1 METHODS
 
 =head2 new
 
@@ -138,25 +118,4 @@ sub _connect {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-Disconnecting an reconnecting with the toolbar button does not work, the
-application reports that the connection is established but is not.
-
-Please report any other bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Db::Connection
+1;

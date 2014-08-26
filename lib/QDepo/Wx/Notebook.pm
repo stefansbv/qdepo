@@ -1,5 +1,7 @@
 package QDepo::Wx::Notebook;
 
+# ABSTRACT: A notebook controll
+
 use strict;
 use warnings;
 
@@ -8,25 +10,11 @@ use Wx::AUI;
 
 use base qw{Wx::AuiNotebook};
 
-=head1 NAME
-
-QDepo::Wx::Notebook - Create a notebook
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
 =head1 SYNOPSIS
 
     use QDepo::Wx::Notebook;
 
     $self->{_nb} = QDepo::Wx::Notebook->new( $gui );
-
-=head1 METHODS
 
 =head2 new
 
@@ -64,24 +52,4 @@ sub new {
     return $self;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Wx::Notebook
+1;

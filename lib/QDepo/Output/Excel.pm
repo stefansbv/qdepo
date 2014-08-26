@@ -1,31 +1,13 @@
 package QDepo::Output::Excel;
 
+# ABSTRACT: Export data in Excel format
+
 use strict;
 use warnings;
 use Carp;
 
 use Spreadsheet::WriteExcel;
 use QDepo::Utils;
-
-=head1 NAME
-
-QDepo::Output::Excel - Export data in CSV format
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Output::Excel;
-
-    my $app = QDepo::Output::Excel->new();
-
-=head1 METHODS
 
 =head2 new
 
@@ -267,24 +249,4 @@ sub set_cols_width {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Output::Excel
+1;

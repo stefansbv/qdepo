@@ -1,30 +1,11 @@
 package QDepo::ItemData;
 
+# ABSTRACT: Holds the current item data
+
 use strict;
 use warnings;
 
 use QDepo::Config;
-
-=head1 NAME
-
-QDepo::ItemData - Holds the current item data.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::ItemData;
-
-    my $out = QDepo::ItemData->new();
-
-
-=head1 METHODS
 
 =head2 new
 
@@ -87,24 +68,4 @@ sub descr {
     return $self->{data}{header}{description};
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::ItemData
+1;

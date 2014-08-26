@@ -1,5 +1,7 @@
 package QDepo::Controller;
 
+# ABSTRACT: The Controller.
+
 use strict;
 use warnings;
 
@@ -7,18 +9,6 @@ use Try::Tiny;
 use QDepo::Config;
 use QDepo::Model;
 use QDepo::Exceptions;
-
-=head1 NAME
-
-QDepo::Controller - The Controller.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 
@@ -670,24 +660,4 @@ sub db_connect {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Controller
+1;

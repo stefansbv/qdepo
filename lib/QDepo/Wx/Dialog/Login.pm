@@ -1,5 +1,7 @@
 package QDepo::Wx::Dialog::Login;
 
+# ABSTRACT: QDepo login dialog
+
 use strict;
 use warnings;
 
@@ -184,10 +186,6 @@ sub login {
     return $dlg;
 }
 
-sub gbpos { Wx::GBPosition->new(@_) }
-
-sub gbspan { Wx::GBSpan->new(@_) }
-
 sub get_login {
     my $self = shift;
 
@@ -207,28 +205,4 @@ sub get_login {
     return $return_string;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 VERSION
-
-Version 0.39
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1;    # End of QDepo::Wx::Dialog::Login
+1;

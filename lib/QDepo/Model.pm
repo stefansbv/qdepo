@@ -1,5 +1,7 @@
 package QDepo::Model;
 
+# ABSTRACT: The Model
+
 use strict;
 use warnings;
 
@@ -17,27 +19,6 @@ use QDepo::Db;
 use QDepo::Output;
 use QDepo::Utils;
 use QDepo::ListDataTable;
-
-=head1 NAME
-
-QDepo::Wx::Model - The Model.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Model;
-
-    my $model = QDepo::Model->new();
-
-
-=head1 METHODS
 
 =head2 new
 
@@ -946,24 +927,4 @@ sub dlist_default_item {
     return $item;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Model
+1;

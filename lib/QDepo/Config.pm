@@ -1,5 +1,7 @@
 package QDepo::Config;
 
+# ABSTRACT: The QDepo configuration module
+
 use strict;
 use warnings;
 
@@ -12,18 +14,6 @@ use File::Slurp;
 require QDepo::Config::Utils;
 
 use base qw(Class::Singleton Class::Accessor);
-
-=head1 NAME
-
-QDepo::Config - QDepo configuration module
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 
@@ -159,7 +149,6 @@ sub load_main_config {
     my $maincfg  = $self->config_data_from($main_fqn);
 
     my $main_hr = {
-        cfiface  => $maincfg->{interface},
         icons    => catdir( $self->cfpath, $maincfg->{resource}{icons} ),
         output   => canonpath( $maincfg->{output}{path} ),
         qdf_tmpl => catfile( $self->cfpath, 'template', 'template.qdf' ),
@@ -482,24 +471,4 @@ sub set_default_mnemonic {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Config
+1;

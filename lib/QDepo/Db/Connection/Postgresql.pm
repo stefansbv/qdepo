@@ -1,34 +1,13 @@
 package QDepo::Db::Connection::Postgresql;
 
+# ABSTRACT: Connect to a PostgreSQL database
+
 use strict;
 use warnings;
 
 use QDepo::Exceptions;
 use Try::Tiny;
 use DBI;
-
-=head1 NAME
-
-QDepo::Db::Connection::Postgresql - Connect to a PostgreSQL database.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = 0.39;
-
-=head1 SYNOPSIS
-
-    use QDepo::Db::Connection::Postgresql;
-
-    my $db = QDepo::Db::Connection::Postgresql->new($model);
-
-    $db->db_connect($connection);
-
-
-=head1 METHODS
 
 =head2 new
 
@@ -106,29 +85,9 @@ sub handle_error {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
+1;
 
 =head1 ACKNOWLEDGEMENTS
 
 Information schema queries by Lorenzo Alberton from
 http://www.alberton.info/postgresql_meta_info.html
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation.
-
-=cut
-
-1;    # End of QDepo::Db::Connection::Postgresql

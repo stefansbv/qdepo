@@ -1,5 +1,7 @@
 package QDepo::Db::Connection::Firebird;
 
+# ABSTRACT: Connect to a Firebird database
+
 use strict;
 use warnings;
 
@@ -8,28 +10,6 @@ use Try::Tiny;
 use Regexp::Common;
 
 use QDepo::Exceptions;
-
-=head1 NAME
-
-QDepo::Db::Connection::Firebird - Connect to a Firebird database.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Db::Connection::Firebird;
-
-    my $db = QDepo::Db::Connection::Firebird->new();
-
-    $db->db_connect($connection);
-
-=head1 METHODS
 
 =head2 new
 
@@ -236,99 +216,4 @@ sub table_info_short {
     return $flds_ref;
 }
 
-=head2 table_keys
-
-Get the primary key field name of the table.
-
-=cut
-
-sub table_keys {
-    my ( $self, $table, $foreign ) = @_;
-
-    my $type = 'PRIMARY KEY';
-    $type = 'FOREIGN KEY' if $foreign;
-
-    $table = uc $table;
-
-    my $sql = qq( SELECT LOWER(s.RDB\$FIELD_NAME) AS column_name
-                     FROM RDB\$INDEX_SEGMENTS s
-                        LEFT JOIN RDB\$INDICES i
-                          ON i.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
-                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc
-                          ON rc.RDB\$INDEX_NAME = s.RDB\$INDEX_NAME
-                        LEFT JOIN RDB\$REF_CONSTRAINTS refc
-                          ON rc.RDB\$CONSTRAINT_NAME = refc.RDB\$CONSTRAINT_NAME
-                        LEFT JOIN RDB\$RELATION_CONSTRAINTS rc2
-                          ON rc2.RDB\$CONSTRAINT_NAME = refc.RDB\$CONST_NAME_UQ
-                        LEFT JOIN RDB\$INDICES i2
-                          ON i2.RDB\$INDEX_NAME = rc2.RDB\$INDEX_NAME
-                        LEFT JOIN RDB\$INDEX_SEGMENTS s2
-                          ON i2.RDB\$INDEX_NAME = s2.RDB\$INDEX_NAME
-                      WHERE i.RDB\$RELATION_NAME = '$table'
-                        AND rc.RDB\$CONSTRAINT_TYPE = '$type'
-    );
-
-    $self->{_dbh}{AutoCommit} = 1;    # disable transactions
-    $self->{_dbh}{RaiseError} = 0;
-
-    my $pkf;
-    try {
-        $pkf = $self->{_dbh}->selectcol_arrayref($sql);
-    }
-    catch {
-        $self->{model}->exception_log("Transaction aborted because $_");
-    };
-
-    return $pkf;
-}
-
-=head2 table_exists
-
-Check if table exists in the database.
-
-=cut
-
-sub table_exists {
-    my ( $self, $table ) = @_;
-
-    $table = uc $table;
-
-    my $sql = qq(SELECT COUNT(RDB\$RELATION_NAME)
-                     FROM RDB\$RELATIONS
-                     WHERE RDB\$SYSTEM_FLAG=0
-                         AND RDB\$VIEW_BLR IS NULL
-                         AND RDB\$RELATION_NAME = '$table';
-    );
-
-    my $val_ret;
-    try {
-        ($val_ret) = $self->{_dbh}->selectrow_array($sql);
-    }
-    catch {
-        $self->{model}->exception_log("Transaction aborted because $_");
-    };
-
-    return $val_ret;
-}
-
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Db::Connection::Firebird
+1;

@@ -1,5 +1,7 @@
 package QDepo::Wx::Controller;
 
+# ABSTRACT: The Wx Controller
+
 use strict;
 use warnings;
 use utf8;
@@ -10,18 +12,6 @@ use Wx ':everything';
 require QDepo::Wx::App;
 
 use base qw{QDepo::Controller};
-
-=head1 NAME
-
-QDepo::Wx::Controller - The Controller
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 
@@ -326,28 +316,4 @@ sub save_qdf_data {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 ACKNOWLEDGEMENTS
-
-Mark Dootson.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Wx::Controller
+1;

@@ -1,19 +1,9 @@
 package QDepo::Wx::Dialog::Progress;
 
+# ABSTRACT: Progress dialog
+
 use strict;
 use warnings;
-
-=head1 NAME
-
-QDepo::Wx::Dialog::Progress - Progress dialog.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 
@@ -129,29 +119,10 @@ sub DESTROY {
     $self->{dialog}->Destroy if defined( $self->{dialog} );
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
+1;
 
 =head1 ACKNOWLEDGEMENTS
 
 From Padre::Wx::Progress.
 
-=head1 LICENSE AND COPYRIGHT
-
 Copyright 2008-2011 The Padre development team as listed in Padre.pm.
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Wx::Dialog::Progress

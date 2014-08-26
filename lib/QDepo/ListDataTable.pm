@@ -1,9 +1,6 @@
-# Experimenting with Virtual ListCtrl
-# Stefan Suciu, 2013-04-06
-#
-# A simple module to hold the data for the virtual ListCtrl.
-#
 package QDepo::ListDataTable;
+
+# ABSTRACT: A simple module to hold the data for the virtual ListCtrl.
 
 use strict;
 use warnings;

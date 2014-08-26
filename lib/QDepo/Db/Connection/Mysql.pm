@@ -1,5 +1,7 @@
 package QDepo::Db::Connection::Mysql;
 
+# ABSTRACT: Connect to a MySQL database
+
 use strict;
 use warnings;
 
@@ -8,29 +10,6 @@ use Try::Tiny;
 use Regexp::Common;
 
 use QDepo::Exceptions;
-
-=head1 NAME
-
-QDepo::Db::Connection::Mysql - Connect to a MySQL database
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Db::Connection::Mysql;
-
-    my $db = QDepo::Db::Connection::Mysql->new($model);
-
-    $db->db_connect($conninfo);
-
-
-=head1 METHODS
 
 =head2 new
 
@@ -150,24 +129,4 @@ sub parse_db_error {
     return $message;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Db::Connection::Mysql
+1;

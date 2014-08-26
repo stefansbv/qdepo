@@ -1,30 +1,16 @@
 package QDepo::Utils;
 
+# ABSTRACT: Various utility functions
+
 use strict;
 use warnings;
 use Encode qw(is_utf8 decode);
 
-=head1 NAME
-
-QDepo::Utils - Various utility functions
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
 =head1 SYNOPSIS
-
-Various utility functions used by all other modules.
 
     use QDepo::Utils;
 
     my $foo = QDepo::Utils->function_name();
-
-=head1 METHODS
 
 =head2 trim
 
@@ -182,24 +168,4 @@ sub decode_unless_utf {
     return $value;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Utils
+1;

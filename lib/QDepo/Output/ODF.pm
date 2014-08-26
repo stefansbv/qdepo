@@ -1,5 +1,7 @@
 package QDepo::Output::ODF;
 
+# ABSTRACT: Export data in ODF format
+
 use 5.010001;                   # minimum version nedeed by ODF::lpOD
 use strict;
 use warnings;
@@ -7,28 +9,6 @@ use Carp;
 
 use ODF::lpOD;
 use QDepo::Utils;
-
-use Data::Dumper;
-
-=head1 NAME
-
-QDepo::Output::ODF - Export data in ODF format
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Output::ODF;
-
-    my $app = QDepo::Output::ODF->new();
-
-=head1 METHODS
 
 =head2 new
 
@@ -222,24 +202,4 @@ sub set_col_style {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-Unacceptably slow! Process 130 records in 4 minutes.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Output::ODF
+1;

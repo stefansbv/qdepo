@@ -1,5 +1,7 @@
 package QDepo::Wx::Dialog::Help;
 
+# ABSTRACT: QDepo help dialog
+
 use strict;
 use warnings;
 
@@ -50,24 +52,4 @@ sub show_html_help {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>.
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Wx::Dialog::Help
+1;

@@ -1,5 +1,7 @@
 package QDepo::Wx::View;
 
+# ABSTRACT: The View
+
 use strict;
 use warnings;
 
@@ -17,22 +19,6 @@ use QDepo::Wx::ListCtrl;
 use QDepo::Utils;
 
 use base 'Wx::Frame';
-
-=head1 NAME
-
-QDepo::Wx::App - Wx Perl application class
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-=head1 METHODS
 
 =head2 new
 
@@ -1469,26 +1455,4 @@ sub select_list_item {
     return $item;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 ACKNOWLEDGEMENTS
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Wx::View
+1;

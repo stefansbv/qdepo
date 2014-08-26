@@ -1,31 +1,13 @@
 package QDepo::Output::Csv;
 
+# ABSTRACT: Export data in CSV format
+
 use strict;
 use warnings;
 use Carp;
 
 use Text::CSV_XS;
 use QDepo::Utils;
-
-=head1 NAME
-
-QDepo::Output::Csv - Export data in CSV format
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
-
-=head1 SYNOPSIS
-
-    use QDepo::Output::Csv;
-
-    my $app = QDepo::Output::Csv->new();
-
-=head1 METHODS
 
 =head2 new
 
@@ -125,24 +107,4 @@ sub create_done {
     return ($output, $count_rows, $percent);
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo::Output::Csv
+1;

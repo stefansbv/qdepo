@@ -1,7 +1,6 @@
-# The Wx::DemoModules::wxListCtrl::Virtual package from the Wx::Demo
-# application, with small changes to add external data items.
-#
 package QDepo::Wx::ListCtrl;
+
+# ABSTRACT: Virtual List Control
 
 use strict;
 use warnings;
@@ -81,3 +80,8 @@ sub set_selection {
 }
 
 1;
+
+=head1 ACKNOWLEDGMENTS
+
+The Wx::DemoModules::wxListCtrl::Virtual package from the Wx::Demo
+application, with small changes to add external data items.

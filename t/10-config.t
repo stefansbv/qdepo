@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 5;
 
 use lib qw( lib ../lib );
 
@@ -34,14 +34,6 @@ is( $c1, $c2, 'both instances are the same object' );
 # Check some config key => value pairs ( stollen from Padre ;) )
 
 # Configuration: etc/main.yml
-
-# interface::widgetset: Tk
-ok( $c1->cfiface->{widgetset} =~ m{Tk|Wx}i,
-    'interface has expected config value for "widgetset"'
-    )
-    or diag( '"widgetset" defined as "'
-        . $c1->widgetset
-        . '" and not "Wx or Tk" in config' );
 
 # resource::icons
 ok( -d $c1->icons, '"icons" path exists' )

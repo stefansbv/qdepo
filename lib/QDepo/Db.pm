@@ -1,5 +1,7 @@
 package QDepo::Db;
 
+# ABSTRACT: The Database operations module
+
 use strict;
 use warnings;
 
@@ -8,18 +10,6 @@ use Scalar::Util qw(blessed);
 use QDepo::Db::Connection;
 
 use base qw(Class::Singleton);
-
-=head1 NAME
-
-QDepo::Db - Database operations module
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
 
 =head1 SYNOPSIS
 
@@ -59,11 +49,8 @@ Connect when there already is an instance.
 
 sub db_connect {
     my ($self, $model) = @_;
-
     my $conn = QDepo::Db::Connection->new($model);
-
     $self->{conn} = $conn;
-
     return $self;
 }
 
@@ -105,36 +92,8 @@ sub DESTROY {
     return;
 }
 
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to the author.
+1;
 
 =head1 ACKNOWLEDGEMENTS
 
 Inspired from PerlMonks node [id://609543] by GrandFather.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; version 2 dated June, 1991 or at your option
-any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-A copy of the GNU General Public License is available in the source tree;
-if not, write to the Free Software Foundation, Inc.,
-59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-=cut
-
-1;    # End of QDepo::Db

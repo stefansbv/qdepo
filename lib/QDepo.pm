@@ -1,22 +1,13 @@
 package QDepo;
 
+# ABSTRACT: QDepo (Query Deposit) application main module
+
 use 5.010001;
 use strict;
 use warnings;
 
 require QDepo::Config;
-
-=head1 NAME
-
-QDepo - Query Deposit.
-
-=head1 VERSION
-
-Version 0.39
-
-=cut
-
-our $VERSION = '0.39';
+require QDepo::Wx::Controller;
 
 =head1 SYNOPSIS
 
@@ -25,8 +16,6 @@ our $VERSION = '0.39';
     my $app = QDepo->new( $opts );
 
     $app->run;
-
-=head1 METHODS
 
 =head2 new
 
@@ -48,8 +37,8 @@ sub new {
 
 =head2 _init
 
-Initialize the configurations module and create the PerlTk or the
-wxPerl application instance.
+Initialize the configurations module and create the wxPerl application
+instance.
 
 =cut
 
@@ -57,25 +46,7 @@ sub _init {
     my ( $self, $args ) = @_;
 
     my $cfg = QDepo::Config->instance($args);
-
-    my $widgetset = $cfg->cfiface->{widgetset};
-
-    unless ($widgetset) {
-        die "Required configuration not found: 'widgetset'\n";
-    }
-
-    if ( $widgetset =~ m{wx}ix ) {
-        require QDepo::Wx::Controller;
-        $self->{gui} = QDepo::Wx::Controller->new();
-    }
-    elsif ( $widgetset =~ m{tk}ix ) {
-        require QDepo::Tk::Controller;
-        $self->{gui} = QDepo::Tk::Controller->new();
-    }
-    else {
-        die "Unknown widget set!: '$widgetset'\n";
-    }
-
+    $self->{gui} = QDepo::Wx::Controller->new();
     $self->{gui}->start();    # stuff to run at start
 
     return;
@@ -93,25 +64,7 @@ sub run {
     return;
 }
 
-=head1 DESCRIPTION
-
-QDepo - A desktop application for retrieving and exporting data from
-relational database systems to spreadsheet files, also formerly known
-as "TPDA - Query Repository Tool".
-
-Currently supported export formats: CSV, Excel, OpenOffice Calc.
-Database management systems support: Firebird, PostgreSQL, MySQL and
-SQLite.
-
-=head1 AUTHOR
-
-Stefan Suciu, C<< <stefan@s2i2.ro> >>
-
-=head1 BUGS
-
-None known.
-
-Please report any bugs or feature requests to the author.
+1;
 
 =head1 ACKNOWLEDGMENTS
 
@@ -140,15 +93,3 @@ and of course Sourceforge for hosting this project :)
 
 and last but least, to Herbert Breunung for his guidance, hints and
 for his Kephra project a very good source of inspiration.
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2010-2012 Stefan Suciu.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation.
-
-=cut
-
-1; # End of QDepo
