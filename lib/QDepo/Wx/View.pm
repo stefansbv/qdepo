@@ -6,13 +6,20 @@ use strict;
 use warnings;
 
 use File::Spec::Functions qw(abs2rel);
-use Wx qw[:everything];
+use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
+          wxHORIZONTAL wxVERTICAL wxTOP wxLEFT wxRIGHT wxALL wxGROW
+          wxALIGN_CENTRE wxICON_ERROR wxSTC_MARGIN_SYMBOL
+          wxSTC_STYLE_DEFAULT wxDEFAULT wxNORMAL wxSTC_LEX_MSSQL
+          wxSTC_STYLE_BRACELIGHT wxSTC_STYLE_BRACEBAD
+          wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
 use Wx::STC;
 
 use QDepo::Config;
+use QDepo::Config::Menu;
+use QDepo::Config::Toolbar;
 use QDepo::Wx::Notebook;
 use QDepo::Wx::ToolBar;
 use QDepo::Wx::ListCtrl;
@@ -171,7 +178,7 @@ sub _create_menu {
     my $self = shift;
     my $menu = Wx::MenuBar->new;
     $self->{_menu} = $menu;
-    $self->make_menus( $self->cfg->menubar );
+    $self->make_menus;
     $self->SetMenuBar($menu);
     return;
 }
@@ -183,33 +190,32 @@ Make menus.
 =cut
 
 sub make_menus {
-    my ( $self, $attribs, $position ) = @_;
+    my $self = shift;
 
-    $position = $position ||= 0;    # default
-
-    my $menus = QDepo::Utils->sort_hash_by('id', $attribs);
+    my $conf = QDepo::Config::Menu->new;
 
     #- Create menus
-    foreach my $menu_name ( @{$menus} ) {
+    my $pos = 0;
+    foreach my $menu_name ( $conf->all_menus ) {
         $self->{$menu_name} = Wx::Menu->new();
-        my @popups
-            = sort { $a <=> $b } keys %{ $attribs->{$menu_name}{popup} };
+        my $menu_href = $conf->get_menu($menu_name);
+        my @popups = sort { $a <=> $b } keys %{ $menu_href->{popup} };
         foreach my $id (@popups) {
             $self->make_popup_item(
                 $self->{$menu_name},
-                $attribs->{$menu_name}{popup}{$id},
-                $attribs->{$menu_name}{id} . $id,    # menu Id
+                $menu_href->{popup}{$id},
+                $menu_href->{id} . $id,    # menu Id
             );
         }
         $self->{_menu}->Insert(
-            $position,
+            $pos,
             $self->{$menu_name},
             QDepo::Utils->ins_underline_mark(
-                $attribs->{$menu_name}{label},
-                $attribs->{$menu_name}{underline}
+                $menu_href->{label},
+                $menu_href->{underline},
             ),
         );
-        $position++;
+        $pos++;
     }
 
     return;
@@ -294,20 +300,25 @@ sub get_menubar {
 
 =head2 _create_toolbar
 
-Create toolbar
+Create the toolbar.
 
 =cut
 
 sub _create_toolbar {
     my $self = shift;
 
-    my $tb = QDepo::Wx::ToolBar->new( $self,  ); # wxADJUST_MINSIZE#
+    my $tb = QDepo::Wx::ToolBar->new($self); # wxADJUST_MINSIZE#
 
-    my ( $toolbars, $attribs ) = $self->toolbar_names();
-
+    my $conf     = QDepo::Config::Toolbar->new;
+    my @toolbars = $conf->all_buttons;
     my $ico_path = $self->cfg->icons;
 
-    $tb->make_toolbar_buttons( $toolbars, $attribs, $ico_path );
+    foreach my $name (@toolbars) {
+        my $attribs = $conf->get_tool($name);
+        $tb->make_toolbar_button( $name, $attribs, $ico_path );
+    }
+
+    $tb->set_initial_mode(\@toolbars);
 
     $self->SetToolBar($tb);
 
@@ -315,23 +326,6 @@ sub _create_toolbar {
     $self->{_tb}->Realize;
 
     return;
-}
-
-=head2 toolbar_names
-
-Get Toolbar names as array reference from config.
-
-=cut
-
-sub toolbar_names {
-    my $self = shift;
-
-    # Get ToolBar button atributes
-    my $attribs = $self->cfg->toolbar;
-
-    my $toolbars = QDepo::Utils->sort_hash_by('id', $attribs);
-
-    return ( $toolbars, $attribs );
 }
 
 =head2 enable_tool
@@ -648,7 +642,6 @@ sub _create_sql_page {
     $self->{sql}->SetMarginWidth( 1, 10 );
     $self->{sql}->StyleSetFont( wxSTC_STYLE_DEFAULT,
         Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    # $self->{sql}->SetLexer( wxSTC_LEX_SQL );
     $self->{sql}->SetLexer( wxSTC_LEX_MSSQL );
     # List0
     $self->{sql}->SetKeyWords(0,

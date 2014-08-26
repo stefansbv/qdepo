@@ -41,26 +41,34 @@ sub new {
     return $self;
 }
 
-=head2 make_toolbar_buttons
+=head2 make_toolbar_button
 
-Make main toolbar buttons.
+Make toolbar button.
 
 =cut
 
-sub make_toolbar_buttons {
-    my ( $self, $toolbars, $attribs, $ico_path ) = @_;
+sub make_toolbar_button {
+    my ( $self, $name, $attribs, $ico_path ) = @_;
+    my $type = $attribs->{type};
+    $self->$type( $name, $attribs, $ico_path );
+    return;
+}
 
-    # Create buttons in ID order; use sub defined by 'type'
-    foreach my $name ( @{$toolbars} ) {
-        my $type = $attribs->{$name}{type};
-        $self->$type( $name, $attribs->{$name}, $ico_path );
+=head2 set_initial_mode
 
-        # Initial state disabled, except quit and attach button
+Disable some of the toolbar buttons.
+
+=cut
+
+sub set_initial_mode {
+    my ($self, $names) = @_;
+    foreach my $name ( @{$names} ) {
+
+        # Initial state disabled, except quit button
         next if $name eq 'tb_qt';
-        next if $name eq 'tb_at';
+
         $self->enable_tool( $name, 0 );    # 0 = disabled
     }
-
     return;
 }
 

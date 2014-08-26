@@ -7,6 +7,7 @@ use warnings;
 
 use Try::Tiny;
 use QDepo::Config;
+use QDepo::Config::Toolbar;
 use QDepo::Model;
 use QDepo::Exceptions;
 
@@ -392,12 +393,11 @@ the application.
 sub toggle_interface_controls {
     my $self = shift;
 
-    my ( $toolbars, $attribs ) = $self->view->toolbar_names();
-
+    my $conf = QDepo::Config::Toolbar->new;  # TODO: should this go to init?
     my $mode = $self->model->get_appmode();
 
-    foreach my $name ( @{$toolbars} ) {
-        my $status = $attribs->{$name}{state}{$mode};
+    foreach my $name ( $conf->all_buttons ) {
+        my $status = $conf->get_tool($name)->{state}{$mode};
         $self->view->enable_tool( $name, $status );
     }
 

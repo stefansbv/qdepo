@@ -52,9 +52,6 @@ sub _new_instance {
     $self->load_main_config($args);
     if ( $args->{mnemonic} ) {
 
-        # If no config name don't bother to load this
-        $self->load_interfaces_config();
-
         # Application configs
         $self->load_runtime_config();
     }
@@ -126,9 +123,7 @@ name.
 
 sub configdir {
     my ( $self, $mnemonic ) = @_;
-
     $mnemonic ||= $self->mnemonic;
-
     return catdir( $self->dbpath, $mnemonic );
 }
 
@@ -158,28 +153,6 @@ sub load_main_config {
     $main_hr->{mnemonic} = $args->{mnemonic} if $args->{mnemonic};
 
     $self->make_accessors($main_hr);
-
-    return;
-}
-
-=head2 load_interfaces_config
-
-Process the main configuration file and automaticaly load all the
-other defined configuration files.  That means if we add a YAML
-configuration file to the tree, all defined values should be available
-at restart.
-
-=cut
-
-sub load_interfaces_config {
-    my $self = shift;
-
-    foreach my $section (qw{toolbar.yml menubar.yml}) {
-        my $interface_file
-            = catfile( $self->cfpath, 'etc', 'interfaces', $section );
-        my $interface = $self->config_data_from($interface_file);
-        $self->make_accessors($interface);
-    }
 
     return;
 }

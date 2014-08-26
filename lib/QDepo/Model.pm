@@ -846,13 +846,11 @@ sub get_data_table_for {
 
 sub get_sql_stmt {
     my $self = shift;
-
     my ($bind, $sql) = $self->string_replace_for_run(
         $self->itemdata->sql,
         $self->itemdata->params,
     );
-    $sql =~ s{;$}{}m;                         # remove final ';'
-
+    $sql =~ s{;$}{}m;                    # remove final ';' if exists
     return ($bind, $sql);
 }
 

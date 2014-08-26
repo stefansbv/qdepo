@@ -6,8 +6,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Wx ':everything';
-# use Wx qw(wxVERSION_STRING);
+use Wx qw(wxID_CANCEL wxVERSION_STRING);
 
 require QDepo::Wx::App;
 
