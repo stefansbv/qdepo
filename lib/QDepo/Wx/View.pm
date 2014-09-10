@@ -488,131 +488,129 @@ Create the parameters page (tab) on the notebook
 sub _create_para_page {
 
     my $self = shift;
-
-    #-- Controls
-
-    my $para_tit_lbl1 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Label', );
-    my $para_tit_lbl2 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Description', );
-    my $para_tit_lbl3 =
-      Wx::StaticText->new( $self->{_nb}{p2}, -1, __ 'Value', );
-
-    my $para_lbl1 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value1', );
-    $self->{descr1} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value1} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl2 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value2', );
-    $self->{descr2} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value2} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl3 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value3', );
-    $self->{descr3} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value3} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl4 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value4', );
-    $self->{descr4} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value4} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl5 = Wx::StaticText->new( $self->{_nb}{p2}, -1, 'value5', );
-    $self->{descr5} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value5} =
-      Wx::TextCtrl->new( $self->{_nb}{p2}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    $self->model->init_data_table('tlist');
-    my $dtt = $self->model->get_data_table_for('tlist');
-    $self->{tlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p2}, $dtt );
-
-    my $header = $self->model->get_table_list_cols;
-    $self->{tlist}->add_columns($header);
-
-    #-- Button
-
-    $self->{btn_refr} = Wx::Button->new(
-        $self->{_nb}{p2},
-        -1,
-        q{Refresh},
-        [ -1, -1 ],
-        [ -1, 22 ],
-    );
-    $self->{btn_refr}->Enable(1);
-
-    #-- Layout
-
-    my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
-
-    $para_fgs->Add( $para_tit_lbl1, 0, wxTOP | wxLEFT, 10 );
-    $para_fgs->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
-    $para_fgs->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
-
-    $para_fgs->Add( $para_lbl1, 0, wxTOP | wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr1},   0, wxEXPAND | wxTOP, 5 );
-    $para_fgs->Add( $self->{value1},   1, wxEXPAND | wxTOP, 5 );
-
-    $para_fgs->Add( $para_lbl2, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr2},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value2},   1, wxEXPAND, 0 );
-
-    $para_fgs->Add( $para_lbl3, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr3},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value3},   1, wxEXPAND, 0 );
-
-    $para_fgs->Add( $para_lbl4, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr4},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value4},   1, wxEXPAND, 0 );
-
-    $para_fgs->Add( $para_lbl5, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr5},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value5},   1, wxEXPAND, 0 );
-
-    $para_fgs->AddGrowableCol(2);
-
-    #-- Layout
-
-    my $para_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 0 );
+    my $page = $self->{_nb}{p2};
 
     #-- Top
 
     my $para_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p2}, -1, __ ' Parameters ', ),
+        Wx::StaticBox->new( $page, -1, __ ' Parameters ', ),
         wxHORIZONTAL, );
 
+    my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
     $para_top_sz->Add( $para_fgs, 1, wxEXPAND, 3 );
+    $para_fgs->AddGrowableCol(2);
+
+    $self->_parameter_page_ctrls( $page, $para_fgs );
 
     #-- Middle
 
-    my $h_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    # $h_sizer->Add(-1, 15);
-    $h_sizer->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
+    $self->{btn_refr} = Wx::Button->new(
+        $page,
+        -1,
+        __ 'Refresh',
+        [ -1, -1 ],
+        [ -1, 22 ],
+    );
+    $self->{btn_refr}->Enable(1);
+
+    my $para_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
+    $para_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
 
     #-- Bottom
 
+    $self->model->init_data_table('tlist');
+    my $dtt = $self->model->get_data_table_for('tlist');
+    $self->{tlist} = QDepo::Wx::ListCtrl->new( $page, $dtt );
+
+    my $header = $self->model->get_table_list_cols;
+    $self->{tlist}->add_columns($header);
+
     my $para_bot_sz = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p2}, -1, __ ' Fields ', ),
+        Wx::StaticBox->new( $page, -1, __ ' Fields ', ),
         wxVERTICAL, );
 
     $para_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
-    #--
+    #-- Layout
+
+    my $para_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 0 );
 
     $para_main_sz->Add( $para_top_sz, 1, wxALL | wxGROW, 5 );
-    $para_main_sz->Add( $h_sizer,     1, wxALIGN_CENTRE );
+    $para_main_sz->Add( $para_mid_sz, 1, wxALIGN_CENTRE );
     $para_main_sz->Add( $para_bot_sz, 1, wxALL | wxGROW, 5 );
 
     $para_main_sz->AddGrowableRow(2);
     $para_main_sz->AddGrowableCol(0);
 
-    $self->{_nb}{p2}->SetSizer($para_main_sz);
+    $page->SetSizer($para_main_sz);
+
+    return;
+}
+
+sub _parameter_page_ctrls {
+    my ($self, $page, $sizer) = @_;
+
+    my $para_tit_lbl1 =
+      Wx::StaticText->new( $page, -1, __ 'Label', );
+    my $para_tit_lbl2 =
+      Wx::StaticText->new( $page, -1, __ 'Description', );
+    my $para_tit_lbl3 =
+      Wx::StaticText->new( $page, -1, __ 'Value', );
+
+    my $para_lbl1 = Wx::StaticText->new( $page, -1, 'value1', );
+    $self->{descr1} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value1} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl2 = Wx::StaticText->new( $page, -1, 'value2', );
+    $self->{descr2} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value2} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl3 = Wx::StaticText->new( $page, -1, 'value3', );
+    $self->{descr3} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value3} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl4 = Wx::StaticText->new( $page, -1, 'value4', );
+    $self->{descr4} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value4} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl5 = Wx::StaticText->new( $page, -1, 'value5', );
+    $self->{descr5} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value5} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    $sizer->Add( $para_tit_lbl1, 0, wxTOP | wxLEFT, 10 );
+    $sizer->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
+    $sizer->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
+
+    $sizer->Add( $para_lbl1, 0, wxTOP | wxLEFT,   5 );
+    $sizer->Add( $self->{descr1},   0, wxEXPAND | wxTOP, 5 );
+    $sizer->Add( $self->{value1},   1, wxEXPAND | wxTOP, 5 );
+
+    $sizer->Add( $para_lbl2, 0, wxLEFT,   5 );
+    $sizer->Add( $self->{descr2},   1, wxEXPAND, 0 );
+    $sizer->Add( $self->{value2},   1, wxEXPAND, 0 );
+
+    $sizer->Add( $para_lbl3, 0, wxLEFT,   5 );
+    $sizer->Add( $self->{descr3},   1, wxEXPAND, 0 );
+    $sizer->Add( $self->{value3},   1, wxEXPAND, 0 );
+
+    $sizer->Add( $para_lbl4, 0, wxLEFT,   5 );
+    $sizer->Add( $self->{descr4},   1, wxEXPAND, 0 );
+    $sizer->Add( $self->{value4},   1, wxEXPAND, 0 );
+
+    $sizer->Add( $para_lbl5, 0, wxLEFT,   5 );
+    $sizer->Add( $self->{descr5},   1, wxEXPAND, 0 );
+    $sizer->Add( $self->{value5},   1, wxEXPAND, 0 );
 
     return;
 }
