@@ -56,10 +56,11 @@ sub new {
     $self->_create_menu();
     $self->_create_toolbar();
     $self->_create_statusbar();
+
     $self->{_nb} = QDepo::Wx::Notebook->new( $self );
     $self->_create_para_page();
     $self->_create_sql_page();
-    $self->_create_config_page();
+    $self->_create_admin_page();
     $self->_create_report_page();
 
     #-- GUI actions
@@ -548,6 +549,7 @@ sub _create_para_page {
     return;
 }
 
+
 sub _parameter_page_ctrls {
     my ($self, $page, $sizer) = @_;
 
@@ -692,9 +694,9 @@ transaction union upper user where with year} );
     $self->{_nb}{p3}->SetSizer( $sql_main_sz );
 }
 
-=head2 _create_config_page
+=head2 _create_admin_page
 
-Create the configuration info page (tab) on the notebook.
+Create the admiistration page (tab) on the notebook.
 
 Using the MySQL lexer for very basic syntax highlighting. This was
 chosen because permits the definition of 3 custom lists. For this
@@ -704,14 +706,15 @@ the lists must be lower case.
 
 =cut
 
-sub _create_config_page {
+sub _create_admin_page {
     my $self = shift;
+    my $page = $self->{_nb}{p4};
 
     #-- Controls
 
     $self->model->init_data_table('dlist');
     my $dt = $self->model->get_data_table_for('dlist');
-    $self->{dlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p4}, $dt );
+    $self->{dlist} = QDepo::Wx::ListCtrl->new( $page, $dt );
 
     my $header = $self->model->get_db_list_cols;
     $self->{dlist}->add_columns($header);
@@ -719,7 +722,7 @@ sub _create_config_page {
     #-- Button
 
     $self->{btn_load} = Wx::Button->new(
-        $self->{_nb}{p4},
+        $page,
         -1,
         q{Load},
         [ -1, -1 ],
@@ -728,7 +731,7 @@ sub _create_config_page {
     $self->{btn_load}->Enable(0);
 
     $self->{btn_defa} = Wx::Button->new(
-        $self->{_nb}{p4},
+        $page,
         -1,
         q{Default},
         [ -1, -1 ],
@@ -737,24 +740,70 @@ sub _create_config_page {
     $self->{btn_defa}->Enable(0);
 
     $self->{btn_add} = Wx::Button->new(
-        $self->{_nb}{p4},
+        $page,
         -1,
         q{Add},
         [ -1, -1 ],
         [ -1, 22 ],
     );
 
+    $self->log_ctrl($page);
+
+    #--- Layout
+
+    my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 1, 5 );
+
+    #-- Top
+
+    my $conf_top_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Connection ', ),
+        wxVERTICAL, );
+
+    $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
+
+    #-- Middle
+
+    my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $h_sizer->Add( $self->{btn_load}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25);
+    $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
+    $h_sizer->Add( $self->{btn_add},  1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
+
+    #-- Bottom
+
+    my $conf_bot_sz =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Log ', ),
+        wxVERTICAL, );
+
+    $conf_bot_sz->Add( $self->{log}, 1, wxEXPAND );
+
+    #--
+
+    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
+    $conf_main_sz->Add( $h_sizer, 1, wxALIGN_CENTRE);
+    $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
+
+    $conf_main_sz->AddGrowableRow(0);
+    $conf_main_sz->AddGrowableRow(2);
+    $conf_main_sz->AddGrowableCol(0);
+
+    $page->SetSizer($conf_main_sz);
+}
+
+
+sub log_ctrl {
+    my ($self, $page) = @_;
+
     #- Log text control
 
     $self->{log} = Wx::StyledTextCtrl->new(
-        $self->{_nb}{p4},
+        $page,
         -1,
         [ -1, -1 ],
         [ -1, -1 ],
     );
 
-    # $self->{log}->SetUseHorizontalScrollBar(0); # turn off scrollbars
-    # $self->{log}->SetUseVerticalScrollBar(0);
     $self->{log}->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
     $self->{log}->SetMarginWidth( 1, 10 );
     $self->{log}->StyleSetFont( wxSTC_STYLE_DEFAULT,
@@ -781,46 +830,7 @@ sub _create_config_page {
     $self->{log}->StyleSetSpec(10,"fore:#ff0000");            #*List1
     $self->{log}->StyleSetSpec(11,"fore:#0000ff");            #*List2
 
-    #--- Layout
-
-    my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 1, 5 );
-
-    #-- Top
-
-    my $conf_top_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p4}, -1, __ ' Connection ', ),
-        wxVERTICAL, );
-
-    $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
-
-    #-- Middle
-
-    my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-    $h_sizer->Add( $self->{btn_load}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25);
-    $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
-    $h_sizer->Add( $self->{btn_add},  1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
-
-    #-- Bottom
-
-    my $conf_bot_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p4}, -1, __ ' Log ', ),
-        wxVERTICAL, );
-
-    $conf_bot_sz->Add( $self->{log}, 1, wxEXPAND );
-
-    #--
-
-    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
-    $conf_main_sz->Add( $h_sizer, 1, wxALIGN_CENTRE);
-    $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
-
-    $conf_main_sz->AddGrowableRow(0);
-    $conf_main_sz->AddGrowableRow(2);
-    $conf_main_sz->AddGrowableCol(0);
-
-    $self->{_nb}{p4}->SetSizer($conf_main_sz);
+    return;
 }
 
 =head2 dialog_error
