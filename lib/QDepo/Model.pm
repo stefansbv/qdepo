@@ -876,7 +876,7 @@ sub get_columns_list {
 
     #-- Table
     my $tables_ref = $parser->structure->{org_table_names};
-    my $table = $tables_ref->[0];
+    my $table      = $tables_ref->[0];
 
     #-- Columns
     my $all_cols_href;
@@ -885,8 +885,8 @@ sub get_columns_list {
     }
     else {
         $self->message_log("WW Not implemented: 'table_info_short'");
+        return;
     }
-
     my $sql_cols_aref = $parser->structure->{org_col_names};
 
     # When using: SELECT * FROM...

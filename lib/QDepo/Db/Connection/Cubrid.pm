@@ -5,33 +5,20 @@ package QDepo::Db::Connection::Cubrid;
 use strict;
 use warnings;
 
-use QDepo::Exceptions;
-use Try::Tiny;
 use DBI;
+use Try::Tiny;
 
-=head2 new
+use QDepo::Exceptions;
 
-Constructor.
-
-=cut
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = {};
-
     $self->{model} = $model;
-
     bless $self, $class;
-
     return $self;
 }
 
-=head2 db_connect
-
-Connect to the database.
-
-=cut
 
 sub db_connect {
     my ( $self, $conf ) = @_;
@@ -55,11 +42,6 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-=head2 handle_error
-
-Log errors.
-
-=cut
 
 sub handle_error {
     my $self = shift;

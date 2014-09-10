@@ -11,35 +11,15 @@ use Regexp::Common;
 
 use QDepo::Exceptions;
 
-=head1 SYNOPSIS
-
-    use QDepo::Db::Connection::Sqlite;
-
-    my $db = QDepo::Db::Connection::Sqlite->new();
-
-    $db->db_connect($connection);
-
-=head2 new
-
-Constructor
-
-=cut
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
-
     return $self;
 }
 
-=head2 db_connect
-
-Connect to database
-
-=cut
 
 sub db_connect {
     my ( $self, $conf ) = @_;
@@ -71,12 +51,6 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-=head2 handle_error
-
-Log errors.
-
-=cut
-
 sub handle_error {
     my $self = shift;
 
@@ -98,18 +72,8 @@ sub handle_error {
     return;
 }
 
-=head2 parse_error
-
-Parse a database error message, and translate it for the user.
-
-=cut
-
 sub parse_error {
     my ($self, $si) = @_;
-
-    my $log = get_logger();
-
-    $log->error("EE: $si");
 
     my $message_type =
          $si eq q{}                                        ? "nomessage"
@@ -138,23 +102,56 @@ sub parse_error {
         $message = $translations->{$type}
     }
     else {
-        $log->error('EE: Translation error for: $si!');
+        # $log->error('EE: Translation error for: $si!');
+        print "EE: Translation error for: $si!\n";
     }
 
     return $message;
 }
 
-=head2 table_info_short
 
-Table info 'short'.
+sub table_exists {
+    my ( $self, $table ) = @_;
 
-=cut
+    die "'table_exists' requires a 'table' parameter!" unless $table;
+
+    my $sql = qq( SELECT COUNT(name)
+                FROM sqlite_master
+                WHERE type = 'table'
+                    AND name = '$table';
+    );
+
+    my $val_ret;
+    try {
+        ($val_ret) = $self->{_dbh}->selectrow_array($sql);
+    }
+    catch {
+        Exception::Db::Connect->throw(
+            logmsg  => "error#Transaction aborted because $_",
+            usermsg => 'error#Database error',
+        );
+    };
+
+    return $val_ret;
+}
+
 
 sub table_info_short {
     my ( $self, $table ) = @_;
 
-    my $h_ref = $self->{_dbh}
-        ->selectall_hashref( "PRAGMA table_info($table)", 'cid' );
+    die "'table_info_short' requires a 'table' parameter!" unless $table;
+
+    my $h_ref;
+    try {
+        $h_ref = $self->{_dbh}
+            ->selectall_hashref( "PRAGMA table_info($table)", 'cid' );
+    }
+    catch {
+        Exception::Db::Connect->throw(
+            logmsg  => "error#Transaction aborted because $_",
+            usermsg => 'error#Database error',
+        );
+    };
 
     my $flds_ref = {};
     foreach my $cid ( sort keys %{$h_ref} ) {
@@ -192,4 +189,11 @@ sub table_info_short {
     return $flds_ref;
 }
 
+
 1;
+
+=head2 parse_error
+
+Parse a database error message, and translate it for the user.
+
+=cut

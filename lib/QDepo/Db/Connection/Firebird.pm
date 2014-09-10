@@ -11,27 +11,15 @@ use Regexp::Common;
 
 use QDepo::Exceptions;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
-
     return $self;
 }
 
-=head2 db_connect
-
-Connect to database
-
-=cut
 
 sub db_connect {
     my ($self, $conf) = @_;
@@ -60,12 +48,6 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-=head2 handle_error
-
-Handle errors.  Makes a distinction between a connection error and
-other errors.
-
-=cut
 
 sub handle_error {
     my $self = shift;
@@ -88,18 +70,9 @@ sub handle_error {
     return;
 }
 
-=head2 parse_error
-
-Parse a database error message, and translate it for the user.
-
-=cut
 
 sub parse_error {
     my ( $self, $fb ) = @_;
-
-    # my $log = get_logger();
-
-    # print "\nFB: $fb\n\n";
 
     my $message_type
         = $fb eq q{} ? "nomessage"
@@ -141,15 +114,40 @@ sub parse_error {
     return $message;
 }
 
-=head2 table_info_short
 
-Table info 'short'.  The 'table_info' method from the Firebird driver
-doesn't seem to be reliable.
+sub table_exists {
+    my ( $self, $table ) = @_;
 
-=cut
+    die "'table_exists' requires a 'table' parameter!" unless $table;
+
+    $table = uc $table;
+
+    my $sql = qq(SELECT COUNT(RDB\$RELATION_NAME)
+                     FROM RDB\$RELATIONS
+                     WHERE RDB\$SYSTEM_FLAG=0
+                         AND RDB\$VIEW_BLR IS NULL
+                         AND RDB\$RELATION_NAME = '$table';
+    );
+
+    my $val_ret;
+    try {
+        ($val_ret) = $self->{_dbh}->selectrow_array($sql);
+    }
+    catch {
+        Exception::Db::Connect->throw(
+            logmsg  => "error#Transaction aborted because $_",
+            usermsg => 'error#Database error',
+        );
+    };
+
+    return $val_ret;
+}
+
 
 sub table_info_short {
     my ( $self, $table ) = @_;
+
+    die "'table_info_short' requires a 'table' parameter!" unless $table;
 
     $table = uc $table;
 
@@ -209,11 +207,28 @@ sub table_info_short {
         $flds_ref = $sth->fetchall_hashref('name');
     }
     catch {
-        # $self->{model}->exception_log("Transaction aborted because $_");
-        print "Transaction aborted because $_\n";
+        Exception::Db::Connect->throw(
+            logmsg  => "error#Transaction aborted because $_",
+            usermsg => 'error#Database error',
+        );
     };
 
     return $flds_ref;
 }
 
+
 1;
+
+=head2 handle_error
+
+Handle errors.  Makes a distinction between a connection error and
+other errors.
+
+=head1 ACKNOWLEDGEMENTS
+
+Information schema queries inspired from:
+
+ - http://www.alberton.info/firebird_sql_meta_info.html by Lorenzo Alberton
+ - Flamerobin Copyright (c) 2004-2013 The FlameRobin Development Team
+
+=cut

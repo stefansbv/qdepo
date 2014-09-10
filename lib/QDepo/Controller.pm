@@ -576,7 +576,7 @@ sub populate_fieldlist {
 
     my ( $columns, $header ) = $self->model->get_columns_list;
 
-    return unless @{$header};
+    return unless scalar @{$header};
 
     my $dt = $self->model->get_data_table_for('tlist');
 

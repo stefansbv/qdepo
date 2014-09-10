@@ -11,27 +11,15 @@ use Regexp::Common;
 
 use QDepo::Exceptions;
 
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
-
     return $self;
 }
 
-=head2 db_connect
-
-Connect to the database.
-
-=cut
 
 sub db_connect {
     my ($self, $conf) = @_;
@@ -55,12 +43,6 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-=head2 handle_error
-
-Handle errors.  Makes a distinction between a connection error and
-other errors.
-
-=cut
 
 sub handle_error {
     my $self = shift;
@@ -83,16 +65,9 @@ sub handle_error {
     return;
 }
 
-=head2 parse_db_error
-
-Parse a database error message, and translate it for the user.
-
-=cut
 
 sub parse_db_error {
     my ($self, $mi) = @_;
-
-    #print "\nMY: $mi\n\n";
 
     my $message_type
         = $mi eq q{}                                         ? "nomessage"
@@ -123,10 +98,12 @@ sub parse_db_error {
         $message = $translations->{$type};
     }
     else {
-        print "EE: Translation error!\n";
+        # $log->error('EE: Translation error for: $mi!');
+        print "EE: Translation error for: $mi!\n";
     }
 
     return $message;
 }
+
 
 1;

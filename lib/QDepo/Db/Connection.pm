@@ -53,17 +53,17 @@ sub _connect {
 
   SWITCH: for ( $driver ) {
         /^$/ && do warn "No driver name?\n";
-        /cb|cubrid/i && do {
+        /cubrid/i && do {
             require QDepo::Db::Connection::Cubrid;
             $db = QDepo::Db::Connection::Cubrid->new($model);
             last SWITCH;
         };
-        /fb|firebird/i && do {
+        /firebird/i && do {
             require QDepo::Db::Connection::Firebird;
             $db = QDepo::Db::Connection::Firebird->new($model);
             last SWITCH;
         };
-        /pg|postgresql/i && do {
+        /postgresql/i && do {
             require QDepo::Db::Connection::Postgresql;
             $db = QDepo::Db::Connection::Postgresql->new($model);
             last SWITCH;
@@ -85,10 +85,10 @@ sub _connect {
 
     $self->{dbc} = $db;
 
-    if ( ( !$inst->user and !$inst->pass ) and ( $driver ne 'sqlite' ) ) {
+    if ( ( !$inst->user or !$inst->pass ) and ( $driver ne 'sqlite' ) ) {
         Exception::Db::Connect::Auth->throw(
-            logmsg  => "info#Need user and pass",
-            usermsg => 'info#Realy need user and pass',
+            logmsg  => "info#Not connected",
+            usermsg => 'info#Need user and pass',
         );
     }
 
@@ -101,8 +101,10 @@ sub _connect {
     catch {
         if ( my $e = Exception::Base->catch($_) ) {
             if ( $e->isa('Exception::Db::Connect') ) {
-                print "*** Rethrow Exception::Db::Connect...\n";
-                $e->throw;      # rethrow the exception
+                Exception::Db::Connect::Auth->throw(
+                    logmsg  => "info#Not connected",
+                    usermsg => 'info#Need user and pass',
+                );
             }
             else {
                 print 'DBError: ', $e->can('logmsg') ? $e->logmsg : $_
