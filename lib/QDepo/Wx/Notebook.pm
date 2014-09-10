@@ -15,7 +15,7 @@ use base qw{Wx::AuiNotebook};
 
     use QDepo::Wx::Notebook;
 
-    $self->{_nb} = QDepo::Wx::Notebook->new( $gui );
+    $self->{_nb} = QDepo::Wx::Notebook->new( $parent );
 
 =head2 new
 
@@ -24,12 +24,12 @@ Constructor method.
 =cut
 
 sub new {
-    my ( $class, $gui ) = @_;
+    my ( $class, $parent ) = @_;
 
     #- The Notebook
 
     my $self = $class->SUPER::new(
-        $gui,
+        $parent,
         -1,
         [-1, -1],
         [-1, -1],

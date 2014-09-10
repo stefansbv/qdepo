@@ -111,9 +111,7 @@ Destroy (and hide )the dialog if it's still defined.
 
 sub DESTROY {
     my $self = shift;
-
     $self->{dialog}->Destroy if defined( $self->{dialog} );
-
     $self->{dialog} = undef;
 }
 

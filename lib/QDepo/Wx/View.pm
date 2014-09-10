@@ -12,7 +12,9 @@ use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
           wxALIGN_CENTRE wxICON_ERROR wxSTC_MARGIN_SYMBOL
           wxSTC_STYLE_DEFAULT wxDEFAULT wxNORMAL wxSTC_LEX_MSSQL
           wxSTC_STYLE_BRACELIGHT wxSTC_STYLE_BRACEBAD
-          wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL);
+          wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL
+          wxFULL_REPAINT_ON_RESIZE wxNO_FULL_REPAINT_ON_RESIZE
+          wxCLIP_CHILDREN);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
@@ -48,20 +50,19 @@ sub new {
 
     $self->{_cfg} = QDepo::Config->instance();
 
-    $self->SetMinSize( Wx::Size->new( 425, 597 ) );
+    # $self->SetMinSize( Wx::Size->new( 425, 597 ) );
+    $self->SetMinSize( Wx::Size->new( 425, 620 ) );
     $self->SetIcon( Wx::GetWxPerlIcon() );
 
     #-- GUI components
+
+    my $main_bsz = Wx::BoxSizer->new(wxHORIZONTAL);
 
     $self->_create_menu();
     $self->_create_toolbar();
     $self->_create_statusbar();
 
-    $self->{_nb} = QDepo::Wx::Notebook->new( $self );
-    $self->_create_para_page();
-    $self->_create_sql_page();
-    $self->_create_admin_page();
-    $self->_create_report_page();
+    $self->_create_splitter($main_bsz);
 
     #-- GUI actions
 
@@ -80,6 +81,7 @@ sub new {
 
     EVT_COMMAND( $self, -1, 9999, \&on_close_window );
 
+    $self->SetSizer($main_bsz);
     $self->Show(1);
 
     return $self;
@@ -381,6 +383,103 @@ sub get_notebook {
     return $self->{_nb};
 }
 
+sub _create_splitter {
+    my ($self, $main_bsz) = @_;
+
+    my $min_pane_size = 50;
+    my $sash_pos      = 450;
+
+    my $spw = Wx::SplitterWindow->new(
+        $self,
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        wxNO_FULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN,
+    );
+    $main_bsz->Add( $spw, 1, wxEXPAND | wxALL, 0 );
+
+    my $panel_top = Wx::Panel->new(
+        $spw,
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        wxFULL_REPAINT_ON_RESIZE,
+        'topPanel',
+    );
+    my $panel_bot = Wx::Panel->new(
+        $spw,
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+        wxFULL_REPAINT_ON_RESIZE,
+        'botPanel',
+    );
+
+    my $sizer_top = Wx::BoxSizer->new(wxVERTICAL);
+    $panel_top->SetSizerAndFit( $sizer_top );
+
+    my $sizer_bot = Wx::BoxSizer->new(wxHORIZONTAL);
+    $panel_bot->SetSizerAndFit( $sizer_bot );
+
+    $self->{log} = $self->log_ctrl($panel_bot);
+    $sizer_bot->Add( $self->{log}, 1, wxEXPAND | wxALL, 5);
+
+    $spw->SplitHorizontally( $panel_top, $panel_bot, $sash_pos );
+    $spw->SetMinimumPaneSize($min_pane_size);
+
+    $self->{_nb} = QDepo::Wx::Notebook->new( $panel_top );
+    $sizer_top->Add( $self->{_nb}, 1, wxEXPAND | wxALL, 0 );
+
+    $self->_create_para_page();
+    $self->_create_sql_page();
+    $self->_create_admin_page();
+    $self->_create_report_page();
+
+    return;
+}
+
+
+sub log_ctrl {
+    my ($self, $parent) = @_;
+
+    #- Log text control
+
+    my $log_ctrl = Wx::StyledTextCtrl->new(
+        $parent,
+        -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
+    );
+
+    $log_ctrl->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
+    $log_ctrl->SetMarginWidth( 1, 10 );
+    $log_ctrl->StyleSetFont( wxSTC_STYLE_DEFAULT,
+        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
+    $log_ctrl->SetLexer( wxSTC_LEX_MSSQL );
+    $log_ctrl->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
+
+    # List0
+    $log_ctrl->SetKeyWords(0, q{ii} );
+    # List1
+    $log_ctrl->SetKeyWords(1, q{ee} );
+    # List2
+
+    $log_ctrl->SetKeyWords(2, q{ww} );
+    $log_ctrl->SetTabWidth(4);
+    $log_ctrl->SetIndent(4);
+    $log_ctrl->SetHighlightGuide(4);
+    $log_ctrl->StyleClearAll();
+
+    # MSSQL - works with wxSTC_LEX_MSSQL
+    $log_ctrl->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
+    $log_ctrl->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
+    $log_ctrl->StyleSetSpec(9, "fore:#00ff00");            #*List0
+    $log_ctrl->StyleSetSpec(10,"fore:#ff0000");            #*List1
+    $log_ctrl->StyleSetSpec(11,"fore:#0000ff");            #*List2
+
+    return $log_ctrl;
+}
+
 =head2 _create_report_page
 
 Create the report page (tab) on the notebook
@@ -389,34 +488,35 @@ Create the report page (tab) on the notebook
 
 sub _create_report_page {
     my $self = shift;
+    my $page = $self->{_nb}{p1};
 
     $self->model->init_data_table('qlist');
     my $dtq = $self->model->get_data_table_for('qlist');
-    $self->{qlist} = QDepo::Wx::ListCtrl->new( $self->{_nb}{p1}, $dtq );
+    $self->{qlist} = QDepo::Wx::ListCtrl->new( $page, $dtq );
 
     my $header = $self->model->get_query_list_cols;
     $self->{qlist}->add_columns($header);
 
     #-- Controls
 
-    my $repo_lbl1 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Title', );
+    my $repo_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
     $self->{title} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl2 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Query file', );
+    my $repo_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
     $self->{filename} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl3 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Output file', );
+    my $repo_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
     $self->{output} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl4 = Wx::StaticText->new( $self->{_nb}{p1}, -1, __ 'Template', );
+    my $repo_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
     $self->{template} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     $self->{description} =
-        Wx::TextCtrl->new( $self->{_nb}{p1}, -1, q{}, [ -1, -1 ], [ -1, 40 ],
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, 40 ],
                            wxTE_MULTILINE, );
 
     #--- Layout
@@ -427,7 +527,7 @@ sub _create_report_page {
 
     my $repo_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Query list ', ),
+        Wx::StaticBox->new( $page, -1, __ ' Query list ', ),
         wxVERTICAL, );
 
     $repo_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
@@ -436,7 +536,7 @@ sub _create_report_page {
 
     my $repo_mid_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Header ', ), wxVERTICAL, );
+        Wx::StaticBox->new( $page, -1, __ ' Header ', ), wxVERTICAL, );
 
     my $repo_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
 
@@ -461,7 +561,7 @@ sub _create_report_page {
 
     my $repo_bot_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $self->{_nb}{p1}, -1, __ ' Description ', ),
+        Wx::StaticBox->new( $page, -1, __ ' Description ', ),
         wxVERTICAL, );
 
     $repo_bot_sz->Add( $self->{description}, 1, wxEXPAND );
@@ -475,7 +575,7 @@ sub _create_report_page {
     $repo_main_sz->AddGrowableRow(0);
     $repo_main_sz->AddGrowableCol(0);
 
-    $self->{_nb}{p1}->SetSizer($repo_main_sz);
+    $page->SetSizer($repo_main_sz);
 
     return;
 }
@@ -487,7 +587,6 @@ Create the parameters page (tab) on the notebook
 =cut
 
 sub _create_para_page {
-
     my $self = shift;
     my $page = $self->{_nb}{p2};
 
@@ -625,15 +724,16 @@ Create the SQL page (tab) on the notebook
 
 sub _create_sql_page {
     my $self = shift;
+    my $page = $self->{_nb}{p3};
 
     #--- SQL Tab (page)
 
     #-- Controls
 
-    my $sql_sb = Wx::StaticBox->new( $self->{_nb}{p3}, -1, __ ' SQL ', );
+    my $sql_sb = Wx::StaticBox->new( $page, -1, __ ' SQL ', );
 
     $self->{sql} = Wx::StyledTextCtrl->new(
-        $self->{_nb}{p3},
+        $page,
         -1,
         [ -1, -1 ],
         [ -1, -1 ],
@@ -691,7 +791,7 @@ transaction union upper user where with year} );
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
 
-    $self->{_nb}{p3}->SetSizer( $sql_main_sz );
+    $page->SetSizer( $sql_main_sz );
 }
 
 =head2 _create_admin_page
@@ -747,8 +847,6 @@ sub _create_admin_page {
         [ -1, 22 ],
     );
 
-    $self->log_ctrl($page);
-
     #--- Layout
 
     my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 1, 5 );
@@ -769,68 +867,16 @@ sub _create_admin_page {
     $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
     $h_sizer->Add( $self->{btn_add},  1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
 
-    #-- Bottom
-
-    my $conf_bot_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Log ', ),
-        wxVERTICAL, );
-
-    $conf_bot_sz->Add( $self->{log}, 1, wxEXPAND );
-
     #--
 
     $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
     $conf_main_sz->Add( $h_sizer, 1, wxALIGN_CENTRE);
-    $conf_main_sz->Add( $conf_bot_sz, 0, wxALL | wxGROW, 5 );
 
     $conf_main_sz->AddGrowableRow(0);
     $conf_main_sz->AddGrowableRow(2);
     $conf_main_sz->AddGrowableCol(0);
 
     $page->SetSizer($conf_main_sz);
-}
-
-
-sub log_ctrl {
-    my ($self, $page) = @_;
-
-    #- Log text control
-
-    $self->{log} = Wx::StyledTextCtrl->new(
-        $page,
-        -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-    );
-
-    $self->{log}->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
-    $self->{log}->SetMarginWidth( 1, 10 );
-    $self->{log}->StyleSetFont( wxSTC_STYLE_DEFAULT,
-        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    $self->{log}->SetLexer( wxSTC_LEX_MSSQL );
-    $self->{log}->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
-
-    # List0
-    $self->{log}->SetKeyWords(0, q{ii} );
-    # List1
-    $self->{log}->SetKeyWords(1, q{ee} );
-    # List2
-
-    $self->{log}->SetKeyWords(2, q{ww} );
-    $self->{log}->SetTabWidth(4);
-    $self->{log}->SetIndent(4);
-    $self->{log}->SetHighlightGuide(4);
-    $self->{log}->StyleClearAll();
-
-    # MSSQL - works with wxSTC_LEX_MSSQL
-    $self->{log}->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
-    $self->{log}->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
-    $self->{log}->StyleSetSpec(9, "fore:#00ff00");            #*List0
-    $self->{log}->StyleSetSpec(10,"fore:#ff0000");            #*List1
-    $self->{log}->StyleSetSpec(11,"fore:#0000ff");            #*List2
-
-    return;
 }
 
 =head2 dialog_error
@@ -1089,6 +1135,7 @@ sub log_msg {
     my ( $self, $message ) = @_;
     my $control = $self->get_control_by_name('log');
     $self->control_write_s( $control, $message, 'append' );
+    $control->LineScrollDown;
     return;
 }
 
@@ -1333,9 +1380,7 @@ sub controls_read_page {
 
 sub toggle_list_enable {
     my ($self, $lname, $state) = @_;
-
     $self->get_control($lname)->Enable($state);
-
     return;
 }
 
