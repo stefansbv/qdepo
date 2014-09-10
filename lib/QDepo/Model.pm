@@ -20,11 +20,6 @@ use QDepo::Output;
 use QDepo::Utils;
 use QDepo::ListDataTable;
 
-=head2 new
-
-Constructor method.
-
-=cut
 
 sub new {
     my $class = shift;
@@ -836,13 +831,13 @@ sub init_data_table {
     return;
 }
 
+
 sub get_data_table_for {
     my ($self, $list) = @_;
     die "List name is required for 'init_data_table'" unless $list;
     return $self->{_dt}{$list};
 }
 
-### Column types
 
 sub get_sql_stmt {
     my $self = shift;

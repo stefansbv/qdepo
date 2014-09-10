@@ -272,6 +272,7 @@ sub set_event_handlers {
         sub {
             if ( $self->model->is_appmode('edit') ) {
                 $self->save_qdf_data();
+                $self->model->on_item_selected_load;
                 $self->set_app_mode('sele');
             }
         }
@@ -305,7 +306,6 @@ sub set_event_handlers {
             my $item = $event->GetIndex;
             my $dt   = $self->model->get_data_table_for('qlist');
             $dt->set_item_selected($item);
-            # Refresh controlls
             $self->model->on_item_selected_load;
         }
     );
