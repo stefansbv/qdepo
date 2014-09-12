@@ -18,7 +18,7 @@ use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
-use Wx::STC;
+use Wx::Scintilla ();
 
 use QDepo::Config;
 use QDepo::Config::Menu;
@@ -26,6 +26,8 @@ use QDepo::Config::Toolbar;
 use QDepo::Wx::Notebook;
 use QDepo::Wx::ToolBar;
 use QDepo::Wx::ListCtrl;
+use QDepo::Wx::LogView;
+use QDepo::Wx::Editor;
 use QDepo::Utils;
 
 use base 'Wx::Frame';
@@ -95,7 +97,6 @@ Return model instance
 
 sub model {
     my $self = shift;
-
     $self->{_model};
 }
 
@@ -156,17 +157,11 @@ module.
 
 sub update_gui_components {
     my $self = shift;
-
     my $mode = $self->model->get_appmode;
-
     $self->set_status( $mode, 'md' );    # update statusbar
-
-    if ($mode eq 'edit') {
-        $self->{_tb}->toggle_tool_check( 'tb_ed', 1 );
-    }
-    else {
-        $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
-    }
+    ( $mode eq 'edit' )
+        ? $self->{_tb}->toggle_tool_check( 'tb_ed', 1 )
+        : $self->{_tb}->toggle_tool_check( 'tb_ed', 0 );
 
     return;
 }
@@ -354,10 +349,8 @@ Create the status bar
 
 sub _create_statusbar {
     my $self = shift;
-
     my $sb = $self->CreateStatusBar( 3 );
     $self->{_sb} = $sb;
-
     $self->SetStatusWidths( 260, -1, -2 );
 }
 
@@ -416,13 +409,20 @@ sub _create_splitter {
     );
 
     my $sizer_top = Wx::BoxSizer->new(wxVERTICAL);
-    $panel_top->SetSizerAndFit( $sizer_top );
+    # $panel_top->SetSizerAndFit( $sizer_top );
+    $panel_top->SetSizer( $sizer_top );
 
-    my $sizer_bot = Wx::BoxSizer->new(wxHORIZONTAL);
-    $panel_bot->SetSizerAndFit( $sizer_bot );
+    my $sizer_bot = Wx::BoxSizer->new(wxVERTICAL);
+    # $panel_bot->SetSizerAndFit( $sizer_bot );
+    $panel_bot->SetSizer( $sizer_bot );
 
-    $self->{log} = $self->log_ctrl($panel_bot);
-    $sizer_bot->Add( $self->{log}, 1, wxEXPAND | wxALL, 5);
+    # $self->{log} = $self->log_ctrl($panel_bot);
+    $self->{log} = QDepo::Wx::LogView->new($panel_bot);
+
+    my $log_sbs = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $panel_bot, -1, __ ' Log ' ), wxHORIZONTAL );
+    $log_sbs->Add( $self->{log}, 1, wxEXPAND, 0 );
+    $sizer_bot->Add( $log_sbs, 1, wxALL | wxEXPAND, 5 );
 
     $spw->SplitHorizontally( $panel_top, $panel_bot, $sash_pos );
     $spw->SetMinimumPaneSize($min_pane_size);
@@ -436,48 +436,6 @@ sub _create_splitter {
     $self->_create_report_page();
 
     return;
-}
-
-
-sub log_ctrl {
-    my ($self, $parent) = @_;
-
-    #- Log text control
-
-    my $log_ctrl = Wx::StyledTextCtrl->new(
-        $parent,
-        -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-    );
-
-    $log_ctrl->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
-    $log_ctrl->SetMarginWidth( 1, 10 );
-    $log_ctrl->StyleSetFont( wxSTC_STYLE_DEFAULT,
-        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    $log_ctrl->SetLexer( wxSTC_LEX_MSSQL );
-    $log_ctrl->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
-
-    # List0
-    $log_ctrl->SetKeyWords(0, q{ii} );
-    # List1
-    $log_ctrl->SetKeyWords(1, q{ee} );
-    # List2
-
-    $log_ctrl->SetKeyWords(2, q{ww} );
-    $log_ctrl->SetTabWidth(4);
-    $log_ctrl->SetIndent(4);
-    $log_ctrl->SetHighlightGuide(4);
-    $log_ctrl->StyleClearAll();
-
-    # MSSQL - works with wxSTC_LEX_MSSQL
-    $log_ctrl->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
-    $log_ctrl->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
-    $log_ctrl->StyleSetSpec(9, "fore:#00ff00");            #*List0
-    $log_ctrl->StyleSetSpec(10,"fore:#ff0000");            #*List1
-    $log_ctrl->StyleSetSpec(11,"fore:#0000ff");            #*List2
-
-    return $log_ctrl;
 }
 
 =head2 _create_report_page
@@ -732,56 +690,7 @@ sub _create_sql_page {
 
     my $sql_sb = Wx::StaticBox->new( $page, -1, __ ' SQL ', );
 
-    $self->{sql} = Wx::StyledTextCtrl->new(
-        $page,
-        -1,
-        [ -1, -1 ],
-        [ -1, -1 ],
-    );
-
-    $self->{sql}->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
-    $self->{sql}->SetMarginWidth( 1, 10 );
-    $self->{sql}->StyleSetFont( wxSTC_STYLE_DEFAULT,
-        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    $self->{sql}->SetLexer( wxSTC_LEX_MSSQL );
-    # List0
-    $self->{sql}->SetKeyWords(0,
-    q{all and any ascending between by cast collate containing day
-descending distinct escape exists from full group having in
-index inner into is join left like merge month natural not
-null on order outer plan right select singular some sort starting
-transaction union upper user where with year} );
-    # List1
-    $self->{sql}->SetKeyWords(1,
-    q{blob char decimal integer number varchar} );
-    # List2 Only for MSSQL?
-    $self->{sql}->SetKeyWords(2,
-    q{avg count gen_id max min sum} );
-    $self->{sql}->SetTabWidth(4);
-    $self->{sql}->SetIndent(4);
-    $self->{sql}->SetHighlightGuide(4);
-
-    $self->{sql}->StyleClearAll();
-
-    # Global default styles for all languages
-    $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACELIGHT,
-                                "fore:#FFFFFF,back:#0000FF,bold" );
-    $self->{sql}->StyleSetSpec( wxSTC_STYLE_BRACEBAD,
-                                "fore:#000000,back:#FF0000,bold" );
-
-    # MSSQL - works with wxSTC_LEX_MSSQL
-    $self->{sql}->StyleSetSpec(0, "fore:#000000");            #*Default
-    $self->{sql}->StyleSetSpec(1, "fore:#ff7373,italic");     #*Comment
-    $self->{sql}->StyleSetSpec(2, "fore:#007f7f,italic");     #*Commentline
-    $self->{sql}->StyleSetSpec(3, "fore:#0000ff");            #*Number
-    $self->{sql}->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
-    $self->{sql}->StyleSetSpec(5, "fore:#3f3f3f");            #*Operation
-    $self->{sql}->StyleSetSpec(6, "fore:#000000");            #*Identifier
-    $self->{sql}->StyleSetSpec(7, "fore:#8cd1d3");            #*@-Variable
-    $self->{sql}->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
-    $self->{sql}->StyleSetSpec(9, "fore:#dfaf8f");            #*List0
-    $self->{sql}->StyleSetSpec(10,"fore:#94c0f3");            #*List1
-    $self->{sql}->StyleSetSpec(11,"fore:#705030");            #*List2
+    $self->{sql} = QDepo::Wx::Editor->new($page);
 
     #-- Layout
 
