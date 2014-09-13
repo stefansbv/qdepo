@@ -349,6 +349,13 @@ sub set_event_handlers {
         }
     );
 
+    #-- Default button
+    $self->view->event_handler_for_button(
+        'btn_edit', sub {
+            print "Not implemented\n";
+        }
+    );
+
     #-- Refresh button
     $self->view->event_handler_for_button(
         'btn_refr', sub {
@@ -408,7 +415,7 @@ sub toggle_interface_controls {
     $self->view->toggle_list_enable('qlist', !$is_edit );
 
     # Controls by page Enabled in edit mode
-    foreach my $page (qw(para list conf sql )) {
+    foreach my $page (qw(list para sql admin )) {
         $self->toggle_controls_page( $page, $is_edit );
     }
 
@@ -437,7 +444,6 @@ sub toggle_controls_page {
             else {
                 $state = 'disabled';
             }
-
             $self->view->set_editable($name, $state, $color);
         }
     }
@@ -530,6 +536,7 @@ sub toggle_admin_buttons {
     my $enable = $item_sele == $item_defa ? 1 : 0;
     $self->view->get_control('btn_load')->Enable($enable);
     $self->view->get_control('btn_defa')->Enable(not $enable);
+    $self->view->get_control('btn_edit')->Enable;
 
     return;
 }
@@ -629,8 +636,8 @@ sub populate_connlist {
     $self->model->dlist_default_item;
 
     my $item = $dt->get_item_default;
-    $item = $dt->set_value( $item, 2, 'yes' );
-
+    $dt->set_value( $item, 2, 'yes' );
+    $self->view->select_list_item('dlist', $item);
     $self->view->refresh_list('dlist');
 
     return;

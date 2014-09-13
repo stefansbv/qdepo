@@ -7,6 +7,7 @@ use warnings;
 
 use Locale::TextDomain 1.20 qw(QDepo);
 use File::Spec::Functions qw(abs2rel);
+use Scalar::Util qw(looks_like_number);
 use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
           wxHORIZONTAL wxVERTICAL wxTOP wxLEFT wxRIGHT wxALL wxGROW
           wxALIGN_CENTRE wxICON_ERROR wxSTC_MARGIN_SYMBOL
@@ -52,8 +53,7 @@ sub new {
 
     $self->{_cfg} = QDepo::Config->instance();
 
-    # $self->SetMinSize( Wx::Size->new( 425, 597 ) );
-    $self->SetMinSize( Wx::Size->new( 425, 620 ) );
+    $self->SetMinSize( Wx::Size->new( 425, 660 ) );
     $self->SetIcon( Wx::GetWxPerlIcon() );
 
     #-- GUI components
@@ -416,7 +416,6 @@ sub _create_splitter {
     # $panel_bot->SetSizerAndFit( $sizer_bot );
     $panel_bot->SetSizer( $sizer_bot );
 
-    # $self->{log} = $self->log_ctrl($panel_bot);
     $self->{log} = QDepo::Wx::LogView->new($panel_bot);
 
     my $log_sbs = Wx::StaticBoxSizer->new(
@@ -479,7 +478,7 @@ sub _create_report_page {
 
     #--- Layout
 
-    my $repo_main_sz = Wx::FlexGridSizer->new( 4, 1, 0, 5 );
+    my $repo_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
     #-- Top
 
@@ -559,7 +558,7 @@ sub _create_para_page {
     $para_top_sz->Add( $para_fgs, 1, wxEXPAND, 3 );
     $para_fgs->AddGrowableCol(2);
 
-    $self->_parameter_page_ctrls( $page, $para_fgs );
+    $self->_parameter_ctrls( $page, $para_fgs );
 
     #-- Middle
 
@@ -607,7 +606,7 @@ sub _create_para_page {
 }
 
 
-sub _parameter_page_ctrls {
+sub _parameter_ctrls {
     my ($self, $page, $sizer) = @_;
 
     my $para_tit_lbl1 =
@@ -674,6 +673,56 @@ sub _parameter_page_ctrls {
     return;
 }
 
+
+sub _connection_ctrls {
+    my ($self, $page, $sizer) = @_;
+
+    #-- Controls
+
+    my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
+    $self->{driver} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl2 = Wx::StaticText->new( $page, -1, __ 'Host', );
+    $self->{host} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl3 = Wx::StaticText->new( $page, -1, __ 'Database', );
+    $self->{dbname} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl4 = Wx::StaticText->new( $page, -1, __ 'Port', );
+    $self->{port} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    #-- Middle
+
+    my $conn_mid_sz
+        = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Connection details ', ),
+        wxVERTICAL );
+
+    my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
+
+    $conn_mid_fgs->Add( $conn_lbl1, 0, wxTOP | wxLEFT,  5 );
+    $conn_mid_fgs->Add( $self->{driver},    0, wxEXPAND | wxTOP, 5 );
+
+    $conn_mid_fgs->Add( $conn_lbl2, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
+
+    $conn_mid_fgs->Add( $conn_lbl3, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{dbname},   0, wxEXPAND, 0 );
+
+    $conn_mid_fgs->Add( $conn_lbl4, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{port},    0, wxEXPAND, 0 );
+
+    $conn_mid_fgs->AddGrowableCol( 1, 1 );
+
+    $conn_mid_sz->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 0 );
+
+    return $conn_mid_sz;
+}
+
 =head2 _create_sql_page
 
 Create the SQL page (tab) on the notebook
@@ -705,7 +754,7 @@ sub _create_sql_page {
 
 =head2 _create_admin_page
 
-Create the admiistration page (tab) on the notebook.
+Create the administration page (tab) on the notebook.
 
 Using the MySQL lexer for very basic syntax highlighting. This was
 chosen because permits the definition of 3 custom lists. For this
@@ -719,8 +768,6 @@ sub _create_admin_page {
     my $self = shift;
     my $page = $self->{_nb}{p4};
 
-    #-- Controls
-
     $self->model->init_data_table('dlist');
     my $dt = $self->model->get_data_table_for('dlist');
     $self->{dlist} = QDepo::Wx::ListCtrl->new( $page, $dt );
@@ -733,7 +780,7 @@ sub _create_admin_page {
     $self->{btn_load} = Wx::Button->new(
         $page,
         -1,
-        q{Load},
+        __ 'Load',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -742,23 +789,32 @@ sub _create_admin_page {
     $self->{btn_defa} = Wx::Button->new(
         $page,
         -1,
-        q{Default},
+        __ 'Default',
         [ -1, -1 ],
         [ -1, 22 ],
     );
     $self->{btn_defa}->Enable(0);
 
+    $self->{btn_edit} = Wx::Button->new(
+        $page,
+        -1,
+        __ 'Edit',
+        [ -1, -1 ],
+        [ -1, 22 ],
+    );
+    $self->{btn_edit}->Enable(0);
+
     $self->{btn_add} = Wx::Button->new(
         $page,
         -1,
-        q{Add},
+        __ 'New',
         [ -1, -1 ],
         [ -1, 22 ],
     );
 
     #--- Layout
 
-    my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 1, 5 );
+    my $conf_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
     #-- Top
 
@@ -771,18 +827,21 @@ sub _create_admin_page {
 
     #-- Middle
 
-    my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-    $h_sizer->Add( $self->{btn_load}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25);
-    $h_sizer->Add( $self->{btn_defa}, 1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
-    $h_sizer->Add( $self->{btn_add},  1, wxLEFT | wxRIGHT | wxEXPAND, 25 );
+    my $button_sz = Wx::BoxSizer->new(wxHORIZONTAL);
+    $button_sz->Add( $self->{btn_load}, 0, wxLEFT | wxRIGHT | wxEXPAND, 5 );
+    $button_sz->Add( $self->{btn_defa}, 0, wxLEFT | wxRIGHT | wxEXPAND, 5 );
+    $button_sz->Add( $self->{btn_edit}, 0, wxLEFT | wxRIGHT | wxEXPAND, 5 );
+    $button_sz->Add( $self->{btn_add},  0, wxLEFT | wxRIGHT | wxEXPAND, 5 );
 
-    #--
+    #-- Bottom
+
+    my $conn_mid_sz = $self->_connection_ctrls($page);
 
     $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
-    $conf_main_sz->Add( $h_sizer, 1, wxALIGN_CENTRE);
+    $conf_main_sz->Add( $button_sz, 0, wxALIGN_CENTRE | wxALL, 15 );
+    $conf_main_sz->Add( $conn_mid_sz, 0, wxALL | wxGROW, 5 );
 
     $conf_main_sz->AddGrowableRow(0);
-    $conf_main_sz->AddGrowableRow(2);
     $conf_main_sz->AddGrowableCol(0);
 
     $page->SetSizer($conf_main_sz);
@@ -927,6 +986,22 @@ None at this time.
 sub get_controls_conf {
     my $self = shift;
     return [];
+}
+
+=head2 get_controls_admin
+
+Return a AoH with information regarding the connection controls.
+
+=cut
+
+sub get_controls_admin {
+    my $self = shift;
+    return [
+        { driver => [ $self->{driver}, 'normal', 'white', 'e' ] },
+        { host   => [ $self->{host},   'normal', 'white', 'e' ] },
+        { dbname => [ $self->{dbname}, 'normal', 'white', 'e' ] },
+        { port   => [ $self->{port},   'normal', 'white', 'e' ] },
+    ];
 }
 
 =head2 get_control_by_name
@@ -1390,23 +1465,28 @@ sub refresh_list {
 
 sub select_list_item {
     my ($self, $lname, $what) = @_;
-
+    print "P: $lname, $what\n";
     die "List name is required for 'refresh_list'" unless $lname;
 
-    my $items_no = $self->{$lname}->GetItemCount();
+    my $items_no = $self->{$lname}->GetItemCount;
 
     return unless $items_no > 0;             # nothing to select
 
+    if (looks_like_number($what)) {
+        print "nITEM: $what \n";
+        $self->{$lname}->EnsureVisible($what);
+        return;
+    }
+
     my $item
-        = $what eq 'first'   ? 0
+        = $what eq 'first'   ?  0
         : $what eq 'last'    ? ($items_no - 1)
-        :                      $what # default
+        :                       $what # default
         ;
 
-    return unless defined $item and $item =~ m {^[0-9]+$};
-
-    $self->{$lname}->set_selection($item);
     $self->{$lname}->EnsureVisible($item);
+
+    print "cITEM $item\n";
 
     return $item;
 }
