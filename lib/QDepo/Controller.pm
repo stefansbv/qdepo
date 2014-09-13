@@ -318,6 +318,7 @@ sub set_event_handlers {
             my $dt   = $self->model->get_data_table_for('dlist');
             $dt->set_item_selected($item);
             $self->toggle_admin_buttons;
+            $self->load_conn_details;
         }
     );
 
@@ -538,6 +539,16 @@ sub toggle_admin_buttons {
     $self->view->get_control('btn_defa')->Enable(not $enable);
     $self->view->get_control('btn_edit')->Enable;
 
+    return;
+}
+
+sub load_conn_details {
+    my $self = shift;
+    my $dt    = $self->model->get_data_table_for('dlist');
+    my $item  = $dt->get_item_selected;
+    my $mnemo = $dt->get_value($item, 1);
+    my $rec   = $self->cfg->get_details_for($mnemo);
+    $self->view->controls_write( 'admin', $rec->{connection} );
     return;
 }
 

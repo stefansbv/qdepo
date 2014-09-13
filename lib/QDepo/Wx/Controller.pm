@@ -267,7 +267,7 @@ wxPerl $Wx::VERSION, $wx_version
     $about->SetName($PROGRAM_NAME);
     $about->SetVersion($PROGRAM_VER);
     $about->SetDescription($PROGRAM_DESC);
-    $about->SetCopyright('(c) 2010-2014 Ştefan Suciu <stefan@s2i2.ro>');
+    $about->SetCopyright('(c) 2010-2014 Ștefan Suciu <stefan@s2i2.ro>');
     $about->SetLicense($LICENSE);
     $about->SetWebSite( 'http://qdepo.s2i2.ro/', 'The QDepo web site');
     $about->AddDeveloper( 'Ștefan Suciu <stefan@s2i2.ro>' );
@@ -301,9 +301,9 @@ sub save_qdf_data {
 
     my $item = $self->model->get_query_item;
     my $file = $self->model->get_query_file;
-    my $head = $self->view->controls_read_page('list');
-    my $para = $self->view->controls_read_page('para');
-    my $body = $self->view->controls_read_page('sql');
+    my $head = $self->view->controls_read('list');
+    my $para = $self->view->controls_read('para');
+    my $body = $self->view->controls_read('sql');
 
     $self->model->write_qdf_data_file( $file, $head, $para, $body );
 

@@ -9,13 +9,9 @@ use List::MoreUtils qw/firstidx/;
 
 sub new {
     my $class = shift;
-
     my $self = {};
-
     $self->{data} = [];
-
     bless $self, $class;
-
     return $self;
 }
 

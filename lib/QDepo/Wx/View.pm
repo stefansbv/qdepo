@@ -968,20 +968,6 @@ sub get_controls_sql {
     ];
 }
 
-=head2 get_controls_conf
-
-Return a AoH with information regarding the controls from the
-configurations page.
-
-None at this time.
-
-=cut
-
-sub get_controls_conf {
-    my $self = shift;
-    return [];
-}
-
 =head2 get_controls_admin
 
 Return a AoH with information regarding the connection controls.
@@ -1050,16 +1036,16 @@ sub form_populate {
     $data->{filename}    = $self->model->itemdata->filename;
     $data->{output}      = $self->model->itemdata->output;
     $data->{description} = $self->model->itemdata->descr;
-    $self->controls_write_page( 'list', $data );
+    $self->controls_write( 'list', $data );
 
     #-- Parameters
 
     my $para = QDepo::Utils->params_to_hash( $self->model->itemdata->params );
-    $self->controls_write_page( 'para', $para );
+    $self->controls_write( 'para', $para );
 
     #-- SQL
 
-    $self->controls_write_page( 'sql',
+    $self->controls_write( 'sql',
         { sql => $self->model->itemdata->sql } );
 
     return;
@@ -1236,17 +1222,17 @@ sub control_set_value {
     return;
 }
 
-=head2 controls_write_page
+=head2 controls_write
 
 Write all controls on page with data
 
 =cut
 
-sub controls_write_page {
+sub controls_write {
     my ($self, $page, $data) = @_;
 
     # Get controls name and object from $page
-    my $get = 'get_controls_'.$page;
+    my $get = "get_controls_$page";
     my $controls = $self->$get();
 
     foreach my $control ( @{$controls} ) {
@@ -1325,17 +1311,17 @@ sub control_write_s {
     return;
 }
 
-=head2 controls_read_page
+=head2 controls_read
 
-Read all controls from page and return an array reference
+Read all controls and return an array reference.
 
 =cut
 
-sub controls_read_page {
+sub controls_read {
     my ( $self, $page ) = @_;
 
     # Get controls name and object from $page
-    my $get      = 'get_controls_' . $page;
+    my $get      = "get_controls_$page";
     my $controls = $self->$get();
     my @records;
 
