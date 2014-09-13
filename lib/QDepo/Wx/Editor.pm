@@ -1,5 +1,7 @@
 package QDepo::Wx::Editor;
 
+# ABSTRACT: QDepo Editor control with syntax highlighting
+
 use strict;
 use warnings;
 
