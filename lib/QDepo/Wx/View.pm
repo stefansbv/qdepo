@@ -430,7 +430,7 @@ sub _build_splitter {
     $sizer_top->Add( $self->{_nb}, 1, wxEXPAND | wxALL, 0 );
 
     $self->_build_page_querylist;
-    $self->_build_page_para;
+    $self->_build_page_info;
     $self->_build_page_sql;
     $self->_build_page_admin;
 
@@ -456,60 +456,51 @@ sub _build_page_querylist {
 
     #--- Layout
 
-    my $repo_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
+    my $qlist_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
-    #-- Top
-
-    my $repo_top_sz =
+    my $qlist_top_sz =
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ ' Query list ', ),
         wxVERTICAL, );
 
-    $repo_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
-
-    #-- Middle
+    $qlist_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
 
     my $qlist_sizer = $self->_build_ctrls_querylist($page);
 
-    #-- Bottom
-
-    my $repo_bot_sz =
+    my $qlist_bot_sz =
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ ' Description ', ),
         wxVERTICAL, );
 
-    $repo_bot_sz->Add( $self->{description}, 1, wxEXPAND );
+    $qlist_bot_sz->Add( $self->{description}, 1, wxEXPAND );
 
-    #--
+    $qlist_main_sz->Add( $qlist_top_sz, 0, wxALL | wxGROW, 5 );
+    $qlist_main_sz->Add( $qlist_sizer, 0, wxALL | wxGROW, 5 );
+    $qlist_main_sz->Add( $qlist_bot_sz, 0, wxALL | wxGROW, 5 );
 
-    $repo_main_sz->Add( $repo_top_sz, 0, wxALL | wxGROW, 5 );
-    $repo_main_sz->Add( $qlist_sizer, 0, wxALL | wxGROW, 5 );
-    $repo_main_sz->Add( $repo_bot_sz, 0, wxALL | wxGROW, 5 );
+    $qlist_main_sz->AddGrowableRow(0);
+    $qlist_main_sz->AddGrowableCol(0);
 
-    $repo_main_sz->AddGrowableRow(0);
-    $repo_main_sz->AddGrowableCol(0);
-
-    $page->SetSizer($repo_main_sz);
+    $page->SetSizer($qlist_main_sz);
 
     return;
 }
 
-=head2 _build_page_para
 
-Create the parameters page (tab) on the notebook
-
-=cut
-
-sub _build_page_para {
+sub _build_page_info {
     my $self = shift;
     my $page = $self->{_nb}{p2};
 
-    #-- Top
+    #--  Controls
 
-    my $para_sizer = $self->_build_ctrls_parameter($page);
+    # Fields table
+    $self->model->init_data_table('tlist');
+    my $dtt = $self->model->get_data_table_for('tlist');
+    $self->{tlist} = QDepo::Wx::ListCtrl->new( $page, $dtt );
+    my $header = $self->model->get_table_list_cols;
+    $self->{tlist}->add_columns($header);
 
-    #-- Middle
-
+    # Refresh button
     $self->{btn_refr} = Wx::Button->new(
         $page,
         -1,
@@ -519,36 +510,26 @@ sub _build_page_para {
     );
     $self->{btn_refr}->Enable(1);
 
-    my $para_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
-    $para_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
-
-    #-- Bottom
-
-    $self->model->init_data_table('tlist');
-    my $dtt = $self->model->get_data_table_for('tlist');
-    $self->{tlist} = QDepo::Wx::ListCtrl->new( $page, $dtt );
-
-    my $header = $self->model->get_table_list_cols;
-    $self->{tlist}->add_columns($header);
-
-    my $para_bot_sz = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Fields ', ),
-        wxVERTICAL, );
-
-    $para_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
-
     #-- Layout
 
-    my $para_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 0 );
+    my $info_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
-    $para_main_sz->Add( $para_sizer, 1, wxALL | wxGROW, 5 );
-    $para_main_sz->Add( $para_mid_sz, 1, wxALIGN_CENTRE );
-    $para_main_sz->Add( $para_bot_sz, 1, wxALL | wxGROW, 5 );
+    my $info_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
+    $info_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
+    $info_mid_sz->Add(-1, 20);
 
-    $para_main_sz->AddGrowableRow(2);
-    $para_main_sz->AddGrowableCol(0);
+    my $info_bot_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Fields ' ), wxVERTICAL );
 
-    $page->SetSizer($para_main_sz);
+    $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
+
+    $info_main_sz->Add( $info_bot_sz, 1, wxALL | wxGROW, 5 );
+    $info_main_sz->Add( $info_mid_sz, 1, wxALIGN_CENTRE );
+
+    $info_main_sz->AddGrowableRow(0);
+    $info_main_sz->AddGrowableCol(0);
+
+    $page->SetSizer($info_main_sz);
 
     return;
 }
@@ -571,13 +552,17 @@ sub _build_page_sql {
 
     $self->{sql} = QDepo::Wx::Editor->new($page);
 
+    my $para_sizer = $self->_build_ctrls_parameter($page);
+
     #-- Layout
 
     my $sql_main_sz = Wx::BoxSizer->new(wxVERTICAL);
     my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxHORIZONTAL, );
 
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
+
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
+    $sql_main_sz->Add( $para_sizer, 1, wxALL | wxGROW, 5 );
 
     $page->SetSizer( $sql_main_sz );
 }
@@ -763,19 +748,19 @@ sub _build_ctrls_querylist {
 
     #-- Controls
 
-    my $repo_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
+    my $qlist_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
     $self->{title} =
         Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
+    my $qlist_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
     $self->{filename} =
         Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
+    my $qlist_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
     $self->{output} =
         Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $repo_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
+    my $qlist_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
     $self->{template} =
         Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
@@ -791,16 +776,16 @@ sub _build_ctrls_querylist {
     my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $fg_sizer->AddGrowableCol( 1, 1 );
 
-    $fg_sizer->Add( $repo_lbl1, 0, wxTOP | wxLEFT,  5 );
+    $fg_sizer->Add( $qlist_lbl1, 0, wxTOP | wxLEFT,  5 );
     $fg_sizer->Add( $self->{title},    0, wxEXPAND | wxTOP, 5 );
 
-    $fg_sizer->Add( $repo_lbl2, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $qlist_lbl2, 0, wxLEFT,   5 );
     $fg_sizer->Add( $self->{filename}, 0, wxEXPAND, 0 );
 
-    $fg_sizer->Add( $repo_lbl3, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $qlist_lbl3, 0, wxLEFT,   5 );
     $fg_sizer->Add( $self->{output},   0, wxEXPAND, 0 );
 
-    $fg_sizer->Add( $repo_lbl4, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $qlist_lbl4, 0, wxLEFT,   5 );
     $fg_sizer->Add( $self->{template},    0, wxEXPAND, 0 );
 
     $sizer->Add( $fg_sizer, 0, wxALL | wxGROW, 0 );
