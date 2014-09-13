@@ -60,11 +60,11 @@ sub new {
 
     my $main_bsz = Wx::BoxSizer->new(wxHORIZONTAL);
 
-    $self->_create_menu();
-    $self->_create_toolbar();
-    $self->_create_statusbar();
+    $self->_build_menu();
+    $self->_build_toolbar();
+    $self->_build_statusbar();
 
-    $self->_create_splitter($main_bsz);
+    $self->_build_splitter($main_bsz);
 
     #-- GUI actions
 
@@ -166,14 +166,14 @@ sub update_gui_components {
     return;
 }
 
-=head2 _create_menu
+=head2 _build_menu
 
 Create the menubar and the menus. Menus are defined in configuration
 files.
 
 =cut
 
-sub _create_menu {
+sub _build_menu {
     my $self = shift;
     my $menu = Wx::MenuBar->new;
     $self->{_menu} = $menu;
@@ -297,13 +297,13 @@ sub get_menubar {
     return $self->{_menu};
 }
 
-=head2 _create_toolbar
+=head2 _build_toolbar
 
 Create the toolbar.
 
 =cut
 
-sub _create_toolbar {
+sub _build_toolbar {
     my $self = shift;
 
     my $tb = QDepo::Wx::ToolBar->new($self); # wxADJUST_MINSIZE#
@@ -341,13 +341,13 @@ sub enable_tool {
     return;
 }
 
-=head2 _create_statusbar
+=head2 _build_statusbar
 
 Create the status bar
 
 =cut
 
-sub _create_statusbar {
+sub _build_statusbar {
     my $self = shift;
     my $sb = $self->CreateStatusBar( 3 );
     $self->{_sb} = $sb;
@@ -376,7 +376,7 @@ sub get_notebook {
     return $self->{_nb};
 }
 
-sub _create_splitter {
+sub _build_splitter {
     my ($self, $main_bsz) = @_;
 
     my $min_pane_size = 50;
@@ -429,21 +429,21 @@ sub _create_splitter {
     $self->{_nb} = QDepo::Wx::Notebook->new( $panel_top );
     $sizer_top->Add( $self->{_nb}, 1, wxEXPAND | wxALL, 0 );
 
-    $self->_create_para_page();
-    $self->_create_sql_page();
-    $self->_create_admin_page();
-    $self->_create_report_page();
+    $self->_build_page_querylist;
+    $self->_build_page_para;
+    $self->_build_page_sql;
+    $self->_build_page_admin;
 
     return;
 }
 
-=head2 _create_report_page
+=head2 _build_page_querylist
 
 Create the report page (tab) on the notebook
 
 =cut
 
-sub _create_report_page {
+sub _build_page_querylist {
     my $self = shift;
     my $page = $self->{_nb}{p1};
 
@@ -453,28 +453,6 @@ sub _create_report_page {
 
     my $header = $self->model->get_query_list_cols;
     $self->{qlist}->add_columns($header);
-
-    #-- Controls
-
-    my $repo_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
-    $self->{title} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $repo_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
-    $self->{filename} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $repo_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
-    $self->{output} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $repo_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
-    $self->{template} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    $self->{description} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, 40 ],
-                           wxTE_MULTILINE, );
 
     #--- Layout
 
@@ -491,28 +469,7 @@ sub _create_report_page {
 
     #-- Middle
 
-    my $repo_mid_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Header ', ), wxVERTICAL, );
-
-    my $repo_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
-
-    $repo_mid_fgs->Add( $repo_lbl1, 0, wxTOP | wxLEFT,  5 );
-    $repo_mid_fgs->Add( $self->{title},    0, wxEXPAND | wxTOP, 5 );
-
-    $repo_mid_fgs->Add( $repo_lbl2, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{filename}, 0, wxEXPAND, 0 );
-
-    $repo_mid_fgs->Add( $repo_lbl3, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{output},   0, wxEXPAND, 0 );
-
-    $repo_mid_fgs->Add( $repo_lbl4, 0, wxLEFT,   5 );
-    $repo_mid_fgs->Add( $self->{template},    0, wxEXPAND, 0 );
-
-    # $repo_mid_fgs->AddGrowableRow( 1, 1 );
-    $repo_mid_fgs->AddGrowableCol( 1, 1 );
-
-    $repo_mid_sz->Add( $repo_mid_fgs, 0, wxALL | wxGROW, 0 );
+    my $qlist_sizer = $self->_build_ctrls_querylist($page);
 
     #-- Bottom
 
@@ -526,7 +483,7 @@ sub _create_report_page {
     #--
 
     $repo_main_sz->Add( $repo_top_sz, 0, wxALL | wxGROW, 5 );
-    $repo_main_sz->Add( $repo_mid_sz, 0, wxALL | wxGROW, 5 );
+    $repo_main_sz->Add( $qlist_sizer, 0, wxALL | wxGROW, 5 );
     $repo_main_sz->Add( $repo_bot_sz, 0, wxALL | wxGROW, 5 );
 
     $repo_main_sz->AddGrowableRow(0);
@@ -537,28 +494,19 @@ sub _create_report_page {
     return;
 }
 
-=head2 _create_para_page
+=head2 _build_page_para
 
 Create the parameters page (tab) on the notebook
 
 =cut
 
-sub _create_para_page {
+sub _build_page_para {
     my $self = shift;
     my $page = $self->{_nb}{p2};
 
     #-- Top
 
-    my $para_top_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Parameters ', ),
-        wxHORIZONTAL, );
-
-    my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
-    $para_top_sz->Add( $para_fgs, 1, wxEXPAND, 3 );
-    $para_fgs->AddGrowableCol(2);
-
-    $self->_parameter_ctrls( $page, $para_fgs );
+    my $para_sizer = $self->_build_ctrls_parameter($page);
 
     #-- Middle
 
@@ -593,7 +541,7 @@ sub _create_para_page {
 
     my $para_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 0 );
 
-    $para_main_sz->Add( $para_top_sz, 1, wxALL | wxGROW, 5 );
+    $para_main_sz->Add( $para_sizer, 1, wxALL | wxGROW, 5 );
     $para_main_sz->Add( $para_mid_sz, 1, wxALIGN_CENTRE );
     $para_main_sz->Add( $para_bot_sz, 1, wxALL | wxGROW, 5 );
 
@@ -605,131 +553,13 @@ sub _create_para_page {
     return;
 }
 
-
-sub _parameter_ctrls {
-    my ($self, $page, $sizer) = @_;
-
-    my $para_tit_lbl1 =
-      Wx::StaticText->new( $page, -1, __ 'Label', );
-    my $para_tit_lbl2 =
-      Wx::StaticText->new( $page, -1, __ 'Description', );
-    my $para_tit_lbl3 =
-      Wx::StaticText->new( $page, -1, __ 'Value', );
-
-    my $para_lbl1 = Wx::StaticText->new( $page, -1, 'value1', );
-    $self->{descr1} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value1} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl2 = Wx::StaticText->new( $page, -1, 'value2', );
-    $self->{descr2} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value2} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl3 = Wx::StaticText->new( $page, -1, 'value3', );
-    $self->{descr3} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value3} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl4 = Wx::StaticText->new( $page, -1, 'value4', );
-    $self->{descr4} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value4} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl5 = Wx::StaticText->new( $page, -1, 'value5', );
-    $self->{descr5} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value5} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    $sizer->Add( $para_tit_lbl1, 0, wxTOP | wxLEFT, 10 );
-    $sizer->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
-    $sizer->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
-
-    $sizer->Add( $para_lbl1, 0, wxTOP | wxLEFT,   5 );
-    $sizer->Add( $self->{descr1},   0, wxEXPAND | wxTOP, 5 );
-    $sizer->Add( $self->{value1},   1, wxEXPAND | wxTOP, 5 );
-
-    $sizer->Add( $para_lbl2, 0, wxLEFT,   5 );
-    $sizer->Add( $self->{descr2},   1, wxEXPAND, 0 );
-    $sizer->Add( $self->{value2},   1, wxEXPAND, 0 );
-
-    $sizer->Add( $para_lbl3, 0, wxLEFT,   5 );
-    $sizer->Add( $self->{descr3},   1, wxEXPAND, 0 );
-    $sizer->Add( $self->{value3},   1, wxEXPAND, 0 );
-
-    $sizer->Add( $para_lbl4, 0, wxLEFT,   5 );
-    $sizer->Add( $self->{descr4},   1, wxEXPAND, 0 );
-    $sizer->Add( $self->{value4},   1, wxEXPAND, 0 );
-
-    $sizer->Add( $para_lbl5, 0, wxLEFT,   5 );
-    $sizer->Add( $self->{descr5},   1, wxEXPAND, 0 );
-    $sizer->Add( $self->{value5},   1, wxEXPAND, 0 );
-
-    return;
-}
-
-
-sub _connection_ctrls {
-    my ($self, $page, $sizer) = @_;
-
-    #-- Controls
-
-    my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
-    $self->{driver} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $conn_lbl2 = Wx::StaticText->new( $page, -1, __ 'Host', );
-    $self->{host} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $conn_lbl3 = Wx::StaticText->new( $page, -1, __ 'Database', );
-    $self->{dbname} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $conn_lbl4 = Wx::StaticText->new( $page, -1, __ 'Port', );
-    $self->{port} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    #-- Middle
-
-    my $conn_mid_sz
-        = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Connection details ', ),
-        wxVERTICAL );
-
-    my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
-
-    $conn_mid_fgs->Add( $conn_lbl1, 0, wxTOP | wxLEFT,  5 );
-    $conn_mid_fgs->Add( $self->{driver},    0, wxEXPAND | wxTOP, 5 );
-
-    $conn_mid_fgs->Add( $conn_lbl2, 0, wxLEFT,   5 );
-    $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
-
-    $conn_mid_fgs->Add( $conn_lbl3, 0, wxLEFT,   5 );
-    $conn_mid_fgs->Add( $self->{dbname},   0, wxEXPAND, 0 );
-
-    $conn_mid_fgs->Add( $conn_lbl4, 0, wxLEFT,   5 );
-    $conn_mid_fgs->Add( $self->{port},    0, wxEXPAND, 0 );
-
-    $conn_mid_fgs->AddGrowableCol( 1, 1 );
-
-    $conn_mid_sz->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 0 );
-
-    return $conn_mid_sz;
-}
-
-=head2 _create_sql_page
+=head2 _build_page_sql
 
 Create the SQL page (tab) on the notebook
 
 =cut
 
-sub _create_sql_page {
+sub _build_page_sql {
     my $self = shift;
     my $page = $self->{_nb}{p3};
 
@@ -752,7 +582,7 @@ sub _create_sql_page {
     $page->SetSizer( $sql_main_sz );
 }
 
-=head2 _create_admin_page
+=head2 _build_page_admin
 
 Create the administration page (tab) on the notebook.
 
@@ -764,7 +594,7 @@ the lists must be lower case.
 
 =cut
 
-sub _create_admin_page {
+sub _build_page_admin {
     my $self = shift;
     my $page = $self->{_nb}{p4};
 
@@ -835,7 +665,7 @@ sub _create_admin_page {
 
     #-- Bottom
 
-    my $conn_mid_sz = $self->_connection_ctrls($page);
+    my $conn_mid_sz = $self->_build_ctrls_conn($page);
 
     $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
     $conf_main_sz->Add( $button_sz, 0, wxALIGN_CENTRE | wxALL, 15 );
@@ -845,6 +675,185 @@ sub _create_admin_page {
     $conf_main_sz->AddGrowableCol(0);
 
     $page->SetSizer($conf_main_sz);
+}
+
+sub _build_ctrls_parameter {
+    my ($self, $page) = @_;
+
+    #-- Controls
+
+    my $para_tit_lbl1 =
+      Wx::StaticText->new( $page, -1, __ 'Label', );
+    my $para_tit_lbl2 =
+      Wx::StaticText->new( $page, -1, __ 'Description', );
+    my $para_tit_lbl3 =
+      Wx::StaticText->new( $page, -1, __ 'Value', );
+
+    my $para_lbl1 = Wx::StaticText->new( $page, -1, 'value1', );
+    $self->{descr1} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value1} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl2 = Wx::StaticText->new( $page, -1, 'value2', );
+    $self->{descr2} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value2} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl3 = Wx::StaticText->new( $page, -1, 'value3', );
+    $self->{descr3} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value3} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl4 = Wx::StaticText->new( $page, -1, 'value4', );
+    $self->{descr4} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value4} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $para_lbl5 = Wx::StaticText->new( $page, -1, 'value5', );
+    $self->{descr5} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value5} =
+      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    #-- Layout
+
+    my $sizer =
+      Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Parameters ', ),
+        wxHORIZONTAL, );
+
+    my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
+
+    $sizer->Add( $para_fgs, 1, wxEXPAND, 3 );
+    $para_fgs->AddGrowableCol(2);
+
+    $para_fgs->Add( $para_tit_lbl1, 0, wxTOP | wxLEFT, 10 );
+    $para_fgs->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
+    $para_fgs->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
+
+    $para_fgs->Add( $para_lbl1, 0, wxTOP | wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr1},   0, wxEXPAND | wxTOP, 5 );
+    $para_fgs->Add( $self->{value1},   1, wxEXPAND | wxTOP, 5 );
+
+    $para_fgs->Add( $para_lbl2, 0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr2},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value2},   1, wxEXPAND, 0 );
+
+    $para_fgs->Add( $para_lbl3, 0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr3},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value3},   1, wxEXPAND, 0 );
+
+    $para_fgs->Add( $para_lbl4, 0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr4},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value4},   1, wxEXPAND, 0 );
+
+    $para_fgs->Add( $para_lbl5, 0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr5},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value5},   1, wxEXPAND, 0 );
+
+    return $sizer;
+}
+
+sub _build_ctrls_querylist {
+    my ($self, $page) = @_;
+
+    #-- Controls
+
+    my $repo_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
+    $self->{title} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $repo_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
+    $self->{filename} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $repo_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
+    $self->{output} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $repo_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
+    $self->{template} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    $self->{description} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, 40 ],
+                           wxTE_MULTILINE, );
+
+    #-- Layout
+
+    my $sizer = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Header ' ), wxVERTICAL );
+
+    my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
+    $fg_sizer->AddGrowableCol( 1, 1 );
+
+    $fg_sizer->Add( $repo_lbl1, 0, wxTOP | wxLEFT,  5 );
+    $fg_sizer->Add( $self->{title},    0, wxEXPAND | wxTOP, 5 );
+
+    $fg_sizer->Add( $repo_lbl2, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $self->{filename}, 0, wxEXPAND, 0 );
+
+    $fg_sizer->Add( $repo_lbl3, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $self->{output},   0, wxEXPAND, 0 );
+
+    $fg_sizer->Add( $repo_lbl4, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $self->{template},    0, wxEXPAND, 0 );
+
+    $sizer->Add( $fg_sizer, 0, wxALL | wxGROW, 0 );
+
+    return $sizer;
+}
+
+sub _build_ctrls_conn {
+    my ($self, $page) = @_;
+
+    #-- Controls
+
+    my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
+    $self->{driver} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl2 = Wx::StaticText->new( $page, -1, __ 'Host', );
+    $self->{host} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl3 = Wx::StaticText->new( $page, -1, __ 'Database', );
+    $self->{dbname} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    my $conn_lbl4 = Wx::StaticText->new( $page, -1, __ 'Port', );
+    $self->{port} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+
+    #-- Layout
+
+    my $sizer
+        = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ ' Connection details ', ),
+        wxVERTICAL );
+
+    my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
+    $conn_mid_fgs->AddGrowableCol( 1, 1 );
+
+    $conn_mid_fgs->Add( $conn_lbl1, 0, wxTOP | wxLEFT,  5 );
+    $conn_mid_fgs->Add( $self->{driver},    0, wxEXPAND | wxTOP, 5 );
+
+    $conn_mid_fgs->Add( $conn_lbl2, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
+
+    $conn_mid_fgs->Add( $conn_lbl3, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{dbname},   0, wxEXPAND, 0 );
+
+    $conn_mid_fgs->Add( $conn_lbl4, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{port},    0, wxEXPAND, 0 );
+
+    $sizer->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 0 );
+
+    return $sizer;
 }
 
 =head2 dialog_error
