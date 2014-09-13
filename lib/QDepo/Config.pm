@@ -284,6 +284,9 @@ return the reference only if the name matches.
 sub get_details_for {
     my ($self, $mnemonic) = @_;
 
+    die "The 'get_details_for' method reqires the 'mnemonic' parameter"
+        unless $mnemonic;
+
     my $conn_file = $self->config_file_name($mnemonic);
     my @mnemonics = map { $_->{mnemonic} } @{ $self->get_mnemonics };
 
