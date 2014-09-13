@@ -1465,29 +1465,25 @@ sub refresh_list {
 
 sub select_list_item {
     my ($self, $lname, $what) = @_;
-    print "P: $lname, $what\n";
+
     die "List name is required for 'refresh_list'" unless $lname;
 
     my $items_no = $self->{$lname}->GetItemCount;
 
     return unless $items_no > 0;             # nothing to select
 
-    if (looks_like_number($what)) {
-        print "nITEM: $what \n";
-        $self->{$lname}->EnsureVisible($what);
-        return;
+    my $item;
+    if ( looks_like_number($what) ) {
+        $item = $what;
     }
-
-    my $item
-        = $what eq 'first'   ?  0
-        : $what eq 'last'    ? ($items_no - 1)
-        :                       $what # default
-        ;
-
+    else {
+        $item = $what eq 'first'   ?  0
+              : $what eq 'last'    ? ($items_no - 1)
+              :                       $what # default
+              ;
+    }
+    $self->{$lname}->Select( $item, 1 );    # 1|0 = select|deselect
     $self->{$lname}->EnsureVisible($item);
-
-    print "cITEM $item\n";
-
     return $item;
 }
 

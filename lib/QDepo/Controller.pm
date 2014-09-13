@@ -637,8 +637,8 @@ sub populate_connlist {
 
     my $item = $dt->get_item_default;
     $dt->set_value( $item, 2, 'yes' );
-    $self->view->select_list_item('dlist', $item);
     $self->view->refresh_list('dlist');
+    $self->view->select_list_item('dlist', $item);
 
     return;
 }
