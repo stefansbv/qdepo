@@ -105,6 +105,12 @@ sub connect_dialog {
     my $self = shift;
 
     my $error;
+    my $conn = $self->cfg->connection;
+    if ($conn) {
+        my $dbname = $conn->{dbname};
+        my $driver = $conn->{driver};
+        $error = "Connect to $driver: $dbname";
+    }
 
   TRY:
     while ( not $self->model->is_connected ) {
