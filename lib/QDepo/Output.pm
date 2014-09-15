@@ -133,6 +133,7 @@ sub db_generate_output {
     }
     catch {
         $self->catch_db_exceptions($_, __ 'Columns record');
+        return;
     };
 
     my $sub_name = 'generate_output_' . lc($option);
@@ -219,6 +220,7 @@ sub generate_output_excel {
     }
     catch {
         $self->catch_db_exceptions($_, 'Excel');
+        return;
     };
 
     return \@out;
@@ -261,6 +263,7 @@ sub generate_output_csv {
     }
     catch {
         $self->catch_db_exceptions($_, 'CSV');
+        return;
     };
 
     return \@out;
@@ -293,6 +296,7 @@ sub generate_output_calc {
     }
     catch {
         $self->catch_db_exceptions($_, 'Calc');
+        return;
     };
 
     my $cols = scalar @{ $sth->{NAME} };
@@ -367,6 +371,7 @@ sub generate_output_odf {
     }
     catch {
         $self->catch_db_exceptions($_, 'ODF');
+        return;
     };
 
     return \@out;
@@ -414,6 +419,7 @@ sub count_rows {
     }
     catch {
         $self->catch_db_exceptions($_, 'Count rows');
+        return;
     };
 
     return $rows_cnt;
@@ -464,23 +470,33 @@ sub catch_db_exceptions {
 
     my ($message, $details);
     if ( my $e = Exception::Base->catch($exc) ) {
-        if ( $e->isa('Exception::Db::SQL') ) {
+        if ( $e->isa('Exception::Db::Connect') ) {
             $message = $e->usermsg;
             $details = $e->logmsg;
             $self->model->message_log(
-                __x('{ert} {message}: {$details}',
+                __x('{ert} {message}: {details}',
                     ert     => 'EE',
                     message => $message,
                     details => $details,
                 )
             );
-
         }
-        elsif ( $e->isa('Exception::Db::Connect') ) {
+        elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
             $message = $e->usermsg;
             $details = $e->logmsg;
             $self->model->message_log(
-                __x('{ert} {message}: {$details}',
+                __x('{ert} {message}: {details}',
+                    ert     => 'EEP',
+                    message => $message,
+                    details => $details,
+                )
+            );
+        }
+        elsif ( $e->isa('Exception::Db::SQL') ) {
+            $message = $e->usermsg;
+            $details = $e->logmsg;
+            $self->model->message_log(
+                __x('{ert} {message}: {details}',
                     ert     => 'EE',
                     message => $message,
                     details => $details,
@@ -495,8 +511,7 @@ sub catch_db_exceptions {
                     message => $e->message,
                 )
             );
-            $e->throw;                       # rethrow the exception
-            return;
+            # $e->throw;                       # rethrow the exception
         }
     }
 

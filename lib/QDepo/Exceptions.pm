@@ -19,6 +19,9 @@ use Exception::Base
         isa               => 'Exception::Db',
         has               => [qw( usermsg logmsg )],
         string_attributes => [qw( usermsg logmsg )],
+    },
+    'Exception::Db::SQL::Parser' => {
+        isa               => 'Exception::Db::SQL',
     };
 
 1;

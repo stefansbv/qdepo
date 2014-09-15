@@ -143,8 +143,13 @@ sub connect_dialog {
                 if ( my $e = Exception::Base->catch($_) ) {
                     if ( $e->isa('Exception::Db::Connect') ) {
                         my $logmsg = $e->logmsg;
-                        $error = $e->usermsg;
-                        $self->model->message_log(qq{EE $logmsg});
+                        # $error = $e->usermsg;
+                        $self->model->message_log(
+                            __x('{ert} {logmsg}',
+                                ert    => 'WW',
+                                logmsg => $logmsg
+                            )
+                        );
                     }
                 }
             };
@@ -684,7 +689,12 @@ sub db_connect {
                 elsif ( $e->isa('Exception::Db::Connect') ) {
                     my $logmsg = $e->usermsg;
                     $self->view->dialog_error(__ 'Not connected.', $logmsg);
-                    $self->model->message_log(qq{EE $logmsg});
+                    $self->model->message_log(
+                        __x('{ert} {logmsg}',
+                            ert    => 'WW',
+                            logmsg => $logmsg
+                        )
+                    );
                     $self->view->set_status(__ 'No DB!', 'db', 'red' );
                 }
             }

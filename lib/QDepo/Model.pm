@@ -10,6 +10,7 @@ use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
 use Locale::TextDomain 1.20 qw(QDepo);
+use Try::Tiny;
 use QDepo::Exceptions;
 use QDepo::ItemData;
 use QDepo::Config;
@@ -28,7 +29,7 @@ sub new {
         _connected   => QDepo::Observable->new(),
         _stdout      => QDepo::Observable->new(),
         _message     => QDepo::Observable->new(),
-        _exception   => QDepo::Observable->new(),
+        # _exception   => QDepo::Observable->new(),
         _itemchanged => QDepo::Observable->new(),
         _appmode     => QDepo::Observable->new(),
         _choice      => QDepo::Observable->new(),
@@ -742,40 +743,40 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
-=head2 get_exception_observable
+# =head2 get_exception_observable
 
-Get exception observable status.
+# Get exception observable status.
 
-=cut
+# =cut
 
-sub get_exception_observable {
-    my $self = shift;
-    return $self->{_exception};
-}
+# sub get_exception_observable {
+#     my $self = shift;
+#     return $self->{_exception};
+# }
 
-=head2 exception_log
+# =head2 exception_log
 
-Log an exception.
+# Log an exception.
 
-=cut
+# =cut
 
-sub exception_log {
-    my ( $self, $message ) = @_;
-    $self->get_exception_observable->set($message);
-}
+# sub exception_log {
+#     my ( $self, $message ) = @_;
+#     $self->get_exception_observable->set($message);
+# }
 
-=head2 get_exception
+# =head2 get_exception
 
-Get exception message and then clear it.
+# Get exception message and then clear it.
 
-=cut
+# =cut
 
-sub get_exception {
-    my $self = shift;
-    my $exception = $self->get_exception_observable->get;
-    $self->get_exception_observable->set();  # clear
-    return $exception;
-}
+# sub get_exception {
+#     my $self = shift;
+#     my $exception = $self->get_exception_observable->get;
+#     $self->get_exception_observable->set();  # clear
+#     return $exception;
+# }
 
 =head2 get_continue_observable
 
@@ -906,11 +907,19 @@ instead.
 sub get_columns_list {
     my $self = shift;
 
-    my $parser = SQL::Parser->new();
+    my $parser = SQL::Parser->new('AnyData', { RaiseError => 1 } );
 
     my ($bind, $sql_text) = $self->get_sql_stmt;
 
-    $parser->parse($sql_text);
+    try {
+        $parser->parse($sql_text) or die $@;
+    }
+    catch {
+        Exception::Db::SQL::Parser->throw(
+            logmsg  => $_,
+            usermsg => 'SQL parser error',
+        );
+    };
 
     #-- Table
     my $tables_ref = $parser->structure->{org_table_names};
