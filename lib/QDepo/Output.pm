@@ -7,16 +7,10 @@ use warnings;
 
 use Try::Tiny;
 use POSIX qw (floor);
-
+use Locale::TextDomain 1.20 qw(QDepo);
 use QDepo::Exceptions;
 use QDepo::Config;
 use QDepo::Db;
-
-=head2 new
-
-Constructor.
-
-=cut
 
 sub new {
     my ($class, $model) = @_;
@@ -33,11 +27,71 @@ sub new {
     return $self;
 }
 
-=head2 cfg
+sub module_name {
+    return {
+        excel => {
+            depend => 'Spreadsheet::WriteExcel',
+            module => 'QDepo::Output::Excel',
+            ext    => 'xls',
+        },
+        csv => {
+            depend => 'Text::CSV_XS',
+            module => 'QDepo::Output::Csv',
+            ext    => 'csv',
+        },
+        calc => {
+            depend => 'OpenOffice::OODoc',
+            module => 'QDepo::Output::Calc',
+            ext    => 'ods',
+        },
+        odf => {
+            depend => 'ODF::lpOD',
+            module => 'QDepo::Output::ODF',
+            ext    => 'ods',
+        },
+    };
+}
 
-Return config instance variable
+sub module_name_parameter {
+    my ($self, $option, $param) = @_;
+    $option = lc $option;
+    my $names = $self->module_name;
+    if ( exists $names->{$option}{$param} ) {
+        return $names->{$option}{$param};
+    }
+    else {
+        die "Unknown module for $option";
+    }
+}
 
-=cut
+sub load_module {
+    my ($self, $option) = @_;
+
+    # Check dependency
+    my $depend = $self->module_name_parameter($option, 'depend');
+    try { eval "require $depend" or die $@; }
+    catch {
+        $self->model->message_log(
+            __x('{ert} {module} is not available',
+                ert    => 'EE',
+                module => $depend,
+            )
+        );
+        return;
+    };
+
+    my $module = $self->module_name_parameter($option, 'module');
+    try { eval "require $module" or die $@; }
+    catch {
+        $self->model->message_log(
+            __x('{ert} {module} is not available',
+                ert    => 'EE',
+                module => $module,
+            )
+        );
+        return;
+    };
+}
 
 sub cfg {
     my $self = shift;
@@ -54,18 +108,23 @@ sub model {
     return $self->{_model};
 }
 
-=head2 db_generate_output
-
-Select the appropriate method to generate output.
-
-=cut
-
 sub db_generate_output {
     my ($self, $option, $sqltext, $bind, $outfile) = @_;
 
+    $self->load_module($option);
+
+    my $ext = $self->module_name_parameter($option, 'ext');
+    if ( defined $outfile ) {
+        $outfile .= ".$ext" unless $outfile =~ m{\.${ext}$}i;
+    }
+    else {
+        $self->model->message_status(__ 'No output file parameter');
+        return;
+    }
+
     # Check SQL param
-    if ( !defined $sqltext ) {
-        $self->model->message_status('No SQL parameter!');
+    unless ( defined $sqltext ) {
+        $self->model->message_status(__ 'No SQL parameter!');
         return;
     }
 
@@ -73,7 +132,7 @@ sub db_generate_output {
         $self->make_columns_record;
     }
     catch {
-        $self->catch_db_exceptions($_, 'Columns record');
+        $self->catch_db_exceptions($_, __ 'Columns record');
     };
 
     my $sub_name = 'generate_output_' . lc($option);
@@ -82,46 +141,53 @@ sub db_generate_output {
         $out = $self->$sub_name($sqltext, $bind, $outfile);
     }
     else {
-        $self->model->message_log("WW $option is not implemented yet!");
+        $self->model->message_log(
+            __x('{ert} {option} is not implemented',
+                ert    => 'WW',
+                option => $option,
+            )
+        );
     }
 
     return $out;
 }
 
-=head2 generate_output_excel
-
-Generate output in Microsoft Excel format.
-
-=cut
+sub check_rows {
+    my ($self, $sql, $bind) = @_;
+    my $rows_cnt = $self->count_rows($sql, $bind);
+    if ($rows_cnt) {
+        $self->model->message_log(
+            __x('{ert} Count: {rows_cnt} total rows',
+                ert      => 'II',
+                rows_cnt => $rows_cnt,
+            )
+        );
+    }
+    else {
+        $self->model->message_log(
+            __x('{ert} No output rows!',
+                ert      => 'II',
+                rows_cnt => $rows_cnt,
+            )
+        );
+        return;
+    }
+    return $rows_cnt;
+}
 
 sub generate_output_excel {
     my ($self, $sql, $bind, $outfile) = @_;
 
-    # File name
-    if ( defined $outfile ) {
-        $outfile .= '.xls';
-    }
-    else {
-        $self->model->message_status('No file parameter');
-        return;
-    }
-
-    $self->model->message_log("II Generating output file '$outfile'");
-    try { require QDepo::Output::Excel; }
-    catch {
-        $self->model->message_log("EE Spreadsheet::WriteExcel not available!");
-        return;
-    };
+    $self->model->message_log(
+        __x('{ert} Generating output file "{outfile}"',
+            ert     => 'II',
+            outfile => $outfile,
+        )
+    );
 
     # Rows count used only for user messages
-    my $rows_cnt = $self->count_rows($sql, $bind);
-    if ($rows_cnt) {
-        $self->model->message_log("II Count: $rows_cnt total rows");
-    }
-    else {
-        $self->model->message_log("II Count: No output rows!");
-        return;
-    }
+    my $rows_cnt = $self->check_rows($sql, $bind);
+    return unless $rows_cnt;
 
     #--- Select
 
@@ -158,42 +224,19 @@ sub generate_output_excel {
     return \@out;
 }
 
-=head2 generate_output_csv
-
-Generate output in CSV format.
-
-=cut
-
 sub generate_output_csv {
     my ($self, $sql, $bind, $outfile) = @_;
 
-    # File name
-    if ( defined $outfile ) {
-        $outfile .= '.csv';
-    }
-    else {
-        $self->model->message_status("No file parameter!");
-        return;
-    }
-
-    $self->model->message_log("II Generating output file '$outfile'");
-
-    try { require QDepo::Output::Csv; }
-    catch {
-        $self->model->message_log("EE Text::CSV_XS not available!");
-        return;
-    };
+    $self->model->message_log(
+        __x('{ert} Generating output file "{outfile}"',
+            ert     => 'II',
+            outfile => $outfile,
+        )
+    );
 
     # Rows count used only for user messages
-    my $rows_cnt = $self->count_rows($sql, $bind);
-    #$self->model->message_log("II SQL: $sql") if $self->cfg->verbose;
-    if ($rows_cnt) {
-        $self->model->message_log("II Count: $rows_cnt total rows");
-    }
-    else {
-        $self->model->message_log("II Count: No output rows!");
-        return;
-    }
+    my $rows_cnt = $self->check_rows($sql, $bind);
+    return unless $rows_cnt;
 
     my $doc = QDepo::Output::Csv->new($outfile);
 
@@ -223,41 +266,19 @@ sub generate_output_csv {
     return \@out;
 }
 
-=head2 generate_output_calc
-
-Generate output in OpenOffice.org - Calc format.
-
-=cut
-
 sub generate_output_calc {
     my ($self, $sql, $bind, $outfile) = @_;
 
-    # File name
-    if ( defined $outfile ) {
-        $outfile .= '.ods';
-    }
-    else {
-        $self->model->message_status('No file parameter');
-        return;
-    }
-
-    $self->model->message_log("II Generating output file '$outfile'");
-
-    try { require QDepo::Output::Calc; }
-    catch {
-        $self->model->message_log("EE OpenOffice::OODoc not available!");
-        return;
-    };
+    $self->model->message_log(
+        __x('{ert} Generating output file "{outfile}"',
+            ert     => 'II',
+            outfile => $outfile,
+        )
+    );
 
     # Rows count used for user messages and for sheet initialization
-    my $rows_cnt = $self->count_rows($sql, $bind);
-    if ($rows_cnt) {
-        $self->model->message_log("II Count: $rows_cnt total rows");
-    }
-    else {
-        $self->model->message_log("II SQL: No output rows!");
-        return;
-    }
+    my $rows_cnt = $self->check_rows($sql, $bind);
+    return unless $rows_cnt;
 
     #--- Select
 
@@ -297,41 +318,19 @@ sub generate_output_calc {
     return \@out;
 }
 
-=head2 generate_output_odf
-
-Generate output in ODF format.
-
-=cut
-
 sub generate_output_odf {
     my ($self, $sql, $bind, $outfile) = @_;
 
-    # File name
-    if ( defined $outfile ) {
-        $outfile .= '.ods';
-    }
-    else {
-        $self->model->message_status('No file parameter');
-        return;
-    }
-
-    $self->model->message_log("II Generating output file '$outfile'");
-
-    try { require QDepo::Output::ODF; }
-    catch {
-        $self->model->message_log("EE ODF::lpOD not available!");
-        return;
-    };
+    $self->model->message_log(
+        __x('{ert} Generating output file "{outfile}"',
+            ert     => 'II',
+            outfile => $outfile,
+        )
+    );
 
     # Rows count used for user messages and for sheet initialization
-    my $rows_cnt = $self->count_rows($sql, $bind);
-    if ($rows_cnt) {
-        $self->model->message_log("II Count: $rows_cnt total rows");
-    }
-    else {
-        $self->model->message_log("II SQL: No output rows!");
-        return;
-    }
+    my $rows_cnt = $self->check_rows($sql, $bind);
+    return unless $rows_cnt;
 
     #--- Select
 
@@ -373,20 +372,18 @@ sub generate_output_odf {
     return \@out;
 }
 
-=head2 count_rows
-
-Count rows. Build the I<COUNT> SQL query using the I<FROM> clause from
-the query.
-
-=cut
-
 sub count_rows {
     my ($self, $sql, $bind) = @_;
 
     # Capture everything after the first "FROM"
     my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
     unless ($from) {
-        $self->model->message_log("EE Failed to extract FROM clause!");
+        $self->model->message_log(
+            __x('{ert} Failed to extract FROM clause',
+                ert      => 'EE',
+            )
+        );
+
         return;
     }
 
@@ -394,7 +391,12 @@ sub count_rows {
 
     my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
 
-    #$self->model->message_log("II SQL: $cnt_sql") if $self->cfg->verbose;
+    $self->model->message_log(
+        __x('{ert} SQL: {cnt_sql}',
+            ert     => 'II',
+            cnt_sql => $cnt_sql,
+        )
+    ) if $self->cfg->verbose;
 
     my $rows_cnt;
     try {
@@ -417,20 +419,6 @@ sub count_rows {
     return $rows_cnt;
 }
 
-=head2 create_contents
-
-Create document contents and show progress.
-
-The row data passed to create_row is a AoH:
-    [0] {
-        contents   "Joe Doe",
-        field      "name",
-        recno      1,
-        type       "varchar"
-    },
-
-=cut
-
 sub create_contents {
     my ( $self, $doc, $sth, $rows_cnt ) = @_;
 
@@ -451,7 +439,8 @@ sub create_contents {
         next if $pv == $p;
         $self->model->progress_update($p);
         unless ( $self->model->get_continue_observable->get ) {
-            $self->model->message_log("II Stopped at user request!");
+            $self->model->message_log(
+                __x( '{ert} Stopped at user request', ert => 'II', ) );
             $sth->finish;
             last;
         }
@@ -464,12 +453,6 @@ sub create_contents {
     return ($row_num, $pv);
 }
 
-=head2 function_name
-
-Columns meta data.  Have to call it early before the main transaction.
-
-=cut
-
 sub make_columns_record {
     my $self = shift;
     ( $self->{columns}, $self->{header} ) = $self->model->get_columns_list;
@@ -479,22 +462,39 @@ sub make_columns_record {
 sub catch_db_exceptions {
     my ($self, $exc, $context) = @_;
 
-    print "Context $context\n";
     my ($message, $details);
     if ( my $e = Exception::Base->catch($exc) ) {
         if ( $e->isa('Exception::Db::SQL') ) {
             $message = $e->usermsg;
             $details = $e->logmsg;
-            $self->model->message_log("EE $message: $details");
+            $self->model->message_log(
+                __x('{ert} {message}: {$details}',
+                    ert     => 'EE',
+                    message => $message,
+                    details => $details,
+                )
+            );
+
         }
         elsif ( $e->isa('Exception::Db::Connect') ) {
             $message = $e->usermsg;
             $details = $e->logmsg;
-            $self->model->message_log("EE $message: $details");
+            $self->model->message_log(
+                __x('{ert} {message}: {$details}',
+                    ert     => 'EE',
+                    message => $message,
+                    details => $details,
+                )
+            );
         }
         else {
             # Exception isa Unknown
-            $self->model->message_log("EE ", $e->message);
+            $self->model->message_log(
+                __x('{ert} {message}',
+                    ert     => 'EE',
+                    message => $e->message,
+                )
+            );
             $e->throw;                       # rethrow the exception
             return;
         }
@@ -504,3 +504,26 @@ sub catch_db_exceptions {
 }
 
 1;
+
+=head2 count_rows
+
+Count rows. Build the I<COUNT> SQL query using the I<FROM> clause from
+the query.
+
+=head2 create_contents
+
+Create document contents and show progress.
+
+The row data passed to create_row is a AoH:
+    [0] {
+        contents   "Joe Doe",
+        field      "name",
+        recno      1,
+        type       "varchar"
+    },
+
+=head2 make_columns_record
+
+Columns meta data.  Have to call it early before the main transaction.
+
+=cut
