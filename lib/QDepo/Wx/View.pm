@@ -964,7 +964,7 @@ Return a AoH with information regarding the controls from the SQL page.
 sub get_controls_sql {
     my $self = shift;
     return [
-        { sql => [ $self->{sql}, 'normal'  , 'white', 's' ] },
+        { sql => [ $self->{sql}, 'normal', 'white', 's' ] },
     ];
 }
 

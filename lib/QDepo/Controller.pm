@@ -65,6 +65,13 @@ RDBMS.
 sub start {
     my $self = shift;
 
+    $self->model->message_log(
+        __x('{ert} Starting QDepo {verbose}',
+            ert     => 'II',
+            verbose => $self->cfg->verbose ? '(verbose)' : '',
+        )
+    );
+
     my $driver = $self->cfg->connection->{driver};
     if (   ( $self->cfg->user and $self->cfg->pass )
         or ( $driver eq 'sqlite' ) )
@@ -109,7 +116,11 @@ sub connect_dialog {
     if ($conn) {
         my $dbname = $conn->{dbname};
         my $driver = $conn->{driver};
-        $error = "Connect to $driver: $dbname";
+        $error = __x(
+            'Connect to {driver}: {dbname}',
+            driver => $driver,
+            dbname => $dbname,
+        );
     }
 
   TRY:
@@ -118,7 +129,8 @@ sub connect_dialog {
         # Show login dialog if still not connected
         my $return_string = $self->dialog_login($error);
         if ($return_string eq 'cancel') {
-            $self->model->message_log(qq{II Login cancelled});
+            $self->model->message_log(
+                __x( '{ert} Login cancelled', ert => 'WW' ) );
             last TRY;
         }
 
@@ -138,7 +150,7 @@ sub connect_dialog {
             };
         }
         else {
-            $error = 'User and password required';
+            $error = __ 'User and password is required';
         }
     }
 
@@ -359,7 +371,7 @@ sub set_event_handlers {
     #-- Default button
     $self->view->event_handler_for_button(
         'btn_edit', sub {
-            print "Not implemented\n";
+            warn "Edit config... (not implemented)\n";
         }
     );
 
@@ -483,7 +495,7 @@ sub on_quit {
 
     my $dt = $self->model->get_data_table_for('qlist');
     if ( $dt->has_items_marked ) {
-        my $msg = 'Delete marked reports and quit?';
+        my $msg = __ 'Delete marked reports and quit?';
         my $answer = $self->view->action_confirmed($msg);
         if ($answer eq 'yes') {
             $self->list_remove_marked;
@@ -671,9 +683,9 @@ sub db_connect {
                 }
                 elsif ( $e->isa('Exception::Db::Connect') ) {
                     my $logmsg = $e->usermsg;
-                    $self->view->dialog_error('Not connected.', $logmsg);
+                    $self->view->dialog_error(__ 'Not connected.', $logmsg);
                     $self->model->message_log(qq{EE $logmsg});
-                    $self->view->set_status( 'No DB!', 'db', 'red' );
+                    $self->view->set_status(__ 'No DB!', 'db', 'red' );
                 }
             }
         };

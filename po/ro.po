@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QDepo 0.50\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2014-08-26 18:27+0300\n"
-"PO-Revision-Date: 2014-08-26 18:29+0200\n"
+"POT-Creation-Date: 2014-09-14 15:56+0300\n"
+"PO-Revision-Date: 2014-09-14 15:57+0200\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -19,85 +19,246 @@ msgstr ""
 "20)) ? 1 : 2;\n"
 "X-Generator: Poedit 1.6.8\n"
 
-#: lib/QDepo/Controller.pm:288
+#: lib/QDepo/Model.pm:387
+#, perl-brace-format
+msgid "{ert} Running data export..."
+msgstr "{ert} Execut exportul de date..."
+
+#: lib/QDepo/Model.pm:391
+msgid "Wrong output path"
+msgstr "Cale de ieșiere eronată"
+
+#: lib/QDepo/Model.pm:393
+#, fuzzy, perl-brace-format
+msgid "{ert} Wrong output path: {outpath}"
+msgstr "Cale de ieșiere eronată"
+
+#: lib/QDepo/Model.pm:422
+#, perl-brace-format
+msgid "Generated {rows} rows ({percent}%)"
+msgstr "{rows} înregistrări generate ({percent}%)"
+
+#: lib/QDepo/Model.pm:428
+#, perl-brace-format
+msgid "{ert} Output generated, {rows} rows ({percent}%)"
+msgstr ""
+
+#: lib/QDepo/Model.pm:437
+msgid "No output file generated "
+msgstr ""
+
+#: lib/QDepo/Model.pm:439
+#, perl-brace-format
+msgid "{ert} No output file generated"
+msgstr ""
+
+#: lib/QDepo/Model.pm:499
+#, perl-brace-format
+msgid "{ert} Saved \"{name}{ext}\""
+msgstr ""
+
+#: lib/QDepo/Model.pm:528
+#, perl-brace-format
+msgid "{ert} File exists ({dst_fqn})"
+msgstr ""
+
+#: lib/QDepo/Model.pm:537
+#, perl-brace-format
+msgid "{ert} Create new report from template ..."
+msgstr ""
+
+#: lib/QDepo/Model.pm:541
+#, fuzzy, perl-brace-format
+msgid "{ert} Created \"{new_qdf_file}\""
+msgstr "Crează fișier qdf nou"
+
+#: lib/QDepo/Model.pm:549
+#, perl-brace-format
+msgid "{ert} Failed: {error}"
+msgstr ""
+
+#: lib/QDepo/Model.pm:625
+#, perl-brace-format
+msgid "{ert} \"file\" not found!"
+msgstr ""
+
+#: lib/QDepo/Model.pm:632
+#, perl-brace-format
+msgid "{ert} Removed \"{file}\""
+msgstr ""
+
+#: lib/QDepo/Model.pm:637
+#, perl-brace-format
+msgid "{ert} Remove \"{file}\" failed"
+msgstr ""
+
+#: lib/QDepo/Model.pm:702
+#, perl-brace-format
+msgid "{ert} Parameter mismatch, to few parameters in SQL"
+msgstr ""
+
+#: lib/QDepo/Model.pm:712
+#, perl-brace-format
+msgid "{ert} Parameter mismatch, to many parameters in SQL"
+msgstr ""
+
+#: lib/QDepo/Model.pm:927
+#, perl-brace-format
+msgid "{ert} Not implemented: \"table_info_short\""
+msgstr ""
+
+#: lib/QDepo/Controller.pm:112
+msgid "Connect to"
+msgstr "Conexiune la"
+
+#: lib/QDepo/Controller.pm:141
+msgid "User and password are required"
+msgstr "Utilizatorul și parola sunt necesare"
+
+#: lib/QDepo/Controller.pm:295
 msgid "Export data"
 msgstr "Exportă"
 
-#: lib/QDepo/Wx/View.pm:401
-msgid "Title"
-msgstr "Titlu"
+#: lib/QDepo/Controller.pm:486
+msgid "Delete marked reports and quit?"
+msgstr "Ștergeți rapoartele marcate și ieșiți?"
 
-#: lib/QDepo/Wx/View.pm:405
-msgid "Query file"
-msgstr "Fișier interogare"
+#: lib/QDepo/Controller.pm:674
+msgid "Not connected."
+msgstr "Neconectat."
 
-#: lib/QDepo/Wx/View.pm:409
-msgid "Output file"
-msgstr "Fișier ieșire"
+#: lib/QDepo/Controller.pm:676
+msgid "No DB!"
+msgstr "Fără BD"
 
-#: lib/QDepo/Wx/View.pm:413
-msgid "Template"
-msgstr "Model"
+#: lib/QDepo/Output.pm:68
+msgid "No SQL parameter!"
+msgstr "SQL fără parametri!"
 
-#: lib/QDepo/Wx/View.pm:429
-msgid " Query list "
-msgstr "Listă interogări"
+#: lib/QDepo/Output.pm:76
+msgid "Columns record"
+msgstr ""
 
-#: lib/QDepo/Wx/View.pm:438
-msgid " Header "
-msgstr "Antet"
+#: lib/QDepo/Output.pm:105 lib/QDepo/Output.pm:175 lib/QDepo/Output.pm:240
+#: lib/QDepo/Output.pm:314
+msgid "No file parameter"
+msgstr "Fără parametrul: fișier"
 
-#: lib/QDepo/Wx/View.pm:463
-msgid " Description "
-msgstr "Descriere"
-
-#: lib/QDepo/Wx/View.pm:495
-msgid "Label"
-msgstr "Etichetă"
-
-#: lib/QDepo/Wx/View.pm:497
-msgid "Description"
-msgstr "Descriere"
-
-#: lib/QDepo/Wx/View.pm:499
-msgid "Value"
-msgstr "Valori"
-
-#: lib/QDepo/Wx/View.pm:587
-msgid " Parameters "
-msgstr "Parametri"
-
-#: lib/QDepo/Wx/View.pm:601
-msgid " Fields "
-msgstr "Câmpuri"
-
-#: lib/QDepo/Wx/View.pm:633
-msgid " SQL "
-msgstr "SQL"
-
-#: lib/QDepo/Wx/View.pm:794
-msgid " Connection "
-msgstr "Conexiune"
-
-#: lib/QDepo/Wx/View.pm:810
+#: lib/QDepo/Wx/View.pm:422
 msgid " Log "
 msgstr "Log"
 
-#: lib/QDepo/Wx/View.pm:837
+#: lib/QDepo/Wx/View.pm:463
+msgid " Query list "
+msgstr "Listă interogări"
+
+#: lib/QDepo/Wx/View.pm:472
+msgid " Description "
+msgstr "Descriere"
+
+#: lib/QDepo/Wx/View.pm:507
+msgid "Refresh"
+msgstr "Împrospătare"
+
+#: lib/QDepo/Wx/View.pm:522
+msgid " Fields "
+msgstr "Câmpuri"
+
+#: lib/QDepo/Wx/View.pm:551
+msgid " SQL "
+msgstr "SQL"
+
+#: lib/QDepo/Wx/View.pm:598
+msgid "Load"
+msgstr "Încarcă"
+
+#: lib/QDepo/Wx/View.pm:607
+msgid "Default"
+msgstr "Implicit"
+
+#: lib/QDepo/Wx/View.pm:616
+msgid "Edit"
+msgstr "Editare"
+
+#: lib/QDepo/Wx/View.pm:625
+msgid "New"
+msgstr "Nou"
+
+#: lib/QDepo/Wx/View.pm:638
+msgid " Connection "
+msgstr "Conexiune"
+
+#: lib/QDepo/Wx/View.pm:671
+msgid "Label"
+msgstr "Etichetă"
+
+#: lib/QDepo/Wx/View.pm:673
+msgid "Description"
+msgstr "Descriere"
+
+#: lib/QDepo/Wx/View.pm:675
+msgid "Value"
+msgstr "Valori"
+
+#: lib/QDepo/Wx/View.pm:711
+msgid " Parameters "
+msgstr "Parametri"
+
+#: lib/QDepo/Wx/View.pm:751
+msgid "Title"
+msgstr "Titlu"
+
+#: lib/QDepo/Wx/View.pm:755
+msgid "Query file"
+msgstr "Fișier interogare"
+
+#: lib/QDepo/Wx/View.pm:759
+msgid "Output file"
+msgstr "Fișier ieșire"
+
+#: lib/QDepo/Wx/View.pm:763
+msgid "Template"
+msgstr "Model"
+
+#: lib/QDepo/Wx/View.pm:774
+msgid " Header "
+msgstr "Antet"
+
+#: lib/QDepo/Wx/View.pm:801
+msgid "Driver"
+msgstr "Driver"
+
+#: lib/QDepo/Wx/View.pm:805
+msgid "Host"
+msgstr "Gazdă"
+
+#: lib/QDepo/Wx/View.pm:809
+msgid "Database"
+msgstr "Bază de date"
+
+#: lib/QDepo/Wx/View.pm:813
+msgid "Port"
+msgstr "Port"
+
+#: lib/QDepo/Wx/View.pm:821
+msgid " Connection details "
+msgstr "Detalii de conexiune"
+
+#: lib/QDepo/Wx/View.pm:853
 msgid "Error"
 msgstr "Eroare"
 
-#: lib/QDepo/Wx/View.pm:854
+#: lib/QDepo/Wx/View.pm:870
 msgid "Confirm"
 msgstr "Confirmă"
 
 #: lib/QDepo/Wx/Notebook.pm:48
-msgid "Query list"
-msgstr "Listă interogări"
+msgid "Queries"
+msgstr "Interogări"
 
 #: lib/QDepo/Wx/Notebook.pm:49
-msgid "Parameters"
-msgstr "Parametri"
+msgid "Info"
+msgstr "Info"
 
 #: lib/QDepo/Wx/Notebook.pm:50
 msgid "SQL"
@@ -113,11 +274,11 @@ msgstr "Introdu numele configurației"
 
 #: lib/QDepo/Wx/Controller.pm:106
 msgid "Entry dialog"
-msgstr ""
+msgstr "Dialog introducere"
 
 #: lib/QDepo/Wx/Controller.pm:111
 msgid "User cancelled the dialog"
-msgstr ""
+msgstr "Utilizatorul a abandonat dialogul"
 
 #: lib/QDepo/Config/Menu.pm:27
 msgid "App"
@@ -145,15 +306,15 @@ msgstr "Execută"
 
 #: lib/QDepo/Config/Toolbar.pm:30
 msgid "Execute query"
-msgstr ""
+msgstr "Execută interogarea"
 
 #: lib/QDepo/Config/Toolbar.pm:40
 msgid "Add query"
-msgstr ""
+msgstr "Adaugă interogare"
 
 #: lib/QDepo/Config/Toolbar.pm:43
 msgid "Create new qdf file"
-msgstr ""
+msgstr "Crează fișier qdf nou"
 
 #: lib/QDepo/Config/Toolbar.pm:66
 msgid "Quit the application"
@@ -161,11 +322,11 @@ msgstr "Închide aplicația"
 
 #: lib/QDepo/Config/Toolbar.pm:76
 msgid "Remove query"
-msgstr ""
+msgstr "Șterge interogare"
 
 #: lib/QDepo/Config/Toolbar.pm:79
 msgid "Remove the qdf file"
-msgstr ""
+msgstr "Șterge fișierul qdf"
 
 #: lib/QDepo/Config/Toolbar.pm:89 lib/QDepo/Config/Toolbar.pm:92
 msgid "Save metadata"
@@ -177,7 +338,17 @@ msgstr "Editare"
 
 #: lib/QDepo/Config/Toolbar.pm:105
 msgid "Toggle edit mode"
-msgstr ""
+msgstr "Basculează modul editare"
+
+#, fuzzy
+#~ msgid "No file parameter!"
+#~ msgstr "Parametri"
+
+#~ msgid "Query list"
+#~ msgstr "Listă interogări"
+
+#~ msgid "Parameters"
+#~ msgstr "Parametri"
 
 #~ msgid "Param/Fields"
 #~ msgstr "Param/Câmpuri"

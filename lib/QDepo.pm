@@ -35,13 +35,9 @@ Constructor method.
 
 sub new {
     my ($class, $args) = @_;
-
     my $self = {};
-
     bless $self, $class;
-
     $self->_init($args);
-
     return $self;
 }
 
@@ -54,11 +50,9 @@ instance.
 
 sub _init {
     my ( $self, $args ) = @_;
-
     my $cfg = QDepo::Config->instance($args);
     $self->{gui} = QDepo::Wx::Controller->new();
     $self->{gui}->start();    # stuff to run at start
-
     return;
 }
 

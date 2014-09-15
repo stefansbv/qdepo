@@ -9,7 +9,7 @@ use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
-
+use Locale::TextDomain 1.20 qw(QDepo);
 use QDepo::Exceptions;
 use QDepo::ItemData;
 use QDepo::Config;
@@ -73,8 +73,8 @@ sub dbh {
         }
         else {
             Exception::Db::Connect->throw(
-                logmsg  => "error#Not connected",
-                usermsg => 'error#Database error',
+                logmsg  => 'Not connected',
+                usermsg => 'Database error',
             );
         }
     }
@@ -99,8 +99,8 @@ sub dbc {
         }
         else {
             Exception::Db::Connect->throw(
-                logmsg  => "error#Not connected",
-                usermsg => 'error#Database error',
+                logmsg  => 'Not connected',
+                usermsg => 'Database error',
             );
         }
     }
@@ -384,12 +384,17 @@ sub run_export {
 
     my $outfile = $self->itemdata->output;
 
-    $self->message_log('II Running data export ...');
+    $self->message_log( __x('{ert} Running data export...', ert => 'II') );
 
     my $outpath = $self->cfg->output();
     if ( !-d $outpath ) {
-        $self->message_status('Wrong output path!', 0);
-        $self->message_log("EE Wrong output path: '$outpath'");
+        $self->message_status(__ 'Wrong output path', 0);
+        $self->message_log(
+            __x('{ert} Wrong output path: {outpath}',
+                outpath => $outpath,
+                ert     => 'EE',
+            )
+        );
         return;
     }
 
@@ -413,12 +418,24 @@ sub run_export {
     $rows    = defined $rows    ? $rows    : '?';
     $percent = defined $percent ? $percent : '?';
     if ($file) {
-        $self->message_status("Generated, $rows rows ($percent%)");
-        $self->message_log("II Output generated, $rows rows ($percent%)");
+        $self->message_status(
+            __x('Generated {rows} rows ({percent}%)',
+                rows    => $rows,
+                percent => $percent,
+            )
+        );
+        $self->message_log(
+            __x('{ert} Output generated, {rows} rows ({percent}%)',
+                ert     => 'II',
+                rows    => $rows,
+                percent => $percent,
+            )
+        );
     }
     else {
-        $self->message_status("No output file generated");
-        $self->message_log("EE No output file generated");
+        $self->message_status( __ 'No output file generated' );
+        $self->message_log(
+            __x( '{ert} No output file generated', ert => 'EE' ) );
     }
 
     $self->progress_update(0); # reset
@@ -477,8 +494,13 @@ sub write_qdf_data_file {
     $fio->xml_update($file, $record);
 
     my ($name, $path, $ext) = fileparse( $file, qr/\.[^\.]*/ );
-    $self->message_log("II Saved '${name}$ext'");
-
+    $self->message_log(
+        __x('{ert} Saved "{name}{ext}"',
+            ert  => 'EE',
+            name => $name,
+            ext  => $ext,
+        )
+    );
     return;
 }
 
@@ -501,16 +523,29 @@ sub report_add {
     my $dst_fqn = catfile($self->cfg->qdfpath, $new_qdf_file);
 
     if ( -f $dst_fqn ) {
-        $self->message_log("EE File exists! ($dst_fqn)");
+        $self->message_log(
+            __x('{ert} File exists ({dst_fqn})',
+                ert     => 'WW',
+                dst_fqn => $dst_fqn,
+            )
+        );
         return;
     }
 
-    $self->message_log("II Create new report from template ...");
+    $self->message_log(
+        __x( '{ert} Create new report from template ...', ert => 'II' ) );
+
     if ( copy( $src_fqn, $dst_fqn ) ) {
-        $self->message_log("II Made: '$new_qdf_file'");
+        $self->message_log(
+            __x('{ert} Created "{new_qdf_file}"',
+                ert          => 'II',
+                new_qdf_file => $new_qdf_file,
+            )
+        );
     }
     else {
-        $self->message_log("EE Failed: $!");
+        $self->message_log(
+            __x('{ert} Failed: {error}'), ert => 'EE', error => $! );
         return;
     }
 
@@ -586,17 +621,20 @@ sub report_remove {
     my ($self, $file) = @_;                  # $item
 
     unless (-f $file) {
-        $self->message_log("EE '$file' not found!");
+        $self->message_log( __x('{ert} "file" not found!', ert => 'EE') );
         return;
     }
 
     my $file_bak = "$file.bak";
     if ( move($file, $file_bak) ) {
-        $self->message_log("II Removed '$file'");
+        $self->message_log(
+            __x( '{ert} Removed "{file}"', ert => 'II', file => $file ) );
         return 1;
     }
     else {
-        $self->message_log("II Remove '$file' failed");
+        $self->message_log(
+            __x( '{ert} Remove "{file}" failed', ert => 'EE', file => $file )
+        );
     }
 
     return;
@@ -610,7 +648,12 @@ Set choice to value
 
 sub set_choice {
     my ($self, $choice) = @_;
-    $self->message_log("II Output format set to '$choice'");
+    $self->message_log(
+        __x('{ert} Output format set to "{choice}"',
+            ert    => 'II',
+            choice => $choice,
+        )
+    );
     $self->get_choice_observable->set($choice);
 }
 
@@ -655,7 +698,7 @@ sub string_replace_for_run {
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
         unless ( $sqltext =~ s/($var)/\?/pm ) {
-            my $error_msg = "EE Parameter mismatch, to few parameters in SQL";
+            my $error_msg = __x('{ert} Parameter mismatch, to few parameters in SQL', ert => 'EE');
             $self->message_log($error_msg);
             return;
         }
@@ -665,7 +708,7 @@ sub string_replace_for_run {
 
     # Check for remaining not substituted 'value[0-9]' in SQL
     if ( $sqltext =~ m{(value[0-9])}pm ) {
-        my $error_msg = "EE Parameter mismatch, to many parameters in SQL";
+        my $error_msg = __x('{ert} Parameter mismatch, to many parameters in SQL', ert => 'EE');
         $self->message_log($error_msg);
         return;
     }
@@ -879,7 +922,8 @@ sub get_columns_list {
         $all_cols_href = $self->dbc->table_info_short($table);
     }
     else {
-        $self->message_log("WW Not implemented: 'table_info_short'");
+        $self->message_log(
+            __x( '{ert} Not implemented: "table_info_short"', ert => 'II' ) );
         return;
     }
     my $sql_cols_aref = $parser->structure->{org_col_names};
