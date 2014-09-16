@@ -451,7 +451,7 @@ sub _build_page_querylist {
     my $dtq = $self->model->get_data_table_for('qlist');
     $self->{qlist} = QDepo::Wx::ListCtrl->new( $page, $dtq );
 
-    my $header = $self->model->get_query_list_cols;
+    my $header = $self->model->list_meta_data('qlist');
     $self->{qlist}->add_columns($header);
 
     #--- Layout
@@ -497,7 +497,7 @@ sub _build_page_info {
     $self->model->init_data_table('tlist');
     my $dtt = $self->model->get_data_table_for('tlist');
     $self->{tlist} = QDepo::Wx::ListCtrl->new( $page, $dtt );
-    my $header = $self->model->get_table_list_cols;
+    my $header = $self->model->list_meta_data('tlist');
     $self->{tlist}->add_columns($header);
 
     # Refresh button
@@ -587,7 +587,7 @@ sub _build_page_admin {
     my $dt = $self->model->get_data_table_for('dlist');
     $self->{dlist} = QDepo::Wx::ListCtrl->new( $page, $dt );
 
-    my $header = $self->model->get_db_list_cols;
+    my $header = $self->model->list_meta_data('dlist');
     $self->{dlist}->add_columns($header);
 
     #-- Button
