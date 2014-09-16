@@ -77,7 +77,6 @@ sub load_module {
                 module => $depend,
             )
         );
-        return;
     };
 
     my $module = $self->module_name_parameter($option, 'module');
@@ -89,7 +88,6 @@ sub load_module {
                 module => $module,
             )
         );
-        return;
     };
 }
 
@@ -128,13 +126,15 @@ sub db_generate_output {
         return;
     }
 
-    try {
+    my $success = try {
         $self->make_columns_record;
+        1;
     }
     catch {
         $self->catch_db_exceptions($_, __ 'Columns record');
-        return;
+        return undef;           # required!
     };
+    return unless $success;
 
     my $sub_name = 'generate_output_' . lc($option);
     my $out;
@@ -220,7 +220,6 @@ sub generate_output_excel {
     }
     catch {
         $self->catch_db_exceptions($_, 'Excel');
-        return;
     };
 
     return \@out;
@@ -263,7 +262,6 @@ sub generate_output_csv {
     }
     catch {
         $self->catch_db_exceptions($_, 'CSV');
-        return;
     };
 
     return \@out;
@@ -296,7 +294,6 @@ sub generate_output_calc {
     }
     catch {
         $self->catch_db_exceptions($_, 'Calc');
-        return;
     };
 
     my $cols = scalar @{ $sth->{NAME} };
@@ -371,7 +368,6 @@ sub generate_output_odf {
     }
     catch {
         $self->catch_db_exceptions($_, 'ODF');
-        return;
     };
 
     return \@out;
@@ -419,7 +415,6 @@ sub count_rows {
     }
     catch {
         $self->catch_db_exceptions($_, 'Count rows');
-        return;
     };
 
     return $rows_cnt;
@@ -467,7 +462,7 @@ sub make_columns_record {
 
 sub catch_db_exceptions {
     my ($self, $exc, $context) = @_;
-
+    print "Context is $context\n";
     my ($message, $details);
     if ( my $e = Exception::Base->catch($exc) ) {
         if ( $e->isa('Exception::Db::Connect') ) {
