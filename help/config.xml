@@ -77,13 +77,11 @@ configures the application.</para>
 #
 # ~ means undefined
 ---
-conninfo:
+connection:
   driver: cubrid
   host:   localhost
   dbname: demodb
   port:   30000
-output:
-  path:   ./
     </programlisting>
   </para>
   <para>  </para>
