@@ -497,7 +497,7 @@ sub write_qdf_data_file {
     my ($name, $path, $ext) = fileparse( $file, qr/\.[^\.]*/ );
     $self->message_log(
         __x('{ert} Saved "{name}{ext}"',
-            ert  => 'EE',
+            ert  => 'II',
             name => $name,
             ext  => $ext,
         )
