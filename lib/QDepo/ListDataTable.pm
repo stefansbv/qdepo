@@ -95,4 +95,10 @@ sub has_items_marked {
         : 0;
 }
 
+sub clear_all_items {
+    my $self = shift;
+    $self->{data} = [];
+    return;
+}
+
 1;

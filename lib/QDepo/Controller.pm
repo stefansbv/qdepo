@@ -597,9 +597,39 @@ sub populate_querylist {
 sub populate_fieldlist {
     my $self = shift;
 
-    my ( $columns, $header ) = $self->model->get_columns_list;
+    # Initialize list
+    my $data_table = $self->model->get_data_table_for('tlist');
+    $data_table->clear_all_items;
+    $self->view->refresh_list('tlist');
 
-    return unless scalar @{$header};
+    my ( $columns, $header );
+    my $success = try {
+        ( $columns, $header ) = $self->model->get_columns_list;
+        1;
+    }
+    catch {
+        if ( my $e = Exception::Base->catch($_) ) {
+            if ( $e->isa('Exception::Db::SQL::Parser') ) {
+                $self->model->message_log(
+                    __x('{ert} {message}: {details}',
+                        ert     => 'EE',
+                        message => $e->usermsg,
+                        details => $e->logmsg,
+                    )
+                );
+            }
+        }
+        else {
+            $self->model->message_log(
+                __x('{ert} {message}: {details}',
+                    ert     => 'EE',
+                    message => __ 'Unknown exception',
+                    details => $_,
+                )
+            );
+        }
+        return undef;           # required!
+    };
 
     foreach my $rec ( @{$columns} ) {
         $self->list_add_item('tlist', $rec);
