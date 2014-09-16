@@ -357,24 +357,14 @@ sub set_event_handlers {
     #-- Default button
     $self->view->event_handler_for_button(
         'btn_defa', sub {
-            $self->set_default_mnemonic();
+            $self->set_default_mnemonic;
         }
     );
 
     #-- Add button
     $self->view->event_handler_for_button(
         'btn_add', sub {
-            my $name = $self->get_text_dialog();
-            if ($name) {
-                # TODO
-                my $newconn = $self->cfg->new_config_tree($name);
-                $self->model->message_log(
-                    __x('{ert} New connection: {newconn}',
-                        ert     => 'II',
-                        newconn => $newconn,
-                    )
-                );
-            }
+            $self->add_new_menmonic;
         }
     );
 
@@ -595,24 +585,11 @@ sub populate_querylist {
 
     return unless scalar keys %{$items};
 
-    my $dt = $self->model->get_data_table_for('qlist');
-
     my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
 
-    my $columns_meta = $self->model->get_query_list_cols;
-
-    my $row = 0;
     foreach my $idx ( @indices ) {
-        my $col = 0;
-        foreach my $meta ( @{$columns_meta} ) {
-            my $value = $items->{$idx}{ $meta->{field} };
-            $dt->set_value( $row, $col, $value );
-            $col++;
-        }
-        $row++;
+        $self->list_add_item('qlist', $items->{$idx} );
     }
-
-    $self->view->refresh_list('qlist');
 
     return;
 }
@@ -624,22 +601,9 @@ sub populate_fieldlist {
 
     return unless scalar @{$header};
 
-    my $dt = $self->model->get_data_table_for('tlist');
-
-    my $columns_meta = $self->model->get_table_list_cols;
-
-    my $row = 0;
     foreach my $rec ( @{$columns} ) {
-        my $col = 0;
-        foreach my $meta ( @{$columns_meta} ) {
-            my $value = $rec->{ $meta->{field} };
-            $dt->set_value( $row, $col, $value );
-            $col++;
-        }
-        $row++;
+        $self->list_add_item('tlist', $rec);
     }
-
-    $self->view->refresh_list('tlist');
 
     return;
 }
@@ -659,25 +623,50 @@ sub populate_connlist {
 
     my $dt = $self->model->get_data_table_for('dlist');
 
-    my $columns_meta = $self->model->get_db_list_cols;
+    my $columns_meta = $self->model->list_meta_data('dlist');
 
-    my $row = 0;
     foreach my $rec ( @{$mnemonics_ref} ) {
-        my $col = 0;
-        foreach my $meta ( @{$columns_meta} ) {
-            my $value = $rec->{ $meta->{field} } // '';
-            $dt->set_value( $row, $col, $value );
-            $col++;
-        }
-        $row++;
+        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
+        $self->list_add_item('dlist', $rec);
     }
 
-    $self->model->dlist_default_item;
-
-    my $item = $dt->get_item_default;
-    $dt->set_value( $item, 2, 'yes' );
-    $self->view->refresh_list('dlist');
+    my $item = $self->model->dlist_default_item;
     $self->view->select_list_item('dlist', $item);
+
+    return;
+}
+
+=head2 list_add_item
+
+Generic method to add a list item to a list control.
+
+    my $rec = {
+        mnemonic => "test",
+        recno    => 1,
+    }
+
+=cut
+
+sub list_add_item {
+    my ($self, $list, $rec) = @_;
+
+    my $data_table = $self->model->get_data_table_for($list);
+    my $row        = $data_table->get_item_count;
+    my $cols_meta  = $self->model->list_meta_data($list);
+
+    my $col = 0;
+    foreach my $meta ( @{$cols_meta} ) {
+        my $field = $meta->{field};
+        my $value
+            = $field eq 'recno'
+            ? ( $row + 1 )
+            : ( $rec->{$field} // q{} )
+            ;
+        $data_table->set_value( $row, $col, $value );
+        $col++;
+    }
+
+    $self->view->refresh_list($list);
 
     return;
 }
@@ -705,6 +694,54 @@ sub db_connect {
             }
         };
     }
+    return;
+}
+
+sub add_new_menmonic {
+    my $self = shift;
+
+    my $name = $self->get_text_dialog();
+    my $newconn;
+    if ($name) {
+        my $success = try {
+            $newconn = $self->cfg->new_config_tree($name);
+            1;
+        }
+        catch {
+            if ( my $e = Exception::Base->catch($_) ) {
+                if ( $e->isa('Exception::IO::PathExists') ) {
+                    $self->model->message_log(
+                        __x('{ert} {message}: "{pathname}"',
+                            ert      => 'EE',
+                            message  => $e->message,
+                            pathname => $e->pathname,
+                        )
+                    );
+                }
+                else {
+                    print "!!! OTHER EXCEPTION !!!\n"; # TODO
+                }
+            }
+            return undef;           # required!
+        };
+        return unless $success;
+
+        $self->model->message_log(
+            __x('{ert} New connection: {newconn}',
+                ert     => 'II',
+                newconn => $newconn,
+            )
+        );
+
+        # Add to list
+        my $rec = {
+            default  => 0,
+            mnemonic => $name,
+        };
+        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
+        $self->list_add_item('dlist', $rec);
+    }
+
     return;
 }
 

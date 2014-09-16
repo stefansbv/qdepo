@@ -481,7 +481,7 @@ sub catch_db_exceptions {
             $details = $e->logmsg;
             $self->model->message_log(
                 __x('{ert} {message}: {details}',
-                    ert     => 'EEP',
+                    ert     => 'EE',
                     message => $message,
                     details => $details,
                 )
