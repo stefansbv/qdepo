@@ -355,14 +355,16 @@ sub get_mnemonics {
 
     my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
 
-    my $default = $self->get_default_mnemonic;
+    my $default_name = $self->get_default_mnemonic;
 
     my @mnx;
     my $idx = 0;
     foreach my $name ( @{$list} ) {
+        my $default = $default_name eq $name ? 1 : 0;
         my $ccfn = $self->config_file_name($name);
         if ( -f $ccfn ) {
-            push @mnx, { recno => $idx + 1, mnemonic => $name };
+            push @mnx,
+                { recno => $idx + 1, mnemonic => $name, default => $default };
             $idx++;
         }
     }
@@ -386,8 +388,10 @@ sub new_config_tree {
     my $conn_file = $self->config_file_name($conn_name);
 
     if ( -f $conn_file ) {
-        print "Connection configuration exists, can't overwrite.\n";
-        print " > $conn_name\n";
+        Exception::IO::PathExists->throw(
+            pathname => $conn_name,
+            message  => 'Connection configuration exists',
+        );
         return;
     }
 
