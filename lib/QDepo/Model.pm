@@ -803,10 +803,20 @@ sub set_continue {
     return;
 }
 
-### Virtual lists
+### Virtual lists meta data
 
-sub get_query_list_cols {
-    my $self = shift;
+sub list_meta_data {
+    my ($self, $list) = @_;
+    return
+          $list eq q{}     ? undef
+        : $list eq 'qlist' ? $self->get_query_list_meta
+        : $list eq 'dlist' ? $self->get_conn_list_meta
+        : $list eq 'tlist' ? $self->get_field_list_meta
+        :                    undef
+        ;
+}
+
+sub get_query_list_meta {
     return [
         {   field => 'nrcrt',
             label => '#',
@@ -821,8 +831,7 @@ sub get_query_list_cols {
     ];
 }
 
-sub get_table_list_cols {
-    my $self = shift;
+sub get_field_list_meta {
     return [
         {   field => 'recno',
             label => '#',
@@ -842,8 +851,7 @@ sub get_table_list_cols {
     ];
 }
 
-sub get_db_list_cols {
-    my $self = shift;
+sub get_conn_list_meta {
     return [
         {   field => 'recno',
             label => '#',
@@ -868,13 +876,14 @@ sub get_db_list_cols {
     ];
 }
 
+###
+
 sub init_data_table {
     my ($self, $list) = @_;
     die "List name is required for 'init_data_table'" unless $list;
     $self->{_dt}{$list} = QDepo::ListDataTable->new;
     return;
 }
-
 
 sub get_data_table_for {
     my ($self, $list) = @_;
