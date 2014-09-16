@@ -38,11 +38,12 @@ sub new {
     $self->StyleClearAll();
 
     # MSSQL - works with wxSTC_LEX_MSSQL
-    $self->StyleSetSpec(4, "fore:#dca3a3");            #*Singlequoted
-    $self->StyleSetSpec(8, "fore:#705050");            #*Doublequoted
-    $self->StyleSetSpec(9, "fore:#00ff00");            #*List0
-    $self->StyleSetSpec(10,"fore:#ff0000");            #*List1
-    $self->StyleSetSpec(11,"fore:#0000ff");            #*List2
+    $self->StyleSetSpec( 3,  "fore:#0000ff" );    #*Number
+    $self->StyleSetSpec( 4,  "fore:#dca3a3" );    #*Singlequoted
+    $self->StyleSetSpec( 8,  "fore:#705050" );    #*Doublequoted
+    $self->StyleSetSpec( 9,  "fore:#00ff00" );    #*List0
+    $self->StyleSetSpec( 10, "fore:#ff0000" );    #*List1
+    $self->StyleSetSpec( 11, "fore:#0000ff" );    #*List2
 
     return $self;
 }
