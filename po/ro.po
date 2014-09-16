@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QDepo 0.50\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2014-09-14 15:56+0300\n"
-"PO-Revision-Date: 2014-09-14 15:57+0200\n"
+"POT-Creation-Date: 2014-09-16 13:12+0300\n"
+"PO-Revision-Date: 2014-09-16 13:19+0200\n"
 "Last-Translator: Ștefan Suciu <stefan@s2i2.ro>\n"
 "Language-Team: none\n"
 "Language: ro\n"
@@ -19,32 +19,32 @@ msgstr ""
 "20)) ? 1 : 2;\n"
 "X-Generator: Poedit 1.6.8\n"
 
-#: lib/QDepo/Model.pm:387
+#: lib/QDepo/Model.pm:388
 #, perl-brace-format
 msgid "{ert} Running data export..."
 msgstr "{ert} Execut exportul de date..."
 
-#: lib/QDepo/Model.pm:391
+#: lib/QDepo/Model.pm:392
 msgid "Wrong output path"
 msgstr "Cale de ieșiere eronată"
 
-#: lib/QDepo/Model.pm:393
-#, fuzzy, perl-brace-format
+#: lib/QDepo/Model.pm:394
+#, perl-brace-format
 msgid "{ert} Wrong output path: {outpath}"
-msgstr "Cale de ieșiere eronată"
+msgstr "{ert} Cale de ieșiere eronată: {outpath}"
 
-#: lib/QDepo/Model.pm:422
+#: lib/QDepo/Model.pm:423
 #, perl-brace-format
 msgid "Generated {rows} rows ({percent}%)"
 msgstr "{rows} înregistrări generate ({percent}%)"
 
-#: lib/QDepo/Model.pm:428
+#: lib/QDepo/Model.pm:429
 #, perl-brace-format
 msgid "{ert} Output generated, {rows} rows ({percent}%)"
 msgstr ""
 
 #: lib/QDepo/Model.pm:437
-msgid "No output file generated "
+msgid "No output file generated"
 msgstr ""
 
 #: lib/QDepo/Model.pm:439
@@ -55,7 +55,7 @@ msgstr ""
 #: lib/QDepo/Model.pm:499
 #, perl-brace-format
 msgid "{ert} Saved \"{name}{ext}\""
-msgstr ""
+msgstr "{ert} Salvat \"{name}{ext}\""
 
 #: lib/QDepo/Model.pm:528
 #, perl-brace-format
@@ -68,9 +68,9 @@ msgid "{ert} Create new report from template ..."
 msgstr ""
 
 #: lib/QDepo/Model.pm:541
-#, fuzzy, perl-brace-format
+#, perl-brace-format
 msgid "{ert} Created \"{new_qdf_file}\""
-msgstr "Crează fișier qdf nou"
+msgstr "{ert} Am creat \"{new_qdf_file}\""
 
 #: lib/QDepo/Model.pm:549
 #, perl-brace-format
@@ -92,6 +92,11 @@ msgstr ""
 msgid "{ert} Remove \"{file}\" failed"
 msgstr ""
 
+#: lib/QDepo/Model.pm:653
+#, perl-brace-format
+msgid "{ert} Output format set to \"{choice}\""
+msgstr ""
+
 #: lib/QDepo/Model.pm:702
 #, perl-brace-format
 msgid "{ert} Parameter mismatch, to few parameters in SQL"
@@ -102,47 +107,127 @@ msgstr ""
 msgid "{ert} Parameter mismatch, to many parameters in SQL"
 msgstr ""
 
-#: lib/QDepo/Model.pm:927
+#: lib/QDepo/Model.pm:944
 #, perl-brace-format
 msgid "{ert} Not implemented: \"table_info_short\""
 msgstr ""
 
-#: lib/QDepo/Controller.pm:112
-msgid "Connect to"
-msgstr "Conexiune la"
+#: lib/QDepo/Controller.pm:69
+#, perl-brace-format
+msgid "{ert} Starting QDepo {verbose}"
+msgstr "{ert} Start QDepo {verbose}"
 
-#: lib/QDepo/Controller.pm:141
-msgid "User and password are required"
+#: lib/QDepo/Controller.pm:120
+#, perl-brace-format
+msgid "Connect to {driver}: {dbname}"
+msgstr "Conectare la {driver}: {dbname}"
+
+#: lib/QDepo/Controller.pm:133
+#, perl-brace-format
+msgid "{ert} Login cancelled"
+msgstr "{ert} Autentificare abandonată"
+
+#: lib/QDepo/Controller.pm:148 lib/QDepo/Controller.pm:687
+#, perl-brace-format
+msgid "{ert} {logmsg}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:158
+msgid "User and password is required"
 msgstr "Utilizatorul și parola sunt necesare"
 
-#: lib/QDepo/Controller.pm:295
+#: lib/QDepo/Controller.pm:312
 msgid "Export data"
 msgstr "Exportă"
 
-#: lib/QDepo/Controller.pm:486
+#: lib/QDepo/Controller.pm:498
 msgid "Delete marked reports and quit?"
 msgstr "Ștergeți rapoartele marcate și ieșiți?"
 
-#: lib/QDepo/Controller.pm:674
+#: lib/QDepo/Controller.pm:629 lib/QDepo/Controller.pm:741
+msgid "Yes"
+msgstr "Da"
+
+#: lib/QDepo/Controller.pm:685
 msgid "Not connected."
 msgstr "Neconectat."
 
-#: lib/QDepo/Controller.pm:676
+#: lib/QDepo/Controller.pm:692
 msgid "No DB!"
 msgstr "Fără BD"
 
-#: lib/QDepo/Output.pm:68
+#: lib/QDepo/Controller.pm:714
+#, perl-brace-format
+msgid "{ert} {message}: \"{pathname}\""
+msgstr ""
+
+#: lib/QDepo/Controller.pm:730
+#, perl-brace-format
+msgid "{ert} New connection: {newconn}"
+msgstr ""
+
+#: lib/QDepo/Output.pm:75 lib/QDepo/Output.pm:86
+#, perl-brace-format
+msgid "{ert} {module} is not available"
+msgstr ""
+
+#: lib/QDepo/Output.pm:119
+msgid "No output file parameter"
+msgstr "Fără parametrul fișier"
+
+#: lib/QDepo/Output.pm:125
 msgid "No SQL parameter!"
 msgstr "SQL fără parametri!"
 
-#: lib/QDepo/Output.pm:76
+#: lib/QDepo/Output.pm:134
 msgid "Columns record"
 msgstr ""
 
-#: lib/QDepo/Output.pm:105 lib/QDepo/Output.pm:175 lib/QDepo/Output.pm:240
-#: lib/QDepo/Output.pm:314
-msgid "No file parameter"
-msgstr "Fără parametrul: fișier"
+#: lib/QDepo/Output.pm:146
+#, perl-brace-format
+msgid "{ert} {option} is not implemented"
+msgstr ""
+
+#: lib/QDepo/Output.pm:161
+#, perl-brace-format
+msgid "{ert} Count: {rows_cnt} total rows"
+msgstr ""
+
+#: lib/QDepo/Output.pm:169
+#, perl-brace-format
+msgid "{ert} No output rows!"
+msgstr "{ert} Fără înregistrări!"
+
+#: lib/QDepo/Output.pm:183 lib/QDepo/Output.pm:232 lib/QDepo/Output.pm:274
+#: lib/QDepo/Output.pm:326
+#, perl-brace-format
+msgid "{ert} Generating output file \"{outfile}\""
+msgstr "{ert} Generez fișierul \"{outfile}\""
+
+#: lib/QDepo/Output.pm:383
+#, perl-brace-format
+msgid "{ert} Failed to extract FROM clause"
+msgstr ""
+
+#: lib/QDepo/Output.pm:396
+#, perl-brace-format
+msgid "{ert} SQL: {cnt_sql}"
+msgstr ""
+
+#: lib/QDepo/Output.pm:444
+#, perl-brace-format
+msgid "{ert} Stopped at user request"
+msgstr "{ert} Oprit la cererea utilizatorului"
+
+#: lib/QDepo/Output.pm:472 lib/QDepo/Output.pm:483 lib/QDepo/Output.pm:494
+#, perl-brace-format
+msgid "{ert} {message}: {details}"
+msgstr ""
+
+#: lib/QDepo/Output.pm:504
+#, perl-brace-format
+msgid "{ert} {message}"
+msgstr ""
 
 #: lib/QDepo/Wx/View.pm:422
 msgid " Log "
@@ -339,6 +424,9 @@ msgstr "Editare"
 #: lib/QDepo/Config/Toolbar.pm:105
 msgid "Toggle edit mode"
 msgstr "Basculează modul editare"
+
+#~ msgid "Connect to"
+#~ msgstr "Conexiune la"
 
 #, fuzzy
 #~ msgid "No file parameter!"
