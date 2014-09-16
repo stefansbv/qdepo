@@ -367,8 +367,13 @@ sub set_event_handlers {
             my $name = $self->get_text_dialog();
             if ($name) {
                 # TODO
-                my $new = $self->cfg->new_config_tree($name);
-                $self->model->message_log(qq{II New connection: '$new'});
+                my $newconn = $self->cfg->new_config_tree($name);
+                $self->model->message_log(
+                    __x('{ert} New connection: {newconn}',
+                        ert     => 'II',
+                        newconn => $newconn,
+                    )
+                );
             }
         }
     );
