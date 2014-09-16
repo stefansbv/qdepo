@@ -20,8 +20,8 @@ sub new {
     $self->SetMarginWidth( 1, 10 );
     $self->StyleSetFont( wxSTC_STYLE_DEFAULT,
         Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    $self->SetLexer( Wx::Scintilla::SCLEX_MYSQL );
-
+    # $self->SetLexer( wxSTC_LEX_SQL );
+    $self->SetLexer( wxSTC_LEX_MSSQL );
     # List0
     $self->SetKeyWords(0,
     q{all and any ascending between by cast collate containing day
