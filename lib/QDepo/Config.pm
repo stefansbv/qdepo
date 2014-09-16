@@ -382,7 +382,7 @@ sub new_config_tree {
 
     my $conn_path = catdir( $self->cfpath, 'db', $conn_name, 'etc' );
     my $conn_qdfp = catdir( $self->cfpath, 'db', $conn_name, 'qdf' );
-    my $conn_tmpl = catfile( $self->cfpath, 'template/connection.yml' );
+    my $conn_tmpl = catfile( $self->cfpath, 'template', 'connection.yml' );
     my $conn_file = $self->config_file_name($conn_name);
 
     if ( -f $conn_file ) {
