@@ -29,7 +29,6 @@ sub new {
         _connected   => QDepo::Observable->new(),
         _stdout      => QDepo::Observable->new(),
         _message     => QDepo::Observable->new(),
-        # _exception   => QDepo::Observable->new(),
         _itemchanged => QDepo::Observable->new(),
         _appmode     => QDepo::Observable->new(),
         _choice      => QDepo::Observable->new(),
@@ -461,7 +460,7 @@ sub read_qdf_data_file {
 
 =head2 get_itemchanged_observable
 
-Return observable status on item changed ???
+Return observable status on item changed.
 
 =cut
 
@@ -743,41 +742,6 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
-# =head2 get_exception_observable
-
-# Get exception observable status.
-
-# =cut
-
-# sub get_exception_observable {
-#     my $self = shift;
-#     return $self->{_exception};
-# }
-
-# =head2 exception_log
-
-# Log an exception.
-
-# =cut
-
-# sub exception_log {
-#     my ( $self, $message ) = @_;
-#     $self->get_exception_observable->set($message);
-# }
-
-# =head2 get_exception
-
-# Get exception message and then clear it.
-
-# =cut
-
-# sub get_exception {
-#     my $self = shift;
-#     my $exception = $self->get_exception_observable->get;
-#     $self->get_exception_observable->set();  # clear
-#     return $exception;
-# }
-
 =head2 get_continue_observable
 
 Get continue operation observable status.  Flag used by the progress
@@ -824,7 +788,7 @@ sub get_query_list_meta {
             width => 50,
         },
         {   field => 'title',
-            label => 'Query name',
+            label => __ 'Query name',
             align => 'left',
             width => 345,
         },
@@ -839,12 +803,12 @@ sub get_field_list_meta {
             width => 50,
         },
         {   field => 'field',
-            label => 'Name',
+            label => __ 'Name',
             align => 'left',
             width => 150,
         },
         {   field => 'type',
-            label => 'Type',
+            label => __ 'Type',
             align => 'left',
             width => 195,
         },
@@ -859,17 +823,17 @@ sub get_conn_list_meta {
             width => 50,
         },
         {   field => 'mnemonic',
-            label => 'Mnemonic',
+            label => __ 'Mnemonic',
             align => 'left',
             width => 100,
         },
         {   field => 'default',
-            label => 'Default',
+            label => __ 'Default',
             align => 'left',
             width => 60,
         },
         {   field => 'description',
-            label => 'Description',
+            label => __ 'Description',
             align => 'left',
             width => 185,
         },

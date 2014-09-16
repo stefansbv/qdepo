@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QDepo 0.50\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2014-09-16 13:12+0300\n"
+"POT-Creation-Date: 2014-09-16 21:07+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,95 +17,119 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: lib/QDepo/Model.pm:388
+#: lib/QDepo/Model.pm:387
 #, perl-brace-format
 msgid "{ert} Running data export..."
 msgstr ""
 
-#: lib/QDepo/Model.pm:392
+#: lib/QDepo/Model.pm:391
 msgid "Wrong output path"
 msgstr ""
 
-#: lib/QDepo/Model.pm:394
+#: lib/QDepo/Model.pm:393
 #, perl-brace-format
 msgid "{ert} Wrong output path: {outpath}"
 msgstr ""
 
-#: lib/QDepo/Model.pm:423
+#: lib/QDepo/Model.pm:422
 #, perl-brace-format
 msgid "Generated {rows} rows ({percent}%)"
 msgstr ""
 
-#: lib/QDepo/Model.pm:429
+#: lib/QDepo/Model.pm:428
 #, perl-brace-format
 msgid "{ert} Output generated, {rows} rows ({percent}%)"
 msgstr ""
 
-#: lib/QDepo/Model.pm:437
+#: lib/QDepo/Model.pm:436
 msgid "No output file generated"
 msgstr ""
 
-#: lib/QDepo/Model.pm:439
+#: lib/QDepo/Model.pm:438
 #, perl-brace-format
 msgid "{ert} No output file generated"
 msgstr ""
 
-#: lib/QDepo/Model.pm:499
+#: lib/QDepo/Model.pm:498
 #, perl-brace-format
 msgid "{ert} Saved \"{name}{ext}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:528
+#: lib/QDepo/Model.pm:527
 #, perl-brace-format
 msgid "{ert} File exists ({dst_fqn})"
 msgstr ""
 
-#: lib/QDepo/Model.pm:537
+#: lib/QDepo/Model.pm:536
 #, perl-brace-format
 msgid "{ert} Create new report from template ..."
 msgstr ""
 
-#: lib/QDepo/Model.pm:541
+#: lib/QDepo/Model.pm:540
 #, perl-brace-format
 msgid "{ert} Created \"{new_qdf_file}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:549
+#: lib/QDepo/Model.pm:548
 #, perl-brace-format
 msgid "{ert} Failed: {error}"
 msgstr ""
 
-#: lib/QDepo/Model.pm:625
+#: lib/QDepo/Model.pm:624
 #, perl-brace-format
 msgid "{ert} \"file\" not found!"
 msgstr ""
 
-#: lib/QDepo/Model.pm:632
+#: lib/QDepo/Model.pm:631
 #, perl-brace-format
 msgid "{ert} Removed \"{file}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:637
+#: lib/QDepo/Model.pm:636
 #, perl-brace-format
 msgid "{ert} Remove \"{file}\" failed"
 msgstr ""
 
-#: lib/QDepo/Model.pm:653
+#: lib/QDepo/Model.pm:652
 #, perl-brace-format
 msgid "{ert} Output format set to \"{choice}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:702
+#: lib/QDepo/Model.pm:701
 #, perl-brace-format
 msgid "{ert} Parameter mismatch, to few parameters in SQL"
 msgstr ""
 
-#: lib/QDepo/Model.pm:712
+#: lib/QDepo/Model.pm:711
 #, perl-brace-format
 msgid "{ert} Parameter mismatch, to many parameters in SQL"
 msgstr ""
 
-#: lib/QDepo/Model.pm:944
+#: lib/QDepo/Model.pm:791
+msgid "Query name"
+msgstr ""
+
+#: lib/QDepo/Model.pm:806
+msgid "Name"
+msgstr ""
+
+#: lib/QDepo/Model.pm:811
+msgid "Type"
+msgstr ""
+
+#: lib/QDepo/Model.pm:826
+msgid "Mnemonic"
+msgstr ""
+
+#: lib/QDepo/Model.pm:831 lib/QDepo/Wx/View.pm:607
+msgid "Default"
+msgstr ""
+
+#: lib/QDepo/Model.pm:836 lib/QDepo/Wx/View.pm:472 lib/QDepo/Wx/View.pm:673
+msgid "Description"
+msgstr ""
+
+#: lib/QDepo/Model.pm:908
 #, perl-brace-format
 msgid "{ert} Not implemented: \"table_info_short\""
 msgstr ""
@@ -125,7 +149,7 @@ msgstr ""
 msgid "{ert} Login cancelled"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:148 lib/QDepo/Controller.pm:687
+#: lib/QDepo/Controller.pm:148 lib/QDepo/Controller.pm:717
 #, perl-brace-format
 msgid "{ert} {logmsg}"
 msgstr ""
@@ -142,24 +166,34 @@ msgstr ""
 msgid "Delete marked reports and quit?"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:629 lib/QDepo/Controller.pm:741
+#: lib/QDepo/Controller.pm:614 lib/QDepo/Controller.pm:624
+#: lib/QDepo/Output.pm:472 lib/QDepo/Output.pm:483 lib/QDepo/Output.pm:494
+#, perl-brace-format
+msgid "{ert} {message}: {details}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:626
+msgid "Unknown exception"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:659 lib/QDepo/Controller.pm:771
 msgid "Yes"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:685
+#: lib/QDepo/Controller.pm:715
 msgid "Not connected."
 msgstr ""
 
-#: lib/QDepo/Controller.pm:692
+#: lib/QDepo/Controller.pm:722
 msgid "No DB!"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:714
+#: lib/QDepo/Controller.pm:744
 #, perl-brace-format
 msgid "{ert} {message}: \"{pathname}\""
 msgstr ""
 
-#: lib/QDepo/Controller.pm:730
+#: lib/QDepo/Controller.pm:760
 #, perl-brace-format
 msgid "{ert} New connection: {newconn}"
 msgstr ""
@@ -217,26 +251,17 @@ msgstr ""
 msgid "{ert} Stopped at user request"
 msgstr ""
 
-#: lib/QDepo/Output.pm:472 lib/QDepo/Output.pm:483 lib/QDepo/Output.pm:494
-#, perl-brace-format
-msgid "{ert} {message}: {details}"
-msgstr ""
-
 #: lib/QDepo/Output.pm:504
 #, perl-brace-format
 msgid "{ert} {message}"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:422
-msgid " Log "
+msgid "Log"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:463
-msgid " Query list "
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:472
-msgid " Description "
+msgid "Query list"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:507
@@ -244,19 +269,15 @@ msgid "Refresh"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:522
-msgid " Fields "
+msgid "Fields"
 msgstr ""
 
-#: lib/QDepo/Wx/View.pm:551
-msgid " SQL "
+#: lib/QDepo/Wx/View.pm:551 lib/QDepo/Wx/Notebook.pm:50
+msgid "SQL"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:598
 msgid "Load"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:607
-msgid "Default"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:616
@@ -264,19 +285,15 @@ msgid "Edit"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:625
-msgid "New"
+msgid "Add"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:638
-msgid " Connection "
+msgid "Connection"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:671
 msgid "Label"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:673
-msgid "Description"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:675
@@ -284,7 +301,7 @@ msgid "Value"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:711
-msgid " Parameters "
+msgid "Parameters"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:751
@@ -304,7 +321,7 @@ msgid "Template"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:774
-msgid " Header "
+msgid "Header"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:801
@@ -324,7 +341,7 @@ msgid "Port"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:821
-msgid " Connection details "
+msgid "Connection details"
 msgstr ""
 
 #: lib/QDepo/Wx/View.pm:853
@@ -341,10 +358,6 @@ msgstr ""
 
 #: lib/QDepo/Wx/Notebook.pm:49
 msgid "Info"
-msgstr ""
-
-#: lib/QDepo/Wx/Notebook.pm:50
-msgid "SQL"
 msgstr ""
 
 #: lib/QDepo/Wx/Notebook.pm:51

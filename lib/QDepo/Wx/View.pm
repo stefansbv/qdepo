@@ -419,7 +419,7 @@ sub _build_splitter {
     $self->{log} = QDepo::Wx::LogView->new($panel_bot);
 
     my $log_sbs = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $panel_bot, -1, __ ' Log ' ), wxHORIZONTAL );
+        Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxHORIZONTAL );
     $log_sbs->Add( $self->{log}, 1, wxEXPAND, 0 );
     $sizer_bot->Add( $log_sbs, 1, wxALL | wxEXPAND, 5 );
 
@@ -460,7 +460,7 @@ sub _build_page_querylist {
 
     my $qlist_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Query list ', ),
+        Wx::StaticBox->new( $page, -1, __ 'Query list', ),
         wxVERTICAL, );
 
     $qlist_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
@@ -469,7 +469,7 @@ sub _build_page_querylist {
 
     my $qlist_bot_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Description ', ),
+        Wx::StaticBox->new( $page, -1, __ 'Description', ),
         wxVERTICAL, );
 
     $qlist_bot_sz->Add( $self->{description}, 1, wxEXPAND );
@@ -519,7 +519,7 @@ sub _build_page_info {
     $info_mid_sz->Add(-1, 20);
 
     my $info_bot_sz = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Fields ' ), wxVERTICAL );
+        Wx::StaticBox->new( $page, -1, __ 'Fields' ), wxVERTICAL );
 
     $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
@@ -548,7 +548,7 @@ sub _build_page_sql {
 
     #-- Controls
 
-    my $sql_sb = Wx::StaticBox->new( $page, -1, __ ' SQL ', );
+    my $sql_sb = Wx::StaticBox->new( $page, -1, __ 'SQL', );
 
     $self->{sql} = QDepo::Wx::Editor->new($page);
 
@@ -622,7 +622,7 @@ sub _build_page_admin {
     $self->{btn_add} = Wx::Button->new(
         $page,
         -1,
-        __ 'New',
+        __ 'Add',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -635,7 +635,7 @@ sub _build_page_admin {
 
     my $conf_top_sz =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Connection ', ),
+        Wx::StaticBox->new( $page, -1, __ 'Connection', ),
         wxVERTICAL, );
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
@@ -708,7 +708,7 @@ sub _build_ctrls_parameter {
 
     my $sizer =
       Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Parameters ', ),
+        Wx::StaticBox->new( $page, -1, __ 'Parameters', ),
         wxHORIZONTAL, );
 
     my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
@@ -771,7 +771,7 @@ sub _build_ctrls_querylist {
     #-- Layout
 
     my $sizer = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Header ' ), wxVERTICAL );
+        Wx::StaticBox->new( $page, -1, __ 'Header' ), wxVERTICAL );
 
     my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $fg_sizer->AddGrowableCol( 1, 1 );
@@ -818,7 +818,7 @@ sub _build_ctrls_conn {
 
     my $sizer
         = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ ' Connection details ', ),
+        Wx::StaticBox->new( $page, -1, __ 'Connection details', ),
         wxVERTICAL );
 
     my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
