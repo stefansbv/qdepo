@@ -6,10 +6,8 @@
 #
 # ~ means undefined
 ---
-conninfo:
+connection:
   driver: sqlite
   host: localhost
   dbname: qdepo-test.db
   port: ~
-output:
-  path: ./
