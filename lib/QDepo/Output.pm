@@ -307,7 +307,9 @@ sub generate_output_calc {
     # Header
     $doc->create_header_row( 0, $self->{header} );
 
-    $self->model->message_status("$rows_cnt total rows");
+    $self->model->message_status(
+        __nx ("one row", "{num} rows", $rows_cnt, num => $rows_cnt)
+    );
 
     $self->model->progress_update(0);
 
@@ -357,7 +359,9 @@ sub generate_output_odf {
         # Header
         $doc->create_header_row( 0, $self->{header} );
 
-        $self->model->message_status("$rows_cnt total rows");
+        $self->model->message_status(
+            __nx ("one row", "{num} rows", $rows_cnt, num => $rows_cnt)
+        );
 
         $self->model->progress_update(0);
 

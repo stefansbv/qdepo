@@ -330,6 +330,7 @@ sub set_event_handlers {
             my $dt   = $self->model->get_data_table_for('qlist');
             $dt->set_item_selected($item);
             $self->model->on_item_selected_load;
+            $self->populate_fieldlist;
         }
     );
 
@@ -618,6 +619,15 @@ sub populate_fieldlist {
                     )
                 );
             }
+            else {
+                $self->model->message_log(
+                    __x('{ert} {message}: {details}',
+                        ert     => 'EE',
+                        message => __ 'Unknown exception',
+                        details => $_,
+                    )
+                );
+            }
         }
         else {
             $self->model->message_log(
@@ -630,6 +640,7 @@ sub populate_fieldlist {
         }
         return undef;           # required!
     };
+    return unless $success;
 
     foreach my $rec ( @{$columns} ) {
         $self->list_add_item('tlist', $rec);
@@ -650,10 +661,6 @@ sub populate_connlist {
     my $mnemonics_ref = $self->cfg->get_mnemonics;
 
     return unless @{$mnemonics_ref};
-
-    my $dt = $self->model->get_data_table_for('dlist');
-
-    my $columns_meta = $self->model->list_meta_data('dlist');
 
     foreach my $rec ( @{$mnemonics_ref} ) {
         $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};

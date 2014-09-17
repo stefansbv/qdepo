@@ -897,6 +897,22 @@ sub get_columns_list {
     #-- Table
     my $tables_ref = $parser->structure->{org_table_names};
     my $table      = $tables_ref->[0];
+    if ($table) {
+        unless ( $self->dbc->table_exists($table) ) {
+            my $msg
+                = __x( 'The {table} table does not exists', table => $table );
+            Exception::Db::SQL::Parser->throw(
+                logmsg  => $msg,
+                usermsg => 'SQL parser error',
+            );
+        }
+    }
+    else {
+        Exception::Db::SQL::Parser->throw(
+            logmsg  => __ 'Can not parse the name of the table',
+            usermsg => 'SQL parser error',
+        );
+    }
 
     #-- Columns
     my $all_cols_href;
