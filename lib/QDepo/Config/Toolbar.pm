@@ -31,9 +31,10 @@ has 'tool' => (
                 'type'    => '_item_normal',
                 'id'      => '1006',
                 'state'   => {
-                    'edit' => 'disabled',
-                    'idle' => 'disabled',
-                    'sele' => 'normal'
+                    'edit'  => 'disabled',
+                    'idle'  => 'disabled',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             },
             'tb_ad' => {
@@ -44,9 +45,10 @@ has 'tool' => (
                 'type'    => '_item_normal',
                 'id'      => '1003',
                 'state'   => {
-                    'edit' => 'disabled',
-                    'idle' => 'normal',
-                    'sele' => 'normal'
+                    'edit'  => 'disabled',
+                    'idle'  => 'normal',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             },
             'tb_ls' => {
@@ -54,9 +56,10 @@ has 'tool' => (
                 'type'  => '_item_list',
                 'id'    => '1005',
                 'state' => {
-                    'edit' => 'disabled',
-                    'idle' => 'disabled',
-                    'sele' => 'normal'
+                    'edit'  => 'disabled',
+                    'idle'  => 'disabled',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             },
             'tb_qt' => {
@@ -67,9 +70,10 @@ has 'tool' => (
                 'type'    => '_item_normal',
                 'id'      => '1007',
                 'state'   => {
-                    'edit' => 'disabled',
-                    'idle' => 'normal',
-                    'sele' => 'normal'
+                    'edit'  => 'disabled',
+                    'idle'  => 'normal',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             },
             'tb_rm' => {
@@ -80,9 +84,10 @@ has 'tool' => (
                 'type'    => '_item_normal',
                 'id'      => '1004',
                 'state'   => {
-                    'edit' => 'disabled',
-                    'idle' => 'disabled',
-                    'sele' => 'normal'
+                    'edit'  => 'disabled',
+                    'idle'  => 'disabled',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             },
             'tb_sv' => {
@@ -93,9 +98,10 @@ has 'tool' => (
                 'type'    => '_item_normal',
                 'id'      => '1002',
                 'state'   => {
-                    'edit' => 'normal',
-                    'idle' => 'disabled',
-                    'sele' => 'disabled'
+                    'edit'  => 'normal',
+                    'idle'  => 'disabled',
+                    'sele'  => 'disabled',
+                    'admin' => 'disabled',
                 }
             },
             'tb_ed' => {
@@ -106,9 +112,10 @@ has 'tool' => (
                 'type'    => '_item_check',
                 'id'      => '1001',
                 'state'   => {
-                    'edit' => 'normal',
-                    'idle' => 'disabled',
-                    'sele' => 'normal'
+                    'edit'  => 'normal',
+                    'idle'  => 'disabled',
+                    'sele'  => 'normal',
+                    'admin' => 'disabled',
                 }
             }
         };

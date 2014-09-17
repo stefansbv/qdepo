@@ -10,8 +10,10 @@ use File::ShareDir qw(dist_dir);
 use File::UserConfig;
 use File::Spec::Functions qw(catdir catfile canonpath);
 use File::Slurp;
-
-require QDepo::Config::Utils;
+use Try::Tiny;
+use Locale::TextDomain 1.20 qw(QDepo);
+use QDepo::Config::Utils;
+use QDepo::Exceptions;
 
 use base qw(Class::Singleton Class::Accessor);
 
@@ -310,22 +312,33 @@ the extension of the file.
 sub config_data_from {
     my ( $self, $conf_file, $not_fatal ) = @_;
 
-    if ( !-f $conf_file ) {
-        print " $conf_file ... not found\n" if $self->verbose;
-        if ($not_fatal) {
-            return;
-        }
-        else {
-            my $msg = 'Configuration error!';
-            $msg .= $self->verbose ? '' : ", file not found:\n$conf_file";
-            die $msg;
-        }
-    }
-    else {
-        print " $conf_file ... found\n" if $self->verbose;
-    }
+    return if $not_fatal and ( ! -f $conf_file );
 
-    return QDepo::Config::Utils->load_yaml($conf_file);
+    my $conf;
+    try {
+        $conf = QDepo::Config::Utils->read_yaml($conf_file);
+    }
+    catch {
+        if ( my $e = Exception::Base->catch($_) ) {
+            if ( $e->isa('Exception::IO::ReadError') ) {
+                $self->model->message_log(
+                    __x('{ert} Read failed: {message} ({filename})',
+                        ert      => 'EE',
+                        message  => $e->message,
+                        filename => $e->filename,
+                    ) );
+            }
+            else {
+                $self->model->message_log(
+                    __x('{ert} {message}',
+                        ert     => 'EE',
+                        message => __ 'Unknown exception',
+                    ) );
+            }
+        }
+    };
+
+    return $conf;
 }
 
 =head2 config_file_name

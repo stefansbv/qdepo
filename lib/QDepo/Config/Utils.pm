@@ -15,6 +15,8 @@ use File::Slurp qw(read_file);
 use Try::Tiny;
 use YAML::Tiny;
 
+use QDepo::Exceptions;
+
 =head1 SYNOPSIS
 
     use QDepo::Config::Utils;
@@ -28,19 +30,32 @@ structure.
 
 =cut
 
-sub load_yaml {
+sub read_yaml {
     my ( $self, $yaml_file ) = @_;
+    return YAML::Tiny::LoadFile($yaml_file)
+        or Exception::IO::ReadError->throw(
+            filename => $yaml_file,
+            message  => YAML::Tiny->errstr,
+        );
+}
 
-    my $conf;
-    try {
-        $conf = YAML::Tiny::LoadFile($yaml_file);
-    }
-    catch {
-        my $msg = YAML::Tiny->errstr;
-        die " but failed to load because:\n $msg\n";
-    };
+sub write_yaml {
+    my ( $self, $yaml_file, $section, $data ) = @_;
 
-    return $conf;
+    my $yaml
+        = ( -f $yaml_file )
+        ? YAML::Tiny->read($yaml_file)
+        : YAML::Tiny->new;
+
+    $yaml->[0]->{$section} = $data;
+
+    $yaml->write($yaml_file)
+        or Exception::IO::WriteError->throw(
+            filename => $yaml_file,
+            message  => YAML::Tiny->errstr,
+        );
+
+    return;
 }
 
 =head2 create_path
@@ -145,7 +160,11 @@ sub save_default_yaml {
 
     $yaml->[0]->{$key} = $value;    # add new key => value
 
-    $yaml->write($yaml_file);
+    $yaml->write($yaml_file)
+        or Exception::IO::WriteError->throw(
+            filename => $yaml_file,
+            message  => YAML::Tiny->errstr,
+        );
 
     return;
 }

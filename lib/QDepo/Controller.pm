@@ -11,6 +11,8 @@ use QDepo::Config;
 use QDepo::Config::Toolbar;
 use QDepo::Model;
 use QDepo::Exceptions;
+use QDepo::Utils;
+use QDepo::Config::Utils;
 
 =head1 SYNOPSIS
 
@@ -89,6 +91,7 @@ sub start {
 
     # Connections list
     $self->populate_connlist;
+    $self->toggle_controls_page( 'admin', 0 );
 
     # Query list (from qdf)
     $self->populate_querylist;
@@ -192,9 +195,10 @@ sub set_app_mode {
     $self->model->set_mode($mode);
 
     my %method_for = (
-        idle => 'on_screen_mode_idle',
-        edit => 'on_screen_mode_edit',
-        sele => 'on_screen_mode_sele',
+        idle  => 'on_screen_mode_idle',
+        edit  => 'on_screen_mode_edit',
+        sele  => 'on_screen_mode_sele',
+        admin => 'on_screen_mode_admin',
     );
 
     $self->toggle_interface_controls;
@@ -226,6 +230,7 @@ Edit mode.
 sub on_screen_mode_edit {
     my $self = shift;
     $self->view->toggle_list_enable('qlist');
+    $self->view->toggle_list_enable('dlist');
     $self->view->toggle_sql_replace('edit');
     return;
 }
@@ -239,6 +244,14 @@ Select mode.
 sub on_screen_mode_sele {
     my $self = shift;
     $self->view->toggle_sql_replace('sele');
+    return;
+}
+
+sub on_screen_mode_admin {
+    my $self = shift;
+    $self->view->toggle_list_enable('qlist');
+    $self->view->toggle_list_enable('dlist');
+    $self->view->toggle_sql_replace('edit');
     return;
 }
 
@@ -365,14 +378,16 @@ sub set_event_handlers {
     #-- Add button
     $self->view->event_handler_for_button(
         'btn_add', sub {
-            $self->add_new_menmonic;
+            $self->model->is_appmode('admin')
+                ? $self->set_app_mode('sele')
+                : $self->add_new_menmonic;
         }
     );
 
-    #-- Default button
+    #-- Edit button
     $self->view->event_handler_for_button(
         'btn_edit', sub {
-            warn "Edit config... (not implemented)\n";
+            $self->edit_connections;
         }
     );
 
@@ -429,14 +444,63 @@ sub toggle_interface_controls {
         $self->view->enable_tool( $name, $status );
     }
 
-    my $is_edit = $self->model->is_appmode('edit') ? 1 : 0;
+    my $is_edit  = $self->model->is_appmode('edit')  ? 1 : 0;
+    my $is_admin = $self->model->is_appmode('admin') ? 1 : 0;
+    my $edit     = ($is_edit or $is_admin);
 
-    # Toggle List control state
-    $self->view->toggle_list_enable('qlist', !$is_edit );
+    # Toggle List control states
+    $self->view->toggle_list_enable('qlist', !$edit );
+    $self->view->toggle_list_enable('dlist', !$edit );
+    $self->view->toggle_list_enable('tlist', !$edit );
+
+    # Toggle refresh button on info page
+    $self->view->get_control('btn_refr')->Enable(!$edit);
+
+    $self->toggle_interface_controls_edit($is_edit);
+    $self->toggle_interface_controls_admin($is_admin);
+
+    return;
+}
+
+sub toggle_interface_controls_edit {
+    my ($self, $is_edit) = @_;
+
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print "toggle_interface_controls_edit:\n $package, $line, $subroutine\n";
+
+    $self->view->get_control('btn_load')->Enable(!$is_edit);
+    $self->view->get_control('btn_defa')->Enable(!$is_edit);
+    $self->view->get_control('btn_edit')->Enable(!$is_edit);
+    $self->view->get_control('btn_add' )->Enable(!$is_edit);
 
     # Controls by page Enabled in edit mode
-    foreach my $page (qw(list para sql admin )) {
+    foreach my $page (qw(list para sql)) {
         $self->toggle_controls_page( $page, $is_edit );
+    }
+
+    return;
+}
+
+sub toggle_interface_controls_admin {
+    my ($self, $is_admin) = @_;
+
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print "toggle_interface_controls_admin:\n $package, $line, $subroutine\n";
+
+    $self->view->toggle_list_enable( 'dlist', !$is_admin );
+    $self->toggle_controls_page( 'admin', $is_admin );
+
+    $self->view->get_control('btn_load')->Enable(!$is_admin);
+    $self->view->get_control('btn_defa')->Enable(!$is_admin);
+    if ($is_admin) {
+        $self->view->get_control('btn_edit')->SetLabel( __ '&Save' );
+        $self->view->get_control('btn_add')->SetLabel( __ '&Cancel' );
+    }
+    else {
+        $self->view->get_control('btn_edit')->SetLabel( __ '&Edit' );
+        $self->view->get_control('btn_add')->SetLabel( __ '&Add' );
     }
 
     return;
@@ -464,7 +528,7 @@ sub toggle_controls_page {
             else {
                 $state = 'disabled';
             }
-            $self->view->set_editable($name, $state, $color);
+            $self->view->set_editable($control, $name, $state, $color);
         }
     }
 
@@ -547,6 +611,10 @@ sub set_default_mnemonic {
 sub toggle_admin_buttons {
     my $self = shift;
 
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print "toggle_admin_buttons:\n $package, $line, $subroutine\n";
+
     my $dt        = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt->get_item_selected;
     my $item_defa = $dt->get_item_default;
@@ -567,7 +635,7 @@ sub load_conn_details {
     my $item  = $dt->get_item_selected;
     my $mnemo = $dt->get_value($item, 1);
     my $rec   = $self->cfg->get_details_for($mnemo);
-    $self->view->controls_write( 'admin', $rec->{connection} );
+    $self->view->controls_write_onpage( 'admin', $rec->{connection} );
     return;
 }
 
@@ -756,7 +824,12 @@ sub add_new_menmonic {
                     );
                 }
                 else {
-                    print "!!! OTHER EXCEPTION !!!\n"; # TODO
+                    $self->model->message_log(
+                        __x('{ert} {message} {error}',
+                            ert     => 'EE',
+                            message => __ 'Unknown exception',
+                            error   => $_,
+                        ) );
                 }
             }
             return undef;           # required!
@@ -777,6 +850,56 @@ sub add_new_menmonic {
         };
         $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
         $self->list_add_item('dlist', $rec);
+    }
+
+    return;
+}
+
+sub edit_connections {
+    my $self = shift;
+
+    if ( $self->model->is_appmode('admin') ) {
+
+        # Save connection data
+        my $yaml_file = $self->cfg->config_file_name;
+        my $conn_aref = $self->view->controls_read_frompage('admin');
+        my $conn_data = QDepo::Utils->transform_data($conn_aref);
+
+        try {
+            QDepo::Config::Utils->write_yaml( $yaml_file, 'connection',
+                $conn_data );
+        }
+        catch {
+            if ( my $e = Exception::Base->catch($_) ) {
+                if ( $e->isa('Exception::IO::WriteError') ) {
+                    $self->model->message_log(
+                        __x('{ert} Save failed: {message} ({filename})',
+                            ert      => 'EE',
+                            message  => $e->message,
+                            filename => $e->filename,
+                        ) );
+                }
+                else {
+                    $self->model->message_log(
+                    __x('{ert} {message}',
+                        ert     => 'EE',
+                        message => __ 'Unknown exception',
+                    ) );
+                }
+            }
+            else {
+                $self->model->message_log(
+                    __x('{ert} Saved {filename}',
+                        ert      => 'EE',
+                        filename => $yaml_file,
+                    )
+                );
+            }
+        };
+        $self->set_app_mode('sele');
+    }
+    else {
+        $self->set_app_mode('admin');
     }
 
     return;

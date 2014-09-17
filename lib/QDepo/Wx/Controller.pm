@@ -301,9 +301,9 @@ sub save_qdf_data {
 
     my $item = $self->model->get_query_item;
     my $file = $self->model->get_query_file;
-    my $head = $self->view->controls_read('list');
-    my $para = $self->view->controls_read('para');
-    my $body = $self->view->controls_read('sql');
+    my $head = $self->view->controls_read_frompage('list');
+    my $para = $self->view->controls_read_frompage('para');
+    my $body = $self->view->controls_read_frompage('sql');
 
     $self->model->write_qdf_data_file( $file, $head, $para, $body );
 

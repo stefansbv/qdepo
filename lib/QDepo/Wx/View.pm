@@ -15,7 +15,7 @@ use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
           wxSTC_STYLE_BRACELIGHT wxSTC_STYLE_BRACEBAD
           wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL
           wxFULL_REPAINT_ON_RESIZE wxNO_FULL_REPAINT_ON_RESIZE
-          wxCLIP_CHILDREN);
+          wxCLIP_CHILDREN wxCB_SORT wxCB_READONLY);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
@@ -595,7 +595,7 @@ sub _build_page_admin {
     $self->{btn_load} = Wx::Button->new(
         $page,
         -1,
-        __ 'Load',
+        __ '&Load',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -604,7 +604,7 @@ sub _build_page_admin {
     $self->{btn_defa} = Wx::Button->new(
         $page,
         -1,
-        __ 'Default',
+        __ '&Default',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -613,7 +613,7 @@ sub _build_page_admin {
     $self->{btn_edit} = Wx::Button->new(
         $page,
         -1,
-        __ 'Edit',
+        __ '&Edit',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -622,7 +622,7 @@ sub _build_page_admin {
     $self->{btn_add} = Wx::Button->new(
         $page,
         -1,
-        __ 'Add',
+        __ '&Add',
         [ -1, -1 ],
         [ -1, 22 ],
     );
@@ -799,8 +799,16 @@ sub _build_ctrls_conn {
     #-- Controls
 
     my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
-    $self->{driver} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    my @drivers = (qw{firebird sqlite cubrid postgresql mysql});
+    $self->{driver} = Wx::ComboBox->new(
+        $page,
+        -1,
+        q{},
+        [ -1,  -1 ],
+        [ 170, -1 ],
+        \@drivers,
+        wxCB_SORT | wxCB_READONLY,
+    );
 
     my $conn_lbl2 = Wx::StaticText->new( $page, -1, __ 'Host', );
     $self->{host} =
@@ -820,12 +828,13 @@ sub _build_ctrls_conn {
         = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Connection details', ),
         wxVERTICAL );
+    $sizer->Add(-1, 10);
 
     my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $conn_mid_fgs->AddGrowableCol( 1, 1 );
 
     $conn_mid_fgs->Add( $conn_lbl1, 0, wxTOP | wxLEFT,  5 );
-    $conn_mid_fgs->Add( $self->{driver},    0, wxEXPAND | wxTOP, 5 );
+    $conn_mid_fgs->Add( $self->{driver}, 1, wxLEFT, 0 );
 
     $conn_mid_fgs->Add( $conn_lbl2, 0, wxLEFT,   5 );
     $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
@@ -905,7 +914,7 @@ sub get_choice_default {
 
 =head2 get_control
 
-Return the list control handler.
+Return the control instance object.
 
 =cut
 
@@ -977,22 +986,11 @@ Return a AoH with information regarding the connection controls.
 sub get_controls_admin {
     my $self = shift;
     return [
-        { driver => [ $self->{driver}, 'normal', 'white', 'e' ] },
+        { driver => [ $self->{driver}, 'normal', 'white', 'c' ] },
         { host   => [ $self->{host},   'normal', 'white', 'e' ] },
         { dbname => [ $self->{dbname}, 'normal', 'white', 'e' ] },
         { port   => [ $self->{port},   'normal', 'white', 'e' ] },
     ];
-}
-
-=head2 get_control_by_name
-
-Return the control instance by name.
-
-=cut
-
-sub get_control_by_name {
-    my ($self, $name) = @_;
-    return $self->{$name};
 }
 
 =head2 get_list_max_index
@@ -1036,16 +1034,16 @@ sub form_populate {
     $data->{filename}    = $self->model->itemdata->filename;
     $data->{output}      = $self->model->itemdata->output;
     $data->{description} = $self->model->itemdata->descr;
-    $self->controls_write( 'list', $data );
+    $self->controls_write_onpage( 'list', $data );
 
     #-- Parameters
 
     my $para = QDepo::Utils->params_to_hash( $self->model->itemdata->params );
-    $self->controls_write( 'para', $para );
+    $self->controls_write_onpage( 'para', $para );
 
     #-- SQL
 
-    $self->controls_write( 'sql',
+    $self->controls_write_onpage( 'sql',
         { sql => $self->model->itemdata->sql } );
 
     return;
@@ -1097,7 +1095,7 @@ Set log message
 
 sub log_msg {
     my ( $self, $message ) = @_;
-    my $control = $self->get_control_by_name('log');
+    my $control = $self->get_control('log');
     $self->control_write_s( $control, $message, 'append' );
     $control->LineScrollDown;
     return;
@@ -1216,19 +1214,19 @@ sub control_set_value {
     my ($self, $name, $value) = @_;
 
     $value ||= q{};                 # empty
-    my $control = $self->get_control_by_name($name);
+    my $control = $self->get_control($name);
     $self->control_write_s($control, $value);
 
     return;
 }
 
-=head2 controls_write
+=head2 controls_write_onpage
 
 Write all controls on page with data
 
 =cut
 
-sub controls_write {
+sub controls_write_onpage {
     my ($self, $page, $data) = @_;
 
     # Get controls name and object from $page
@@ -1248,7 +1246,7 @@ sub controls_write {
                 $value = q{};           # Empty
             }
 
-            $self->control_write( $control, $name, $value, );
+            $self->control_write( $control, $name, $value );
         }
     }
 
@@ -1311,13 +1309,25 @@ sub control_write_s {
     return;
 }
 
-=head2 controls_read
+=head2 control_write_c
+
+Write to a Wx::ComboBox.
+
+=cut
+
+sub control_write_c {
+    my ( $self, $control, $value ) = @_;
+    $control->SetValue($value);
+    return;
+}
+
+=head2 controls_read_frompage
 
 Read all controls and return an array reference.
 
 =cut
 
-sub controls_read {
+sub controls_read_frompage {
     my ( $self, $page ) = @_;
 
     # Get controls name and object from $page
@@ -1327,19 +1337,35 @@ sub controls_read {
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-            my $value;
-            if ($page ne 'sql') {
-                $value = $control->{$name}[0]->GetValue();
-            }
-            else {
-                $value = $control->{$name}[0]->GetText();
-            }
-
+            my $value = $self->control_read( $control, $name);
             push(@records, { $name => $value } ) if ($name and $value);
         }
     }
 
     return \@records;
+}
+
+sub control_read {
+    my ($self, $control, $name) = @_;
+    my $ctrltype = $control->{$name}[3];
+    my $sub_name = qq{control_read_$ctrltype};
+    return $self->$sub_name( $control->{$name}[0] ) if $self->can($sub_name);
+    die "WW: No '$ctrltype' ctrl type for reading '$name'!\n";
+}
+
+sub control_read_e {
+    my ( $self, $control ) = @_;
+    return $control->GetValue;
+}
+
+sub control_read_s {
+    my ( $self, $control ) = @_;
+    return $control->GetText;
+}
+
+sub control_read_c {
+    my ( $self, $control ) = @_;
+    return $control->GetValue;
 }
 
 sub toggle_list_enable {
@@ -1349,23 +1375,19 @@ sub toggle_list_enable {
 }
 
 sub set_editable {
-    my ( $self, $name, $state, $color ) = @_;
+    my ( $self, $control_ref, $name, $state, $color ) = @_;
 
     # Controls states are defined in View as strings
     # Here we need to transform them to 0|1
     my $editable = $state eq 'normal' ? 1 : 0;
     $color = 'lightgrey' unless $editable; # default color for disabled
 
-    my $control = $self->get_control_by_name($name);
+    my $control  = $control_ref->{$name}[0];
+    my $ctrltype = $control_ref->{$name}[3];
 
-    if ( $name eq 'sql' ) {
-        # For Wx::StyledTextCtrl
-        $control->Enable($editable);
-    }
-    else {
-        # For Wx::TextCtrl
-        $control->SetEditable($editable);
-    }
+    $control->Enable($editable)      if $ctrltype eq 'c';
+    $control->SetEditable($editable) if $ctrltype eq 'e';
+    $control->Enable($editable)      if $name eq 'sql';
 
     $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
 

@@ -34,6 +34,16 @@ use Exception::Base
         has               => [qw( pathname )],
         string_attributes => [qw( message pathname )],
     },
+    'Exception::IO::ReadError' => {
+        isa               => 'Exception::IO',
+        has               => [qw( filename )],
+        string_attributes => [qw( message filename )],
+    },
+    'Exception::IO::WriteError' => {
+        isa               => 'Exception::IO',
+        has               => [qw( filename )],
+        string_attributes => [qw( message filename )],
+    },
     'Exception::IO::FileNotFound' => {
         isa               => 'Exception::IO',
         has               => [qw( filename )],
