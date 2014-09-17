@@ -7,7 +7,8 @@ use warnings;
 
 use File::Find::Rule;
 use XML::Twig;
-
+use Try::Tiny;
+use Locale::TextDomain 1.20 qw(QDepo);
 use QDepo::Config;
 use QDepo::Utils;
 
@@ -19,11 +20,8 @@ Constructor method.
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = bless( {}, $class );
-
     $self->{model} = $model;
-
     return $self;
 }
 
@@ -35,7 +33,6 @@ Model.
 
 sub _model {
     my $self = shift;
-
     return $self->{model};
 }
 
@@ -49,25 +46,30 @@ sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
 
     unless ( defined $qdf_file ) {
-        $self->_model->message_status("No .qdf file to process");
+        $self->_model->message_status(__ "No .qdf file to process");
         return;
     }
 
     my $data;
-    eval {
+    try {
         $data = $self->_xml_read_simple($qdf_file, $tag_name);
+    }
+    catch {
+        $self->_model->message_log(
+            __x('{qdf_file} is not a valid XML file', qdf_file => $qdf_file )
+        );
     };
-    if ($@) {
-        $self->_model->message_log("$qdf_file: Not valid XML!");
-    } else {
-        if (ref $data) {
-            $data->{file} = $qdf_file;
-            return $data;
-        }
-        else {
-            $self->_model->message_log("$qdf_file: Not valid qdf!");
-            return;
-        }
+
+    if (ref $data) {
+        $data->{file} = $qdf_file;
+        return $data;
+    }
+    else {
+        $self->_model->message_log(
+            __x('{qdf_file} is not a valid qdf file', qdf_file => $qdf_file
+            )
+        );
+        return;
     }
 }
 
@@ -80,7 +82,7 @@ Loop and process all files.
 sub _process_all_files {
     my ($self, $tag_name) = @_;
 
-    $self->{model}->message_status("Reading XML files...");
+    $self->{model}->message_status(__ 'Reading qdf files...');
 
     my $qdf_ref = $self->get_file_list();
 
@@ -89,15 +91,14 @@ sub _process_all_files {
         $qdf_files_no = scalar @{$qdf_ref};
     }
     else {
-        $self->_model->message_status("No query definition files!");
+        $self->_model->message_status(__ 'No qdf files to process');
         return;
     }
 
-    my $msg
-        = $qdf_files_no > 1
-        ? "$qdf_files_no qdf files"
-        : "$qdf_files_no qdf file";
-    $self->{model}->message_status($msg);
+    $self->{model}->message_status(
+        __nx( 'one qdf file', '{count} qdf files',
+            $qdf_files_no, count => $qdf_files_no )
+    );
 
     my @qdfdata;
     foreach my $qdf_file ( @{$qdf_ref} ) {
@@ -185,7 +186,6 @@ Process an XML file an return the contents of all the elements.
 
 sub get_details {
     my ($self, $file) = @_;
-
     return $self->_process_file($file, 'report');
 }
 
@@ -197,7 +197,6 @@ Process an XML file an return the contents of the title element.
 
 sub get_title {
     my ($self, $file) = @_;
-
     return $self->_process_file($file, 'title');
 }
 
@@ -209,7 +208,6 @@ Process all XML files an return the contents of the title element.
 
 sub get_titles {
     my ($self) = @_;
-
     return $self->_process_all_files('title');
 }
 
