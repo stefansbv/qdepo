@@ -14,22 +14,6 @@ use QDepo::Exceptions;
 use QDepo::Utils;
 use QDepo::Config::Utils;
 
-=head1 SYNOPSIS
-
-    use QDepo::Controller;
-
-    my $controller = QDepo::Controller->new();
-
-    $controller->start();
-
-=head1 METHODS
-
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my $class = shift;
 
@@ -45,24 +29,10 @@ sub new {
     return $self;
 }
 
-=head2 cfg
-
-Return config instance variable
-
-=cut
-
 sub cfg {
     my $self = shift;
     return $self->{_cfg};
 }
-
-=head2 start
-
-Connect if user and pass or if driver is SQLite. Retry and show login
-dialog, until connected or fatal error message received from the
-RDBMS.
-
-=cut
 
 sub start {
     my $self = shift;
@@ -104,12 +74,6 @@ sub start {
 
     return;
 }
-
-=head2 connect_dialog
-
-Show login dialog until connected or canceled.
-
-=cut
 
 sub connect_dialog {
     my $self = shift;
@@ -165,22 +129,10 @@ sub connect_dialog {
     return;
 }
 
-=head2 dialog_login
-
-Login dialog.
-
-=cut
-
 sub dialog_login {
     print 'dialog_login not implemented in ', __PACKAGE__, "\n";
     return;
 }
-
-=head2 set_app_mode
-
-Set application mode.
-
-=cut
 
 sub set_app_mode {
     my ( $self, $mode ) = @_;
@@ -210,22 +162,10 @@ sub set_app_mode {
     return 1;
 }
 
-=head2 on_screen_mode_idle
-
-Idle mode.
-
-=cut
-
 sub on_screen_mode_idle {
     my $self = shift;
     return;
 }
-
-=head2 on_screen_mode_edit
-
-Edit mode.
-
-=cut
 
 sub on_screen_mode_edit {
     my $self = shift;
@@ -234,12 +174,6 @@ sub on_screen_mode_edit {
     $self->view->toggle_sql_replace('edit');
     return;
 }
-
-=head2 on_screen_mode_sele
-
-Select mode.
-
-=cut
 
 sub on_screen_mode_sele {
     my $self = shift;
@@ -254,12 +188,6 @@ sub on_screen_mode_admin {
     $self->view->toggle_sql_replace('edit');
     return;
 }
-
-=head2 set_event_handlers
-
-Setup event handlers for the interface.
-
-=cut
 
 sub set_event_handlers {
     my $self = shift;
@@ -404,34 +332,15 @@ sub set_event_handlers {
     return;
 }
 
-=head2 model
-
-Return model instance variable.
-
-=cut
-
 sub model {
     my $self = shift;
     return $self->{_model};
 }
 
-=head2 view
-
-Return view instance variable.
-
-=cut
-
 sub view {
     my $self = shift;
     return $self->{_view};
 }
-
-=head2 toggle_interface_controls
-
-Toggle controls (tool bar buttons) appropriate for different states of
-the application.
-
-=cut
 
 sub toggle_interface_controls {
     my $self = shift;
@@ -506,12 +415,6 @@ sub toggle_interface_controls_admin {
     return;
 }
 
-=head2 toggle_controls_page
-
-Toggle the controls on page.
-
-=cut
-
 sub toggle_controls_page {
     my ($self, $page, $is_edit) = @_;
 
@@ -535,23 +438,10 @@ sub toggle_controls_page {
     return;
 }
 
-=head2 save_qdf_data
-
-Save .qdf file.
-
-=cut
-
 sub save_qdf_data {
     warn 'save_qdf_data not implemented in ', __PACKAGE__, "\n";
     return;
 }
-
-=head2 on_quit
-
-Before quit, ask for permission to delete the marked .qdf files, if
-L<has_marks> is true.
-
-=cut
 
 sub on_quit {
     my $self = shift;
@@ -572,12 +462,6 @@ sub on_quit {
 
     $self->view->on_close_window(@_);
 }
-
-=head2 list_remove_marked
-
-Remove marked items.
-
-=cut
 
 sub list_remove_marked {
     print 'list_remove_marked not implemented in ', __PACKAGE__, "\n";
@@ -638,12 +522,6 @@ sub load_conn_details {
     $self->view->controls_write_onpage( 'admin', $rec->{connection} );
     return;
 }
-
-=head2 populate_querylist
-
-Populate the query list.
-
-=cut
 
 sub populate_querylist {
     my $self = shift;
@@ -717,12 +595,6 @@ sub populate_fieldlist {
     return;
 }
 
-=head2 populate_connlist
-
-Populate list with items.
-
-=cut
-
 sub populate_connlist {
     my $self = shift;
 
@@ -740,17 +612,6 @@ sub populate_connlist {
 
     return;
 }
-
-=head2 list_add_item
-
-Generic method to add a list item to a list control.
-
-    my $rec = {
-        mnemonic => "test",
-        recno    => 1,
-    }
-
-=cut
 
 sub list_add_item {
     my ($self, $list, $rec) = @_;
@@ -906,3 +767,102 @@ sub edit_connections {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+    use QDepo::Controller;
+
+    my $controller = QDepo::Controller->new();
+
+    $controller->start();
+
+=head2 new
+
+Constructor method.
+
+=head2 cfg
+
+Return config instance variable
+
+=head2 start
+
+Connect if user and pass or if driver is SQLite. Retry and show login
+dialog, until connected or fatal error message received from the
+RDBMS.
+
+=head2 connect_dialog
+
+Show login dialog until connected or canceled.
+
+=head2 dialog_login
+
+Login dialog.
+
+=head2 set_app_mode
+
+Set application mode.
+
+=head2 on_screen_mode_idle
+
+Idle mode.
+
+=head2 on_screen_mode_edit
+
+Edit mode.
+
+=head2 on_screen_mode_sele
+
+Select mode.
+
+=head2 set_event_handlers
+
+Setup event handlers for the interface.
+
+=head2 model
+
+Return model instance variable.
+
+=head2 view
+
+Return view instance variable.
+
+=head2 toggle_interface_controls
+
+Toggle controls (tool bar buttons) appropriate for different states of
+the application.
+
+=head2 toggle_controls_page
+
+Toggle the controls on page.
+
+=head2 save_qdf_data
+
+Save .qdf file.
+
+=head2 on_quit
+
+Before quit, ask for permission to delete the marked .qdf files, if
+L<has_marks> is true.
+
+=head2 list_remove_marked
+
+Remove marked items.
+
+=head2 populate_querylist
+
+Populate the query list.
+
+=head2 populate_connlist
+
+Populate list with items.
+
+=head2 list_add_item
+
+Generic method to add a list item to a list control.
+
+    my $rec = {
+        mnemonic => "test",
+        recno    => 1,
+    }
+
+=cut

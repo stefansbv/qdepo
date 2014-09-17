@@ -5,24 +5,6 @@ package QDepo::Wx::Dialog::Progress;
 use strict;
 use warnings;
 
-=head1 SYNOPSIS
-
-Show a progress dialog to the user.
-
-    use QDepo::Wx::Dialog::Progress;
-
-    my $dlg = QDepo::Wx::Dialog::Progress->new();
-
-    $dlg->update();
-
-=head1 METHODS
-
-=head2 new
-
-Constructor.
-
-=cut
-
 sub new {
     my $class = shift;
 
@@ -42,12 +24,6 @@ sub new {
 
     return $self;
 }
-
-=head2 _create_progress
-
-Create the dialog.
-
-=cut
 
 sub _create_progress {
     my $self = shift;
@@ -74,14 +50,6 @@ sub _create_progress {
     return $self->{dialog};
 }
 
-=head2 update
-
-  $progress->update($value);
-
-Updates the progress bar with a new value and with a new text message.
-
-=cut
-
 sub update {
     my ($self, $value) = @_;
 
@@ -99,19 +67,7 @@ sub update {
     return $self->{dialog}->Update( $value, $text );
 }
 
-=head2 Destroy
-
-Simulate Wx's ->Destroy function.
-
-=cut
-
 sub Destroy { shift->DESTROY; }
-
-=head2 DESTROY
-
-Destroy (and hide )the dialog if it's still defined.
-
-=cut
 
 sub DESTROY {
     my $self = shift;
@@ -121,8 +77,44 @@ sub DESTROY {
 
 1;
 
+=head1 SYNOPSIS
+
+Show a progress dialog to the user.
+
+    use QDepo::Wx::Dialog::Progress;
+
+    my $dlg = QDepo::Wx::Dialog::Progress->new();
+
+    $dlg->update();
+
+=head1 METHODS
+
+=head2 new
+
+Constructor.
+
+=head2 _create_progress
+
+Create the dialog.
+
+=head2 update
+
+  $progress->update($value);
+
+Updates the progress bar with a new value and with a new text message.
+
+=head2 Destroy
+
+Simulate Wx's ->Destroy function.
+
+=head2 DESTROY
+
+Destroy (and hide )the dialog if it's still defined.
+
 =head1 ACKNOWLEDGEMENTS
 
 From Padre::Wx::Progress.
 
 Copyright 2008-2011 The Padre development team as listed in Padre.pm.
+
+=cut

@@ -11,18 +11,6 @@ use Wx::AUI;
 
 use base qw{Wx::AuiNotebook};
 
-=head1 SYNOPSIS
-
-    use QDepo::Wx::Notebook;
-
-    $self->{_nb} = QDepo::Wx::Notebook->new( $parent );
-
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my ( $class, $parent ) = @_;
 
@@ -54,3 +42,15 @@ sub new {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+    use QDepo::Wx::Notebook;
+
+    $self->{_nb} = QDepo::Wx::Notebook->new( $parent );
+
+=head2 new
+
+Constructor method.
+
+=cut

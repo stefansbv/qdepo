@@ -7,12 +7,6 @@ use warnings;
 
 use QDepo::Config;
 
-=head2 new
-
-Constructor.
-
-=cut
-
 sub new {
     my ($class, $data) = @_;
 

@@ -33,12 +33,6 @@ use QDepo::Utils;
 
 use base 'Wx::Frame';
 
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my $class = shift;
     my $model = shift;
@@ -89,33 +83,15 @@ sub new {
     return $self;
 }
 
-=head2 model
-
-Return model instance
-
-=cut
-
 sub model {
     my $self = shift;
     $self->{_model};
 }
 
-=head2 cfg
-
-Return config instance variable
-
-=cut
-
 sub cfg {
     my $self = shift;
     return $self->{_cfg};
 }
-
-=head2 _set_model_callbacks
-
-Define the model callbacks
-
-=cut
 
 sub _set_model_callbacks {
     my $self = shift;
@@ -147,14 +123,6 @@ sub _set_model_callbacks {
     return;
 }
 
-=head2 update_gui_components
-
-When the application status (mode) changes, update gui components.
-Screen controls (widgets) are not handled here, but in the controller
-module.
-
-=cut
-
 sub update_gui_components {
     my $self = shift;
     my $mode = $self->model->get_appmode;
@@ -166,13 +134,6 @@ sub update_gui_components {
     return;
 }
 
-=head2 _build_menu
-
-Create the menubar and the menus. Menus are defined in configuration
-files.
-
-=cut
-
 sub _build_menu {
     my $self = shift;
     my $menu = Wx::MenuBar->new;
@@ -181,12 +142,6 @@ sub _build_menu {
     $self->SetMenuBar($menu);
     return;
 }
-
-=head2 make_menus
-
-Make menus.
-
-=cut
 
 sub make_menus {
     my $self = shift;
@@ -220,14 +175,6 @@ sub make_menus {
     return;
 }
 
-=head2 get_app_menus_list
-
-Get application menus list, needed for binding the command to load the
-screen.  We only need the name of the popup which is also the name of
-the screen (and also the name of the module).
-
-=cut
-
 sub get_app_menus_list {
     my $self = shift;
 
@@ -245,12 +192,6 @@ sub get_app_menus_list {
 
     return \@menulist;
 }
-
-=head2 make_popup_item
-
-Make popup item
-
-=cut
 
 sub make_popup_item {
     my ( $self, $menu, $item, $id ) = @_;
@@ -275,33 +216,15 @@ sub make_popup_item {
     return;
 }
 
-=head2 get_menu_popup_item
-
-Return a menu popup by name
-
-=cut
-
 sub get_menu_popup_item {
     my ( $self, $name ) = @_;
     return $self->{$name};
 }
 
-=head2 get_menubar
-
-Return the menu bar handler
-
-=cut
-
 sub get_menubar {
     my $self = shift;
     return $self->{_menu};
 }
-
-=head2 _build_toolbar
-
-Create the toolbar.
-
-=cut
 
 sub _build_toolbar {
     my $self = shift;
@@ -327,25 +250,11 @@ sub _build_toolbar {
     return;
 }
 
-=head2 enable_tool
-
-Enable|disable tool bar button.
-
-State can come as 0|1 and normal|disabled.
-
-=cut
-
 sub enable_tool {
     my ( $self, $btn_name, $state ) = @_;
     $self->{_tb}->enable_tool( $btn_name, $state );
     return;
 }
-
-=head2 _build_statusbar
-
-Create the status bar
-
-=cut
 
 sub _build_statusbar {
     my $self = shift;
@@ -354,22 +263,10 @@ sub _build_statusbar {
     $self->SetStatusWidths( 260, -1, -2 );
 }
 
-=head2 get_statusbar
-
-Return the status bar handler
-
-=cut
-
 sub get_statusbar {
     my $self = shift;
     return $self->{_sb};
 }
-
-=head2 get_notebook
-
-Return the notebook handler
-
-=cut
 
 sub get_notebook {
     my $self = shift;
@@ -437,12 +334,6 @@ sub _build_splitter {
     return;
 }
 
-=head2 _build_page_querylist
-
-Create the report page (tab) on the notebook
-
-=cut
-
 sub _build_page_querylist {
     my $self = shift;
     my $page = $self->{_nb}{p1};
@@ -485,7 +376,6 @@ sub _build_page_querylist {
 
     return;
 }
-
 
 sub _build_page_info {
     my $self = shift;
@@ -534,12 +424,6 @@ sub _build_page_info {
     return;
 }
 
-=head2 _build_page_sql
-
-Create the SQL page (tab) on the notebook
-
-=cut
-
 sub _build_page_sql {
     my $self = shift;
     my $page = $self->{_nb}{p3};
@@ -566,18 +450,6 @@ sub _build_page_sql {
 
     $page->SetSizer( $sql_main_sz );
 }
-
-=head2 _build_page_admin
-
-Create the administration page (tab) on the notebook.
-
-Using the MySQL lexer for very basic syntax highlighting. This was
-chosen because permits the definition of 3 custom lists. For this
-purpose three key word lists are defined with a keyword in each. B<EE>
-is for error, B<II> for information and B<WW> for warning. Words in
-the lists must be lower case.
-
-=cut
 
 sub _build_page_admin {
     my $self = shift;
@@ -850,12 +722,6 @@ sub _build_ctrls_conn {
     return $sizer;
 }
 
-=head2 dialog_error
-
-Error message dialog.
-
-=cut
-
 sub dialog_error {
     my ( $self, $message, $details ) = @_;
 
@@ -864,12 +730,6 @@ sub dialog_error {
 
     return;
 }
-
-=head2 action_confirmed
-
-Yes, No, Cancel message dialog.
-
-=cut
 
 sub action_confirmed {
     my ( $self, $msg ) = @_;
@@ -890,44 +750,20 @@ sub action_confirmed {
     return $return_answer;
 }
 
-=head2 get_toolbar_btn
-
-Return a toolbar button by name.
-
-=cut
-
 sub get_toolbar_btn {
     my ( $self, $name ) = @_;
     return $self->{_tb}->get_toolbar_btn($name);
 }
-
-=head2 get_choice_default
-
-Return the choice default option, the first element in the array.
-
-=cut
 
 sub get_choice_default {
     my $self = shift;
     return $self->{_tb}->get_choice_options(0);
 }
 
-=head2 get_control
-
-Return the control instance object.
-
-=cut
-
 sub get_control {
     my ($self, $name) = @_;
     return $self->{$name};
 }
-
-=head2 get_controls_list
-
-Return a AoH with information regarding the controls from the list page.
-
-=cut
 
 sub get_controls_list {
     my $self = shift;
@@ -940,12 +776,6 @@ sub get_controls_list {
         { description => [ $self->{description}, 'normal', 'white', 'e' ] },
     ];
 }
-
-=head2 get_controls_para
-
-Return a AoH with information regarding the controls from the parameters page.
-
-=cut
 
 sub get_controls_para {
     my $self = shift;
@@ -964,24 +794,12 @@ sub get_controls_para {
     ];
 }
 
-=head2 get_controls_sql
-
-Return a AoH with information regarding the controls from the SQL page.
-
-=cut
-
 sub get_controls_sql {
     my $self = shift;
     return [
         { sql => [ $self->{sql}, 'normal', 'white', 's' ] },
     ];
 }
-
-=head2 get_controls_admin
-
-Return a AoH with information regarding the connection controls.
-
-=cut
 
 sub get_controls_admin {
     my $self = shift;
@@ -993,22 +811,10 @@ sub get_controls_admin {
     ];
 }
 
-=head2 get_list_max_index
-
-Return the maximum index from the list control (item count - 1).
-
-=cut
-
 sub get_list_max_index {
     my ($self, $lname) = @_;
     return ( $self->get_control($lname)->GetItemCount() - 1 );
 }
-
-=head2 log_config_options
-
-Log configuration options with data from the Config module
-
-=cut
 
 sub log_config_options {
     my $self = shift;
@@ -1017,12 +823,6 @@ sub log_config_options {
         $self->log_msg("II Config: '$key' set to '$value'");
     }
 }
-
-=head2 form_populate
-
-Populate form controls with data from the qdf file.
-
-=cut
 
 sub form_populate {
     my $self = shift;
@@ -1049,12 +849,6 @@ sub form_populate {
     return;
 }
 
-=head2 toggle_sql_replace
-
-Toggle sql replace
-
-=cut
-
  sub toggle_sql_replace {
     my ($self, $mode) = @_;
 
@@ -1073,12 +867,6 @@ Toggle sql replace
     return;
 }
 
-=head2 control_replace_sql_text
-
-Replace sql text control
-
-=cut
-
 sub control_replace_sql_text {
     my ( $self, $sqltext, $params ) = @_;
     my ($newtext) = $self->model->string_replace_pos( $sqltext, $params );
@@ -1087,12 +875,6 @@ sub control_replace_sql_text {
     $self->control_set_value( 'sql', $newtext );
 }
 
-=head2 log_msg
-
-Set log message
-
-=cut
-
 sub log_msg {
     my ( $self, $message ) = @_;
     my $control = $self->get_control('log');
@@ -1100,14 +882,6 @@ sub log_msg {
     $control->LineScrollDown;
     return;
 }
-
-=head2 set_status
-
-Set status message.
-
-Color is ignored for wxPerl.
-
-=cut
 
 sub set_status {
     my ( $self, $text, $sb_id, $color ) = @_;
@@ -1140,12 +914,6 @@ sub set_status {
     return;
 }
 
-=head2 toggle_status_cn
-
-Toggle the icon in the status bar
-
-=cut
-
 sub toggle_status_cn {
     my ( $self, $status ) = @_;
 
@@ -1162,12 +930,6 @@ sub toggle_status_cn {
     return;
 }
 
-=head2 dialog_progress
-
-Create a progress dialog.
-
-=cut
-
 sub dialog_progress {
     my ($self, $title, $max) = @_;
 
@@ -1180,14 +942,6 @@ sub dialog_progress {
 
     return;
 }
-
-=head2 progress_update
-
-Update progress.  If I<Cancel> is pressed, stop (set continue to
-false) from the return value of the Update method of
-L<Wx::ProgressDialog>.
-
-=cut
 
 sub progress_update {
     my ( $self, $count ) = @_;
@@ -1204,12 +958,6 @@ sub progress_update {
     return;
 }
 
-=head2 control_set_value
-
-Set new value for a controll.
-
-=cut
-
 sub control_set_value {
     my ($self, $name, $value) = @_;
 
@@ -1219,12 +967,6 @@ sub control_set_value {
 
     return;
 }
-
-=head2 controls_write_onpage
-
-Write all controls on page with data
-
-=cut
 
 sub controls_write_onpage {
     my ($self, $page, $data) = @_;
@@ -1253,12 +995,6 @@ sub controls_write_onpage {
     return;
 }
 
-=head2 control_write
-
-Run the appropriate sub according to control (entry widget) type.
-
-=cut
-
 sub control_write {
     my ($self, $control, $name, $value, $state) = @_;
 
@@ -1275,12 +1011,6 @@ sub control_write {
     return;
 }
 
-=head2 control_write_e
-
-Write to a Entry control.
-
-=cut
-
 sub control_write_e {
     my ( $self, $control, $value ) = @_;
 
@@ -1289,12 +1019,6 @@ sub control_write_e {
 
     return;
 }
-
-=head2 control_write_s
-
-Write to a Wx::StyledTextCtrl.
-
-=cut
 
 sub control_write_s {
     my ( $self, $control, $value, $is_append ) = @_;
@@ -1309,23 +1033,11 @@ sub control_write_s {
     return;
 }
 
-=head2 control_write_c
-
-Write to a Wx::ComboBox.
-
-=cut
-
 sub control_write_c {
     my ( $self, $control, $value ) = @_;
     $control->SetValue($value);
     return;
 }
-
-=head2 controls_read_frompage
-
-Read all controls and return an array reference.
-
-=cut
 
 sub controls_read_frompage {
     my ( $self, $page ) = @_;
@@ -1444,12 +1156,6 @@ sub event_handler_for_button {
     return;
 }
 
-=head2 on_close_window
-
-Destroy the window.
-
-=cut
-
 sub on_close_window {
     my ($self, ) = @_;
 
@@ -1490,3 +1196,206 @@ sub select_list_item {
 }
 
 1;
+
+=head2 new
+
+Constructor method.
+
+=head2 model
+
+Return model instance
+
+=head2 cfg
+
+Return config instance variable
+
+=head2 _set_model_callbacks
+
+Define the model callbacks
+
+=head2 update_gui_components
+
+When the application status (mode) changes, update gui components.
+Screen controls (widgets) are not handled here, but in the controller
+module.
+
+=head2 _build_menu
+
+Create the menubar and the menus. Menus are defined in configuration
+files.
+
+=head2 make_menus
+
+Make menus.
+
+=head2 get_app_menus_list
+
+Get application menus list, needed for binding the command to load the
+screen.  We only need the name of the popup which is also the name of
+the screen (and also the name of the module).
+
+=head2 make_popup_item
+
+Make popup item
+
+=head2 get_menu_popup_item
+
+Return a menu popup by name
+
+=head2 get_menubar
+
+Return the menu bar handler
+
+=head2 _build_toolbar
+
+Create the toolbar.
+
+=head2 enable_tool
+
+Enable|disable tool bar button.
+
+State can come as 0|1 and normal|disabled.
+
+=head2 _build_statusbar
+
+Create the status bar
+
+=head2 get_statusbar
+
+Return the status bar handler
+
+=head2 get_notebook
+
+Return the notebook handler
+
+=head2 _build_page_querylist
+
+Create the report page (tab) on the notebook
+
+=head2 _build_page_sql
+
+Create the SQL page (tab) on the notebook
+
+=head2 _build_page_admin
+
+Create the administration page (tab) on the notebook.
+
+Using the MySQL lexer for very basic syntax highlighting. This was
+chosen because permits the definition of 3 custom lists. For this
+purpose three key word lists are defined with a keyword in each. B<EE>
+is for error, B<II> for information and B<WW> for warning. Words in
+the lists must be lower case.
+
+=head2 dialog_error
+
+Error message dialog.
+
+=head2 action_confirmed
+
+Yes, No, Cancel message dialog.
+
+=head2 get_toolbar_btn
+
+Return a toolbar button by name.
+
+=head2 get_choice_default
+
+Return the choice default option, the first element in the array.
+
+=head2 get_control
+
+Return the control instance object.
+
+=head2 get_controls_list
+
+Return a AoH with information regarding the controls from the list page.
+
+=head2 get_controls_para
+
+Return a AoH with information regarding the controls from the parameters page.
+
+=head2 get_controls_sql
+
+Return a AoH with information regarding the controls from the SQL page.
+
+=head2 get_controls_admin
+
+Return a AoH with information regarding the connection controls.
+
+=head2 get_list_max_index
+
+Return the maximum index from the list control (item count - 1).
+
+=head2 log_config_options
+
+Log configuration options with data from the Config module
+
+=head2 form_populate
+
+Populate form controls with data from the qdf file.
+
+=head2 toggle_sql_replace
+
+Toggle sql replace
+
+=head2 control_replace_sql_text
+
+Replace sql text control
+
+=head2 log_msg
+
+Set log message
+
+=head2 set_status
+
+Set status message.
+
+Color is ignored for wxPerl.
+
+=head2 toggle_status_cn
+
+Toggle the icon in the status bar
+
+=head2 dialog_progress
+
+Create a progress dialog.
+
+=head2 progress_update
+
+Update progress.  If I<Cancel> is pressed, stop (set continue to
+false) from the return value of the Update method of
+L<Wx::ProgressDialog>.
+
+=head2 control_set_value
+
+Set new value for a controll.
+
+=head2 controls_write_onpage
+
+Write all controls on page with data
+
+=head2 control_write
+
+Run the appropriate sub according to control (entry widget) type.
+
+=head2 control_write_e
+
+Write to a Entry control.
+
+=head2 control_write_s
+
+Write to a Wx::StyledTextCtrl.
+
+=head2 control_write_c
+
+Write to a Wx::ComboBox.
+
+=head2 controls_read_frompage
+
+Read all controls and return an array reference.
+
+=head2 on_close_window
+
+Destroy the window.
+
+=cut

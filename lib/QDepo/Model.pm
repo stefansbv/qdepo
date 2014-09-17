@@ -21,7 +21,6 @@ use QDepo::Output;
 use QDepo::Utils;
 use QDepo::ListDataTable;
 
-
 sub new {
     my $class = shift;
 
@@ -47,22 +46,10 @@ sub new {
     return $self;
 }
 
-=head2 _cfg
-
-Return config instance variable
-
-=cut
-
 sub cfg {
     my $self = shift;
     return $self->{_cfg};
 }
-
-=head2 dbh
-
-Return the database handler.
-
-=cut
 
 sub dbh {
     my $self = shift;
@@ -83,12 +70,6 @@ sub dbh {
     }
     return;
 }
-
-=head2 dbc
-
-Return the Connection module handler.
-
-=cut
 
 sub dbc {
     my $self = shift;
@@ -126,67 +107,31 @@ sub set_query_file {
     return;
 }
 
-=head2 db_connect_new
-
-Database connection instance.  Connect to database or retry to connect.
-
-=cut
-
 sub db_connect_new {
     my $self = shift;
     return QDepo::Db->instance->db_connect($self);
 }
-
-=head2 is_connected
-
-Return true if connected
-
-=cut
 
 sub is_connected {
     my $self = shift;
     return $self->get_connection_observable->get;
 }
 
-=head2 get_connection_observable
-
-Get connection observable status
-
-=cut
-
 sub get_connection_observable {
     my $self = shift;
     return $self->{_connected};
 }
-
-=head2 get_stdout_observable
-
-Get STDOUT observable status.
-
-=cut
 
 sub get_stdout_observable {
     my $self = shift;
     return $self->{_stdout};
 }
 
-=head2 set_mode
-
-Set mode
-
-=cut
-
 sub set_mode {
     my ( $self, $mode ) = @_;
     $self->get_appmode_observable->set($mode);
     return;
 }
-
-=head2 is_appmode
-
-Return true if application mode is L<$ck_mode>.
-
-=cut
 
 sub is_appmode {
     my ( $self, $ck_mode ) = @_;
@@ -196,33 +141,15 @@ sub is_appmode {
     return;
 }
 
-=head2 get_appmode_observable
-
-Return add mode observable status
-
-=cut
-
 sub get_appmode_observable {
     my $self = shift;
     return $self->{_appmode};
 }
 
-=head2 get_appmode
-
-Return application mode
-
-=cut
-
 sub get_appmode {
     my $self = shift;
     return $self->get_appmode_observable->get;
 }
-
-=head2 message_status
-
-Put a message on the status bar.
-
-=cut
 
 sub message_status {
     my ( $self, $line, $sb_id ) = @_;
@@ -231,56 +158,25 @@ sub message_status {
     return;
 }
 
-=head2 get_message_observable
-
-Get message observable object.
-
-=cut
-
 sub get_message_observable {
     my $self = shift;
     return $self->{_message};
 }
-
-=head2 message_log
-
-Log a user message on a Tk/Wx text controll.
-
-=cut
 
 sub message_log {
     my ( $self, $message ) = @_;
     $self->get_message_observable->set($message);
 }
 
-=head2 progress_update
-
-Update progress value.
-
-=cut
-
 sub progress_update {
     my ( $self, $count ) = @_;
     $self->get_progress_observable->set($count);
 }
 
-=head2 get_progress_observable
-
-Get progres observable status.
-
-=cut
-
 sub get_progress_observable {
     my $self = shift;
     return $self->{_progress};
 }
-
-=head2 on_item_selected_load
-
-On list item selection make the event observable and store the item
-index.
-
-=cut
 
 sub on_item_selected_load {
     my $self = shift;
@@ -296,23 +192,10 @@ sub on_item_selected_load {
     return;
 }
 
-=head2 get_query_item
-
-Get the item index.
-
-=cut
-
 sub get_query_item {
     my $self = shift;
     $self->get_itemchanged_observable->get;
 }
-
-=head2 load_qdf_data
-
-Read the titles and file names from all the QDF files and store in
-a data structure used to fill the List control.
-
-=cut
 
 sub load_qdf_data {
     my $self = shift;
@@ -339,12 +222,6 @@ sub load_qdf_data {
     return;
 }
 
-=head2 append_list_record
-
-Return a new record for the list data structure.
-
-=cut
-
 sub append_list_record {
     my ($self, $rec, $idx) = @_;
 
@@ -354,24 +231,12 @@ sub append_list_record {
     return {$idx => $rec};
 }
 
-=head2 get_qdf_data
-
-Get data from List data structure, for single item or all.
-
-=cut
-
 sub get_qdf_data {
     my ( $self, $item ) = @_;
     return ( defined $item )
         ? $self->{_lds}{$item}
         : $self->{_lds};
 }
-
-=head2 run_export
-
-Run SQL query and generate output data in selected data format
-
-=cut
 
 sub run_export {
     my $self = shift;
@@ -443,12 +308,6 @@ sub run_export {
     return;
 }
 
-=head2 read_qdf_data_file
-
-Get all contents from the selected QDF title (file).
-
-=cut
-
 sub read_qdf_data_file {
     my $self = shift;
 
@@ -458,22 +317,10 @@ sub read_qdf_data_file {
     return $fio->get_details($file);
 }
 
-=head2 get_itemchanged_observable
-
-Return observable status on item changed.
-
-=cut
-
 sub get_itemchanged_observable {
     my $self = shift;
     return $self->{_itemchanged};
 }
-
-=head2 write_qdf_data_file
-
-Save current query definition data from controls into a qdf file.
-
-=cut
 
 sub write_qdf_data_file {
     my ($self, $file, $head, $para, $body) = @_;
@@ -503,13 +350,6 @@ sub write_qdf_data_file {
     );
     return;
 }
-
-=head2 report_add
-
-Create new QDF file from template.  The L<$item_new> parameter is
-mandatory.
-
-=cut
 
 sub report_add {
     my ($self, $item_new) = @_;
@@ -555,13 +395,6 @@ sub report_add {
 
     return $self->append_list_record($data_ref, $item_new);
 }
-
-=head2 report_name
-
-Create report name.  Find a new number to create a file name like
-raport-nnnnn.xml Try to fill the gaps between numbers in file names
-
-=cut
 
 sub report_name {
     my $self = shift;
@@ -609,14 +442,6 @@ sub report_name {
     return $new_qdf_file;
 }
 
-=head2 report_remove
-
-Remove B<.qdf> file from list and from disk.  Have to confirm the
-action first, to get here.  For safety, the file is renamed with a
-B<.bak> extension, so it can be I<manualy> recovered.
-
-=cut
-
 sub report_remove {
     my ($self, $file) = @_;                  # $item
 
@@ -640,12 +465,6 @@ sub report_remove {
     return;
 }
 
-=head2 set_choice
-
-Set choice to value
-
-=cut
-
 sub set_choice {
     my ($self, $choice) = @_;
     $self->message_log(
@@ -657,37 +476,15 @@ sub set_choice {
     $self->get_choice_observable->set($choice);
 }
 
-=head2 get_choice
-
-Return choice to value
-
-=cut
-
 sub get_choice {
     my $self = shift;
     return $self->get_choice_observable->get;
 }
 
-=head2 get_choice_observable
-
-Return choice observable status.
-
-=cut
-
 sub get_choice_observable {
     my $self = shift;
     return $self->{_choice};
 }
-
-=head2 string_replace_for_run
-
-Prepare SQL text string for execution.  Replace the 'valueN' string
-with '?'.  Create an array of parameter values, used for binding.
-
-Need to check if number of parameters match number of 'valueN' strings
-in SQL statement text and print an error if not.
-
-=cut
 
 sub string_replace_for_run {
     my ( $self, $sqltext, $params ) = @_;
@@ -716,12 +513,6 @@ sub string_replace_for_run {
     return ( \@bind, $sqltext );
 }
 
-=head2 string_replace_pos
-
-Replace string pos.
-
-=cut
-
 sub string_replace_pos {
     my ($self, $text, $params) = @_;
 
@@ -742,24 +533,10 @@ sub string_replace_pos {
     return ($text, \@sortedpos);
 }
 
-=head2 get_continue_observable
-
-Get continue operation observable status.  Flag used by the progress
-indicator to stop the output file generation process.
-
-=cut
-
 sub get_continue_observable {
     my $self = shift;
     return $self->{_continue};
 }
-
-=head2 set_continue
-
-Set continue to false if Cancel button on the progress dialog is
-activated (Wx only).
-
-=cut
 
 sub set_continue {
     my ( $self, $cont ) = @_;
@@ -855,7 +632,6 @@ sub get_data_table_for {
     return $self->{_dt}{$list};
 }
 
-
 sub get_sql_stmt {
     my $self = shift;
     my ($bind, $sql) = $self->string_replace_for_run(
@@ -865,17 +641,6 @@ sub get_sql_stmt {
     $sql =~ s{;$}{}m;                    # remove final ';' if exists
     return ($bind, $sql);
 }
-
-=head2 get_columns_list
-
-The list of the columns.
-
-First parse the SQL query and get the column list from it.  If it has
-a column list return it, if not (for ex. when using: SELECT * FROM...)
-than use the table info to get the column list and return that
-instead.
-
-=cut
 
 sub get_columns_list {
     my $self = shift;
@@ -963,3 +728,166 @@ sub dlist_default_item {
 }
 
 1;
+
+=head2 _cfg
+
+Return config instance variable
+
+=head2 dbh
+
+Return the database handler.
+
+=head2 dbc
+
+Return the Connection module handler.
+
+=head2 db_connect_new
+
+Database connection instance.  Connect to database or retry to connect.
+
+=head2 is_connected
+
+Return true if connected
+
+=head2 get_connection_observable
+
+Get connection observable status
+
+=head2 get_stdout_observable
+
+Get STDOUT observable status.
+
+=head2 set_mode
+
+Set mode
+
+=head2 is_appmode
+
+Return true if application mode is L<$ck_mode>.
+
+=head2 get_appmode_observable
+
+Return add mode observable status
+
+=head2 get_appmode
+
+Return application mode
+
+=head2 message_status
+
+Put a message on the status bar.
+
+=head2 get_message_observable
+
+Get message observable object.
+
+=head2 message_log
+
+Log a user message on a Tk/Wx text controll.
+
+=head2 progress_update
+
+Update progress value.
+
+=head2 get_progress_observable
+
+Get progres observable status.
+
+=head2 on_item_selected_load
+
+On list item selection make the event observable and store the item
+index.
+
+=head2 get_query_item
+
+Get the item index.
+
+=head2 load_qdf_data
+
+Read the titles and file names from all the QDF files and store in
+a data structure used to fill the List control.
+
+=head2 append_list_record
+
+Return a new record for the list data structure.
+
+=head2 get_qdf_data
+
+Get data from List data structure, for single item or all.
+
+=head2 run_export
+
+Run SQL query and generate output data in selected data format
+
+=head2 read_qdf_data_file
+
+Get all contents from the selected QDF title (file).
+
+=head2 get_itemchanged_observable
+
+Return observable status on item changed.
+
+=head2 write_qdf_data_file
+
+Save current query definition data from controls into a qdf file.
+
+=head2 report_add
+
+Create new QDF file from template.  The L<$item_new> parameter is
+mandatory.
+
+=head2 report_name
+
+Create report name.  Find a new number to create a file name like
+raport-nnnnn.xml Try to fill the gaps between numbers in file names
+
+=head2 report_remove
+
+Remove B<.qdf> file from list and from disk.  Have to confirm the
+action first, to get here.  For safety, the file is renamed with a
+B<.bak> extension, so it can be I<manualy> recovered.
+
+=head2 set_choice
+
+Set choice to value
+
+=head2 get_choice
+
+Return choice to value
+
+=head2 get_choice_observable
+
+Return choice observable status.
+
+=head2 string_replace_for_run
+
+Prepare SQL text string for execution.  Replace the 'valueN' string
+with '?'.  Create an array of parameter values, used for binding.
+
+Need to check if number of parameters match number of 'valueN' strings
+in SQL statement text and print an error if not.
+
+=head2 string_replace_pos
+
+Replace string pos.
+
+=head2 get_continue_observable
+
+Get continue operation observable status.  Flag used by the progress
+indicator to stop the output file generation process.
+
+=head2 set_continue
+
+Set continue to false if Cancel button on the progress dialog is
+activated (Wx only).
+
+=head2 get_columns_list
+
+The list of the columns.
+
+First parse the SQL query and get the column list from it.  If it has
+a column list return it, if not (for ex. when using: SELECT * FROM...)
+than use the table info to get the column list and return that
+instead.
+
+=cut

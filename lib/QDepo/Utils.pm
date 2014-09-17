@@ -6,18 +6,6 @@ use strict;
 use warnings;
 use Encode qw(is_utf8 decode);
 
-=head1 SYNOPSIS
-
-    use QDepo::Utils;
-
-    my $foo = QDepo::Utils->function_name();
-
-=head2 trim
-
-Trim strings or arrays.
-
-=cut
-
 sub trim {
     my ($self, @text) = @_;
 
@@ -29,13 +17,6 @@ sub trim {
 
     return wantarray ? @text : "@text";
 }
-
-=head2 sort_hash_by_id
-
-Use ST to sort hash by value (Id), returns an array ref of the sorted
-items.
-
-=cut
 
 sub sort_hash_by {
     my ( $self, $key, $attribs ) = @_;
@@ -53,14 +34,6 @@ sub sort_hash_by {
     return \@attribs;
 }
 
-=head2 params_to_hash
-
-Transform data in simple hash reference format
-
-TODO: Move this to model?
-
-=cut
-
 sub params_to_hash {
     my ($self, $params) = @_;
 
@@ -76,12 +49,6 @@ sub params_to_hash {
     return $parameters;
 }
 
-=head2 transform_data
-
-Transform data to be suitable to save in XML format
-
-=cut
-
 sub transform_data {
     my ($self, $record) = @_;
 
@@ -95,6 +62,71 @@ sub transform_data {
 
     return $rec;
 }
+
+sub transform_para {
+    my ($self, $record) = @_;
+
+    my (@aoh, $rec);
+
+    foreach my $item ( @{$record} ) {
+        while (my ($key, $value) = each ( %{$item} ) ) {
+            if ($key =~ m{descr([0-9])} ) {
+                $rec = {};      # new record
+                $rec->{descr} = $value;
+            }
+            if ($key =~ m{value([0-9])} ) {
+                $rec->{id} = $1;
+                $rec->{value} = $value;
+                push(@aoh, $rec);
+            }
+        }
+    }
+
+    return \@aoh;
+}
+
+sub ins_underline_mark {
+    my ( $self, $label, $position ) = @_;
+
+    substr( $label, $position, 0 ) = '&';
+
+    return $label;
+}
+
+sub decode_unless_utf {
+    my ($self, $value) = @_;
+
+    $value = decode( 'utf8', $value ) unless is_utf8($value);
+
+    return $value;
+}
+
+1;
+
+=head1 SYNOPSIS
+
+    use QDepo::Utils;
+
+    my $foo = QDepo::Utils->function_name();
+
+=head2 trim
+
+Trim strings or arrays.
+
+=head2 sort_hash_by_id
+
+Use ST to sort hash by value (Id), returns an array ref of the sorted
+items.
+
+=head2 params_to_hash
+
+Transform data in simple hash reference format
+
+TODO: Move this to model?
+
+=head2 transform_data
+
+Transform data to be suitable to save in XML format
 
 =head2 transform_para
 
@@ -122,50 +154,8 @@ To:
        }
      ];
 
-=cut
-
-sub transform_para {
-    my ($self, $record) = @_;
-
-    my (@aoh, $rec);
-
-    foreach my $item ( @{$record} ) {
-        while (my ($key, $value) = each ( %{$item} ) ) {
-            if ($key =~ m{descr([0-9])} ) {
-                $rec = {};      # new record
-                $rec->{descr} = $value;
-            }
-            if ($key =~ m{value([0-9])} ) {
-                $rec->{id} = $1;
-                $rec->{value} = $value;
-                push(@aoh, $rec);
-            }
-        }
-    }
-
-    return \@aoh;
-}
-
 =head2 ins_underline_mark
 
 Insert ampersand character for underline mark in menu.
 
 =cut
-
-sub ins_underline_mark {
-    my ( $self, $label, $position ) = @_;
-
-    substr( $label, $position, 0 ) = '&';
-
-    return $label;
-}
-
-sub decode_unless_utf {
-    my ($self, $value) = @_;
-
-    $value = decode( 'utf8', $value ) unless is_utf8($value);
-
-    return $value;
-}
-
-1;

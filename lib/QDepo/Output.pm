@@ -519,6 +519,8 @@ sub catch_db_exceptions {
 
 1;
 
+__END__
+
 =head2 count_rows
 
 Count rows. Build the I<COUNT> SQL query using the I<FROM> clause from

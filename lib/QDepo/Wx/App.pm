@@ -10,21 +10,6 @@ use base qw(Wx::App);
 
 require QDepo::Wx::View;
 
-=head1 SYNOPSIS
-
-    use QDepo::Wx::App;
-    use QDepo::Wx::Controller;
-
-    $gui = QDepo::Wx::App->create();
-
-    $gui->MainLoop;
-
-=head2 create
-
-Constructor method.
-
-=cut
-
 sub create {
     my $self  = shift->new;
     my $model = shift;
@@ -41,12 +26,25 @@ sub create {
     return $self;
 }
 
+sub OnInit { 1 }
+
+1;
+
+=head1 SYNOPSIS
+
+    use QDepo::Wx::App;
+    use QDepo::Wx::Controller;
+
+    $gui = QDepo::Wx::App->create();
+
+    $gui->MainLoop;
+
+=head2 create
+
+Constructor method.
+
 =head2 OnInit
 
 Override OnInit from WxPerl
 
 =cut
-
-sub OnInit { 1 }
-
-1;

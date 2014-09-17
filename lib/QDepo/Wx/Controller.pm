@@ -13,22 +13,6 @@ require QDepo::Wx::App;
 
 use base qw{QDepo::Controller};
 
-=head1 SYNOPSIS
-
-    use QDepo::Wx::Controller;
-
-    my $controller = QDepo::Wx::Controller->new();
-
-    $controller->start();
-
-=head1 METHODS
-
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my $class = shift;
 
@@ -42,24 +26,12 @@ sub new {
     return $self;
 }
 
-=head2 close_app
-
-Generate close event.
-
-=cut
-
 sub close_app {
     my $self = shift;
 
     my $event = Wx::CommandEvent->new( 9999, -1 );
     $self->view->GetEventHandler()->AddPendingEvent($event);
 }
-
-=head2 _init
-
-Init App.
-
-=cut
 
 sub _init {
     my $self = shift;
@@ -70,12 +42,6 @@ sub _init {
 
     return;
 }
-
-=head2 dialog_login
-
-Login dialog.
-
-=cut
 
 sub dialog_login {
     my ($self, $error) = @_;
@@ -119,22 +85,10 @@ sub get_text_dialog {
     return $name;
 }
 
-=head2 set_event_handlers_keys
-
-Set shortcut keys.
-
-=cut
-
 sub set_event_handlers_keys {
     my $self = shift;
     return;
 }
-
-=head2 set_event_handlers
-
-Set event handlers Wx.
-
-=cut
 
 sub set_event_handlers {
     my $self = shift;
@@ -165,12 +119,6 @@ sub set_event_handlers {
     return;
 }
 
-=head2 toggle_mark_item
-
-Toggle deleted mark on list item.
-
-=cut
-
 sub toggle_mark_item {
     my $self = shift;
 
@@ -186,12 +134,6 @@ sub toggle_mark_item {
 
     return;
 }
-
-=head2 list_remove_marked
-
-Scan all items and remove marked ones.
-
-=cut
 
 sub list_remove_marked {
     my $self = shift;
@@ -238,12 +180,6 @@ sub add_qlist_item {
     return $items[0];                      # it's only 1
 }
 
-=head2 about
-
-The About dialog.
-
-=cut
-
 sub about {
     my $self = shift;
 
@@ -276,12 +212,6 @@ wxPerl $Wx::VERSION, $wx_version
 
     return;
 }
-
-=head2 guide
-
-Quick help dialog.
-
-=cut
 
 sub guide {
     my $self = shift;
@@ -317,3 +247,53 @@ sub save_qdf_data {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+    use QDepo::Wx::Controller;
+
+    my $controller = QDepo::Wx::Controller->new();
+
+    $controller->start();
+
+=head2 new
+
+Constructor method.
+
+=head2 close_app
+
+Generate close event.
+
+=head2 _init
+
+Init App.
+
+=head2 dialog_login
+
+Login dialog.
+
+=head2 set_event_handlers_keys
+
+Set shortcut keys.
+
+=head2 set_event_handlers
+
+Set event handlers Wx.
+
+=head2 toggle_mark_item
+
+Toggle deleted mark on list item.
+
+=head2 list_remove_marked
+
+Scan all items and remove marked ones.
+
+=head2 about
+
+The About dialog.
+
+=head2 guide
+
+Quick help dialog.
+
+=cut

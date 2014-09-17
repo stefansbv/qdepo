@@ -17,28 +17,6 @@ use QDepo::Exceptions;
 
 use base qw(Class::Singleton Class::Accessor);
 
-=head1 SYNOPSIS
-
-Reads configuration files in I<YAML::Tiny> format and create a HoH.
-Then using I<Class::Accessor>, automatically create methods from the
-keys of the hash.
-
-    use QDepo::Config;
-
-    my $cfg = QDepo::Config->instance($args); # first time init
-
-    my $cfg = QDepo::Config->instance(); # later, in other modules
-
-=head1 METHODS
-
-=head2 _new_instance
-
-Constructor method, the first and only time a new instance is created.
-All parameters passed to the instance() method are forwarded to this
-method. (From I<Class::Singleton> docs).
-
-=cut
-
 sub _new_instance {
     my ($class, $args) = @_;
 
@@ -60,13 +38,6 @@ sub _new_instance {
 
     return $self;
 }
-
-=head2 init_configurations
-
-Initialize basic configuration options.  Initialize the user
-configuration tree if not exists, with the I<File::UserConfig> module.
-
-=cut
 
 sub init_configurations {
     my ( $self, $args ) = @_;
@@ -98,12 +69,6 @@ sub init_configurations {
     return;
 }
 
-=head2 make_accessors
-
-Automatically make accessors for the hash keys.
-
-=cut
-
 sub make_accessors {
     my ( $self, $cfg_hr ) = @_;
 
@@ -115,28 +80,11 @@ sub make_accessors {
     }
 }
 
-=head2 configdir
-
-Return application configuration directory.  The config name is an
-optional parameter with default as the current application config
-name.
-
-=cut
-
 sub configdir {
     my ( $self, $mnemonic ) = @_;
     $mnemonic ||= $self->mnemonic;
     return catdir( $self->dbpath, $mnemonic );
 }
-
-=head2 load_main_config
-
-Initialize configuration variables from arguments.  Load the main
-configuration file and return a HoH data structure.
-
-Make accessors.
-
-=cut
 
 sub load_main_config {
     my ($self, $args) = @_;
@@ -158,17 +106,6 @@ sub load_main_config {
 
     return;
 }
-
-=head2 load_runtime_config
-
-Initialize the runtime connection configuration file name and path.
-
-The B<connection> configuration is special.  More than one connection
-configuration is allowed and the name of the used connection is
-processed at runtime from the I<mnemonic> argument, or from a default
-configuration.
-
-=cut
 
 sub load_runtime_config {
     my $self = shift;
@@ -196,12 +133,6 @@ sub load_runtime_config {
     return;
 }
 
-=head2 list_mnemonics
-
-List all mnemonics or the selected one with details.
-
-=cut
-
 sub list_mnemonics {
     my ( $self, $mnemonic ) = @_;
 
@@ -216,12 +147,6 @@ sub list_mnemonics {
 
     return;
 }
-
-=head2 list_mnemonics_all
-
-List all the configured mnemonics.
-
-=cut
 
 sub list_mnemonics_all {
     my $self = shift;
@@ -248,12 +173,6 @@ sub list_mnemonics_all {
     return;
 }
 
-=head2 list_mnemonic_details_for
-
-List details about the configuration name (mnemonic) if exists.
-
-=cut
-
 sub list_mnemonic_details_for {
     my ($self, $mnemonic) = @_;
 
@@ -276,13 +195,6 @@ sub list_mnemonic_details_for {
     return;
 }
 
-=head2 get_details_for
-
-Return the connection configuration details.  Check the name and
-return the reference only if the name matches.
-
-=cut
-
 sub get_details_for {
     my ($self, $mnemonic) = @_;
 
@@ -300,14 +212,6 @@ sub get_details_for {
 
     return $conn_ref;
 }
-
-=head2 config_data_from
-
-Load a config file and return the Perl data structure.  It loads a
-file in Config::General format or in YAML::Tiny format, depending on
-the extension of the file.
-
-=cut
 
 sub config_data_from {
     my ( $self, $conf_file, $not_fatal ) = @_;
@@ -341,13 +245,6 @@ sub config_data_from {
     return $conf;
 }
 
-=head2 config_file_name
-
-Return full path to a configuration file.  Default is the connection
-configuration file.
-
-=cut
-
 sub config_file_name {
     my ( $self, $cfg_name, $cfg_file ) = @_;
 
@@ -355,13 +252,6 @@ sub config_file_name {
 
     return catfile( $self->configdir($cfg_name), $cfg_file);
 }
-
-=head2 get_mnemonics
-
-Get the connections configs list.  If connection file exist than add
-to connections list and return it.
-
-=cut
 
 sub get_mnemonics {
     my $self = shift;
@@ -385,13 +275,6 @@ sub get_mnemonics {
     return \@mnx;
 }
 
-=head2 config_new
-
-Create new connection configuration directory and install new
-configuration file from template.
-
-=cut
-
 sub new_config_tree {
     my ( $self, $conn_name ) = @_;
 
@@ -414,24 +297,11 @@ sub new_config_tree {
     return $conn_name;
 }
 
-=head2 get_resource_file
-
-Return resource file path.
-
-=cut
-
 sub get_resource_file {
     my ($self, $dir, $file_name) = @_;
 
     return catfile( $self->cfpath, $dir, $file_name );
 }
-
-=head2 get_default_mnemonic
-
-Set mnemonic to the value read from the optional L<default.yml>
-configuration file.
-
-=cut
 
 sub get_default_mnemonic {
     my $self = shift;
@@ -447,12 +317,6 @@ sub get_default_mnemonic {
     }
 }
 
-=head2 set_default_mnemonic
-
-Save the default mnemonic in the configs.
-
-=cut
-
 sub set_default_mnemonic {
     my ($self, $arg) = @_;
 
@@ -463,3 +327,107 @@ sub set_default_mnemonic {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+Reads configuration files in I<YAML::Tiny> format and create a HoH.
+Then using I<Class::Accessor>, automatically create methods from the
+keys of the hash.
+
+    use QDepo::Config;
+
+    my $cfg = QDepo::Config->instance($args); # first time init
+
+    my $cfg = QDepo::Config->instance(); # later, in other modules
+
+=head1 METHODS
+
+=head2 _new_instance
+
+Constructor method, the first and only time a new instance is created.
+All parameters passed to the instance() method are forwarded to this
+method. (From I<Class::Singleton> docs).
+
+=head2 init_configurations
+
+Initialize basic configuration options.  Initialize the user
+configuration tree if not exists, with the I<File::UserConfig> module.
+
+=head2 make_accessors
+
+Automatically make accessors for the hash keys.
+
+=head2 configdir
+
+Return application configuration directory.  The config name is an
+optional parameter with default as the current application config
+name.
+
+=head2 load_main_config
+
+Initialize configuration variables from arguments.  Load the main
+configuration file and return a HoH data structure.
+
+Make accessors.
+
+=head2 load_runtime_config
+
+Initialize the runtime connection configuration file name and path.
+
+The B<connection> configuration is special.  More than one connection
+configuration is allowed and the name of the used connection is
+processed at runtime from the I<mnemonic> argument, or from a default
+configuration.
+
+=head2 list_mnemonics
+
+List all mnemonics or the selected one with details.
+
+=head2 list_mnemonics_all
+
+List all the configured mnemonics.
+
+=head2 list_mnemonic_details_for
+
+List details about the configuration name (mnemonic) if exists.
+
+=head2 get_details_for
+
+Return the connection configuration details.  Check the name and
+return the reference only if the name matches.
+
+=head2 config_data_from
+
+Load a config file and return the Perl data structure.  It loads a
+file in Config::General format or in YAML::Tiny format, depending on
+the extension of the file.
+
+=head2 config_file_name
+
+Return full path to a configuration file.  Default is the connection
+configuration file.
+
+=head2 get_mnemonics
+
+Get the connections configs list.  If connection file exist than add
+to connections list and return it.
+
+=head2 config_new
+
+Create new connection configuration directory and install new
+configuration file from template.
+
+=head2 get_resource_file
+
+Return resource file path.
+
+=head2 get_default_mnemonic
+
+Set mnemonic to the value read from the optional L<default.yml>
+configuration file.
+
+=head2 set_default_mnemonic
+
+Save the default mnemonic in the configs.
+
+=cut

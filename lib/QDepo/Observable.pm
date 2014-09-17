@@ -5,12 +5,6 @@ package QDepo::Observable;
 use strict;
 use warnings;
 
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my ( $class, $value ) = @_;
 
@@ -24,35 +18,17 @@ sub new {
     return $self;
 }
 
-=head2 add_callback
-
-Add a callback.
-
-=cut
-
 sub add_callback {
     my ( $self, $callback ) = @_;
     $self->{_callbacks}{$callback} = $callback;
     return $self;
 }
 
-=head2 del_callback
-
-Delete a callback.
-
-=cut
-
 sub del_callback {
     my ( $self, $callback ) = @_;
     delete $self->{_callbacks}{$callback};
     return $self;
 }
-
-=head2 _docallbacks
-
-Run callbacks.
-
-=cut
 
 sub _docallbacks {
     my $self = shift;
@@ -62,34 +38,16 @@ sub _docallbacks {
     return;
 }
 
-=head2 set
-
-Set data value and execute the callbacks.
-
-=cut
-
 sub set {
     my ( $self, $data ) = @_;
     $self->{_data} = $data;
     $self->_docallbacks();
 }
 
-=head2 get
-
-Return data.
-
-=cut
-
 sub get {
     my $self = shift;
     return $self->{_data};
 }
-
-=head2 unset
-
-Set data to undef.
-
-=cut
 
 sub unset {
     my $self = shift;
@@ -98,6 +56,34 @@ sub unset {
 }
 
 1;
+
+=head2 new
+
+Constructor method.
+
+=head2 add_callback
+
+Add a callback.
+
+=head2 del_callback
+
+Delete a callback.
+
+=head2 _docallbacks
+
+Run callbacks.
+
+=head2 set
+
+Set data value and execute the callbacks.
+
+=head2 get
+
+Return data.
+
+=head2 unset
+
+Set data to undef.
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -109,3 +95,5 @@ Thank You!
 
 Copyright:
   Rutger Vos   2006
+
+=cut

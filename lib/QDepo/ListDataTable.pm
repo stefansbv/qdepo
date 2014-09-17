@@ -58,11 +58,6 @@ sub set_item_selected {
     return;
 }
 
-=head2 toggle_item_marked
-
-Add item if not present, delete if present.
-
-=cut
 
 sub toggle_item_marked {
     my ($self, $item) = @_;

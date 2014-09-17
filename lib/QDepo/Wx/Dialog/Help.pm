@@ -15,22 +15,10 @@ use Wx::Event qw(EVT_BUTTON);
 # very important for HTB to work
 Wx::FileSystem::AddHandler( new Wx::ZipFSHandler );
 
-=head2 new
-
-Constructor method
-
-=cut
-
 sub new {
     my $class = shift;
     return bless( {}, $class );
 }
-
-=head2 show_html_help
-
-Show guide.
-
-=cut
 
 sub show_html_help {
     my ($self) = @_;
@@ -49,3 +37,13 @@ sub show_html_help {
 }
 
 1;
+
+=head2 new
+
+Constructor method
+
+=head2 show_html_help
+
+Show guide.
+
+=cut

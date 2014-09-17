@@ -12,12 +12,6 @@ use Locale::TextDomain 1.20 qw(QDepo);
 use QDepo::Config;
 use QDepo::Utils;
 
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my ($class, $model) = @_;
     my $self = bless( {}, $class );
@@ -25,22 +19,10 @@ sub new {
     return $self;
 }
 
-=head2 _model
-
-Model.
-
-=cut
-
 sub _model {
     my $self = shift;
     return $self->{model};
 }
-
-=head2 _process_file
-
-Process an XML file's tag.
-
-=cut
 
 sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
@@ -73,12 +55,6 @@ sub _process_file {
     }
 }
 
-=head2 _process_all_files
-
-Loop and process all files.
-
-=cut
-
 sub _process_all_files {
     my ($self, $tag_name) = @_;
 
@@ -109,12 +85,6 @@ sub _process_all_files {
     return \@qdfdata;
 }
 
-=head2 _xml_read_simple
-
-Read an XML file and return its conents as an Perl data structure.
-
-=cut
-
 sub _xml_read_simple {
     my ($self, $file, $path) = @_;
 
@@ -138,13 +108,6 @@ sub _xml_read_simple {
 
     return $xml_data;
 }
-
-=head2 get_file_list
-
-Use File::Find::Rule to get all the file names from the configured
-path.
-
-=cut
 
 sub get_file_list {
     my $self = shift;
@@ -178,44 +141,20 @@ sub get_file_list {
     return \@rapoarte;
 }
 
-=head2 get_details
-
-Process an XML file an return the contents of all the elements.
-
-=cut
-
 sub get_details {
     my ($self, $file) = @_;
     return $self->_process_file($file, 'report');
 }
-
-=head2 get_title
-
-Process an XML file an return the contents of the title element.
-
-=cut
 
 sub get_title {
     my ($self, $file) = @_;
     return $self->_process_file($file, 'title');
 }
 
-=head2 get_titles
-
-Process all XML files an return the contents of the title element.
-
-=cut
-
 sub get_titles {
     my ($self) = @_;
     return $self->_process_all_files('title');
 }
-
-=head2 xml_update
-
-Update an XML file with the new values from record.
-
-=cut
 
 sub xml_update {
     my ($self, $file, $rec) = @_;
@@ -263,12 +202,6 @@ sub xml_update {
     return;
 }
 
-=head2 _xml_proc_head
-
-Remove head element childrens, then recreate with the new values.
-
-=cut
-
 sub _xml_proc_head {
     my ( $self, $t, $elt, $rec ) = @_;
 
@@ -281,13 +214,6 @@ sub _xml_proc_head {
 
     return;
 }
-
-=head2 _xml_proc_body
-
-Remove body element childrens, then recreate with the new values.
-Values are trimmed before saving.
-
-=cut
 
 sub _xml_proc_body {
     my ( $self, $t, $elt, $rec ) = @_;
@@ -304,13 +230,6 @@ sub _xml_proc_body {
     return;
 }
 
-=head2 _xml_proc_para
-
-Remove parameters element childrens, then recreate with the new
-values.
-
-=cut
-
 sub _xml_proc_para {
     my ( $self, $t, $elt, $rec ) = @_;
 
@@ -326,3 +245,60 @@ sub _xml_proc_para {
 }
 
 1;
+
+=head2 new
+
+Constructor method.
+
+=head2 _model
+
+Model.
+
+=head2 _process_file
+
+Process an XML file's tag.
+
+=head2 _process_all_files
+
+Loop and process all files.
+
+=head2 _xml_read_simple
+
+Read an XML file and return its conents as an Perl data structure.
+
+=head2 get_file_list
+
+Use File::Find::Rule to get all the file names from the configured
+path.
+
+=head2 get_details
+
+Process an XML file an return the contents of all the elements.
+
+=head2 get_title
+
+Process an XML file an return the contents of the title element.
+
+=head2 get_titles
+
+Process all XML files an return the contents of the title element.
+
+=head2 xml_update
+
+Update an XML file with the new values from record.
+
+=head2 _xml_proc_head
+
+Remove head element childrens, then recreate with the new values.
+
+=head2 _xml_proc_body
+
+Remove body element childrens, then recreate with the new values.
+Values are trimmed before saving.
+
+=head2 _xml_proc_para
+
+Remove parameters element childrens, then recreate with the new
+values.
+
+=cut
