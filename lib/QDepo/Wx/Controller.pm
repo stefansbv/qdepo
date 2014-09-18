@@ -74,7 +74,9 @@ sub get_text_dialog {
 
     my $name;
     if ( $dialog->ShowModal == wxID_CANCEL ) {
-        Wx::LogMessage(__ "User cancelled the dialog");
+        $self->model->message_log(
+            __x( '{ert} User cancelled the action', ert => 'II' )
+        );
     }
     else {
         $name = $dialog->GetValue;
