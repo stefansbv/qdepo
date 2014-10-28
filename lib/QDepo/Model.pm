@@ -61,7 +61,7 @@ sub dbh {
         else {
             Exception::Db::Connect->throw(
                 logmsg  => 'Not connected',
-                usermsg => 'Database error',
+                usermsg => 'Database',
             );
         }
     }
@@ -81,7 +81,7 @@ sub dbc {
         else {
             Exception::Db::Connect->throw(
                 logmsg  => 'Not connected',
-                usermsg => 'Database error',
+                usermsg => 'Database',
             );
         }
     }
@@ -655,7 +655,7 @@ sub get_columns_list {
     catch {
         Exception::Db::SQL::Parser->throw(
             logmsg  => $_,
-            usermsg => 'SQL parser error',
+            usermsg => 'SQL parser',
         );
     };
 
@@ -668,14 +668,14 @@ sub get_columns_list {
                 = __x( 'The {table} table does not exists', table => $table );
             Exception::Db::SQL::Parser->throw(
                 logmsg  => $msg,
-                usermsg => 'SQL parser error',
+                usermsg => 'SQL parser',
             );
         }
     }
     else {
         Exception::Db::SQL::Parser->throw(
             logmsg  => __ 'Can not parse the name of the table',
-            usermsg => 'SQL parser error',
+            usermsg => 'SQL parser',
         );
     }
 
