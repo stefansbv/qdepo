@@ -180,7 +180,6 @@ sub get_progress_observable {
 
 sub on_item_selected_load {
     my $self = shift;
-
     my $dt   = $self->get_data_table_for('qlist');
     my $item = $dt->get_item_selected;
     my $data = $self->get_qdf_data($item);
@@ -188,7 +187,12 @@ sub on_item_selected_load {
     my $itemdata = $self->read_qdf_data_file;
     $self->{_itemdata} = QDepo::ItemData->new($itemdata);
     $self->get_itemchanged_observable->set($item);
-
+    $self->message_log(
+        __x('{ert} Loading new item: {item}',
+            ert     => 'II',
+            item    => $item + 1,
+        )
+    );
     return;
 }
 
@@ -645,17 +649,16 @@ sub get_sql_stmt {
 sub get_columns_list {
     my $self = shift;
 
-    my $parser = SQL::Parser->new('AnyData', { RaiseError => 1 } );
-
+    my $parser
+        = SQL::Parser->new( 'AnyData', { RaiseError => 1, PrintError => 0 } );
     my ($bind, $sql_text) = $self->get_sql_stmt;
-
     try {
-        $parser->parse($sql_text) or die $@;
+        $parser->parse($sql_text);
     }
     catch {
         Exception::Db::SQL::Parser->throw(
             logmsg  => qq{"$_"},
-            usermsg => 'SQL parser',
+            usermsg => 'SQLParser failure',
         );
     };
 
@@ -674,7 +677,7 @@ sub get_columns_list {
     }
     else {
         Exception::Db::SQL::Parser->throw(
-            logmsg  => __ 'Can not parse the name of the table',
+            logmsg  => __ 'Can not get the name of the table',
             usermsg => 'SQL parser',
         );
     }
