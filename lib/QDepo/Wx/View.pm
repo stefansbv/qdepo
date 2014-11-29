@@ -960,11 +960,11 @@ sub progress_update {
 
 sub control_set_value {
     my ($self, $name, $value) = @_;
-
     $value ||= q{};                 # empty
     my $control = $self->get_control($name);
+    $control->SetReadOnly(0) if $name eq 'sql';
     $self->control_write_s($control, $value);
-
+    $control->SetReadOnly(1) if $name eq 'sql';
     return;
 }
 
@@ -1092,14 +1092,22 @@ sub set_editable {
     # Controls states are defined in View as strings
     # Here we need to transform them to 0|1
     my $editable = $state eq 'normal' ? 1 : 0;
+    my $readonly = $state eq 'normal' ? 0 : 1;
     $color = 'lightgrey' unless $editable; # default color for disabled
 
     my $control  = $control_ref->{$name}[0];
     my $ctrltype = $control_ref->{$name}[3];
 
-    $control->Enable($editable)      if $ctrltype eq 'c';
-    $control->SetEditable($editable) if $ctrltype eq 'e';
-    $control->Enable($editable)      if $name eq 'sql';
+    $control->Enable($editable)         if $ctrltype eq 'c';
+    $control->SetEditable($editable)    if $ctrltype eq 'e';
+    if ($name eq 'sql') {
+        # print "set sql to editable = $editable\n";
+        # $control->SetEditable($editable);
+        # print "is editable? ", $control->IsEditable, "\n";
+        print "set sql to readonly = $readonly\n";
+        $control->SetReadOnly($readonly);
+        print "is readonly? ", $control->GetReadOnly, "\n";
+    }
 
     $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
 
