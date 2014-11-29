@@ -654,7 +654,7 @@ sub get_columns_list {
     }
     catch {
         Exception::Db::SQL::Parser->throw(
-            logmsg  => $_,
+            logmsg  => qq{"$_"},
             usermsg => 'SQL parser',
         );
     };
@@ -667,7 +667,7 @@ sub get_columns_list {
             my $msg
                 = __x( 'The {table} table does not exists', table => $table );
             Exception::Db::SQL::Parser->throw(
-                logmsg  => $msg,
+                logmsg  => qq{"$msg"},
                 usermsg => 'SQL parser',
             );
         }
