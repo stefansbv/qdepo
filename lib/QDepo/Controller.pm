@@ -374,10 +374,6 @@ sub toggle_interface_controls {
 sub toggle_interface_controls_edit {
     my ($self, $is_edit) = @_;
 
-    # DEBUG
-    my ($package, $filename, $line, $subroutine) = caller(3);
-    print "toggle_interface_controls_edit:\n $package, $line, $subroutine\n";
-
     $self->view->get_control('btn_load')->Enable(!$is_edit);
     $self->view->get_control('btn_defa')->Enable(!$is_edit);
     $self->view->get_control('btn_edit')->Enable(!$is_edit);
@@ -393,10 +389,6 @@ sub toggle_interface_controls_edit {
 
 sub toggle_interface_controls_admin {
     my ($self, $is_admin) = @_;
-
-    # DEBUG
-    my ($package, $filename, $line, $subroutine) = caller(3);
-    print "toggle_interface_controls_admin:\n $package, $line, $subroutine\n";
 
     $self->view->toggle_list_enable( 'dlist', !$is_admin );
     $self->toggle_controls_page( 'admin', $is_admin );
