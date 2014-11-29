@@ -19,7 +19,6 @@ use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
-use Wx::Scintilla ();
 
 use QDepo::Config;
 use QDepo::Config::Menu;
@@ -306,14 +305,13 @@ sub _build_splitter {
     );
 
     my $sizer_top = Wx::BoxSizer->new(wxVERTICAL);
-    # $panel_top->SetSizerAndFit( $sizer_top );
     $panel_top->SetSizer( $sizer_top );
 
     my $sizer_bot = Wx::BoxSizer->new(wxVERTICAL);
-    # $panel_bot->SetSizerAndFit( $sizer_bot );
     $panel_bot->SetSizer( $sizer_bot );
 
     $self->{log} = QDepo::Wx::LogView->new($panel_bot);
+    $self->{log}->SetReadOnly(1);            # log is readonly
 
     my $log_sbs = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxHORIZONTAL );
@@ -444,9 +442,8 @@ sub _build_page_sql {
     my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxHORIZONTAL, );
 
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
-
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
-    $sql_main_sz->Add( $para_sizer, 1, wxALL | wxGROW, 5 );
+    $sql_main_sz->Add( $para_sizer, 0, wxALL | wxEXPAND, 5 );
 
     $page->SetSizer( $sql_main_sz );
 }
@@ -564,18 +561,6 @@ sub _build_ctrls_parameter {
     $self->{value3} =
       Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    my $para_lbl4 = Wx::StaticText->new( $page, -1, 'value4', );
-    $self->{descr4} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value4} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
-    my $para_lbl5 = Wx::StaticText->new( $page, -1, 'value5', );
-    $self->{descr5} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value5} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-
     #-- Layout
 
     my $sizer =
@@ -583,7 +568,7 @@ sub _build_ctrls_parameter {
         Wx::StaticBox->new( $page, -1, __ 'Parameters', ),
         wxHORIZONTAL, );
 
-    my $para_fgs = Wx::FlexGridSizer->new( 6, 3, 5, 10 );
+    my $para_fgs = Wx::FlexGridSizer->new( 4, 3, 5, 10 );
 
     $sizer->Add( $para_fgs, 1, wxEXPAND, 3 );
     $para_fgs->AddGrowableCol(2);
@@ -603,14 +588,6 @@ sub _build_ctrls_parameter {
     $para_fgs->Add( $para_lbl3, 0, wxLEFT,   5 );
     $para_fgs->Add( $self->{descr3},   1, wxEXPAND, 0 );
     $para_fgs->Add( $self->{value3},   1, wxEXPAND, 0 );
-
-    $para_fgs->Add( $para_lbl4, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr4},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value4},   1, wxEXPAND, 0 );
-
-    $para_fgs->Add( $para_lbl5, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr5},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value5},   1, wxEXPAND, 0 );
 
     return $sizer;
 }
@@ -787,10 +764,6 @@ sub get_controls_para {
         { value2 => [ $self->{value2}, 'normal', 'white', 'e' ] },
         { descr3 => [ $self->{descr3}, 'normal', 'white', 'e' ] },
         { value3 => [ $self->{value3}, 'normal', 'white', 'e' ] },
-        { descr4 => [ $self->{descr4}, 'normal', 'white', 'e' ] },
-        { value4 => [ $self->{value4}, 'normal', 'white', 'e' ] },
-        { descr5 => [ $self->{descr5}, 'normal', 'white', 'e' ] },
-        { value5 => [ $self->{value5}, 'normal', 'white', 'e' ] },
     ];
 }
 
@@ -849,13 +822,10 @@ sub form_populate {
     return;
 }
 
- sub toggle_sql_replace {
+sub toggle_sql_replace {
     my ($self, $mode) = @_;
-
     $mode ||= $self->model->get_appmode;
-
     my $data = $self->model->read_qdf_data_file;
-
     if ($mode eq 'edit') {
         $self->control_set_value( 'sql', $data->{body}{sql} );
     }
@@ -863,7 +833,6 @@ sub form_populate {
         my $para = QDepo::Utils->params_to_hash( $data->{parameters} );
         $self->control_replace_sql_text( $data->{body}{sql}, $para );
     }
-
     return;
 }
 
@@ -962,9 +931,7 @@ sub control_set_value {
     my ($self, $name, $value) = @_;
     $value ||= q{};                 # empty
     my $control = $self->get_control($name);
-    $control->SetReadOnly(0) if $name eq 'sql';
     $self->control_write_s($control, $value);
-    $control->SetReadOnly(1) if $name eq 'sql';
     return;
 }
 
@@ -1013,23 +980,21 @@ sub control_write {
 
 sub control_write_e {
     my ( $self, $control, $value ) = @_;
-
     $control->Clear;
     $control->SetValue($value) if defined $value;
-
     return;
 }
 
 sub control_write_s {
     my ( $self, $control, $value, $is_append ) = @_;
-
     $value ||= q{};                 # empty
-
+    my $readonly = $control->GetReadOnly;
+    $control->SetReadOnly(0);
     $control->ClearAll unless $is_append;
     $control->AppendText($value);
     $control->AppendText("\n");
     $control->Colourise( 0, $control->GetTextLength );
-
+    $control->SetReadOnly($readonly);
     return;
 }
 
@@ -1098,16 +1063,9 @@ sub set_editable {
     my $control  = $control_ref->{$name}[0];
     my $ctrltype = $control_ref->{$name}[3];
 
-    $control->Enable($editable)         if $ctrltype eq 'c';
-    $control->SetEditable($editable)    if $ctrltype eq 'e';
-    if ($name eq 'sql') {
-        # print "set sql to editable = $editable\n";
-        # $control->SetEditable($editable);
-        # print "is editable? ", $control->IsEditable, "\n";
-        print "set sql to readonly = $readonly\n";
-        $control->SetReadOnly($readonly);
-        print "is readonly? ", $control->GetReadOnly, "\n";
-    }
+    $control->Enable($editable)      if $ctrltype eq 'c';
+    $control->SetEditable($editable) if $ctrltype eq 'e';
+    $control->SetReadOnly($readonly) if $ctrltype eq 's';
 
     $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
 
