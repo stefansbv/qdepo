@@ -216,7 +216,14 @@ sub generate_output_csv {
 
 sub generate_output_calc {
     my ($self, $sth, $outfile, $rows_cnt) = @_;
-
+    if ( $rows_cnt <= 0 ) {
+        $self->model->message_log(
+            __x('{ert} Can not count the output rows or rows_no <= 0',
+                ert => 'WW',
+            )
+        );
+        return;
+    }
     my $cols = scalar @{ $sth->{NAME} };
     my $doc = QDepo::Output::Calc->new($outfile, $rows_cnt, $cols);
     $doc->init_column_widths( $sth->{NAME} );
@@ -233,7 +240,14 @@ sub generate_output_calc {
 
 sub generate_output_odf {
     my ($self, $sth, $outfile, $rows_cnt) = @_;
-
+    if ( $rows_cnt <= 0 ) {
+        $self->model->message_log(
+            __x('{ert} Can not count the output rows or rows_no <= 0',
+                ert => 'WW',
+            )
+        );
+        return;
+    }
     my $cols = scalar @{ $sth->{NAME} };
     my $doc = QDepo::Output::ODF->new($outfile, $rows_cnt, $cols);
     $doc->init_column_widths( $sth->{NAME} );
