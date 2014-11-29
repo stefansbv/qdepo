@@ -126,16 +126,13 @@ sub db_generate_output {
         return;
     }
 
-    my $success = try {
+    try {
         $self->make_columns_record;
         1;
     }
     catch {
         $self->catch_db_exceptions($_, __ 'Columns record');
-        return undef;           # required!
     };
-    return unless $success;
-
     my $sub_name = 'generate_output_' . lc($option);
     my $out;
     if ( $self->can($sub_name) ) {
@@ -156,7 +153,7 @@ sub db_generate_output {
 sub check_rows {
     my ($self, $sql, $bind) = @_;
     my $rows_cnt = $self->count_rows($sql, $bind);
-    if ($rows_cnt) {
+    if (defined $rows_cnt and $rows_cnt >= 0 ) {
         $self->model->message_log(
             __x('{ert} Count: {rows_cnt} total rows',
                 ert      => 'II',
@@ -166,12 +163,10 @@ sub check_rows {
     }
     else {
         $self->model->message_log(
-            __x('{ert} No output rows!',
+            __x('{ert} Could not count rows!',
                 ert      => 'II',
-                rows_cnt => $rows_cnt,
             )
         );
-        return;
     }
     return $rows_cnt;
 }
@@ -188,7 +183,6 @@ sub generate_output_excel {
 
     # Rows count used only for user messages
     my $rows_cnt = $self->check_rows($sql, $bind);
-    return unless $rows_cnt;
 
     #--- Select
 
@@ -208,7 +202,19 @@ sub generate_output_excel {
         # Initialize lengths record
         $doc->init_lengths( $sth->{NAME} );
 
-        # Header
+        # Header and columns
+        unless ( scalar @{ $self->{header} } ) {
+
+            # Workaround if could not get column list from SQL, use DBI
+            @{ $self->{header} } = map {lc} @{ $sth->{NAME} };
+            my $row = 1;
+            foreach my $field ( @{ $self->{header} } ) {
+                push @{ $self->{columns} },
+                    { field => $field, type => 'varchar', recno => $row };
+                $row++;
+            }
+        }
+
         $doc->create_header_row( 0, $self->{header} );
 
         $self->model->progress_update(0);
@@ -381,6 +387,11 @@ sub count_rows {
     my ($self, $sql, $bind) = @_;
 
     # Capture everything after the first "FROM"
+
+    # !!! This does not work for complex SQL statements !!!
+
+    return -1 if $sql =~ m/\bUNION\s+SELECT/ims;
+
     my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
     unless ($from) {
         $self->model->message_log(
@@ -395,7 +406,6 @@ sub count_rows {
     #--- Count
 
     my $cnt_sql = q{SELECT COUNT(*) FROM } . $from;
-
     $self->model->message_log(
         __x('{ert} SQL: {cnt_sql}',
             ert     => 'II',
@@ -428,7 +438,6 @@ sub create_contents {
     my ( $self, $doc, $sth, $rows_cnt ) = @_;
 
     my ($row_num, $pv) = (1, 0);
-
     while ( my $row_data = $sth->fetchrow_hashref ) {
         my $col_data = [];
         foreach my $col ( @{ $self->{columns} } ) {
@@ -439,6 +448,8 @@ sub create_contents {
         $row_num++;
 
         #-- Progress bar
+
+        next if $rows_cnt < 0;  # no progress bar
 
         my $p = floor( $row_num * 100 / $rows_cnt );
         next if $pv == $p;
@@ -460,13 +471,23 @@ sub create_contents {
 
 sub make_columns_record {
     my $self = shift;
-    ( $self->{columns}, $self->{header} ) = $self->model->get_columns_list;
+    my ( $columns, $header );
+    my $success = try {
+        ( $columns, $header ) = $self->model->get_columns_list;
+        1;
+    }
+    catch {
+        $self->catch_db_exceptions($_, __ 'Columns record');
+        return undef;           # required!
+    };
+    $success
+        ? ( ( $self->{columns}, $self->{header} ) = ( $columns, $header ) )
+        : ( ( $self->{columns}, $self->{header} ) = ( [], [] ) );
     return;
 }
 
 sub catch_db_exceptions {
     my ($self, $exc, $context) = @_;
-    print "Context is $context\n";
     my ($message, $details);
     if ( my $e = Exception::Base->catch($exc) ) {
         if ( $e->isa('Exception::Db::Connect') ) {
@@ -506,14 +527,12 @@ sub catch_db_exceptions {
             # Exception isa Unknown
             $self->model->message_log(
                 __x('{ert} {message}',
-                    ert     => 'EE',
+                    ert     => 'EEii',
                     message => $e->message,
                 )
             );
-            # $e->throw;                       # rethrow the exception
         }
     }
-
     return;
 }
 
@@ -531,15 +550,27 @@ the query.
 Create document contents and show progress.
 
 The row data passed to create_row is a AoH:
-    [0] {
-        contents   "Joe Doe",
-        field      "name",
-        recno      1,
-        type       "varchar"
-    },
+    [
+      {
+        recno    =>  1,
+        field    =>  'name',
+        type     =>  'varchar',
+        contents =>  'John Doe',
+      },
+    ],
 
 =head2 make_columns_record
 
 Columns meta data.  Have to call it early before the main transaction.
+
+Example:
+
+    [
+      {
+        recno => 0,
+        field => 'name',
+        type  => 'varchar'
+      },
+    ],
 
 =cut
