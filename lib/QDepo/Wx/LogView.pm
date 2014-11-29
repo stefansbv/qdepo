@@ -5,12 +5,19 @@ package QDepo::Wx::LogView;
 use strict;
 use warnings;
 
-use Wx::Scintilla ();
+use Wx::Scintilla 0.34 ();
 use base 'Wx::Scintilla::TextCtrl';
 
-use Wx qw(:everything);
+use Wx qw(
+    wxSTC_MARGIN_SYMBOL
+    wxSTC_WRAP_NONE
+    wxSTC_STYLE_DEFAULT
+    wxDEFAULT
+    wxNORMAL
+    wxNORMAL
+    wxSTC_LEX_MSSQL
+    wxSTC_WRAP_NONE);
 use Wx::Event;
-
 
 sub new {
     my ( $class, $parent ) = @_;

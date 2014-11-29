@@ -5,13 +5,20 @@ package QDepo::Wx::Editor;
 use strict;
 use warnings;
 
-use Wx::Scintilla ();
+use Wx::Scintilla 0.34 ();
 use base 'Wx::Scintilla::TextCtrl';
 
-use Wx qw(:everything);
+use Wx qw(
+    wxSTC_MARGIN_SYMBOL
+    wxSTC_STYLE_DEFAULT
+    wxDEFAULT
+    wxNORMAL
+    wxNORMAL
+    wxSTC_LEX_MSSQL
+    wxSTC_STYLE_BRACELIGHT
+    wxSTC_STYLE_BRACEBAD);
 use Wx::Event;
 
-# Override the constructor to Enable Perl support in the editor
 sub new {
     my ( $class, $parent ) = @_;
     my $self = $class->SUPER::new( $parent, -1, [ -1, -1 ], [ -1, -1 ] );
