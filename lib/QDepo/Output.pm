@@ -107,7 +107,7 @@ sub model {
 }
 
 sub db_generate_output {
-    my ($self, $option, $sqltext, $bind, $outfile) = @_;
+    my ($self, $option, $sql, $bind, $outfile) = @_;
 
     $self->load_module($option);
 
@@ -121,22 +121,43 @@ sub db_generate_output {
     }
 
     # Check SQL param
-    unless ( defined $sqltext ) {
+    unless ( defined $sql ) {
         $self->model->message_status(__ 'No SQL parameter!');
         return;
     }
 
+    # Rows count for user messages and to initialize spreadsheet dimensions
+    my $rows_cnt = $self->check_rows($sql, $bind);
+
+    # Execute Select
+    my $sth;
     try {
-        $self->make_columns_record;
-        1;
+        $sth = $self->dbh->prepare($sql);
+        foreach my $params ( @{$bind} ) {
+            my ($p_num, $data) = @{$params};
+            $sth->bind_param($p_num, $data);
+        }
+        $sth->execute();
     }
     catch {
-        $self->catch_db_exceptions($_, __ 'Columns record');
+        $self->catch_db_exceptions($_, 'Execute select');
     };
+
+    # Set header and columns matadata
+    $self->make_columns_record($sth);
+
+    $self->model->message_log(
+        __x('{ert} Generating output file "{outfile}"',
+            ert     => 'II',
+            outfile => $outfile,
+        )
+    );
+
+    # Create output document
     my $sub_name = 'generate_output_' . lc($option);
     my $out;
     if ( $self->can($sub_name) ) {
-        $out = $self->$sub_name($sqltext, $bind, $outfile);
+        $out = $self->$sub_name($sth, $outfile, $rows_cnt);
     }
     else {
         $self->model->message_log(
@@ -172,215 +193,58 @@ sub check_rows {
 }
 
 sub generate_output_excel {
-    my ($self, $sql, $bind, $outfile) = @_;
-
-    $self->model->message_log(
-        __x('{ert} Generating output file "{outfile}"',
-            ert     => 'II',
-            outfile => $outfile,
-        )
-    );
-
-    # Rows count used only for user messages
-    my $rows_cnt = $self->check_rows($sql, $bind);
-
-    #--- Select
+    my ($self, $sth, $outfile, $rows_cnt) = @_;
 
     my $doc = QDepo::Output::Excel->new($outfile);
+    $doc->init_column_widths( $sth->{NAME} );
+    $doc->create_header_row( 0, $self->{header} );
+    $self->model->progress_update(0);
+    my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
 
-    my @out;
-    try {
-        my $sth = $self->dbh->prepare($sql);
-
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-
-        $sth->execute();
-
-        # Initialize lengths record
-        $doc->init_lengths( $sth->{NAME} );
-
-        # Header and columns
-        unless ( scalar @{ $self->{header} } ) {
-
-            # Workaround if could not get column list from SQL, use DBI
-            @{ $self->{header} } = map {lc} @{ $sth->{NAME} };
-            my $row = 1;
-            foreach my $field ( @{ $self->{header} } ) {
-                push @{ $self->{columns} },
-                    { field => $field, type => 'varchar', recno => $row };
-                $row++;
-            }
-        }
-
-        $doc->create_header_row( 0, $self->{header} );
-
-        $self->model->progress_update(0);
-
-        my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
-
-        # Try to close file and check if realy exists
-        @out = $doc->create_done($row, $pv);
-    }
-    catch {
-        $self->catch_db_exceptions($_, 'Excel');
-    };
-
-    return \@out;
+    return $doc->finish($row, $pv);
 }
 
 sub generate_output_csv {
-    my ($self, $sql, $bind, $outfile) = @_;
-
-    $self->model->message_log(
-        __x('{ert} Generating output file "{outfile}"',
-            ert     => 'II',
-            outfile => $outfile,
-        )
-    );
-
-    # Rows count used only for user messages
-    my $rows_cnt = $self->check_rows($sql, $bind);
-    return unless $rows_cnt;
+    my ($self, $sth, $outfile, $rows_cnt) = @_;
 
     my $doc = QDepo::Output::Csv->new($outfile);
+    $doc->create_header_row( 0, $self->{header} );
+    my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
 
-    my @out;
-    try {
-        my $sth = $self->dbh->prepare($sql);
-
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-
-        $sth->execute();
-
-        # Header
-        $doc->create_header_row( 0, $self->{header} );
-
-        my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
-
-        # Try to close file and check if realy exists
-        @out = $doc->create_done($row, $pv);
-    }
-    catch {
-        $self->catch_db_exceptions($_, 'CSV');
-    };
-
-    return \@out;
+    return $doc->finish($row, $pv);
 }
 
 sub generate_output_calc {
-    my ($self, $sql, $bind, $outfile) = @_;
-
-    $self->model->message_log(
-        __x('{ert} Generating output file "{outfile}"',
-            ert     => 'II',
-            outfile => $outfile,
-        )
-    );
-
-    # Rows count used for user messages and for sheet initialization
-    my $rows_cnt = $self->check_rows($sql, $bind);
-    return unless $rows_cnt;
-
-    #--- Select
-
-    my (@out, $sth);
-    try {
-        $sth = $self->dbh->prepare($sql);
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-        $sth->execute();
-    }
-    catch {
-        $self->catch_db_exceptions($_, 'Calc');
-    };
+    my ($self, $sth, $outfile, $rows_cnt) = @_;
 
     my $cols = scalar @{ $sth->{NAME} };
-
-    # Create new spreadsheet with predefined dimensions
     my $doc = QDepo::Output::Calc->new($outfile, $rows_cnt, $cols);
-
-    # Initialize lengths record
-    $doc->init_lengths( $sth->{NAME} );
-
-    # Header
+    $doc->init_column_widths( $sth->{NAME} );
     $doc->create_header_row( 0, $self->{header} );
-
     $self->model->message_status(
         __nx ("one row", "{num} rows", $rows_cnt, num => $rows_cnt)
     );
-
     $self->model->progress_update(0);
 
     my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
 
-    # Try to close file and check if realy exists
-    @out = $doc->create_done($row, $pv);
-
-    return \@out;
+    return $doc->finish($row, $pv);
 }
 
 sub generate_output_odf {
-    my ($self, $sql, $bind, $outfile) = @_;
+    my ($self, $sth, $outfile, $rows_cnt) = @_;
 
-    $self->model->message_log(
-        __x('{ert} Generating output file "{outfile}"',
-            ert     => 'II',
-            outfile => $outfile,
-        )
+    my $cols = scalar @{ $sth->{NAME} };
+    my $doc = QDepo::Output::ODF->new($outfile, $rows_cnt, $cols);
+    $doc->init_column_widths( $sth->{NAME} );
+    $doc->create_header_row( 0, $self->{header} );
+    $self->model->message_status(
+        __nx ("one row", "{num} rows", $rows_cnt, num => $rows_cnt)
     );
+    $self->model->progress_update(0);
+    my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
 
-    # Rows count used for user messages and for sheet initialization
-    my $rows_cnt = $self->check_rows($sql, $bind);
-    return unless $rows_cnt;
-
-    #--- Select
-
-    my @out;
-    try {
-        my $sth = $self->dbh->prepare($sql);
-
-        foreach my $params ( @{$bind} ) {
-            my ($p_num, $data) = @{$params};
-            $sth->bind_param($p_num, $data);
-        }
-
-        $sth->execute();
-
-        my $cols = scalar @{ $sth->{NAME} };
-
-        # Create new spreadsheet
-        my $doc = QDepo::Output::ODF->new($outfile, $rows_cnt, $cols);
-
-        # Initialize lengths record
-        $doc->init_lengths( $sth->{NAME} );
-
-        # Header
-        $doc->create_header_row( 0, $self->{header} );
-
-        $self->model->message_status(
-            __nx ("one row", "{num} rows", $rows_cnt, num => $rows_cnt)
-        );
-
-        $self->model->progress_update(0);
-
-        my ($row, $pv) = $self->create_contents($doc, $sth, $rows_cnt);
-
-        # Try to close file and check if realy exists
-        @out = $doc->create_done($row, $pv);
-    }
-    catch {
-        $self->catch_db_exceptions($_, 'ODF');
-    };
-
-    return \@out;
+    return $doc->finish($row, $pv);
 }
 
 sub count_rows {
@@ -470,7 +334,8 @@ sub create_contents {
 }
 
 sub make_columns_record {
-    my $self = shift;
+    my ($self, $sth) = @_;
+
     my ( $columns, $header );
     my $success = try {
         ( $columns, $header ) = $self->model->get_columns_list;
@@ -480,9 +345,20 @@ sub make_columns_record {
         $self->catch_db_exceptions($_, __ 'Columns record');
         return undef;           # required!
     };
-    $success
-        ? ( ( $self->{columns}, $self->{header} ) = ( $columns, $header ) )
-        : ( ( $self->{columns}, $self->{header} ) = ( [], [] ) );
+    if ($success) {
+        ( $self->{columns}, $self->{header} ) = ( $columns, $header );
+        return;
+    }
+
+    # Fallback to get info DBI statement
+
+    @{ $self->{header} } = map {lc} @{ $sth->{NAME} };
+    my $row = 1;
+    foreach my $field ( @{ $self->{header} } ) {
+        push @{ $self->{columns} },
+            { field => $field, type => 'varchar', recno => $row };
+        $row++;
+    }
     return;
 }
 
@@ -527,7 +403,7 @@ sub catch_db_exceptions {
             # Exception isa Unknown
             $self->model->message_log(
                 __x('{ert} {message}',
-                    ert     => 'EEii',
+                    ert     => 'EE',
                     message => $e->message,
                 )
             );

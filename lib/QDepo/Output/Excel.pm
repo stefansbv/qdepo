@@ -9,21 +9,12 @@ use Carp;
 use Spreadsheet::WriteExcel;
 use QDepo::Utils;
 
-=head2 new
-
-Constructor method.
-
-=cut
-
 sub new {
     my $class = shift;
 
     my $self = {};
-
     bless( $self, $class );
-
     $self->{xls_file} = shift;
-
     $self->{xls_fh}   = undef;
     $self->{workbook} = undef;
     $self->{sheet}    = undef;
@@ -34,15 +25,6 @@ sub new {
 
     return $self;
 }
-
-=pod
-
-Create the create the Excel spreadsheet document.
-
-TODO: Formats better defined outside the module, maybe in a YAML
-configuration file?
-
-=cut
 
 sub _create_doc {
     my ( $self, $sheet_name ) = @_;
@@ -146,15 +128,8 @@ sub create_header_row {
     return;
 }
 
-=head2 create_row
-
-Create a row of data; format not implemented yet.
-
-=cut
-
 sub create_row {
     my ( $self, $row, $col_data ) = @_;
-
     my $col = 0;
     foreach my $rec ( @{$col_data} ) {
         my $data = QDepo::Utils->decode_unless_utf( $rec->{contents} );
@@ -172,52 +147,28 @@ sub create_row {
         $self->store_max_len( $col, length $data ) if $data;
         $col++;
     }
-
     return;
 }
 
-=head2 create_done
-
-Print a message about the status of document creation and return it.
-
-=cut
-
-sub create_done {
+sub finish {
     my ($self, $count_rows, $percent) = @_;
 
     # Set columns width
     $self->set_cols_width();
-
     $self->{workbook}->close
         or die "Can not close WorkBook: $!\n";
-
     my $output;
     if ( -f $self->{xls_file} ) {
         $output = $self->{xls_file};
     }
-
     return ($output, $count_rows, $percent);
 }
 
-=head2 init_lengths
-
-Init lengths record to avoid error when making comparisons.
-
-=cut
-
-sub init_lengths {
+sub init_column_widths {
     my ( $self, $fields ) = @_;
-
     @{ $self->{lenghts} } = map { defined $_ ? length($_) : 0 } @{$fields};
-
     return scalar @{$self->{lenghts}};       # for test
 }
-
-=head2 store_max_len
-
-Impose a maximum width and store max length.
-
-=cut
 
 sub store_max_len {
     my ($self, $col, $len) = @_;
@@ -231,22 +182,48 @@ sub store_max_len {
     return;
 }
 
+sub set_cols_width {
+    my ($self) = @_;
+    my $cols = scalar @{ $self->{lenghts} };
+    for ( my $col = 0 ; $col < $cols; $col++ ) {
+        $self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
+    }
+    return;
+}
+
+1;
+
+__END__
+
+=pod
+
+=head2 new
+
+Constructor method.
+
+Create the create the Excel spreadsheet document.
+
+TODO: Formats better defined outside the module, maybe in a YAML
+configuration file?
+
+=head2 create_row
+
+Create a row of data; format not implemented yet.
+
+=head2 finish
+
+Print a message about the status of document creation and return it.
+
+=head2 init_column_widths
+
+Init column widths record to avoid error when making comparisons.
+
+=head2 store_max_len
+
+Impose a maximum width and store max length.
+
 =head2 set_cols_width
 
 Set the columns with.
 
 =cut
-
-sub set_cols_width {
-    my ($self) = @_;
-
-    my $cols = scalar @{ $self->{lenghts} };
-
-    for ( my $col = 0 ; $col < $cols; $col++ ) {
-        $self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
-    }
-
-    return;
-}
-
-1;
