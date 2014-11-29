@@ -549,11 +549,12 @@ sub populate_fieldlist {
     catch {
         if ( my $e = Exception::Base->catch($_) ) {
             if ( $e->isa('Exception::Db::SQL::Parser') ) {
+                ( my $logmsg = $e->logmsg ) =~ s{\n}{ }m;
                 $self->model->message_log(
                     __x('{ert} {message}: {details}',
-                        ert     => 'EE',
+                        ert     => 'WW',
                         message => $e->usermsg,
-                        details => $e->logmsg,
+                        details => $logmsg,
                     )
                 );
             }
