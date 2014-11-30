@@ -271,7 +271,7 @@ sub set_event_handlers {
             my $dt   = $self->model->get_data_table_for('qlist');
             $dt->set_item_selected($item);
             $self->model->on_item_selected_load;
-            $self->populate_fieldlist;
+            $self->populate_info;
         }
     );
 
@@ -324,7 +324,7 @@ sub set_event_handlers {
         'btn_refr', sub {
             $self->db_connect unless $self->model->is_connected;
             if ($self->model->is_connected ) {
-                $self->populate_fieldlist;
+                $self->populate_info;
             }
         }
     );
@@ -487,10 +487,6 @@ sub set_default_mnemonic {
 sub toggle_admin_buttons {
     my $self = shift;
 
-    # DEBUG
-    my ($package, $filename, $line, $subroutine) = caller(3);
-    print "toggle_admin_buttons:\n $package, $line, $subroutine\n";
-
     my $dt        = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt->get_item_selected;
     my $item_defa = $dt->get_item_default;
@@ -533,7 +529,7 @@ sub populate_querylist {
     return;
 }
 
-sub populate_fieldlist {
+sub populate_info {
     my $self = shift;
 
     # Initialize list
@@ -541,9 +537,9 @@ sub populate_fieldlist {
     $data_table->clear_all_items;
     $self->view->refresh_list('tlist');
 
-    my ( $columns, $header );
+    my ( $columns, $header, $tables );
     my $success = try {
-        ( $columns, $header ) = $self->model->get_columns_list;
+        ( $columns, $header, $tables ) = $self->model->parse_sql_text;
         1;
     }
     catch {
@@ -578,9 +574,18 @@ sub populate_fieldlist {
             );
         }
         return undef;           # required!
+    }
+    finally {
+        # Table names
+        my $table_names;
+        $table_names = join ', ', @{$tables} if ref $tables;
+        $table_names ||= 'Unknown!';
+        $self->view->controls_write_onpage( 'info',
+            { table_name => $table_names } );
     };
     return unless $success;
 
+    # Fields list
     foreach my $rec ( @{$columns} ) {
         $self->list_add_item('tlist', $rec);
     }

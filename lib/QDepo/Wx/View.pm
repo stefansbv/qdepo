@@ -381,6 +381,12 @@ sub _build_page_info {
 
     #--  Controls
 
+    $self->{table_name} =
+        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{table_name}->SetBackgroundColour( Wx::Colour->new(220,220,220) );
+    $self->{table_name}->SetForegroundColour( Wx::Colour->new(100,100,250) );
+    $self->{table_name}->SetEditable(0);
+
     # Fields table
     $self->model->init_data_table('tlist');
     my $dtt = $self->model->get_data_table_for('tlist');
@@ -394,7 +400,7 @@ sub _build_page_info {
         -1,
         __ 'Refresh',
         [ -1, -1 ],
-        [ -1, 22 ],
+        [ -1, 23 ],
     );
     $self->{btn_refr}->Enable(1);
 
@@ -402,19 +408,24 @@ sub _build_page_info {
 
     my $info_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
+    my $info_top_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ 'Table name' ), wxVERTICAL );
+    $info_top_sz->Add( $self->{table_name}, 0, wxTOP | wxEXPAND, 0);
+    #$info_top_sz->Add(-1, 20);
+
     my $info_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
     $info_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
     $info_mid_sz->Add(-1, 20);
 
     my $info_bot_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Fields' ), wxVERTICAL );
-
     $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
+    $info_main_sz->Add( $info_top_sz, 1, wxALL | wxEXPAND, 5 );
     $info_main_sz->Add( $info_bot_sz, 1, wxALL | wxGROW, 5 );
     $info_main_sz->Add( $info_mid_sz, 1, wxALIGN_CENTRE );
 
-    $info_main_sz->AddGrowableRow(0);
+    $info_main_sz->AddGrowableRow(1);
     $info_main_sz->AddGrowableCol(0);
 
     $page->SetSizer($info_main_sz);
@@ -744,7 +755,6 @@ sub get_control {
 
 sub get_controls_list {
     my $self = shift;
-
     return [
         { title    => [ $self->{title},    'normal',   'white',     'e' ] },
         { filename => [ $self->{filename}, 'disabled', $self->{bg}, 'e' ] },
@@ -754,9 +764,15 @@ sub get_controls_list {
     ];
 }
 
+sub get_controls_info {
+    my $self = shift;
+    return [
+        { table_name => [ $self->{table_name}, 'disabled', 'white', 'e' ] },
+    ];
+}
+
 sub get_controls_para {
     my $self = shift;
-
     return [
         { descr1 => [ $self->{descr1}, 'normal', 'white', 'e' ] },
         { value1 => [ $self->{value1}, 'normal', 'white', 'e' ] },

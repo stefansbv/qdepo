@@ -646,7 +646,7 @@ sub get_sql_stmt {
     return ($bind, $sql);
 }
 
-sub get_columns_list {
+sub parse_sql_text {
     my $self = shift;
 
     my $parser
@@ -658,27 +658,27 @@ sub get_columns_list {
     catch {
         Exception::Db::SQL::Parser->throw(
             logmsg  => qq{"$_"},
-            usermsg => 'SQLParser failure',
+            usermsg => 'SQL Parser',
         );
     };
 
     #-- Table
-    my $tables_ref = $parser->structure->{org_table_names};
-    my $table      = $tables_ref->[0];
+    my $tables_aref = $parser->structure->{org_table_names};
+    my $table       = $tables_aref->[0];
     if ($table) {
         unless ( $self->dbc->table_exists($table) ) {
             my $msg
                 = __x( 'The {table} table does not exists', table => $table );
             Exception::Db::SQL::Parser->throw(
                 logmsg  => qq{"$msg"},
-                usermsg => 'SQL parser',
+                usermsg => 'SQL Parser',
             );
         }
     }
     else {
         Exception::Db::SQL::Parser->throw(
             logmsg  => __ 'Can not get the name of the table',
-            usermsg => 'SQL parser',
+            usermsg => 'SQL Parser',
         );
     }
 
@@ -692,22 +692,22 @@ sub get_columns_list {
             __x( '{ert} Not implemented: "table_info_short"', ert => 'II' ) );
         return;
     }
-    my $sql_cols_aref = $parser->structure->{org_col_names};
+    my $header_aref = $parser->structure->{org_col_names};
 
     # When using: SELECT * FROM...
-    unless (ref $sql_cols_aref) {
-        $sql_cols_aref = QDepo::Utils->sort_hash_by('pos', $all_cols_href);
+    unless (ref $header_aref) {
+        $header_aref = QDepo::Utils->sort_hash_by('pos', $all_cols_href);
     }
 
     my $cols_aref;
     my $row = 0;
-    foreach my $field ( @{$sql_cols_aref} ) {
+    foreach my $field ( @{$header_aref} ) {
         my $type = $all_cols_href->{$field}{type};
         push @{$cols_aref}, { field => $field, type => $type, recno => $row };
         $row++
     }
 
-    return ($cols_aref, $sql_cols_aref);
+    return ($cols_aref, $header_aref, $tables_aref);
 }
 
 sub dlist_default_item {
@@ -884,7 +884,7 @@ indicator to stop the output file generation process.
 Set continue to false if Cancel button on the progress dialog is
 activated (Wx only).
 
-=head2 get_columns_list
+=head2 parse_sql_text
 
 The list of the columns.
 

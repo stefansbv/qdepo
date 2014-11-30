@@ -352,7 +352,7 @@ sub make_columns_record {
 
     my ( $columns, $header );
     my $success = try {
-        ( $columns, $header ) = $self->model->get_columns_list;
+        ( $columns, $header ) = $self->model->parse_sql_text;
         1;
     }
     catch {
@@ -396,7 +396,7 @@ sub catch_db_exceptions {
             $details = $e->logmsg;
             $self->model->message_log(
                 __x('{ert} {message}: {details}',
-                    ert     => 'EE',
+                    ert     => 'WW',
                     message => $message,
                     details => $details,
                 )
