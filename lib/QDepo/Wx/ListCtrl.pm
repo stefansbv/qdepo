@@ -12,20 +12,15 @@ use base qw(Wx::ListView);
 
 sub new {
     my( $class, $parent, $dt ) = @_;
-
     my $self = $class->SUPER::new(
         $parent, -1,
         [ -1, -1 ],
         [ -1, -1 ],
         wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL
     );
-
     $self->SetItemCount( $dt->get_item_count );
-
     $self->{dt} = $dt;
-
     $self->add_columns;
-
     return $self;
 }
 
@@ -48,23 +43,17 @@ sub OnGetItemText {
 
 sub OnGetItemAttr {
     my( $self, $item ) = @_;
-
     my $attr = Wx::ListItemAttr->new;
-
     $attr->SetBackgroundColour( Wx::Colour->new('LIGHT YELLOW') )
         if $item % 2 == 0;
-
     return $attr;
 }
 
 sub RefreshList {
     my $self = shift;
-
     my $item_count = $self->{dt}->get_item_count;
-
     $self->SetItemCount( $item_count );
     $self->RefreshItems(0, $item_count);
-
     return;
 }
 

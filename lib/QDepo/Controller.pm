@@ -16,16 +16,12 @@ use QDepo::Config::Utils;
 
 sub new {
     my $class = shift;
-
     my $model = QDepo::Model->new();
-
     my $self = {
         _model => $model,
         _cfg   => QDepo::Config->instance(),
     };
-
     bless $self, $class;
-
     return $self;
 }
 
@@ -53,25 +49,47 @@ sub start {
 
     #- Start
 
-    my $default = $self->view->get_choice_default();
-    $self->model->set_choice($default);
+    my $default_output = $self->view->get_choice_default();
+    $self->model->set_choice($default_output);
 
     $self->set_event_handlers();
     $self->set_app_mode('idle');
 
-    # Connections list
     $self->populate_connlist;
     $self->toggle_controls_page( 'admin', 0 );
+#    $self->load_mnemonic;
 
-    # Query list (from qdf)
-    $self->populate_querylist;
-    my $dt = $self->model->get_data_table_for('qlist');
-    my $rec_no = $dt->get_item_count;
-    if ( $rec_no >= 0) {
-        $self->view->select_list_item('qlist', 'first');
-        $self->set_app_mode('sele');
+    return;
+}
+
+sub populate_connlist {
+    my $self = shift;
+
+    my $mnemonics_ref = $self->cfg->get_mnemonics;
+    return unless @{$mnemonics_ref};
+
+    my $current_recno;
+    foreach my $rec ( @{$mnemonics_ref} ) {
+        $current_recno = $rec->{recno} if $rec->{current} == 1;
+        $self->list_add_item('dlist', $rec);
     }
+    $self->view->select_list_item('dlist', $current_recno - 1);
 
+    return;
+}
+
+sub populate_querylist {
+    my $self = shift;
+    $self->model->load_qdf_data;             # init
+    my $items = $self->model->get_qdf_data;
+    return unless scalar keys %{$items};
+
+    $self->model->get_data_table_for('qlist')->clear_all_items;
+
+    my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
+    foreach my $idx ( @indices ) {
+        $self->list_add_item('qlist', $items->{$idx} );
+    }
     return;
 }
 
@@ -292,7 +310,7 @@ sub set_event_handlers {
     #-- Load button
     $self->view->event_handler_for_button(
         'btn_load', sub {
-            warn "Load config... (not implemented)\n";
+            $self->load_mnemonic;
         }
     );
 
@@ -465,22 +483,40 @@ sub set_default_mnemonic {
 
     my $dt = $self->model->get_data_table_for('dlist');
 
-    my $item_defa = $dt->get_item_default;
-    if (defined $item_defa) {
-        $dt->set_value( $item_defa, 2, '' ); # clear label
-    }
-
     my $item_sele = $dt->get_item_selected;
     if ( defined $item_sele ) {
         my $mnemonic = $dt->get_value( $item_sele, 1 );
-        $dt->set_value( $item_sele, 2, 'yes' );
         $dt->set_item_default($item_sele);
-        $self->cfg->set_default_mnemonic($mnemonic);
+        $self->cfg->save_default_mnemonic($mnemonic);
         $self->toggle_admin_buttons;
     }
-
     $self->view->refresh_list('dlist');
 
+    return;
+}
+
+sub load_mnemonic {
+    my $self = shift;
+    my $dt_d = $self->model->get_data_table_for('dlist');
+    my $item_sele = $dt_d->get_item_selected;
+    if ( defined $item_sele ) {
+        my $mnemonic = $dt_d->get_value( $item_sele, 1 );
+        print "loading mnemonic '$mnemonic'\n";
+        $self->cfg->mnemonic($mnemonic);
+        $dt_d->set_item_current($item_sele);
+        $self->toggle_admin_buttons;
+    }
+    $self->view->refresh_list('dlist');
+
+    # Query list (from qdf)
+    $self->populate_querylist;
+    my $dt_q = $self->model->get_data_table_for('qlist');
+    my $rec_no = $dt_q->get_item_count;
+    if ( $rec_no >= 0) {
+        $self->view->select_list_item('qlist', 'first');
+        $self->set_app_mode('sele');
+        $self->view->{qlist}->SetFocus;
+    }
     return;
 }
 
@@ -490,12 +526,17 @@ sub toggle_admin_buttons {
     my $dt        = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt->get_item_selected;
     my $item_defa = $dt->get_item_default;
+    my $item_load = $dt->get_item_current;
 
-    return unless defined($item_sele) and defined($item_defa);
+    return
+            unless defined($item_sele)
+        and defined($item_defa)
+        and defined($item_load);
 
-    my $enable = $item_sele == $item_defa ? 1 : 0;
-    $self->view->get_control('btn_load')->Enable($enable);
-    $self->view->get_control('btn_defa')->Enable(not $enable);
+    my $enable_defa = $item_sele == $item_defa ? 0 : 1;
+    my $enable_load = $item_sele == $item_load ? 0 : 1;
+    $self->view->get_control('btn_load')->Enable($enable_load);
+    $self->view->get_control('btn_defa')->Enable($enable_defa);
     $self->view->get_control('btn_edit')->Enable;
 
     return;
@@ -508,24 +549,6 @@ sub load_conn_details {
     my $mnemo = $dt->get_value($item, 1);
     my $rec   = $self->cfg->get_details_for($mnemo);
     $self->view->controls_write_onpage( 'admin', $rec->{connection} );
-    return;
-}
-
-sub populate_querylist {
-    my $self = shift;
-
-    $self->model->load_qdf_data;             # init
-
-    my $items = $self->model->get_qdf_data;
-
-    return unless scalar keys %{$items};
-
-    my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
-
-    foreach my $idx ( @indices ) {
-        $self->list_add_item('qlist', $items->{$idx} );
-    }
-
     return;
 }
 
@@ -593,45 +616,22 @@ sub populate_info {
     return;
 }
 
-sub populate_connlist {
-    my $self = shift;
-
-    my $mnemonics_ref = $self->cfg->get_mnemonics;
-
-    return unless @{$mnemonics_ref};
-
-    foreach my $rec ( @{$mnemonics_ref} ) {
-        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
-        $self->list_add_item('dlist', $rec);
-    }
-
-    my $item = $self->model->dlist_default_item;
-    $self->view->select_list_item('dlist', $item);
-
-    return;
-}
-
 sub list_add_item {
     my ($self, $list, $rec) = @_;
-
     my $data_table = $self->model->get_data_table_for($list);
-    my $row        = $data_table->get_item_count;
     my $cols_meta  = $self->model->list_meta_data($list);
-
+    my $row = $data_table->get_item_count;
     my $col = 0;
     foreach my $meta ( @{$cols_meta} ) {
         my $field = $meta->{field};
         my $value
-            = $field eq 'recno'
-            ? ( $row + 1 )
-            : ( $rec->{$field} // q{} )
-            ;
+            = $field eq q{}       ? q{}
+            : $field eq 'recno'   ? ( $row + 1 )
+            :                       ( $rec->{$field} // q{} );
         $data_table->set_value( $row, $col, $value );
         $col++;
     }
-
     $self->view->refresh_list($list);
-
     return;
 }
 
@@ -707,7 +707,7 @@ sub add_new_menmonic {
             default  => 0,
             mnemonic => $name,
         };
-        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
+#        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
         $self->list_add_item('dlist', $rec);
     }
 

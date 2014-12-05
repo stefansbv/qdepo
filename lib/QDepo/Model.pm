@@ -610,13 +610,18 @@ sub get_conn_list_meta {
         },
         {   field => 'default',
             label => __ 'Default',
-            align => 'left',
+            align => 'center',
+            width => 60,
+        },
+        {   field => 'current',
+            label => __ 'Current',
+            align => 'center',
             width => 60,
         },
         {   field => 'description',
             label => __ 'Description',
             align => 'left',
-            width => 185,
+            width => 125,
         },
     ];
 }
@@ -710,25 +715,25 @@ sub parse_sql_text {
     return ($cols_aref, $header_aref, $tables_aref);
 }
 
-sub dlist_default_item {
-    my $self = shift;
+# sub dlist_loded_item {
+#     my $self = shift;
 
-    my $mnemonx = $self->cfg->get_mnemonics;
-    my $default = $self->cfg->get_default_mnemonic;
-    my ($idx, $item) = (0, undef);
-    foreach my $mnx ( @{$mnemonx} ) {
-        if ($mnx->{mnemonic} eq $default) {
-            $item = $idx;
-            last;
-        }
-        $idx++;
-    }
+#     my $mnemonx = $self->cfg->get_mnemonics;
+#     my $default = $self->cfg->get_default_mnemonic;
+#     my ($idx, $item) = (0, undef);
+#     foreach my $mnx ( @{$mnemonx} ) {
+#         if ($mnx->{mnemonic} eq $default) {
+#             $item = $idx;
+#             last;
+#         }
+#         $idx++;
+#     }
 
-    my $dt = $self->get_data_table_for('dlist');
-    $dt->set_item_default($item);
+#     my $dt = $self->get_data_table_for('dlist');
+#     $dt->set_item_default($item);
 
-    return $item;
-}
+#     return $item;
+# }
 
 1;
 
