@@ -6,11 +6,16 @@ use strict;
 use warnings;
 
 use List::MoreUtils qw/firstidx/;
+use Locale::TextDomain 1.20 qw(QDepo);
 
 sub new {
     my $class = shift;
     my $self = {};
-    $self->{data} = [];
+    $self->{data}     = [];
+    $self->{default}  = undef;
+    $self->{current}  = undef;
+    $self->{selected} = undef;
+    $self->{marked}   = [];
     bless $self, $class;
     return $self;
 }
@@ -44,6 +49,39 @@ sub get_item_default {
 sub set_item_default {
     my ($self, $item) = @_;
     $self->{default} = $item;
+    $self->set_default($item);
+    return;
+}
+
+sub set_default {
+    my ($self, $item) = @_;
+    my $max_idx = $self->get_item_count - 1;
+    foreach my $idx ( 0..$max_idx ) {
+        my $label = $idx == $item ? __('Jes') : q();
+        $self->set_value($idx, 2, $label);
+    }
+    return;
+}
+
+sub get_item_current {
+    my $self = shift;
+    return $self->{current};
+}
+
+sub set_item_current {
+    my ($self, $item) = @_;
+    $self->{current} = $item;
+    $self->set_current($item);
+    return;
+}
+
+sub set_current {
+    my ($self, $item) = @_;
+    my $max_idx = $self->get_item_count - 1;
+    foreach my $idx ( 0..$max_idx ) {
+        my $label = $idx == $item ? __('Yes') : q();
+        $self->set_value($idx, 3, $label);
+    }
     return;
 }
 
@@ -57,7 +95,6 @@ sub set_item_selected {
     $self->{selected} = $item;
     return;
 }
-
 
 sub toggle_item_marked {
     my ($self, $item) = @_;
