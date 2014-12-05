@@ -119,7 +119,7 @@ sub get_file_list {
     if ( !-d $qdfpath ) {
         my $msg = qq{\nWrong path for '$qdfexte' files:\n $qdfpath!\n};
         $msg   .= qq{\nConfiguration error, try to fix with\n\n};
-        $msg   .= qq{ qrt -init };
+        $msg   .= qq{ qdepo -init };
         $msg   .= $cfg->cfgname . qq{\n\n};
         $msg   .= qq{then edit: };
         $msg   .=  $cfg->cfgconnfile . qq{\n};
@@ -135,9 +135,6 @@ sub get_file_list {
         ->file
         ->nonempty
         ->in($qdfpath);
-
-    my $nrfisiere = scalar @rapoarte;    # total file number
-
     return \@rapoarte;
 }
 
@@ -204,43 +201,34 @@ sub xml_update {
 
 sub _xml_proc_head {
     my ( $self, $t, $elt, $rec ) = @_;
-
     $elt->cut_children;
-
     foreach my $item ( keys %{$rec} ) {
         my $ef = XML::Twig::Elt->new($item, $rec->{$item} );
         $ef->paste('last_child', $elt);
     }
-
     return;
 }
 
 sub _xml_proc_body {
     my ( $self, $t, $elt, $rec ) = @_;
-
     $elt->cut_children;
-
     foreach my $item ( keys %{$rec} ) {
         my $ef = XML::Twig::Elt->new(
             '#CDATA' => QDepo::Utils->trim( $rec->{$item} )
         )->wrap_in($item);
         $ef->paste( 'last_child', $elt );
     }
-
     return;
 }
 
 sub _xml_proc_para {
     my ( $self, $t, $elt, $rec ) = @_;
-
     $elt->cut_children;
-
     foreach my $item ( @{$rec} ) {
         my $ef = XML::Twig::Elt->new('parameter');
         $ef->paste('last_child', $elt);
         $ef->set_att( %{$item} );
     }
-
     return;
 }
 
