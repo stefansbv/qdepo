@@ -22,11 +22,8 @@ method. (From I<Class::Singleton> docs).
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = bless {}, $class;
-
     $self->_connect($model);
-
     return $self;
 }
 

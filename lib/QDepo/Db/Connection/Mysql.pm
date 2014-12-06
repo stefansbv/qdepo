@@ -11,7 +11,6 @@ use Regexp::Common;
 
 use QDepo::Exceptions;
 
-
 sub new {
     my ($class, $model) = @_;
     my $self = {};
@@ -19,7 +18,6 @@ sub new {
     bless $self, $class;
     return $self;
 }
-
 
 sub db_connect {
     my ($self, $conf) = @_;
@@ -43,7 +41,6 @@ sub db_connect {
     return $self->{_dbh};
 }
 
-
 sub handle_error {
     my $self = shift;
 
@@ -64,7 +61,6 @@ sub handle_error {
 
     return;
 }
-
 
 sub parse_db_error {
     my ($self, $mi) = @_;
@@ -104,6 +100,5 @@ sub parse_db_error {
 
     return $message;
 }
-
 
 1;

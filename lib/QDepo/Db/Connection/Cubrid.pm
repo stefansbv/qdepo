@@ -10,7 +10,6 @@ use Try::Tiny;
 
 use QDepo::Exceptions;
 
-
 sub new {
     my ($class, $model) = @_;
     my $self = {};
@@ -18,7 +17,6 @@ sub new {
     bless $self, $class;
     return $self;
 }
-
 
 sub db_connect {
     my ( $self, $conf ) = @_;
@@ -41,7 +39,6 @@ sub db_connect {
 
     return $self->{_dbh};
 }
-
 
 sub handle_error {
     my $self = shift;
