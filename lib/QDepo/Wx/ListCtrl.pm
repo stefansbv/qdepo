@@ -30,7 +30,12 @@ sub add_columns {
     foreach my $rec ( @{$header} ) {
         my $label = $rec->{label};
         my $width = $rec->{width};
-        $self->InsertColumn( $cnt, $label, wxLIST_FORMAT_LEFT, $width );
+        my $align
+            = $rec->{align} eq 'left'   ? wxLIST_FORMAT_LEFT
+            : $rec->{align} eq 'center' ? wxLIST_FORMAT_CENTER
+            : $rec->{align} eq 'right'  ? wxLIST_FORMAT_RIGHT
+            :                             wxLIST_FORMAT_LEFT;
+        $self->InsertColumn( $cnt, $label, $align, $width );
         $cnt++;
     }
     return;

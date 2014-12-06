@@ -332,6 +332,26 @@ sub _build_splitter {
     return;
 }
 
+sub on_notebook_page_changed {
+    my ($self, $callback) = @_;
+    my $nb = $self->get_notebook;
+    EVT_AUINOTEBOOK_PAGE_CHANGED $self, $nb->GetId, $callback;
+    return;
+}
+
+sub get_nb_current_page {
+    my $self = shift;
+    return $self->get_notebook->get_current;
+}
+
+sub set_nb_current {
+    my ( $self, $page ) = @_;
+    my $nb = $self->get_notebook;
+    $nb->{nb_prev} = $nb->{nb_curr};    # previous tab name
+    $nb->{nb_curr} = $page;             # current tab name
+    return;
+}
+
 sub _build_page_querylist {
     my $self = shift;
     my $page = $self->{_nb}{p1};

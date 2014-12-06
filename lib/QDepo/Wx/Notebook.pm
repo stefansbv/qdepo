@@ -1,12 +1,12 @@
 package QDepo::Wx::Notebook;
 
-# ABSTRACT: A notebook controll
+# ABSTRACT: A notebook widget
 
 use strict;
 use warnings;
 
 use Locale::TextDomain 1.20 qw(QDepo);
-use Wx qw(:everything);  # TODO: Eventualy change this!
+use Wx qw(wxAUI_NB_TAB_FIXED_WIDTH);
 use Wx::AUI;
 
 use base qw{Wx::AuiNotebook};
@@ -38,7 +38,23 @@ sub new {
     $self->AddPage( $self->{p3}, __ 'SQL' );
     $self->AddPage( $self->{p4}, __ 'Admin' );
 
+    $self->{pages} = {
+        0 => 'p1',
+        1 => 'p2',
+        2 => 'p3',
+        3 => 'p4',
+    };
+
+    $self->{nb_prev} = q{};
+    $self->{nb_curr} = q{};
+
     return $self;
+}
+
+sub get_current {
+    my $self = shift;
+    my $idx = $self->GetSelection();
+    return $self->{pages}{$idx};
 }
 
 1;

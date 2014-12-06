@@ -118,6 +118,34 @@ sub set_event_handlers {
         }
     );
 
+    $self->_set_event_handler_nb;
+
+    return;
+}
+
+sub _set_event_handler_nb {
+    my $self = shift;
+
+    #- NoteBook events
+
+    $self->view->on_notebook_page_changed(
+        sub {
+            my $page = $self->view->get_nb_current_page;
+            $self->view->set_nb_current($page);
+
+          SWITCH: {
+                $page eq 'p1'
+                    && do { $self->on_page_p1_activate; last SWITCH; };
+                $page eq 'p2'
+                    && do { $self->on_page_p2_activate; last SWITCH; };
+                $page eq  'p3'
+                    && do { $self->on_page_p3_activate; last SWITCH; };
+                $page eq  'p4'
+                    && do { $self->on_page_p4_activate; last SWITCH; };
+                print "EE: \$page is not in (p1 p2 p3 p4)\n";
+            }
+        }
+    );
     return;
 }
 
