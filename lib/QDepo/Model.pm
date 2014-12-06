@@ -188,7 +188,7 @@ sub on_item_selected_load {
     $self->{_itemdata} = QDepo::ItemData->new($itemdata);
     $self->get_itemchanged_observable->set($item);
     $self->message_log(
-        __x('{ert} Loading new item: {item}',
+        __x('{ert} Loading item #{item}',
             ert     => 'II',
             item    => $item + 1,
         )
@@ -201,28 +201,20 @@ sub get_query_item {
     $self->get_itemchanged_observable->get;
 }
 
-sub load_qdf_data {
-    my $self = shift;
-
-    my $fio = QDepo::FileIO->new($self);
-
+sub load_qdf_data_init {
+    my $self     = shift;
+    my $fio      = QDepo::FileIO->new($self);
     my $data_ref = $fio->get_titles();
-
-    my $indecs = 0;
-    my $titles = {};
-
-    # Format titles
+    my $indecs   = 0;
+    my $titles   = {};
+    $self->{_lds} = {};
     foreach my $rec ( @{$data_ref} ) {
-        if (ref $rec) {
-
-            # Store records
+        if ( ref $rec ) {
             $self->{_lds}{$indecs} = $rec;
             $self->{_lds}{$indecs}{nrcrt} = $indecs + 1;
-
             $indecs++;
         }
     }
-
     return;
 }
 
@@ -567,11 +559,13 @@ sub get_query_list_meta {
             label => '#',
             align => 'left',
             width => 50,
+            type  => 'int',
         },
         {   field => 'title',
             label => __ 'Query name',
             align => 'left',
             width => 345,
+            type  => 'str',
         },
     ];
 }
@@ -582,16 +576,19 @@ sub get_field_list_meta {
             label => '#',
             align => 'left',
             width => 50,
+            type  => 'int',
         },
         {   field => 'field',
             label => __ 'Name',
             align => 'left',
             width => 150,
+            type  => 'str',
         },
         {   field => 'type',
             label => __ 'Type',
             align => 'left',
             width => 195,
+            type  => 'str',
         },
     ];
 }
@@ -602,26 +599,31 @@ sub get_conn_list_meta {
             label => '#',
             align => 'left',
             width => 50,
+            type  => 'int',
         },
         {   field => 'mnemonic',
             label => __ 'Mnemonic',
             align => 'left',
             width => 100,
+            type  => 'str',
         },
         {   field => 'default',
             label => __ 'Default',
             align => 'center',
             width => 60,
+            type  => 'bool',
         },
         {   field => 'current',
             label => __ 'Current',
             align => 'center',
             width => 60,
+            type  => 'bool',
         },
         {   field => 'description',
             label => __ 'Description',
             align => 'left',
             width => 125,
+            type  => 'str',
         },
     ];
 }
@@ -631,7 +633,8 @@ sub get_conn_list_meta {
 sub init_data_table {
     my ($self, $list) = @_;
     die "List name is required for 'init_data_table'" unless $list;
-    $self->{_dt}{$list} = QDepo::ListDataTable->new;
+    my $meta = $self->list_meta_data($list);
+    $self->{_dt}{$list} = QDepo::ListDataTable->new($meta);
     return;
 }
 
@@ -810,10 +813,10 @@ index.
 
 Get the item index.
 
-=head2 load_qdf_data
+=head2 load_qdf_data_init
 
-Read the titles and file names from all the QDF files and store in
-a data structure used to fill the List control.
+Read the titles and file names from all the QDF files and store in a
+new data structure.
 
 =head2 append_list_record
 
