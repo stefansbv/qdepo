@@ -17,12 +17,13 @@ use QDepo::Exceptions;
 
 use base qw(Class::Singleton Class::Accessor);
 
+use Data::Printer;
+
 sub _new_instance {
     my ($class, $args) = @_;
-
+    # print "_new_instance args:\n";
+    # p $args;
     my $self = bless {}, $class;
-
-    $args->{cfgdefa} = 'default.yml';    # default mnemonic config file
 
     print "Loading configuration files ...\n" if $args->{verbose};
 
@@ -33,7 +34,7 @@ sub _new_instance {
     if ( $args->{mnemonic} ) {
 
         # Application configs
-        $self->load_runtime_config();
+#        $self->load_runtime_config();
     }
 
     return $self;
@@ -53,7 +54,7 @@ sub init_configurations {
         pass    => $args->{pass},                 # and pass
         verbose => $args->{verbose},
         dbpath  => catdir( $configpath, 'db' ),
-        default => catfile( $configpath, 'etc', $args->{cfgdefa} ),
+        default_yml => catfile( $configpath, 'etc', 'default.yml' ),
     };
 
     $self->make_accessors($base_methods_hr);
@@ -107,44 +108,56 @@ sub load_main_config {
     return;
 }
 
-sub load_runtime_config {
+# sub load_runtime_config {
+#     my $self = shift;
+
+#     die "No mnemonic was set!\n" unless $self->can('mnemonic');
+
+#     my $mnemonic = $self->mnemonic;
+#     my $dbpath   = $self->dbpath;
+
+#     #- Connection data
+#     my $yml = catfile( $dbpath, $mnemonic, 'etc', 'connection.yml' );
+#     my $connection_data = $self->config_data_from($yml);
+#     $self->make_accessors($connection_data);
+
+#     return;
+# }
+
+sub connection {
     my $self = shift;
 
-    die "No mnemonic was set!\n" unless $self->can('mnemonic');
+    # DEBUG
+    my ($package, $filename, $line, $subroutine) = caller(3);
+    print "connection:\n $package, $line, $subroutine\n";
 
-    my $mnemonic = $self->mnemonic;
-    my $dbpath   = $self->dbpath;
+    my $connection_yml
+        = catfile( $self->dbpath, $self->mnemonic, 'etc', 'connection.yml' );
+    my $connection_data;
+    if (-f $connection_yml) {
+        $connection_data = $self->config_data_from($connection_yml);
+    }
+    else {
+        print "Connection config not found: $connection_yml\n";
+    }
+    # $self->make_accessors($connection_data);
+    return $connection_data->{connection};
+}
 
-    #- Connection data
-    my $yml = catfile( $dbpath, $mnemonic, 'etc', 'connection.yml' );
-    my $connection_data = $self->config_data_from($yml);
-
-    #-  Accessors
-
-    #-- Connection
-    $self->make_accessors($connection_data);
-
-    #-- Qdf files path
-    my $hash_ref = {};
-    $hash_ref->{qdfpath} = catdir( $dbpath, $mnemonic, 'qdf' );
-
-    $self->make_accessors($hash_ref);
-
-    return;
+sub qdfpath {
+    my $self = shift;
+    return catdir( $self->dbpath, $self->mnemonic, 'qdf' );
 }
 
 sub list_mnemonics {
     my ( $self, $mnemonic ) = @_;
-
     $mnemonic ||= q{};    # default empty
-
     if ($mnemonic) {
         $self->list_mnemonic_details_for($mnemonic);
     }
     else {
         $self->list_mnemonics_all();
     }
-
     return;
 }
 
@@ -247,9 +260,7 @@ sub config_data_from {
 
 sub config_file_name {
     my ( $self, $cfg_name, $cfg_file ) = @_;
-
     $cfg_file ||= catfile('etc', 'connection.yml');
-
     return catfile( $self->configdir($cfg_name), $cfg_file);
 }
 
@@ -259,15 +270,24 @@ sub get_mnemonics {
     my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
 
     my $default_name = $self->get_default_mnemonic;
+    my $current_name = $self->can('mnemonic')
+        ? $self->mnemonic
+        : $default_name;
 
     my @mnx;
     my $idx = 0;
     foreach my $name ( @{$list} ) {
         my $default = $default_name eq $name ? 1 : 0;
+        my $current = $current_name eq $name ? 1 : 0;
         my $ccfn = $self->config_file_name($name);
         if ( -f $ccfn ) {
             push @mnx,
-                { recno => $idx + 1, mnemonic => $name, default => $default };
+                {
+                recno    => $idx + 1,
+                mnemonic => $name,
+                default  => $default,
+                current  => $current,
+                };
             $idx++;
         }
     }
@@ -299,30 +319,26 @@ sub new_config_tree {
 
 sub get_resource_file {
     my ($self, $dir, $file_name) = @_;
-
     return catfile( $self->cfpath, $dir, $file_name );
 }
 
 sub get_default_mnemonic {
     my $self = shift;
-
-    my $defaultapp_fqn = $self->default();
-    if (-f $defaultapp_fqn) {
-        my $cfg_hr = $self->config_data_from($defaultapp_fqn);
+    my $default_yml_file = $self->default_yml;
+    if (-f $default_yml_file) {
+        my $cfg_hr = $self->config_data_from($default_yml_file);
         return $cfg_hr->{mnemonic};
     }
     else {
-        warn "No valid default mnemonic found, using 'test'\n";
+        warn "No valid default mnemonic found, fall-back to 'test'\n";
         return 'test';
     }
 }
 
-sub set_default_mnemonic {
+sub save_default_mnemonic {
     my ($self, $arg) = @_;
-
     QDepo::Config::Utils->save_default_yaml(
-        $self->default, 'mnemonic', $arg );
-
+        $self->default_yml, 'mnemonic', $arg );
     return;
 }
 
@@ -426,7 +442,7 @@ Return resource file path.
 Set mnemonic to the value read from the optional L<default.yml>
 configuration file.
 
-=head2 set_default_mnemonic
+=head2 save_default_mnemonic
 
 Save the default mnemonic in the configs.
 

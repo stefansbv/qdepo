@@ -40,15 +40,6 @@ sub start {
         )
     );
 
-    my $driver = $self->cfg->connection->{driver};
-    if (   ( $self->cfg->user and $self->cfg->pass )
-        or ( $driver eq 'sqlite' ) )
-    {
-        $self->db_connect;
-    }
-
-    #- Start
-
     my $default_output = $self->view->get_choice_default();
     $self->model->set_choice($default_output);
 
@@ -57,38 +48,42 @@ sub start {
 
     $self->populate_connlist;
     $self->toggle_controls_page( 'admin', 0 );
-#    $self->load_mnemonic;
+    $self->load_mnemonic;
 
     return;
 }
 
 sub populate_connlist {
     my $self = shift;
-
     my $mnemonics_ref = $self->cfg->get_mnemonics;
     return unless @{$mnemonics_ref};
 
-    my $current_recno;
+    my $current_idx;
     foreach my $rec ( @{$mnemonics_ref} ) {
-        $current_recno = $rec->{recno} if $rec->{current} == 1;
+        $current_idx = $rec->{recno} - 1 if $rec->{current} == 1;
         $self->list_add_item('dlist', $rec);
     }
-    $self->view->select_list_item('dlist', $current_recno - 1);
-
+    $self->view->select_list_item('dlist', $current_idx);
     return;
 }
 
 sub populate_querylist {
     my $self = shift;
-    $self->model->load_qdf_data;             # init
+    $self->model->load_qdf_data_init;
     my $items = $self->model->get_qdf_data;
     return unless scalar keys %{$items};
 
     $self->model->get_data_table_for('qlist')->clear_all_items;
-
     my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
     foreach my $idx ( @indices ) {
         $self->list_add_item('qlist', $items->{$idx} );
+    }
+    my $dt_q = $self->model->get_data_table_for('qlist');
+    my $rec_no = $dt_q->get_item_count;
+    if ( $rec_no >= 0) {
+        $self->view->select_list_item('qlist', 'first');
+        $self->set_app_mode('sele');
+        $self->view->{qlist}->SetFocus;
     }
     return;
 }
@@ -289,7 +284,6 @@ sub set_event_handlers {
             my $dt   = $self->model->get_data_table_for('qlist');
             $dt->set_item_selected($item);
             $self->model->on_item_selected_load;
-            $self->populate_info;
         }
     );
 
@@ -310,7 +304,7 @@ sub set_event_handlers {
     #-- Load button
     $self->view->event_handler_for_button(
         'btn_load', sub {
-            $self->load_mnemonic;
+            $self->load_selected_mnemonic;
         }
     );
 
@@ -448,6 +442,28 @@ sub toggle_controls_page {
     return;
 }
 
+sub on_page_p1_activate {
+    my $self = shift;
+    return;
+}
+
+sub on_page_p2_activate {
+    my $self = shift;
+    print "Load info...\n";
+    $self->populate_info;
+    return;
+}
+
+sub on_page_p3_activate {
+    my $self = shift;
+    return;
+}
+
+sub on_page_p4_activate {
+    my $self = shift;
+    return;
+}
+
 sub save_qdf_data {
     warn 'save_qdf_data not implemented in ', __PACKAGE__, "\n";
     return;
@@ -480,9 +496,7 @@ sub list_remove_marked {
 
 sub set_default_mnemonic {
     my $self = shift;
-
     my $dt = $self->model->get_data_table_for('dlist');
-
     my $item_sele = $dt->get_item_selected;
     if ( defined $item_sele ) {
         my $mnemonic = $dt->get_value( $item_sele, 1 );
@@ -491,32 +505,32 @@ sub set_default_mnemonic {
         $self->toggle_admin_buttons;
     }
     $self->view->refresh_list('dlist');
-
     return;
 }
 
 sub load_mnemonic {
     my $self = shift;
+    my $mnemonic = $self->cfg->mnemonic;
+    print "loading mnemonic '$mnemonic'\n";
+    $self->toggle_admin_buttons;
+    $self->view->refresh_list('dlist');
+    $self->populate_querylist;
+    return;
+}
+
+sub load_selected_mnemonic {
+    my $self = shift;
     my $dt_d = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt_d->get_item_selected;
     if ( defined $item_sele ) {
         my $mnemonic = $dt_d->get_value( $item_sele, 1 );
-        print "loading mnemonic '$mnemonic'\n";
+        print "loading selected mnemonic '$mnemonic'\n";
         $self->cfg->mnemonic($mnemonic);
         $dt_d->set_item_current($item_sele);
         $self->toggle_admin_buttons;
     }
     $self->view->refresh_list('dlist');
-
-    # Query list (from qdf)
     $self->populate_querylist;
-    my $dt_q = $self->model->get_data_table_for('qlist');
-    my $rec_no = $dt_q->get_item_count;
-    if ( $rec_no >= 0) {
-        $self->view->select_list_item('qlist', 'first');
-        $self->set_app_mode('sele');
-        $self->view->{qlist}->SetFocus;
-    }
     return;
 }
 
@@ -527,7 +541,6 @@ sub toggle_admin_buttons {
     my $item_sele = $dt->get_item_selected;
     my $item_defa = $dt->get_item_default;
     my $item_load = $dt->get_item_current;
-
     return
             unless defined($item_sele)
         and defined($item_defa)
@@ -538,7 +551,6 @@ sub toggle_admin_buttons {
     $self->view->get_control('btn_load')->Enable($enable_load);
     $self->view->get_control('btn_defa')->Enable($enable_defa);
     $self->view->get_control('btn_edit')->Enable;
-
     return;
 }
 
@@ -608,7 +620,7 @@ sub populate_info {
     };
     return unless $success;
 
-    # Fields list
+    # Populate fields list
     foreach my $rec ( @{$columns} ) {
         $self->list_add_item('tlist', $rec);
     }
@@ -631,6 +643,10 @@ sub list_add_item {
         $data_table->set_value( $row, $col, $value );
         $col++;
     }
+    $data_table->set_item_default($row)
+        if exists $rec->{default} and $rec->{default} == 1;
+    $data_table->set_item_current($row)
+        if exists $rec->{current} and $rec->{current} == 1;
     $self->view->refresh_list($list);
     return;
 }
@@ -707,7 +723,6 @@ sub add_new_menmonic {
             default  => 0,
             mnemonic => $name,
         };
-#        $rec->{default} = ( $rec->{default} == 1 ) ? __('Yes') : q{};
         $self->list_add_item('dlist', $rec);
     }
 
