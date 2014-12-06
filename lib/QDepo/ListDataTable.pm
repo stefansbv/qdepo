@@ -9,8 +9,9 @@ use List::MoreUtils qw/firstidx/;
 use Locale::TextDomain 1.20 qw(QDepo);
 
 sub new {
-    my $class = shift;
+    my ($class, $meta) = @_;
     my $self = {};
+    $self->{meta}     = $meta;
     $self->{data}     = [];
     $self->{default}  = undef;
     $self->{current}  = undef;
@@ -28,7 +29,10 @@ sub set_value {
 
 sub get_value {
     my ($self, $row, $col) = @_;
-    return $self->{data}[$row][$col];
+    my $value = $self->{data}[$row][$col];
+    my $type  = $self->{meta}[$col]{type};
+    return ( $value ? __('Yes') : q() ) if $type eq 'bool';
+    return $value;
 }
 
 sub get_data {
@@ -57,8 +61,8 @@ sub set_default {
     my ($self, $item) = @_;
     my $max_idx = $self->get_item_count - 1;
     foreach my $idx ( 0..$max_idx ) {
-        my $label = $idx == $item ? __('Jes') : q();
-        $self->set_value($idx, 2, $label);
+        my $value = $idx == $item ? 1 : 0;
+        $self->set_value($idx, 2, $value);
     }
     return;
 }
@@ -79,8 +83,8 @@ sub set_current {
     my ($self, $item) = @_;
     my $max_idx = $self->get_item_count - 1;
     foreach my $idx ( 0..$max_idx ) {
-        my $label = $idx == $item ? __('Yes') : q();
-        $self->set_value($idx, 3, $label);
+        my $value = $idx == $item ? 1 : 0;
+        $self->set_value($idx, 3, $value);
     }
     return;
 }
