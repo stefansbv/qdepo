@@ -23,6 +23,9 @@ use Exception::Base
     'Exception::Db::SQL::Parser' => {
         isa               => 'Exception::Db::SQL',
     },
+    'Exception::Db::SQL::NoObject' => {
+        isa               => 'Exception::Db::SQL',
+    },
     'Exception::IO',
     'Exception::IO::PathNotFound' => {
         isa               => 'Exception::IO',

@@ -10,7 +10,9 @@ use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
 use Locale::TextDomain 1.20 qw(QDepo);
+use Scalar::Util qw(blessed);
 use Try::Tiny;
+
 use QDepo::Exceptions;
 use QDepo::ItemData;
 use QDepo::Config;
@@ -23,7 +25,6 @@ use QDepo::ListDataTable;
 
 sub new {
     my $class = shift;
-
     my $self = {
         _connected   => QDepo::Observable->new(),
         _stdout      => QDepo::Observable->new(),
@@ -34,15 +35,13 @@ sub new {
         _progress    => QDepo::Observable->new(),
         _continue    => QDepo::Observable->new(),
         _cfg         => QDepo::Config->instance(),
-        _dbh         => undef,
+        _conn        => undef,
         _lds         => {},                 # list data structure
         _file        => undef,
         _itemdata    => undef,
         _dt          => {},
     };
-
     bless $self, $class;
-
     return $self;
 }
 
@@ -51,44 +50,69 @@ sub cfg {
     return $self->{_cfg};
 }
 
-sub dbh {
+sub _connect {
     my $self = shift;
-    if ( QDepo::Db->has_instance ) {
-        my $db = QDepo::Db->instance;
-        if ( $self->is_connected ) {
-            return $db->dbh;
-        }
-        else {
-            Exception::Db::Connect->throw(
-                logmsg  => 'Not connected',
-                usermsg => 'Database',
-            );
-        }
+    $self->message_status( 'Connecting...', 0 );
+    my $conn = QDepo::Db->new($self);
+    if ( $self->is_connected ) {
+        $self->{_conn} = $conn;
+        $self->message_status( 'Connected.', 0 );
     }
     else {
-        return $self->db_connect_new->dbh;
+        print "failed to connect?\n";
     }
     return;
 }
 
-sub dbc {
+sub disconnect {
     my $self = shift;
-    if ( QDepo::Db->has_instance ) {
-        my $db = QDepo::Db->instance;
-        if ( $self->is_connected ) {
-            return $db->dbc;
-        }
-        else {
-            Exception::Db::Connect->throw(
-                logmsg  => 'Not connected',
-                usermsg => 'Database',
-            );
-        }
+    if ( $self->is_connected ) {
+        $self->message_status( 'Disconnecting...', 0 );
+        $self->{_conn}->disconnect;
+        $self->message_status( 'Disconnected.', 0 );
     }
     else {
-        return $self->db_connect_new->dbc;
+        print "Not connected?\n";
     }
     return;
+}
+
+sub conn {
+    my $self = shift;
+    unless ( blessed $self->{_conn} ) {
+        $self->_connect;
+    }
+    return $self->{_conn};
+}
+
+sub dbh {
+    my $self = shift;
+    if ( $self->is_connected ) {
+        return $self->conn->dbh;
+    }
+    else {
+        $self->_connect;
+        # Exception::Db::Connect->throw(
+        #     logmsg  => 'Not connected',
+        #     usermsg => 'Database',
+        # );
+    }
+    return $self->conn->dbh;
+}
+
+sub dbc {
+    my $self = shift;
+    if ( $self->is_connected ) {
+        return $self->conn->dbc;
+    }
+    else {
+        $self->_connect;
+        # Exception::Db::Connect->throw(
+        #     logmsg  => 'Not connected',
+        #     usermsg => 'Database',
+        # );
+    }
+    return $self->conn->dbc;
 }
 
 sub itemdata {
@@ -105,11 +129,6 @@ sub set_query_file {
     my ($self, $file) = @_;
     $self->{_file} = $file;
     return;
-}
-
-sub db_connect_new {
-    my $self = shift;
-    return QDepo::Db->instance->db_connect($self);
 }
 
 sub is_connected {
@@ -677,9 +696,8 @@ sub parse_sql_text {
         unless ( $self->dbc->table_exists($table) ) {
             my $msg
                 = __x( 'The {table} table does not exists', table => $table );
-            Exception::Db::SQL::Parser->throw(
-                logmsg  => qq{"$msg"},
-                usermsg => 'SQL Parser',
+            Exception::Db::SQL::NoObject->throw(
+                usermsg => qq{"$msg"},
             );
         }
     }

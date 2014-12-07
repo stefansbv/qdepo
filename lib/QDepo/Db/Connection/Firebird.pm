@@ -12,7 +12,9 @@ use Regexp::Common;
 use QDepo::Exceptions;
 
 sub new {
-    my ($class, $model) = @_;
+    my ($class, $p) = @_;
+    my $model = delete $p->{model}
+        or die 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -20,17 +22,15 @@ sub new {
 }
 
 sub db_connect {
-    my ($self, $conf) = @_;
+    my ($self, $args) = @_;
 
-    my ( $dbname, $host, $port ) = @{$conf}{qw(dbname host port)};
-    my ( $driver, $user, $pass ) = @{$conf}{qw(driver user pass)};
-
-    my $dsn = qq{dbi:Firebird:dbname=$dbname;host=$host;port=$port};
+    my ( $db, $host, $port ) = ( $args->dbname, $args->host, $args->port );
+    my $dsn = qq{dbi:Firebird:dbname=$db;host=$host;port=$port};
     $dsn   .= q{;ib_dialect=3;ib_charset=UTF8};
 
     $self->{_dbh} = DBI->connect(
-        $dsn, $user, $pass, {
-            FetchHashKeyName   => 'NAME_lc',
+        $dsn, $args->user, $args->pass,
+        {   FetchHashKeyName   => 'NAME_lc',
             LongReadLen        => 524288,
             AutoCommit         => 1,
             RaiseError         => 0,
@@ -39,9 +39,9 @@ sub db_connect {
             ib_timestampformat => '%Y-%m-%dT%H:%M',
             ib_dateformat      => '%Y-%m-%dT',
             ib_timeformat      => 'T%H:%M',
-            HandleError        => sub { $self->handle_error() },
+            HandleError        => sub { $self->handle_error(); },
         }
-    );                                       # date format: ISO8601
+    );    # date format: ISO8601
 
     return $self->{_dbh};
 }
@@ -68,18 +68,18 @@ sub handle_error {
 }
 
 sub parse_error {
-    my ( $self, $fb ) = @_;
+    my ( $self, $err ) = @_;
 
     my $message_type
-        = $fb eq q{} ? "nomessage"
-        : $fb =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
-        : $fb =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
-        : $fb =~ m/Your user name and password/smi      ? "userpass"
-        : $fb =~ m/no route to host/smi                 ? "network"
-        : $fb =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
-        : $fb =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi
+        = $err eq q{} ? "nomessage"
+        : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
+        : $err =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
+        : $err =~ m/Your user name and password/smi      ? "userpass"
+        : $err =~ m/no route to host/smi                 ? "network"
+        : $err =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
+        : $err =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi
                                                         ? "driver:$1"
-        : $fb =~ m/not connected/smi                    ? "notconn"
+        : $err =~ m/not connected/smi                    ? "notconn"
         :                                                 "unknown";
 
     # Analize and translate
@@ -103,8 +103,8 @@ sub parse_error {
         $message = $translations->{$type};
     }
     else {
-        # $log->error('EE: Translation error for: $fb!');
-        print "EE: Translation error for: $fb!\n";
+        $message = $err;
+        print "EE: Translation error for: $message!\n";
     }
 
     return $message;

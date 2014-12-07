@@ -10,7 +10,6 @@ use POSIX qw (floor);
 use Locale::TextDomain 1.20 qw(QDepo);
 use QDepo::Exceptions;
 use QDepo::Config;
-use QDepo::Db;
 
 sub new {
     my ($class, $model) = @_;
@@ -18,7 +17,7 @@ sub new {
     my $self = {
         _model  => $model,
         _cfg    => QDepo::Config->instance(),
-        _dbh    => QDepo::Db->instance()->dbh,
+        _dbh    => $model->dbh,
         columns => [],
     };
 
@@ -98,6 +97,10 @@ sub cfg {
 
 sub dbh {
     my $self = shift;
+
+    print "dbh:\n";
+    p $self->{dbh};
+
     return $self->{_dbh};
 }
 
@@ -378,6 +381,7 @@ sub make_columns_record {
 
 sub catch_db_exceptions {
     my ($self, $exc, $context) = @_;
+    print "Context is $context\n";
     my ($message, $details);
     if ( my $e = Exception::Base->catch($exc) ) {
         if ( $e->isa('Exception::Db::Connect') ) {

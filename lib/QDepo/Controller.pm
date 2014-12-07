@@ -40,6 +40,8 @@ sub start {
         )
     );
 
+    $self->model->get_connection_observable->set(0);
+
     my $default_output = $self->view->get_choice_default();
     $self->model->set_choice($default_output);
 
@@ -116,9 +118,7 @@ sub connect_dialog {
 
         # Try to connect only if user and pass are provided
         if ($self->cfg->user and $self->cfg->pass ) {
-            try {
-                $self->model->dbh;
-            }
+            try { $self->model->dbh; }
             catch {
                 if ( my $e = Exception::Base->catch($_) ) {
                     if ( $e->isa('Exception::Db::Connect') ) {
@@ -376,6 +376,7 @@ sub toggle_interface_controls {
 
     # Toggle refresh button on info page
     $self->view->get_control('btn_refr')->Enable(!$edit);
+    $self->view->get_control('btn_refr')->Enable($mode ne 'idle');
 
     $self->toggle_interface_controls_edit($is_edit);
     $self->toggle_interface_controls_admin($is_admin);
@@ -520,6 +521,9 @@ sub load_mnemonic {
 
 sub load_selected_mnemonic {
     my $self = shift;
+
+    $self->model->disconnect;
+
     my $dt_d = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt_d->get_item_selected;
     if ( defined $item_sele ) {
@@ -589,6 +593,22 @@ sub populate_info {
                     )
                 );
             }
+            elsif ( $e->isa('Exception::Db::Connect') ) {
+                $self->model->message_log(
+                    __x('{ert} {message}',
+                        ert     => 'EE',
+                        message => $e->usermsg,
+                    )
+                );
+            }
+            elsif ( $e->isa('Exception::Db::SQL::NoObject') ) {
+                $self->model->message_log(
+                    __x('{ert} {message}',
+                        ert     => 'EE',
+                        message => $e->usermsg,
+                    )
+                );
+            }
             else {
                 $self->model->message_log(
                     __x('{ert} {message}: {details}',
@@ -603,7 +623,7 @@ sub populate_info {
             $self->model->message_log(
                 __x('{ert} {message}: {details}',
                     ert     => 'EE',
-                    message => __ 'Unknown exception',
+                    message => __ 'Unknown error',
                     details => $_,
                 )
             );

@@ -12,7 +12,9 @@ use Regexp::Common;
 use QDepo::Exceptions;
 
 sub new {
-    my ($class, $model) = @_;
+    my ($class, $p) = @_;
+    my $model = delete $p->{model}
+        or die 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -20,21 +22,19 @@ sub new {
 }
 
 sub db_connect {
-    my ( $self, $conf ) = @_;
+    my ( $self, $args ) = @_;
 
-    my ($dbname, $host, $port) = @{$conf}{qw(dbname host port)};
-    my ($driver, $user, $pass) = @{$conf}{qw(driver user pass)};
-
-    my $dsn = qq{dbi:Pg:dbname=$dbname;host=$host;port=$port};
+    my ( $db, $host, $port ) = ( $args->dbname, $args->host, $args->port );
+    my $dsn = qq{dbi:Pg:dbname=$db;host=$host;port=$port};
 
     $self->{_dbh} = DBI->connect(
-        $dsn, $user, $pass,
+        $dsn, $args->user, $args->pass,
         {   FetchHashKeyName => 'NAME_lc',
             AutoCommit       => 1,
-            RaiseError       => 1,
+            RaiseError       => 0,
             PrintError       => 0,
             LongReadLen      => 524288,
-            HandleError      => sub { $self->handle_error() },
+            HandleError      => sub { $self->handle_error(); },
             pg_enable_utf8   => 1,
         }
     );
@@ -68,25 +68,25 @@ sub handle_error {
 }
 
 sub parse_error {
-    my ($self, $pg) = @_;
+    my ($self, $err) = @_;
 
     my $message_type =
-         $pg eq q{}                                          ? "nomessage"
-       : $pg =~ m/database ($RE{quoted}) does not exist/smi  ? "dbnotfound:$1"
-       : $pg =~ m/ERROR:  column ($RE{quoted}) of relation ($RE{quoted}) does not exist/smi
+         $err eq q{}                                          ? "nomessage"
+       : $err =~ m/FATAL:  database ($RE{quoted}) does not exist/smi  ? "dbnotfound:$1"
+       : $err =~ m/ERROR:  column ($RE{quoted}) of relation ($RE{quoted}) does not exist/smi
                                                             ? "colnotfound:$2.$1"
-       : $pg =~ m/ERROR:  null value in column ($RE{quoted})/smi ? "nullvalue:$1"
-       : $pg =~ m/ERROR:  syntax error at or near ($RE{quoted})/smi ? "syntax:$1"
-       : $pg =~ m/violates check constraint ($RE{quoted})/smi ? "checkconstr:$1"
-       : $pg =~ m/relation ($RE{quoted}) does not exist/smi  ? "relnotfound:$1"
-       : $pg =~ m/authentication failed .* ($RE{quoted})/smi ? "password:$1"
-       : $pg =~ m/no password supplied/smi                   ? "password"
-       : $pg =~ m/FATAL:  role ($RE{quoted}) does not exist/smi ? "username:$1"
-       : $pg =~ m/no route to host/smi                       ? "network"
-       : $pg =~ m/DETAIL:  Key ($RE{balanced}{-parens=>'()'})=/smi ? "duplicate:$1"
-       : $pg =~ m/permission denied for relation/smi         ? "relforbid"
-       : $pg =~ m/could not connect to server/smi            ? "servererror"
-       : $pg =~ m/not connected/smi                          ? "notconn"
+       : $err =~ m/ERROR:  null value in column ($RE{quoted})/smi ? "nullvalue:$1"
+       : $err =~ m/ERROR:  syntax error at or near ($RE{quoted})/smi ? "syntax:$1"
+       : $err =~ m/violates check constraint ($RE{quoted})/smi ? "checkconstr:$1"
+       : $err =~ m/relation ($RE{quoted}) does not exist/smi  ? "relnotfound:$1"
+       : $err =~ m/authentication failed .* ($RE{quoted})/smi ? "password:$1"
+       : $err =~ m/no password supplied/smi                   ? "password"
+       : $err =~ m/FATAL:  role ($RE{quoted}) does not exist/smi ? "username:$1"
+       : $err =~ m/no route to host/smi                       ? "network"
+       : $err =~ m/DETAIL:  Key ($RE{balanced}{-parens=>'()'})=/smi ? "duplicate:$1"
+       : $err =~ m/permission denied for relation/smi         ? "relforbid"
+       : $err =~ m/could not connect to server/smi            ? "servererror"
+       : $err =~ m/not connected/smi                          ? "notconn"
        :                                                       "unknown";
 
     # Analize and translate
@@ -95,30 +95,30 @@ sub parse_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        dbnotfound  => "error#Database $name does not exists",
-        relnotfound => "error#Relation $name does not exists",
-        password    => "info#Authentication failed for $name",
-        password    => "info#Authentication failed, password?",
-        username    => "error#Wrong user name: $name",
-        network     => "error#Network problem",
-        unknown     => "error#Database error",
-        servererror => "error#Server not available",
-        duplicate   => "error#Duplicate $name",
-        colnotfound => "error#Column not found $name",
-        checkconstr => "error#Check: $name",
-        nullvalue   => "error#Null value for $name",
-        relforbid   => "error#Permission denied",
-        notconn     => "error#Not connected",
-        syntax      => "error#SQL syntax error",
+        dbnotfound  => "Database $name does not exists!",
+        relnotfound => "Relation $name does not exists",
+        password    => "Authentication failed for $name",
+        password    => "Authentication failed, password?",
+        username    => "Wrong user name: $name",
+        network     => "Network problem",
+        unknown     => "Database error",
+        servererror => "Server not available",
+        duplicate   => "Duplicate $name",
+        colnotfound => "Column not found $name",
+        checkconstr => "Check: $name",
+        nullvalue   => "Null value for $name",
+        relforbid   => "Permission denied",
+        notconn     => "Not connected",
+        syntax      => "SQL syntax error",
     };
 
     my $message;
     if (exists $translations->{$type} ) {
-        $message = $translations->{$type}
+        $message = $translations->{$type};
     }
     else {
-        # $log->error('EE: Translation error for: $pg!');
-        print "EE: Translation error for: $pg!\n";
+        $message = $err;
+        print "EE: Translation error for: $message!\n";
     }
 
     return $message;
@@ -145,8 +145,8 @@ sub table_exists {
     }
     catch {
         Exception::Db::Connect->throw(
-            logmsg  => "error#Transaction aborted because $_",
-            usermsg => 'error#Database error',
+            logmsg  => "Transaction aborted because $_",
+            usermsg => 'Database error',
         );
     };
 
@@ -183,8 +183,8 @@ sub table_info_short {
     }
     catch {
         Exception::Db::Connect->throw(
-            logmsg  => "error#Transaction aborted because $_",
-            usermsg => 'error#Database error',
+            logmsg  => "Transaction aborted because $_",
+            usermsg => 'Database error',
         );
     };
 

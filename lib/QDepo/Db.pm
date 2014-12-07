@@ -9,19 +9,19 @@ use Scalar::Util qw(blessed);
 
 use QDepo::Db::Connection;
 
-use base qw(Class::Singleton);
-
-sub _new_instance {
+sub new {
     my ($class, $model) = @_;
     my $conn = QDepo::Db::Connection->new($model);
-    return bless { conn => $conn }, $class;
+    my $self = {
+        conn  => $conn,
+        model => $model,
+    };
+    return bless $self, $class;
 }
 
-sub db_connect {
-    my ($self, $model) = @_;
-    my $conn = QDepo::Db::Connection->new($model);
-    $self->{conn} = $conn;
-    return $self;
+sub model {
+    my $self = shift;
+    return $self->{model};
 }
 
 sub dbh {
@@ -34,12 +34,18 @@ sub dbc {
     return $self->{conn}{dbc};
 }
 
-sub DESTROY {
+sub disconnect {
     my $self = shift;
     if ( blessed $self->{conn}{dbh} and $self->{conn}{dbh}->isa('DBI::db') ) {
         $self->{conn}{dbh}->disconnect;
+        $self->model->get_connection_observable->set(0);
     }
     return;
+}
+
+sub DESTROY {
+    my $self = shift;
+    $self->disconnect;
 }
 
 1;
@@ -50,19 +56,15 @@ Create a new connection instance only once and use it many times.
 
     use QDepo::Db;
 
-    my $dbi = QDepo::Db->instance($args); # first time init
-
-    my $dbi = QDepo::Db->instance();      # later, in other modules
+    my $dbi = QDepo::Db->new($args);
 
     my $dbh = $dbi->dbh;
 
 =head1 METHODS
 
-=head2 _new_instance
+=head2 new
 
-Constructor method, the first and only time a new instance is created.
-All parameters passed to the instance() method are forwarded to this
-method. (From I<Class::Singleton> docs).
+Constructor method, creates a new instance.
 
 =head2 db_connect
 
