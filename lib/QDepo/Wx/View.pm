@@ -921,17 +921,15 @@ sub set_status {
 
 sub toggle_status_cn {
     my ( $self, $status ) = @_;
-
     if ($status) {
-        my $user = $self->cfg->connection->{user};
-        my $db   = $self->cfg->connection->{dbname};
+        my $user = $self->cfg->connection->user;
+        my $db   = $self->cfg->connection->dbname;
         return unless $user and $db;
         $self->set_status( "${user}\@${db}", 'db', 'darkgreen' );
     }
     else {
-        $self->set_status( 'No DB!', 'db', 'red' );
+        $self->set_status( 'Not connected', 'db', 'red' );
     }
-
     return;
 }
 

@@ -12,17 +12,15 @@ use File::Spec::Functions qw(catdir catfile canonpath);
 use File::Slurp;
 use Try::Tiny;
 use Locale::TextDomain 1.20 qw(QDepo);
+use QDepo::Config::Connection;
 use QDepo::Config::Utils;
 use QDepo::Exceptions;
 
 use base qw(Class::Singleton Class::Accessor);
 
-use Data::Printer;
-
 sub _new_instance {
     my ($class, $args) = @_;
-    # print "_new_instance args:\n";
-    # p $args;
+
     my $self = bless {}, $class;
 
     print "Loading configuration files ...\n" if $args->{verbose};
@@ -31,11 +29,6 @@ sub _new_instance {
 
     # Load main configs and create accessors
     $self->load_main_config($args);
-    if ( $args->{mnemonic} ) {
-
-        # Application configs
-#        $self->load_runtime_config();
-    }
 
     return $self;
 }
@@ -108,28 +101,8 @@ sub load_main_config {
     return;
 }
 
-# sub load_runtime_config {
-#     my $self = shift;
-
-#     die "No mnemonic was set!\n" unless $self->can('mnemonic');
-
-#     my $mnemonic = $self->mnemonic;
-#     my $dbpath   = $self->dbpath;
-
-#     #- Connection data
-#     my $yml = catfile( $dbpath, $mnemonic, 'etc', 'connection.yml' );
-#     my $connection_data = $self->config_data_from($yml);
-#     $self->make_accessors($connection_data);
-
-#     return;
-# }
-
 sub connection {
     my $self = shift;
-
-    # DEBUG
-    my ($package, $filename, $line, $subroutine) = caller(3);
-    print "connection:\n $package, $line, $subroutine\n";
 
     my $connection_yml
         = catfile( $self->dbpath, $self->mnemonic, 'etc', 'connection.yml' );
@@ -140,8 +113,12 @@ sub connection {
     else {
         print "Connection config not found: $connection_yml\n";
     }
-    # $self->make_accessors($connection_data);
-    return $connection_data->{connection};
+
+    my $conn = QDepo::Config::Connection->new( $connection_data->{connection} );
+    $conn->user( $self->user );
+    $conn->pass( $self->pass );
+
+    return $conn;
 }
 
 sub qdfpath {
@@ -385,15 +362,6 @@ Initialize configuration variables from arguments.  Load the main
 configuration file and return a HoH data structure.
 
 Make accessors.
-
-=head2 load_runtime_config
-
-Initialize the runtime connection configuration file name and path.
-
-The B<connection> configuration is special.  More than one connection
-configuration is allowed and the name of the used connection is
-processed at runtime from the I<mnemonic> argument, or from a default
-configuration.
 
 =head2 list_mnemonics
 
