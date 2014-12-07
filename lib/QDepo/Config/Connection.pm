@@ -25,7 +25,7 @@ has 'host' => (
 
 has 'port' => (
     is       => 'ro',
-    isa      => 'Str',
+    isa      => 'Maybe[Str]',
     required => 0,
     lazy     => 1,
     default => sub {
