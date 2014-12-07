@@ -236,9 +236,9 @@ sub config_data_from {
 }
 
 sub config_file_name {
-    my ( $self, $cfg_name, $cfg_file ) = @_;
+    my ( $self, $mnemonic, $cfg_file ) = @_;
     $cfg_file ||= catfile('etc', 'connection.yml');
-    return catfile( $self->configdir($cfg_name), $cfg_file);
+    return catfile( $self->configdir($mnemonic), $cfg_file);
 }
 
 sub get_mnemonics {
@@ -352,9 +352,8 @@ Automatically make accessors for the hash keys.
 
 =head2 configdir
 
-Return application configuration directory.  The config name is an
-optional parameter with default as the current application config
-name.
+Return application configuration directory.  The mnemonic is an
+optional parameter with default as the current mnemonic.
 
 =head2 load_main_config
 

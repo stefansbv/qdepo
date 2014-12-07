@@ -312,6 +312,7 @@ sub set_event_handlers {
     $self->view->event_handler_for_button(
         'btn_defa', sub {
             $self->set_default_mnemonic;
+            $self->set_default_item;
         }
     );
 
@@ -495,13 +496,26 @@ sub list_remove_marked {
     return;
 }
 
+sub set_default_item {
+    my $self      = shift;
+    my $dt        = $self->model->get_data_table_for('dlist');
+    my $item_sele = $dt->get_item_selected;
+    $dt->set_item_default($item_sele) if defined $item_sele;
+    return;
+}
+
+sub get_selected_mnemonic {
+    my $self = shift;
+    my $dt   = $self->model->get_data_table_for('dlist');
+    my $item = $dt->get_item_selected;
+    return $dt->get_value( $item, 1 ) if defined $item;
+    return;
+}
+
 sub set_default_mnemonic {
     my $self = shift;
-    my $dt = $self->model->get_data_table_for('dlist');
-    my $item_sele = $dt->get_item_selected;
-    if ( defined $item_sele ) {
-        my $mnemonic = $dt->get_value( $item_sele, 1 );
-        $dt->set_item_default($item_sele);
+    my $mnemonic = $self->get_selected_mnemonic;
+    if ($mnemonic) {
         $self->cfg->save_default_mnemonic($mnemonic);
         $self->toggle_admin_buttons;
     }
@@ -753,9 +767,17 @@ sub edit_connections {
     my $self = shift;
 
     if ( $self->model->is_appmode('admin') ) {
+        my $dt = $self->model->get_data_table_for('dlist');
+        my $mnemonic = $self->get_selected_mnemonic;
 
         # Save connection data
-        my $yaml_file = $self->cfg->config_file_name;
+        my $yaml_file = $self->cfg->config_file_name($mnemonic);
+        $self->model->message_log(
+            __x('{ert} Saved: "{filename}"',
+                ert      => 'II',
+                filename => $yaml_file,
+            ) );
+
         my $conn_aref = $self->view->controls_read_frompage('admin');
         my $conn_data = QDepo::Utils->transform_data($conn_aref);
 

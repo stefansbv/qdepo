@@ -13,16 +13,13 @@ use QDepo::Config;
 
 sub new {
     my ($class, $model) = @_;
-
     my $self = {
         _model  => $model,
         _cfg    => QDepo::Config->instance(),
         _dbh    => $model->dbh,
         columns => [],
     };
-
     bless $self, $class;
-
     return $self;
 }
 
@@ -97,10 +94,6 @@ sub cfg {
 
 sub dbh {
     my $self = shift;
-
-    print "dbh:\n";
-    p $self->{dbh};
-
     return $self->{_dbh};
 }
 
