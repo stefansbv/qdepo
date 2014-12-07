@@ -88,14 +88,14 @@ sub parse_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        driver      => "error#Database driver $name not found",
-        dbnotfound  => "error#Database $name not found",
-        relnotfound => "error#Relation $name not found",
-        userpass    => "error#Authentication failed",
-        nethost     => "error#Network problem: host $name",
-        network     => "error#Network problem",
-        unknown     => "error#Database error",
-        notconn     => "error#Not connected",
+        driver      => "Database driver $name not found",
+        dbnotfound  => "Database $name not found",
+        relnotfound => "Relation $name not found",
+        userpass    => "Authentication failed",
+        nethost     => "Network problem: host $name",
+        network     => "Network problem",
+        unknown     => "Database error",
+        notconn     => "Not connected",
     };
 
     my $message;
@@ -130,8 +130,8 @@ sub table_exists {
     }
     catch {
         Exception::Db::Connect->throw(
-            logmsg  => "error#Transaction aborted because $_",
-            usermsg => 'error#Database error',
+            logmsg  => "Transaction aborted because $_",
+            usermsg => 'Database error',
         );
     };
 
@@ -202,8 +202,8 @@ sub table_info_short {
     }
     catch {
         Exception::Db::Connect->throw(
-            logmsg  => "error#Transaction aborted because $_",
-            usermsg => 'error#Database error',
+            logmsg  => "Transaction aborted because $_",
+            usermsg => 'Database error',
         );
     };
 

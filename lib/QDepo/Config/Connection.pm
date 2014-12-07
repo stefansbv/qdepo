@@ -43,13 +43,13 @@ has 'port' => (
 );
 
 has 'user' => (
-    is       => 'rw',
-    isa      => 'Str',
+    is  => 'rw',
+    isa => 'Maybe[Str]',
 );
 
 has 'pass' => (
-    is       => 'rw',
-    isa      => 'Str',
+    is  => 'rw',
+    isa => 'Maybe[Str]',
 );
 
 __PACKAGE__->meta->make_immutable;
