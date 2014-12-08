@@ -922,9 +922,10 @@ sub set_status {
 sub toggle_status_cn {
     my ( $self, $status ) = @_;
     if ($status) {
-        my $user = $self->cfg->connection->user;
+        my $user = $self->cfg->connection->user || q{};
         my $db   = $self->cfg->connection->dbname;
-        return unless $user and $db;
+        return unless $db;
+        $db =~ s{^.*(\\|/)}{};
         $self->set_status( "${user}\@${db}", 'db', 'darkgreen' );
     }
     else {
@@ -1174,6 +1175,7 @@ sub refresh_list {
 sub select_list_item {
     my ($self, $lname, $what) = @_;
 
+    return unless $what;                     # required if invalid mnemonic
     die "List name is required for 'refresh_list'" unless $lname;
 
     my $items_no = $self->{$lname}->GetItemCount;

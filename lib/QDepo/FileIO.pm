@@ -117,14 +117,12 @@ sub get_file_list {
     my $qdfpath = $cfg->qdfpath;
     my $qdfexte = 'qdf';
     if ( !-d $qdfpath ) {
-        my $msg = qq{\nWrong path for '$qdfexte' files:\n $qdfpath!\n};
-        $msg   .= qq{\nConfiguration error, try to fix with\n\n};
+        my $msg = qq{\nNonexistent mnemonic, create it with:\n\n};
         $msg   .= qq{ qdepo -init };
-        $msg   .= $cfg->cfgname . qq{\n\n};
+        $msg   .= $cfg->mnemonic . qq{\n\n};
         $msg   .= qq{then edit: };
-        $msg   .=  $cfg->cfgconnfile . qq{\n};
-        print $msg;
-        die;
+        $msg   .=  $cfg->config_file_name . qq{\n};
+        die "$msg\n";
     }
 
     # QDFs can NOT be arranged in subdirs
