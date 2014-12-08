@@ -451,7 +451,6 @@ sub on_page_p1_activate {
 
 sub on_page_p2_activate {
     my $self = shift;
-    print "Load info...\n";
     $self->populate_info;
     return;
 }
@@ -526,7 +525,12 @@ sub set_default_mnemonic {
 sub load_mnemonic {
     my $self = shift;
     my $mnemonic = $self->cfg->mnemonic;
-    print "loading mnemonic '$mnemonic'\n";
+    $self->model->message_log(
+        __x(qq({ert} Loading mnemonic "{mnemonic}"),
+            ert      => 'II',
+            mnemonic => $mnemonic,
+        )
+    );
     $self->toggle_admin_buttons;
     $self->view->refresh_list('dlist');
     $self->populate_querylist;
@@ -542,7 +546,12 @@ sub load_selected_mnemonic {
     my $item_sele = $dt_d->get_item_selected;
     if ( defined $item_sele ) {
         my $mnemonic = $dt_d->get_value( $item_sele, 1 );
-        print "loading selected mnemonic '$mnemonic'\n";
+        $self->model->message_log(
+            __x(qq({ert} Loading selected mnemonic "{mnemonic}"),
+                ert      => 'II',
+                mnemonic => $mnemonic,
+            )
+        );
         $self->cfg->mnemonic($mnemonic);
         $dt_d->set_item_current($item_sele);
         $self->toggle_admin_buttons;
