@@ -105,7 +105,8 @@ sub _set_model_callbacks {
     my $upd = $self->model->get_itemchanged_observable;
     $upd->add_callback(
         sub {
-            $self->form_populate;
+            $self->querylist_form_clear;
+            $self->querylist_form_populate;
             $self->toggle_sql_replace;
         }
     );
@@ -833,11 +834,18 @@ sub log_config_options {
     }
 }
 
-sub form_populate {
+sub querylist_form_clear {
+    my $self = shift;
+    $self->controls_write_onpage( 'list', {} );
+    $self->controls_write_onpage( 'para', {} );
+    $self->controls_write_onpage( 'sql',  { sql => q{} } );
+    return;
+}
+
+sub querylist_form_populate {
     my $self = shift;
 
     #-- Header
-
     my $data = {};
     $data->{title}       = $self->model->itemdata->title;
     $data->{filename}    = $self->model->itemdata->filename;
@@ -846,12 +854,10 @@ sub form_populate {
     $self->controls_write_onpage( 'list', $data );
 
     #-- Parameters
-
     my $para = QDepo::Utils->params_to_hash( $self->model->itemdata->params );
     $self->controls_write_onpage( 'para', $para );
 
     #-- SQL
-
     $self->controls_write_onpage( 'sql',
         { sql => $self->model->itemdata->sql } );
 
@@ -875,8 +881,6 @@ sub toggle_sql_replace {
 sub control_replace_sql_text {
     my ( $self, $sqltext, $params ) = @_;
     my ($newtext) = $self->model->string_replace_pos( $sqltext, $params );
-
-    # Write new text to control
     $self->control_set_value( 'sql', $newtext );
 }
 
@@ -936,29 +940,22 @@ sub toggle_status_cn {
 
 sub dialog_progress {
     my ($self, $title, $max) = @_;
-
     $max = (defined $max and $max > 0) ? $max : 100; # default 100
-
     require QDepo::Wx::Dialog::Progress;
     $self->{progress} = QDepo::Wx::Dialog::Progress->new($self, $title, $max);
-
     $self->{progress}->Destroy;
-
     return;
 }
 
 sub progress_update {
     my ( $self, $count ) = @_;
-
     return if !$count;
-
     if ( defined $self->{progress}
         and $self->{progress}->isa('QDepo::Wx::Dialog::Progress') )
     {
         my $continue = $self->{progress}->update($count);
         $self->model->set_continue($continue);
     }
-
     return;
 }
 
@@ -972,36 +969,26 @@ sub control_set_value {
 
 sub controls_write_onpage {
     my ($self, $page, $data) = @_;
-
-    # Get controls name and object from $page
     my $get = "get_controls_$page";
     my $controls = $self->$get();
-
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-
             my $value = $data->{$name};
-
-            # Cleanup value
             if ( defined $value ) {
-                $value =~ s/\n$//mg;    # Multiline
+                $value =~ s/\n$//mg;    # remove trailing newline
             }
             else {
-                $value = q{};           # Empty
+                $value = q{};           # make empty string
             }
-
             $self->control_write( $control, $name, $value );
         }
     }
-
     return;
 }
 
 sub control_write {
     my ($self, $control, $name, $value, $state) = @_;
-
     my $ctrltype = $control->{$name}[3];
-
     my $sub_name = qq{control_write_$ctrltype};
     if ( $self->can($sub_name) ) {
         $self->$sub_name($control->{$name}[0], $value, $state);
@@ -1009,7 +996,6 @@ sub control_write {
     else {
         warn "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
     }
-
     return;
 }
 
@@ -1022,12 +1008,14 @@ sub control_write_e {
 
 sub control_write_s {
     my ( $self, $control, $value, $is_append ) = @_;
-    $value ||= q{};                 # empty
+    $value //= q{};                 # empty not undef
     my $readonly = $control->GetReadOnly;
     $control->SetReadOnly(0);
     $control->ClearAll unless $is_append;
-    $control->AppendText($value);
-    $control->AppendText("\n");
+    if ($value) {
+        $control->AppendText($value);
+        $control->AppendText("\n");
+    }
     $control->Colourise( 0, $control->GetTextLength );
     $control->SetReadOnly($readonly);
     return;
@@ -1041,19 +1029,15 @@ sub control_write_c {
 
 sub controls_read_frompage {
     my ( $self, $page ) = @_;
-
-    # Get controls name and object from $page
     my $get      = "get_controls_$page";
     my $controls = $self->$get();
     my @records;
-
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
             my $value = $self->control_read( $control, $name);
             push(@records, { $name => $value } ) if ($name and $value);
         }
     }
-
     return \@records;
 }
 
@@ -1113,53 +1097,39 @@ sub set_editable {
 
 sub event_handler_for_menu {
     my ($self, $name, $calllback) = @_;
-
     my $menu_id = $self->get_menu_popup_item($name)->GetId;
-
     EVT_MENU $self, $menu_id, $calllback;
-
     return;
 }
 
 sub event_handler_for_tb_button {
     my ($self, $name, $calllback) = @_;
-
     my $tb_id = $self->get_toolbar_btn($name)->GetId;
-
     EVT_TOOL $self, $tb_id, $calllback;
-
     return;
 }
 
 sub event_handler_for_tb_choice {
     my ($self, $name, $calllback) = @_;
-
     my $tb_id = $self->get_toolbar_btn($name)->GetId;
-
     EVT_CHOICE $self, $tb_id, $calllback;
-
     return;
 }
 
 sub event_handler_for_list {
     my ($self, $name, $calllback) = @_;
-
     EVT_LIST_ITEM_SELECTED $self, $self->get_control($name), $calllback;
-
     return;
 }
 
 sub event_handler_for_button {
     my ($self, $name, $calllback) = @_;
-
     EVT_BUTTON( $self, $self->{$name}, $calllback );
-
     return;
 }
 
 sub on_close_window {
     my ($self, ) = @_;
-
     $self->Destroy;
 }
 
@@ -1332,7 +1302,7 @@ Return the maximum index from the list control (item count - 1).
 
 Log configuration options with data from the Config module
 
-=head2 form_populate
+=head2 querylist_form_populate
 
 Populate form controls with data from the qdf file.
 

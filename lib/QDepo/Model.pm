@@ -239,10 +239,8 @@ sub load_qdf_data_init {
 
 sub append_list_record {
     my ($self, $rec, $idx) = @_;
-
     $rec->{nrcrt} = $idx + 1;
     $self->{_lds}{$idx} = $rec;
-
     return {$idx => $rec};
 }
 

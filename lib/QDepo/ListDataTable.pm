@@ -133,7 +133,7 @@ sub has_items_marked {
 
 sub clear_all_items {
     my $self = shift;
-    $self->{data} = [];
+    splice @{ $self->{data} };
     return;
 }
 
