@@ -12,7 +12,9 @@ use Regexp::Common;
 use QDepo::Exceptions;
 
 sub new {
-    my ($class, $model) = @_;
+    my ($class, $p) = @_;
+    my $model = delete $p->{model}
+        or die 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -20,9 +22,9 @@ sub new {
 }
 
 sub db_connect {
-    my ( $self, $conf ) = @_;
+    my ( $self, $args ) = @_;
 
-    my ($dbpath, $driver) = @{$conf}{qw(dbname driver)};
+    my $dbpath = $args->dbname;
 
     unless (-f $dbpath) {
         print "DB: $dbpath not found\n";
@@ -71,14 +73,14 @@ sub handle_error {
 }
 
 sub parse_error {
-    my ($self, $si) = @_;
+    my ($self, $err) = @_;
 
     my $message_type =
-         $si eq q{}                                        ? "nomessage"
-       : $si =~ m/prepare failed: no such table: (\w+)/smi ? "relnotfound:$1"
-       : $si =~ m/prepare failed: near ($RE{quoted}):/smi  ? "notsuported:$1"
-       : $si =~ m/not connected/smi                        ? "notconn"
-       : $si =~ m/(.*) may not be NULL/smi                 ? "errnull:$1"
+         $err eq q{}                                        ? "nomessage"
+       : $err =~ m/prepare failed: no such table: (\w+)/smi ? "relnotfound:$1"
+       : $err =~ m/prepare failed: near ($RE{quoted}):/smi  ? "notsuported:$1"
+       : $err =~ m/not connected/smi                        ? "notconn"
+       : $err =~ m/(.*) may not be NULL/smi                 ? "errnull:$1"
        :                                                     "unknown";
 
     # Analize and translate
@@ -87,21 +89,21 @@ sub parse_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        nomessage   => "weird#Error without message!",
-        notsuported => "fatal#Syntax not supported: $name!",
-        relnotfound => "fatal#Relation $name not found",
-        unknown     => "fatal#Database error",
-        notconn     => "error#Not connected",
-        errnull     => "error#$name may not be NULL",
+        nomessage   => "Error without message!",
+        notsuported => "Syntax not supported: $name!",
+        relnotfound => "Relation $name not found",
+        unknown     => "Database error",
+        notconn     => "Not connected",
+        errnull     => "$name may not be NULL",
     };
 
     my $message;
-    if (exists $translations->{$type} ) {
-        $message = $translations->{$type}
+    if ( exists $translations->{$type} ) {
+        $message = $translations->{$type};
     }
     else {
-        # $log->error('EE: Translation error for: $si!');
-        print "EE: Translation error for: $si!\n";
+        $message = $err;
+        print "EE: Translation error for: $message!\n";
     }
 
     return $message;
