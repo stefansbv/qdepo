@@ -51,17 +51,27 @@ sub handle_error {
 
     if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
         my $errorstr = $self->{_dbh}->errstr;
+        my ($message, $type) = $self->parse_error($errorstr);
         Exception::Db::SQL->throw(
             logmsg  => $errorstr,
-            usermsg => $self->parse_error($errorstr),
+            usermsg => $message,
         );
     }
     else {
         my $errorstr = DBI->errstr;
-        Exception::Db::Connect->throw(
-            logmsg  => $errorstr,
-            usermsg => $self->parse_error($errorstr),
-        );
+        my ($message, $type) = $self->parse_error($errorstr);
+        if ($type eq 'password') {
+            Exception::Db::Connect::Auth->throw(
+                logmsg  => $errorstr,
+                usermsg => $message,
+            );
+        }
+        else {
+            Exception::Db::Connect->throw(
+                logmsg  => $errorstr,
+                usermsg => $message,
+            );
+        }
     }
 
     return;
@@ -121,7 +131,7 @@ sub parse_error {
         print "EE: Translation error for: $message!\n";
     }
 
-    return $message;
+    return ($message, $type);
 }
 
 sub table_exists {

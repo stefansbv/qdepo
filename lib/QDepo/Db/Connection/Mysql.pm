@@ -12,7 +12,9 @@ use Regexp::Common;
 use QDepo::Exceptions;
 
 sub new {
-    my ($class, $model) = @_;
+    my ($class, $p) = @_;
+    my $model = delete $p->{model}
+        or die 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -22,19 +24,17 @@ sub new {
 sub db_connect {
     my ($self, $conf) = @_;
 
-    my ( $dbname, $host, $port ) = @{$conf}{qw(dbname host port)};
-    my ( $driver, $user, $pass ) = @{$conf}{qw(driver user pass)};
-
+    my ( $db, $host, $port ) = ( $args->dbname, $args->host, $args->port );
     my $dsn = qq{dbi:mysql:database=$dbname;host=$host;port=$port};
 
     $self->{_dbh} = DBI->connect(
-        $dsn, $user, $pass, {
+        $dsn, $args->user, $args->pass,
             FetchHashKeyName   => 'NAME_lc',
             LongReadLen        => 524288,
             AutoCommit         => 1,
             RaiseError         => 0,
             PrintError         => 0,
-            HandleError        => sub { $self->handle_error() },
+            HandleError        => sub { $self->handle_error(); },
         }
     );
 
@@ -46,30 +46,40 @@ sub handle_error {
 
     if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
         my $errorstr = $self->{_dbh}->errstr;
+        my ($message, $type) = $self->parse_error($errorstr);
         Exception::Db::SQL->throw(
             logmsg  => $errorstr,
-            usermsg => $self->parse_error($errorstr),
+            usermsg => $message,
         );
     }
     else {
         my $errorstr = DBI->errstr;
-        Exception::Db::Connect->throw(
-            logmsg  => $errorstr,
-            usermsg => $self->parse_error($errorstr),
-        );
+        my ($message, $type) = $self->parse_error($errorstr);
+        if ($type eq 'password') {
+            Exception::Db::Connect::Auth->throw(
+                logmsg  => $errorstr,
+                usermsg => $message,
+            );
+        }
+        else {
+            Exception::Db::Connect->throw(
+                logmsg  => $errorstr,
+                usermsg => $message,
+            );
+        }
     }
 
     return;
 }
 
 sub parse_db_error {
-    my ($self, $mi) = @_;
+    my ($self, $err) = @_;
 
     my $message_type
-        = $mi eq q{}                                         ? "nomessage"
-       : $mi =~ m/Access denied for user ($RE{quoted})/smi   ? "password:$1"
-       : $mi =~ m/Can't connect to local MySQL server/smi    ? "nolocalconn"
-       : $mi =~ m/Can't connect to MySQL server on ($RE{quoted})/smi ? "nethost:$1"
+       = $err eq q{}                                         ? "nomessage"
+       : $err =~ m/Access denied for user ($RE{quoted})/smi  ? "password:$1"
+       : $err =~ m/Can't connect to local MySQL server/smi   ? "nolocalconn"
+       : $err =~ m/Can't connect to MySQL server on ($RE{quoted})/smi ? "nethost:$1"
        :                                                       "unknown"
        ;
 
@@ -79,14 +89,14 @@ sub parse_db_error {
     $name = $name ? $name : '';
 
     my $translations = {
-        nomessage   => "weird#Error without message!",
-        dbnotfound  => "fatal#Database $name not found!",
-        password    => "info#Authentication failed for $name",
-        username    => "info#User name $name not found!",
-        network     => "fatal#Network problem",
-        nethost     => "fatal#Network problem: host $name",
-        nolocalconn => "fatal#Connection problem to local MySQL",
-        unknown     => "fatal#Database error",
+        nomessage   => "Error without message!",
+        dbnotfound  => "Database $name not found!",
+        password    => "Authentication failed for $name",
+        username    => "User name $name not found!",
+        network     => "Network problem",
+        nethost     => "Network problem: host $name",
+        nolocalconn => "Connection problem to local MySQL",
+        unknown     => "Database error",
     };
 
     my $message;
@@ -94,11 +104,11 @@ sub parse_db_error {
         $message = $translations->{$type};
     }
     else {
-        # $log->error('EE: Translation error for: $mi!');
-        print "EE: Translation error for: $mi!\n";
+        $message = $err;
+        print "EE: Translation error for: $message!\n";
     }
 
-    return $message;
+    return ($message, $type);
 }
 
 1;

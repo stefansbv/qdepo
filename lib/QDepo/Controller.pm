@@ -5,6 +5,7 @@ package QDepo::Controller;
 use strict;
 use warnings;
 
+use Scalar::Util qw(blessed);
 use Locale::TextDomain 1.20 qw(QDepo);
 use Try::Tiny;
 use QDepo::Config;
@@ -92,14 +93,15 @@ sub connect_dialog {
 
     my $error;
     my $conn = $self->cfg->connection;
-    if ($conn) {
-        my $dbname = $conn->{dbname};
-        my $driver = $conn->{driver};
+    if (blessed $conn) {
         $error = __x(
             'Connect to {driver}: {dbname}',
-            driver => $driver,
-            dbname => $dbname,
+            driver => $conn->driver,
+            dbname => $conn->dbname,
         );
+    }
+    else {
+        print "Error: No connection info!\n";
     }
 
   TRY:
@@ -115,20 +117,9 @@ sub connect_dialog {
 
         # Try to connect only if user and pass are provided
         if ($self->cfg->user and $self->cfg->pass ) {
-            try { $self->model->dbh; }
+            try { $self->model->db_connect; }
             catch {
-                if ( my $e = Exception::Base->catch($_) ) {
-                    if ( $e->isa('Exception::Db::Connect') ) {
-                        my $logmsg = $e->logmsg;
-                        # $error = $e->usermsg;
-                        $self->model->message_log(
-                            __x('{ert} {logmsg}',
-                                ert    => 'WW',
-                                logmsg => $logmsg
-                            )
-                        );
-                    }
-                }
+                $self->db_exception( $_, "connect dialog" );
             };
         }
         else {
@@ -256,12 +247,17 @@ sub set_event_handlers {
     $self->view->event_handler_for_tb_button(
         'tb_go',
         sub {
-            unless ($self->model->is_connected ) {
-                $self->db_connect;
-            }
-            if ($self->model->is_connected ) {
+            if ($self->is_connected ) {
                 $self->view->dialog_progress(__ 'Export data');
                 $self->model->run_export;
+            }
+            else {
+                $self->model->message_log(
+                    __x('{ert} {logmsg}',
+                        ert    => 'WW',
+                        logmsg => q(Unable to run export, not connected.),
+                    )
+                );
             }
         }
     );
@@ -332,9 +328,16 @@ sub set_event_handlers {
     #-- Refresh button
     $self->view->event_handler_for_button(
         'btn_refr', sub {
-            $self->db_connect unless $self->model->is_connected;
-            if ($self->model->is_connected ) {
+            if ($self->is_connected ) {
                 $self->populate_info;
+            }
+            else {
+                $self->model->message_log(
+                    __x('{ert} {logmsg}',
+                        ert    => 'WW',
+                        logmsg => q(Unable to retrieve info, not connected.),
+                    )
+                );
             }
         }
     );
@@ -448,7 +451,19 @@ sub on_page_p1_activate {
 
 sub on_page_p2_activate {
     my $self = shift;
-    $self->populate_info;
+    ### Does not work: no mouse interaction!!!
+    # if ( $self->is_connected ) {
+    #     $self->populate_info;
+    # }
+    # else {
+    #     $self->model->message_log(
+    #         __x('{ert} {logmsg}',
+    #             ert    => 'WW',
+    #             logmsg => q(Unable to retrieve info, not connected.),
+    #         )
+    #     );
+    # }
+    ###
     return;
 }
 
@@ -530,6 +545,7 @@ sub load_mnemonic {
     );
     $self->toggle_admin_buttons;
     $self->view->refresh_list('dlist');
+    $self->view->focus_list('qlist');
     $self->populate_querylist;
     return;
 }
@@ -607,56 +623,10 @@ sub populate_info {
         1;
     }
     catch {
-        if ( my $e = Exception::Base->catch($_) ) {
-            if ( $e->isa('Exception::Db::SQL::Parser') ) {
-                ( my $logmsg = $e->logmsg ) =~ s{\n}{ }m;
-                $self->model->message_log(
-                    __x('{ert} {message}: {details}',
-                        ert     => 'WW',
-                        message => $e->usermsg,
-                        details => $logmsg,
-                    )
-                );
-            }
-            elsif ( $e->isa('Exception::Db::Connect') ) {
-                $self->model->message_log(
-                    __x('{ert} {message}',
-                        ert     => 'EE',
-                        message => $e->usermsg,
-                    )
-                );
-            }
-            elsif ( $e->isa('Exception::Db::SQL::NoObject') ) {
-                $self->model->message_log(
-                    __x('{ert} {message}',
-                        ert     => 'EE',
-                        message => $e->usermsg,
-                    )
-                );
-            }
-            else {
-                $self->model->message_log(
-                    __x('{ert} {message}: {details}',
-                        ert     => 'EE',
-                        message => __ 'Unknown exception',
-                        details => $_,
-                    )
-                );
-            }
-        }
-        else {
-            $self->model->message_log(
-                __x('{ert} {message}: {details}',
-                    ert     => 'EE',
-                    message => __ 'Unknown error',
-                    details => $_,
-                )
-            );
-        }
+        $self->db_exception( $_, "populate info" );
         return undef;           # required!
     }
     finally {
-        # Table names
         my $table_names;
         $table_names = join ', ', @{$tables} if ref $tables;
         $table_names ||= 'Unknown!';
@@ -696,30 +666,15 @@ sub list_add_item {
     return;
 }
 
-sub db_connect {
+sub is_connected {
     my $self = shift;
     unless ( $self->model->is_connected ) {
-        try { $self->model->dbh; }
+        try { $self->model->db_connect; }
         catch {
-            if ( my $e = Exception::Base->catch($_) ) {
-                if ( $e->isa('Exception::Db::Connect::Auth') ) {
-                    $self->connect_dialog();
-                }
-                elsif ( $e->isa('Exception::Db::Connect') ) {
-                    my $logmsg = $e->usermsg;
-                    $self->view->dialog_error(__ 'Not connected.', $logmsg);
-                    $self->model->message_log(
-                        __x('{ert} {logmsg}',
-                            ert    => 'WW',
-                            logmsg => $logmsg
-                        )
-                    );
-                    $self->view->set_status(__ 'No DB!', 'db', 'red' );
-                }
-            }
+            $self->db_connect_exception( $_, "is connected" );
         };
     }
-    return;
+    return $self->model->is_connected;
 }
 
 sub add_new_menmonic {
@@ -733,25 +688,7 @@ sub add_new_menmonic {
             1;
         }
         catch {
-            if ( my $e = Exception::Base->catch($_) ) {
-                if ( $e->isa('Exception::IO::PathExists') ) {
-                    $self->model->message_log(
-                        __x('{ert} {message}: "{pathname}"',
-                            ert      => 'EE',
-                            message  => $e->message,
-                            pathname => $e->pathname,
-                        )
-                    );
-                }
-                else {
-                    $self->model->message_log(
-                        __x('{ert} {message} {error}',
-                            ert     => 'EE',
-                            message => __ 'Unknown exception',
-                            error   => $_,
-                        ) );
-                }
-            }
+            $self->io_exception( $_, "add new menmonic" );
             return undef;           # required!
         };
         return unless $success;
@@ -762,12 +699,10 @@ sub add_new_menmonic {
                 newconn => $newconn,
             )
         );
-
-        # Add to list
         my $rec = {
             default  => 0,
             mnemonic => $name,
-        };
+        };                      # add to list
         $self->list_add_item('dlist', $rec);
     }
 
@@ -797,38 +732,120 @@ sub edit_connections {
                 $conn_data );
         }
         catch {
-            if ( my $e = Exception::Base->catch($_) ) {
-                if ( $e->isa('Exception::IO::WriteError') ) {
-                    $self->model->message_log(
-                        __x('{ert} Save failed: {message} ({filename})',
-                            ert      => 'EE',
-                            message  => $e->message,
-                            filename => $e->filename,
-                        ) );
-                }
-                else {
-                    $self->model->message_log(
-                    __x('{ert} {message}',
-                        ert     => 'EE',
-                        message => __ 'Unknown exception',
-                    ) );
-                }
-            }
-            else {
-                $self->model->message_log(
-                    __x('{ert} Saved {filename}',
-                        ert      => 'EE',
-                        filename => $yaml_file,
-                    )
-                );
-            }
+            $self->io_exception( $_, "edit connections" );
         };
+        $self->model->message_log(
+            __x('{ert} Saved {filename}',
+                ert      => 'EE',
+                filename => $yaml_file,
+            )
+        );
         $self->set_app_mode('sele');
     }
     else {
         $self->set_app_mode('admin');
     }
 
+    return;
+}
+
+sub db_connect_exception {
+    my ( $self, $exc, $context ) = @_;
+    if ( my $e = Exception::Base->catch($exc) ) {
+        if ( $e->isa('Exception::Db::Connect::Auth') ) {
+            $self->connect_dialog();
+        }
+        elsif ( $e->isa('Exception::Db::Connect') ) {
+            my $logmsg = $e->usermsg;
+            $self->view->dialog_error( __ 'Failed to connect!', $logmsg );
+            $self->model->message_log(
+                __x('{ert} {logmsg}',
+                    ert    => 'WW',
+                    logmsg => $logmsg
+                )
+            );
+            $self->view->set_status( __ 'Not connected', 'db', 'red' );
+        }
+    }
+    return;
+}
+
+sub db_exception {
+    my ( $self, $exc, $context ) = @_;
+    if ( my $e = Exception::Base->catch($exc) ) {
+        print "Catched!\n";
+        if ( $e->isa('Exception::Db::Connect') ) {
+            my $logmsg  = $e->logmsg;
+            my $usermsg = $e->usermsg;
+            $self->model->message_log(
+                __x('{ert} {usermsg}',
+                    ert     => 'WW',
+                    usermsg => $usermsg,
+                )
+            );
+        }
+        elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
+            ( my $logmsg = $e->logmsg ) =~ s{\n}{ }m;
+            $self->model->message_log(
+                __x('{ert} {message}: {details}',
+                    ert     => 'WW',
+                    message => $e->usermsg,
+                    details => $logmsg,
+                )
+            );
+        }
+        elsif ( $e->isa('Exception::Db::SQL::NoObject') ) {
+            $self->model->message_log(
+                __x('{ert} {message}',
+                    ert     => 'EE',
+                    message => $e->usermsg,
+                )
+            );
+        }
+        else {
+            $self->model->message_log(
+                __x('{ert} {message}: {details}',
+                    ert     => 'EE',
+                    message => __ 'Unknown error',
+                    details => $_,
+                )
+            );
+        }
+    }
+    return;
+}
+
+sub io_exception {
+    my ( $self, $exc, $context ) = @_;
+    if ( my $e = Exception::Base->catch($_) ) {
+        if ( $e->isa('Exception::IO::WriteError') ) {
+            $self->model->message_log(
+                __x('{ert} Save failed: {message} ({filename})',
+                    ert      => 'EE',
+                    message  => $e->message,
+                    filename => $e->filename,
+                )
+            );
+        }
+    }
+    elsif ( $e->isa('Exception::IO::PathExists') ) {
+        $self->model->message_log(
+            __x('{ert} {message}: "{pathname}"',
+                ert      => 'EE',
+                message  => $e->message,
+                pathname => $e->pathname,
+            )
+        );
+    }
+    else {
+        $self->model->message_log(
+            __x('{ert} {message} {error}',
+                ert     => 'EE',
+                message => __ 'Unknown exception',
+                error   => $_,
+            )
+        );
+    }
     return;
 }
 

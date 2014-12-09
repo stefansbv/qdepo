@@ -50,7 +50,7 @@ sub cfg {
     return $self->{_cfg};
 }
 
-sub _connect {
+sub db_connect {
     my $self = shift;
     $self->message_status( 'Connecting...', 0 );
     my $conn = QDepo::Db->new($self);
@@ -59,7 +59,7 @@ sub _connect {
         $self->message_status( 'Connected.', 0 );
     }
     else {
-        print "failed to connect?\n";
+        $self->message_status( 'Failed to connect.', 0 );
     }
     return;
 }
@@ -68,50 +68,35 @@ sub disconnect {
     my $self = shift;
     if ( $self->is_connected ) {
         $self->message_status( 'Disconnecting...', 0 );
-        $self->{_conn}->disconnect;
+        $self->conn->disconnect;
         $self->message_status( 'Disconnected.', 0 );
     }
-    else {
-        print "Not connected?\n";
-    }
+    # Reset user and pass
+    $self->cfg->user(undef);
+    $self->cfg->pass(undef);
     return;
 }
 
 sub conn {
     my $self = shift;
     unless ( blessed $self->{_conn} ) {
-        $self->_connect;
+        try { $self->db_connect; }
+        catch {
+            if ( my $e = Exception::Base->catch($_) ) {
+                $e->throw;
+            }
+        };
     }
     return $self->{_conn};
 }
 
 sub dbh {
     my $self = shift;
-    if ( $self->is_connected ) {
-        return $self->conn->dbh;
-    }
-    else {
-        $self->_connect;
-        # Exception::Db::Connect->throw(
-        #     logmsg  => 'Not connected',
-        #     usermsg => 'Database',
-        # );
-    }
     return $self->conn->dbh;
 }
 
 sub dbc {
     my $self = shift;
-    if ( $self->is_connected ) {
-        return $self->conn->dbc;
-    }
-    else {
-        $self->_connect;
-        # Exception::Db::Connect->throw(
-        #     logmsg  => 'Not connected',
-        #     usermsg => 'Database',
-        # );
-    }
     return $self->conn->dbc;
 }
 
@@ -734,26 +719,6 @@ sub parse_sql_text {
     return ($cols_aref, $header_aref, $tables_aref);
 }
 
-# sub dlist_loded_item {
-#     my $self = shift;
-
-#     my $mnemonx = $self->cfg->get_mnemonics;
-#     my $default = $self->cfg->get_default_mnemonic;
-#     my ($idx, $item) = (0, undef);
-#     foreach my $mnx ( @{$mnemonx} ) {
-#         if ($mnx->{mnemonic} eq $default) {
-#             $item = $idx;
-#             last;
-#         }
-#         $idx++;
-#     }
-
-#     my $dt = $self->get_data_table_for('dlist');
-#     $dt->set_item_default($item);
-
-#     return $item;
-# }
-
 1;
 
 =head2 _cfg
@@ -768,7 +733,7 @@ Return the database handler.
 
 Return the Connection module handler.
 
-=head2 db_connect_new
+=head2 db_connect
 
 Database connection instance.  Connect to database or retry to connect.
 

@@ -7,11 +7,14 @@ use warnings;
 
 use DBI;
 use Try::Tiny;
+use Regexp::Common;
 
-use QDepo::Exceptions;
+# use QDepo::Exceptions; not yet...
 
 sub new {
-    my ($class, $model) = @_;
+    my ($class, $p) = @_;
+    my $model = delete $p->{model}
+        or die 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -19,21 +22,19 @@ sub new {
 }
 
 sub db_connect {
-    my ( $self, $conf ) = @_;
+    my ( $self, $args ) = @_;
 
-    my ($dbname, $host, $port) = @{$conf}{qw(dbname host port)};
-    my ($driver, $user, $pass) = @{$conf}{qw(driver user pass)};
-
-    my $dsn = qq{dbi:cubrid:database=$dbname;host=$host;port=$port};
+    my ( $db, $host, $port ) = ( $args->dbname, $args->host, $args->port );
+    my $dsn = qq{dbi:cubrid:database=$db;host=$host;port=$port};
 
     $self->{_dbh} = DBI->connect(
-        $dsn, $user, $pass,
+        $dsn, $args->user, $args->pass,
         {   FetchHashKeyName => 'NAME_lc',
             AutoCommit       => 1,
-            RaiseError       => 1,
+            RaiseError       => 0,
             PrintError       => 0,
             LongReadLen      => 524288,
-            HandleError      => sub { $self->handle_error() },
+            HandleError      => sub { $self->handle_error(); },
         }
     );
 

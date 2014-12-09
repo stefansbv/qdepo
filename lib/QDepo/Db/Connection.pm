@@ -44,16 +44,7 @@ sub _connect {
     catch {
         if ( my $e = Exception::Base->catch($_) ) {
             if ( $e->isa('Exception::Db::Connect') ) {
-                Exception::Db::Connect->throw(
-                    logmsg  => $e->logmsg,
-                    usermsg => $e->usermsg,
-                );
-                # Exception::Db::Connect::Auth->throw(
-                #     logmsg  => $e->logmsg,
-                #     usermsg => $e->usermsg,
-                # );
-            }
-            else {
+                $e->throw;
             }
         }
     };
