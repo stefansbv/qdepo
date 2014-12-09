@@ -5,6 +5,14 @@ package QDepo::Wx::Dialog::Progress;
 use strict;
 use warnings;
 
+use Wx qw(
+    wxPD_ELAPSED_TIME
+    wxPD_ESTIMATED_TIME
+    wxPD_REMAINING_TIME
+    wxPD_AUTO_HIDE
+    wxPD_CAN_ABORT
+);
+
 sub new {
     my $class = shift;
 

@@ -64,9 +64,6 @@ sub _connect {
     {
         $model->get_connection_observable->set(1);
     }
-    else {
-        $model->get_connection_observable->set(undef);
-    }
 
     return;
 }

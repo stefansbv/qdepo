@@ -26,7 +26,7 @@ use QDepo::Db;
 
 #-- Check the one instance functionality
 
-ok my $db = QDepo::Db->instance( $args ), 'init Db instance';
+ok my $db = QDepo::Db->new($args), 'new Db instance';
 ok $db->isa('QDepo::Db'), 'created QDepo::Db instance';
 ok $db->dbc->table_exists('orders'), 'table "orders" exists';
 ok my $info = $db->dbc->table_info_short('orders'), 'table info for "orders"';
