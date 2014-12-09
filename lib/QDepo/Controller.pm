@@ -75,17 +75,14 @@ sub populate_querylist {
     my $items = $self->model->get_qdf_data;
     return unless scalar keys %{$items};
 
-    $self->model->get_data_table_for('qlist')->clear_all_items;
     my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
     foreach my $idx ( @indices ) {
         $self->list_add_item('qlist', $items->{$idx} );
     }
-    my $dt_q = $self->model->get_data_table_for('qlist');
-    my $rec_no = $dt_q->get_item_count;
-    if ( $rec_no >= 0) {
-        $self->view->select_list_item('qlist', 'first');
+    my $dt = $self->model->get_data_table_for('qlist');
+    if ( $dt->get_item_count >= 0) {
         $self->set_app_mode('sele');
-        $self->view->{qlist}->SetFocus;
+        $self->view->select_list_item('qlist', 'first');
     }
     return;
 }
@@ -540,24 +537,29 @@ sub load_mnemonic {
 sub load_selected_mnemonic {
     my $self = shift;
 
+    # Init
     $self->model->disconnect;
+    $self->model->get_data_table_for('qlist')->clear_all_items;
+    $self->view->refresh_list('qlist');
+    $self->view->querylist_form_clear;
 
-    my $dt_d = $self->model->get_data_table_for('dlist');
-    my $item_sele = $dt_d->get_item_selected;
+    my $dt = $self->model->get_data_table_for('dlist');
+    my $item_sele = $dt->get_item_selected;
     if ( defined $item_sele ) {
-        my $mnemonic = $dt_d->get_value( $item_sele, 1 );
+        my $mnemonic = $dt->get_value( $item_sele, 1 );
         $self->model->message_log(
             __x(qq({ert} Loading selected mnemonic "{mnemonic}"),
                 ert      => 'II',
                 mnemonic => $mnemonic,
             )
         );
+        $dt->set_item_current($item_sele);
         $self->cfg->mnemonic($mnemonic);
-        $dt_d->set_item_current($item_sele);
         $self->toggle_admin_buttons;
+        $self->view->refresh_list('dlist');
+        $self->populate_querylist;
+        $self->model->on_item_selected_load; # should be not necessary !?
     }
-    $self->view->refresh_list('dlist');
-    $self->populate_querylist;
     return;
 }
 
