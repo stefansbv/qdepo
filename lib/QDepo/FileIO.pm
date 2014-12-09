@@ -27,10 +27,8 @@ sub _model {
 sub _process_file {
     my ($self, $qdf_file, $tag_name) = @_;
 
-    unless ( defined $qdf_file ) {
-        $self->_model->message_status(__ "No .qdf file to process");
-        return;
-    }
+    die 'Missing "tag_name" parameter to _process_file()' unless $tag_name;
+    return unless defined $qdf_file;
 
     my $data;
     try {
@@ -67,7 +65,7 @@ sub _process_all_files {
         $qdf_files_no = scalar @{$qdf_ref};
     }
     else {
-        $self->_model->message_status(__ 'No qdf files to process');
+        $self->_model->message_status(__ 'No .qdf files to process');
         return;
     }
 
@@ -126,14 +124,14 @@ sub get_file_list {
     }
 
     # QDFs can NOT be arranged in subdirs
-    my @rapoarte = File::Find::Rule
+    my @qdf_files = File::Find::Rule
         ->mindepth(1)
         ->maxdepth(1)
         ->name( qq{*.$qdfexte} )
         ->file
         ->nonempty
         ->in($qdfpath);
-    return \@rapoarte;
+    return \@qdf_files;
 }
 
 sub get_details {
