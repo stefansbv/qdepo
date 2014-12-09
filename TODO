@@ -18,6 +18,8 @@ CUBRID:
 
  No eror and no output rows (only the header row)
 
-3. Use a lighter module for XML parse/update instead of XML::Twig.
+3. Maybe: Use a lighter module for XML parse/update instead of XML::Twig.
 
-4. Disable the not available output options.
+4. Disable the "not available" output options.
+
+5. DONE: Fix errors on nonexistent mnemonic.
