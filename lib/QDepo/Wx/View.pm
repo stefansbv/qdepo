@@ -1142,6 +1142,13 @@ sub refresh_list {
     return;
 }
 
+sub focus_list {
+    my ($self, $name) = @_;
+    die "List name is required for 'focus_list'" unless $name;
+    $self->{$name}->SetFocus;
+    return;
+}
+
 sub select_list_item {
     my ($self, $lname, $what) = @_;
 
