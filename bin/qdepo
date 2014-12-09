@@ -73,7 +73,7 @@ if ( $default ) {
     # Initialize configurations
     my $cfg = QDepo::Config->instance( { default => $default } );
 
-    $cfg->set_default_mnemonic($default);
+    $cfg->save_default_mnemonic($default);
 
     exit 0;
 }
