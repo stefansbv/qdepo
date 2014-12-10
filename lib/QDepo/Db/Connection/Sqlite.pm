@@ -55,6 +55,7 @@ sub handle_error {
     my $self = shift;
 
     if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
+        my $errorstr = $self->{_dbh}->errstr;
         my ($message, $type) = $self->parse_error($errorstr);
         Exception::Db::SQL->throw(
             logmsg  => $errorstr,
