@@ -7,14 +7,11 @@ use warnings;
 
 sub new {
     my ( $class, $value ) = @_;
-
     my $self = {
         _data      => $value,
         _callbacks => {},
     };
-
     bless $self, $class;
-
     return $self;
 }
 

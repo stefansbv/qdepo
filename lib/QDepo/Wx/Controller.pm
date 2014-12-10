@@ -15,31 +15,24 @@ use base qw{QDepo::Controller};
 
 sub new {
     my $class = shift;
-
     my $self = $class->SUPER::new();
-
     $self->_init;
-
     $self->set_event_handlers();
     $self->set_event_handlers_keys();
-
     return $self;
 }
 
 sub close_app {
     my $self = shift;
-
     my $event = Wx::CommandEvent->new( 9999, -1 );
     $self->view->GetEventHandler()->AddPendingEvent($event);
 }
 
 sub _init {
     my $self = shift;
-
     my $app = QDepo::Wx::App->create($self->model);
     $self->{_app}  = $app;
     $self->{_view} = $app->{_view};
-
     return;
 }
 
@@ -227,9 +220,7 @@ wxPerl $Wx::VERSION, $wx_version
 
     my $PROGRAM_VER  = $QDepo::VERSION;
     my $LICENSE = QDepo::Config::Utils->get_license();
-
     my $about = Wx::AboutDialogInfo->new;
-
     $about->SetName($PROGRAM_NAME);
     $about->SetVersion($PROGRAM_VER);
     $about->SetDescription($PROGRAM_DESC);
@@ -237,22 +228,16 @@ wxPerl $Wx::VERSION, $wx_version
     $about->SetLicense($LICENSE);
     $about->SetWebSite( 'http://qdepo.s2i2.ro/', 'The QDepo web site');
     $about->AddDeveloper( 'Ștefan Suciu <stefan@s2i2.ro>' );
-
     Wx::AboutBox( $about );
-
     return;
 }
 
 sub guide {
     my $self = shift;
-
     my $gui = $self->view;
-
     require QDepo::Wx::Dialog::Help;
     my $gd = QDepo::Wx::Dialog::Help->new;
-
     $gd->show_html_help();
-
     return;
 }
 
@@ -302,6 +287,8 @@ Init App.
 
 Login dialog.
 
+=head2 get_text_dialog
+
 =head2 set_event_handlers_keys
 
 Set shortcut keys.
@@ -309,6 +296,8 @@ Set shortcut keys.
 =head2 set_event_handlers
 
 Set event handlers Wx.
+
+=head2 _set_event_handler_nb
 
 =head2 toggle_mark_item
 
@@ -318,12 +307,18 @@ Toggle deleted mark on list item.
 
 Scan all items and remove marked ones.
 
+=head2 add_new_report
+
+=head2 add_qlist_item
+
 =head2 about
 
-The About dialog.
+Build and show the About dialog.
 
 =head2 guide
 
 Quick help dialog.
+
+=head2 save_qdf_data
 
 =cut

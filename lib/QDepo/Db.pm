@@ -38,7 +38,7 @@ sub disconnect {
     my $self = shift;
     if ( blessed $self->{conn}{dbh} and $self->{conn}{dbh}->isa('DBI::db') ) {
         $self->{conn}{dbh}->disconnect;
-        $self->model->get_connection_observable->set(0);
+        $self->model->get_connection_observable->set(0); # disconected
     }
     return;
 }
