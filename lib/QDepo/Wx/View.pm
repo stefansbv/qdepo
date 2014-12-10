@@ -315,7 +315,8 @@ sub _build_splitter {
     $self->{log}->SetReadOnly(1);            # log is readonly
 
     my $log_sbs = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxHORIZONTAL );
+        Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxVERTICAL );
+    $log_sbs->Add(-1, 10);
     $log_sbs->Add( $self->{log}, 1, wxEXPAND, 0 );
     $sizer_bot->Add( $log_sbs, 1, wxALL | wxEXPAND, 5 );
 
@@ -372,6 +373,7 @@ sub _build_page_querylist {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Query list', ),
         wxVERTICAL, );
+    $qlist_top_sz->Add(-1, 10);
 
     $qlist_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
 
@@ -381,8 +383,9 @@ sub _build_page_querylist {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Description', ),
         wxVERTICAL, );
+    $qlist_bot_sz->Add(-1, 10);
 
-    $qlist_bot_sz->Add( $self->{description}, 1, wxEXPAND );
+    $qlist_bot_sz->Add( $self->{description}, 0, wxEXPAND );
 
     $qlist_main_sz->Add( $qlist_top_sz, 0, wxALL | wxGROW, 5 );
     $qlist_main_sz->Add( $qlist_sizer, 0, wxALL | wxGROW, 5 );
@@ -431,15 +434,16 @@ sub _build_page_info {
 
     my $info_top_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Table name' ), wxVERTICAL );
+    $info_top_sz->Add(-1, 10);
     $info_top_sz->Add( $self->{table_name}, 0, wxTOP | wxEXPAND, 0);
-    #$info_top_sz->Add(-1, 20);
 
     my $info_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
     $info_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
-    $info_mid_sz->Add(-1, 20);
+    $info_mid_sz->Add(-1, 5);
 
     my $info_bot_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Fields' ), wxVERTICAL );
+    $info_bot_sz->Add(-1, 10);
     $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
     $info_main_sz->Add( $info_top_sz, 1, wxALL | wxEXPAND, 5 );
@@ -463,7 +467,6 @@ sub _build_page_sql {
     #-- Controls
 
     my $sql_sb = Wx::StaticBox->new( $page, -1, __ 'SQL', );
-
     $self->{sql} = QDepo::Wx::Editor->new($page);
 
     my $para_sizer = $self->_build_ctrls_parameter($page);
@@ -471,8 +474,8 @@ sub _build_page_sql {
     #-- Layout
 
     my $sql_main_sz = Wx::BoxSizer->new(wxVERTICAL);
-    my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxHORIZONTAL, );
-
+    my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxVERTICAL, );
+    $sql_sbs->Add(-1, 10);
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
     $sql_main_sz->Add( $para_sizer, 0, wxALL | wxEXPAND, 5 );
@@ -538,6 +541,7 @@ sub _build_page_admin {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Connection', ),
         wxVERTICAL, );
+    $conf_top_sz->Add(-1, 10);
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
 
@@ -554,7 +558,7 @@ sub _build_page_admin {
     my $conn_mid_sz = $self->_build_ctrls_conn($page);
 
     $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
-    $conf_main_sz->Add( $button_sz, 0, wxALIGN_CENTRE | wxALL, 15 );
+    $conf_main_sz->Add( $button_sz, 0, wxALIGN_CENTRE | wxALL, 5 );
     $conf_main_sz->Add( $conn_mid_sz, 0, wxALL | wxGROW, 5 );
 
     $conf_main_sz->AddGrowableRow(0);
@@ -653,6 +657,7 @@ sub _build_ctrls_querylist {
 
     my $sizer = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Header' ), wxVERTICAL );
+    $sizer->Add(-1, 10);
 
     my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $fg_sizer->AddGrowableCol( 1, 1 );
