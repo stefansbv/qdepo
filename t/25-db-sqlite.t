@@ -1,17 +1,16 @@
 #
 # QDepo::Db::Connection test script
 #
-# From Class::Singleton test script
-#   by Andy Wardley <abw@wardley.org>
-
+use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 24;
 
 use lib qw( lib ../lib );
 
 use QDepo::Config;
+use QDepo::Model;
 
 my $args = {
     mnemonic => 'test',
@@ -22,17 +21,24 @@ my $args = {
 my $cfg = QDepo::Config->instance( $args );
 ok( $cfg->isa('QDepo::Config'), 'created QDepo::Config instance' );
 
-use QDepo::Db;
-
-#-- Check the one instance functionality
-
-ok my $db = QDepo::Db->new($args), 'new Db instance';
-ok $db->isa('QDepo::Db'), 'created QDepo::Db instance';
-ok $db->dbc->table_exists('orders'), 'table "orders" exists';
-ok my $info = $db->dbc->table_info_short('orders'), 'table info for "orders"';
+ok my $model = QDepo::Model->new, 'new Model instance';
+is $model->is_connected, undef, 'is not connected';
+ok $model->db_connect, 'connect';
+ok $model->is_connected, 'is connected';
+ok $model->disconnect, 'disconnect';
+is $model->is_connected, 0, 'is not connected';
+ok $model->db_connect, 'connect again';
+ok $model->is_connected, 'is connected again';
+ok my $conn  = $model->conn, 'get the connection';
+isa_ok $conn, 'QDepo::Db';
+isa_ok $conn->dbh, 'DBI::db';
+isa_ok $conn->dbc, 'QDepo::Db::Connection::Sqlite';
+ok $conn->dbc->table_exists('orders'), 'table "orders" exists';
+ok my $info = $conn->dbc->table_info_short('orders'), 'table info for "orders"';
 ok my @columns = keys %{$info}, 'get the columns';
 foreach my $field (@columns) {
-    like $field, qr/^\p{IsAlpha}/, "'$field' starts with an alphabetic char";
+    like $field, qr/^\p{IsAlpha}/,
+        "'$field' starts with an alphabetic char";
 }
 
 # end test

@@ -4,11 +4,12 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 use lib qw( lib ../lib );
 
 use QDepo::Config;
+use QDepo::Model;
 
 my $args = {
     mnemonic => 'test',
@@ -17,15 +18,12 @@ my $args = {
 };
 
 my $c1 = QDepo::Config->instance( $args );
-ok( $c1->isa('QDepo::Config'), 'created QDepo::Config instance 1' );
+ok( $c1->isa('QDepo::Config'), 'created QDepo::Config instance' );
 
-use QDepo::Db;
-
-#-- Check the one instance functionality
-
-my $d1 = QDepo::Db->new($args);
-isa_ok $d1, 'QDepo::Db';
-isa_ok $d1->dbh, 'DBI::db';
-isa_ok $d1->dbc, 'QDepo::Db::Connection::Sqlite';
+ok my $model = QDepo::Model->new, 'new Model instance';
+ok my $conn  = $model->conn, 'get the collection';
+isa_ok $conn, 'QDepo::Db';
+isa_ok $conn->dbh, 'DBI::db';
+isa_ok $conn->dbc, 'QDepo::Db::Connection::Sqlite';
 
 # end test
