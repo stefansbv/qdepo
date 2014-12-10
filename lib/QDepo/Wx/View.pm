@@ -415,11 +415,11 @@ sub _build_page_info {
     my $header = $self->model->list_meta_data('tlist');
     $self->{tlist}->add_columns($header);
 
-    # Refresh button
+    # Info button
     $self->{btn_refr} = Wx::Button->new(
         $page,
         -1,
-        __ 'Refresh',
+        __ 'Info',
         [ -1, -1 ],
         [ -1, 23 ],
     );
