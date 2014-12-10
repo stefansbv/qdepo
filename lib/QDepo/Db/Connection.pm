@@ -18,7 +18,7 @@ sub new {
     my $self = {};
     $self->{_model} = $model;
     bless $self, $class;
-    $self->_connect($model);
+    $self->_connect;
     return $self;
 }
 
@@ -28,12 +28,12 @@ sub model {
 }
 
 sub _connect {
-    my ($self, $model) = @_;
+    my $self = shift;
 
     my $conf = QDepo::Config->instance;
     my $conn = $conf->connection;
     my $db   = $self->load({
-        model  => $model,
+        model  => $self->model,
         driver => $conn->driver,
     });
     $self->{dbc} = $db;
@@ -48,14 +48,12 @@ sub _connect {
             }
         }
     };
-
-    if (    blessed $model
+    if (    blessed $self->model
         and blessed $self->{dbh}
         and $self->{dbh}->isa('DBI::db') )
     {
-        $model->get_connection_observable->set(1);
+        $self->model->get_connection_observable->set(1); # connected
     }
-
     return;
 }
 

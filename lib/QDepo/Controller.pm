@@ -17,18 +17,27 @@ use QDepo::Config::Utils;
 
 sub new {
     my $class = shift;
-    my $model = QDepo::Model->new();
     my $self = {
-        _model => $model,
+        _model => QDepo::Model->new(),
         _cfg   => QDepo::Config->instance(),
     };
     bless $self, $class;
     return $self;
 }
 
+sub model {
+    my $self = shift;
+    return $self->{_model};
+}
+
 sub cfg {
     my $self = shift;
     return $self->{_cfg};
+}
+
+sub view {
+    my $self = shift;
+    return $self->{_view};
 }
 
 sub start {
@@ -41,7 +50,7 @@ sub start {
         )
     );
 
-    $self->model->get_connection_observable->set(0);
+    $self->model->get_connection_observable->set(0); # init
 
     my $default_output = $self->view->get_choice_default();
     $self->model->set_choice($default_output);
@@ -85,53 +94,6 @@ sub populate_querylist {
         $self->set_app_mode('sele');
         $self->view->select_list_item('qlist', 'first');
     }
-    return;
-}
-
-sub connect_dialog {
-    my $self = shift;
-
-    my $error;
-    my $conn = $self->cfg->connection;
-    if (blessed $conn) {
-        $error = __x(
-            'Connect to {driver}: {dbname}',
-            driver => $conn->driver,
-            dbname => $conn->dbname,
-        );
-    }
-    else {
-        print "Error: No connection info!\n";
-    }
-
-  TRY:
-    while ( not $self->model->is_connected ) {
-
-        # Show login dialog if still not connected
-        my $return_string = $self->dialog_login($error);
-        if ($return_string eq 'cancel') {
-            $self->model->message_log(
-                __x( '{ert} Login cancelled', ert => 'WW' ) );
-            last TRY;
-        }
-
-        # Try to connect only if user and pass are provided
-        if ($self->cfg->user and $self->cfg->pass ) {
-            try { $self->model->db_connect; }
-            catch {
-                $self->db_exception( $_, "connect dialog" );
-            };
-        }
-        else {
-            $error = __ 'User and password is required';
-        }
-    }
-
-    return;
-}
-
-sub dialog_login {
-    print 'dialog_login not implemented in ', __PACKAGE__, "\n";
     return;
 }
 
@@ -345,20 +307,10 @@ sub set_event_handlers {
     return;
 }
 
-sub model {
-    my $self = shift;
-    return $self->{_model};
-}
-
-sub view {
-    my $self = shift;
-    return $self->{_view};
-}
-
 sub toggle_interface_controls {
     my $self = shift;
 
-    my $conf = QDepo::Config::Toolbar->new;  # TODO: should this go to init?
+    my $conf = QDepo::Config::Toolbar->new;
     my $mode = $self->model->get_appmode();
 
     foreach my $name ( $conf->all_buttons ) {
@@ -557,6 +509,8 @@ sub load_selected_mnemonic {
     $self->model->disconnect;
     $self->model->get_data_table_for('qlist')->clear_all_items;
     $self->view->refresh_list('qlist');
+    $self->model->get_data_table_for('tlist')->clear_all_items;
+    $self->view->refresh_list('tlist');
     $self->view->querylist_form_clear;
 
     my $dt = $self->model->get_data_table_for('dlist');
@@ -669,12 +623,90 @@ sub list_add_item {
 sub is_connected {
     my $self = shift;
     unless ( $self->model->is_connected ) {
-        try { $self->model->db_connect; }
+        try { $self->model->db_connect; 1; }
         catch {
-            $self->db_connect_exception( $_, "is connected" );
+            $self->db_connect_auth_exception( $_, "is connected" );
         };
     }
     return $self->model->is_connected;
+}
+
+sub db_connect_auth_exception {
+    my ( $self, $exc, $context ) = @_;
+    if ( my $e = Exception::Base->catch($exc) ) {
+        if ( $e->isa('Exception::Db::Connect::Auth') ) {
+            $self->connect_dialog_loop;
+        }
+        elsif ( $e->isa('Exception::Db::Connect') ) {
+            my $logmsg = $e->usermsg;
+            $self->model->message_log(
+                __x('{ert} {logmsg}',
+                    ert    => 'EE',
+                    logmsg => $logmsg
+                )
+            );
+            $self->view->set_status( __ 'Not connected', 'db', 'red' );
+        }
+    }
+    return;
+}
+
+sub connect_dialog_loop {
+    my $self = shift;
+    my $error;
+    my $conn = $self->cfg->connection;
+    if (blessed $conn) {
+        $error = __x(
+            'Connect to {driver}: {dbname}',
+            driver => $conn->driver,
+            dbname => $conn->dbname,
+        );
+    }
+
+  TRY:
+    while ( not $self->model->is_connected ) {
+
+        # Show login dialog if still not connected
+        my $return_string = $self->dialog_login($error);
+        if ($return_string eq 'cancel') {
+            $self->model->message_log(
+                __x( '{ert} Login cancelled', ert => 'WW' ) );
+            last TRY;
+        }
+
+        # Try to connect only if user and pass are provided
+        if ($self->cfg->user and $self->cfg->pass ) {
+            my $success = try { $self->model->db_connect; 1; }
+            catch {
+                if ( my $e = Exception::Base->catch($_) ) {
+                    if ( $e->isa('Exception::Db::Connect::Auth') ) {
+                        $error = __ 'Wrong user and/or password';
+                    }
+                    elsif ( $e->isa('Exception::Db::Connect') ) {
+                        my $logmsg = $e->usermsg;
+                        $self->model->message_log(
+                            __x('{ert} {logmsg}',
+                                ert    => 'EE',
+                                logmsg => $logmsg
+                            )
+                        );
+                        last TRY;
+                    }
+                }
+                return undef;           # required!
+            };
+            last TRY if $success;
+        }
+        else {
+            $error = __ 'User and password is required';
+        }
+    }
+    return;
+}
+
+sub dialog_login {
+    print 'dialog_login not implemented in ', __PACKAGE__, "\n";
+    return;
 }
 
 sub add_new_menmonic {
@@ -752,19 +784,24 @@ sub edit_connections {
 sub db_connect_exception {
     my ( $self, $exc, $context ) = @_;
     if ( my $e = Exception::Base->catch($exc) ) {
-        if ( $e->isa('Exception::Db::Connect::Auth') ) {
-            $self->connect_dialog();
-        }
-        elsif ( $e->isa('Exception::Db::Connect') ) {
-            my $logmsg = $e->usermsg;
-            $self->view->dialog_error( __ 'Failed to connect!', $logmsg );
+        if ( $e->isa('Exception::Db::Connect') ) {
+            my $logmsg  = $e->logmsg;
+            my $usermsg = $e->usermsg;
             $self->model->message_log(
-                __x('{ert} {logmsg}',
-                    ert    => 'WW',
-                    logmsg => $logmsg
+                __x('{ert} {usermsg}',
+                    ert     => 'WW',
+                    usermsg => $usermsg,
                 )
             );
-            $self->view->set_status( __ 'Not connected', 'db', 'red' );
+        }
+        else {
+            $self->model->message_log(
+                __x('{ert} {message}: {details}',
+                    ert     => 'EE',
+                    message => __ 'Unknown error',
+                    details => $_,
+                )
+            );
         }
     }
     return;
@@ -773,7 +810,6 @@ sub db_connect_exception {
 sub db_exception {
     my ( $self, $exc, $context ) = @_;
     if ( my $e = Exception::Base->catch($exc) ) {
-        print "Catched!\n";
         if ( $e->isa('Exception::Db::Connect') ) {
             my $logmsg  = $e->logmsg;
             my $usermsg = $e->usermsg;
@@ -859,87 +895,147 @@ sub io_exception {
 
     $controller->start();
 
-=head2 new
+=head1 DESCRIPTION
+
+This module provides the implementation for the L<controller> aka L<C>
+from the MVC pattern.  There is also a derived class with an
+implementation specific for the Wx interface.
+
+=head2 Methods
+
+=head3 new
 
 Constructor method.
 
-=head2 cfg
+Builds and returns a new Controller object.  Holds the following
+instance variables:
 
-Return config instance variable
+=over
 
-=head2 start
+=item C<model>
+
+=item C<cfg>
+
+=item C<view>
+
+=back
+
+=head3 model
+
+Return the Model module instance variable.
+
+=head3 cfg
+
+Return the Config module instance variable.  The Config module is
+created using the singleton pattern.
+
+=head3 view
+
+Return the View module instance variable.
+
+=head3 start
 
 Connect if user and pass or if driver is SQLite. Retry and show login
 dialog, until connected or fatal error message received from the
 RDBMS.
 
-=head2 connect_dialog
+=head3 populate_connlist
+
+Populate list with items.
+
+=head3 populate_querylist
+
+Populate the query list.
+
+=head3 connect_dialog_loop
 
 Show login dialog until connected or canceled.
 
-=head2 dialog_login
+=head3 dialog_login
 
 Login dialog.
 
-=head2 set_app_mode
+=head3 set_app_mode
 
 Set application mode.
 
-=head2 on_screen_mode_idle
+=head3 on_screen_mode_idle
 
 Idle mode.
 
-=head2 on_screen_mode_edit
+=head3 on_screen_mode_edit
 
 Edit mode.
 
-=head2 on_screen_mode_sele
+=head3 on_screen_mode_sele
 
 Select mode.
 
-=head2 set_event_handlers
+=head3 on_screen_mode_admin
+
+=head3 set_event_handlers
 
 Setup event handlers for the interface.
 
-=head2 model
-
-Return model instance variable.
-
-=head2 view
-
-Return view instance variable.
-
-=head2 toggle_interface_controls
+=head3 toggle_interface_controls
 
 Toggle controls (tool bar buttons) appropriate for different states of
 the application.
 
-=head2 toggle_controls_page
+=head3 toggle_interface_controls_edit
+
+=head3 toggle_interface_controls_admin
+
+=head3 toggle_controls_page
 
 Toggle the controls on page.
 
-=head2 save_qdf_data
+=head3 on_page_p1_activate
+
+Empty method.
+
+=head3 on_page_p2_activate
+
+Empty method.
+
+=head3 on_page_p3_activate
+
+Empty method.
+
+=head3 on_page_p4_activate
+
+Empty method.
+
+=head3 save_qdf_data
 
 Save .qdf file.
 
-=head2 on_quit
+=head3 on_quit
 
 Before quit, ask for permission to delete the marked .qdf files, if
 L<has_marks> is true.
 
-=head2 list_remove_marked
+=head3 list_remove_marked
 
 Remove marked items.
 
-=head2 populate_querylist
+=head3 set_default_item
 
-Populate the query list.
+=head3 get_selected_mnemonic
 
-=head2 populate_connlist
+=head3 set_default_mnemonic
 
-Populate list with items.
+=head3 load_mnemonic
 
-=head2 list_add_item
+=head3 load_selected_mnemonic
+
+=head3 toggle_admin_buttons
+
+=head3 load_conn_details
+
+=head3 populate_info
+
+=head3 list_add_item
 
 Generic method to add a list item to a list control.
 
@@ -947,5 +1043,17 @@ Generic method to add a list item to a list control.
         mnemonic => "test",
         recno    => 1,
     }
+
+=head3 is_connected
+
+=head3 add_new_menmonic
+
+=head3 edit_connections
+
+=head3 db_connect_exception
+
+=head3 db_exception
+
+=head3 io_exception
 
 =cut

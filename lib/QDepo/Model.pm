@@ -52,29 +52,31 @@ sub cfg {
 
 sub db_connect {
     my $self = shift;
-    $self->message_status( 'Connecting...', 0 );
-    my $conn = QDepo::Db->new($self);
-    if ( $self->is_connected ) {
-        $self->{_conn} = $conn;
-        $self->message_status( 'Connected.', 0 );
+    unless ( $self->is_connected ) {
+        $self->message_status( 'Connecting...', 0 );
+        $self->{_conn} = QDepo::Db->new($self);
+        if ( $self->is_connected ) {
+            $self->message_log(__x(qq({ert} Connected), ert => 'II'));
+        }
+        else {
+            $self->message_log( __x(qq({ert} Failed to connect), ert => 'WW'));
+        }
+        $self->message_status( '', 0 );
     }
-    else {
-        $self->message_status( 'Failed to connect.', 0 );
-    }
-    return;
+    return 1;
 }
 
 sub disconnect {
     my $self = shift;
     if ( $self->is_connected ) {
-        $self->message_status( 'Disconnecting...', 0 );
         $self->conn->disconnect;
-        $self->message_status( 'Disconnected.', 0 );
+        $self->message_log(__x(qq({ert} Disconnected), ert => 'II'));
     }
+    $self->{_conn} = undef;     # destroy
     # Reset user and pass
     $self->cfg->user(undef);
     $self->cfg->pass(undef);
-    return;
+    return 1;
 }
 
 sub conn {
@@ -739,11 +741,11 @@ Database connection instance.  Connect to database or retry to connect.
 
 =head2 is_connected
 
-Return true if connected
+Return true if connected.
 
 =head2 get_connection_observable
 
-Get connection observable status
+Get the connection observable object instance.
 
 =head2 get_stdout_observable
 
@@ -751,7 +753,7 @@ Get STDOUT observable status.
 
 =head2 set_mode
 
-Set mode
+Set mode.
 
 =head2 is_appmode
 
@@ -759,11 +761,11 @@ Return true if application mode is L<$ck_mode>.
 
 =head2 get_appmode_observable
 
-Return add mode observable status
+Return add mode observable status.
 
 =head2 get_appmode
 
-Return application mode
+Return application mode.
 
 =head2 message_status
 
