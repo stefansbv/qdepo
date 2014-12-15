@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QDepo 0.50\n"
 "Report-Msgid-Bugs-To: stefan@s2i2.ro\n"
-"POT-Creation-Date: 2014-09-16 22:37+0300\n"
+"POT-Creation-Date: 2014-12-15 13:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,406 +18,503 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: lib/QDepo/Model.pm:387
+#: lib/QDepo/Config.pm:219
+#, perl-brace-format
+msgid "{ert} Read failed: {message} ({filename})"
+msgstr ""
+
+#: lib/QDepo/Config.pm:227 lib/QDepo/Controller.pm:835 lib/QDepo/Output.pm:416
+#, perl-brace-format
+msgid "{ert} {message}"
+msgstr ""
+
+#: lib/QDepo/Config.pm:229 lib/QDepo/Controller.pm:880
+msgid "Unknown exception"
+msgstr ""
+
+#: lib/QDepo/Model.pm:59
+#, perl-brace-format
+msgid "{ert} Connected"
+msgstr ""
+
+#: lib/QDepo/Model.pm:62
+#, perl-brace-format
+msgid "{ert} Failed to connect"
+msgstr ""
+
+#: lib/QDepo/Model.pm:73
+#, perl-brace-format
+msgid "{ert} Disconnected"
+msgstr ""
+
+#: lib/QDepo/Model.pm:197
+#, perl-brace-format
+msgid "{ert} Loading item #{item}"
+msgstr ""
+
+#: lib/QDepo/Model.pm:252
 #, perl-brace-format
 msgid "{ert} Running data export..."
 msgstr ""
 
-#: lib/QDepo/Model.pm:391
+#: lib/QDepo/Model.pm:256
 msgid "Wrong output path"
 msgstr ""
 
-#: lib/QDepo/Model.pm:393
+#: lib/QDepo/Model.pm:258
 #, perl-brace-format
 msgid "{ert} Wrong output path: {outpath}"
 msgstr ""
 
-#: lib/QDepo/Model.pm:422
+#: lib/QDepo/Model.pm:287
 #, perl-brace-format
 msgid "Generated {rows} rows ({percent}%)"
 msgstr ""
 
-#: lib/QDepo/Model.pm:428
+#: lib/QDepo/Model.pm:293
 #, perl-brace-format
 msgid "{ert} Output generated, {rows} rows ({percent}%)"
 msgstr ""
 
-#: lib/QDepo/Model.pm:436
+#: lib/QDepo/Model.pm:301
 msgid "No output file generated"
 msgstr ""
 
-#: lib/QDepo/Model.pm:438
+#: lib/QDepo/Model.pm:303
 #, perl-brace-format
 msgid "{ert} No output file generated"
 msgstr ""
 
-#: lib/QDepo/Model.pm:498
+#: lib/QDepo/Model.pm:345
 #, perl-brace-format
 msgid "{ert} Saved \"{name}{ext}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:527
+#: lib/QDepo/Model.pm:367
 #, perl-brace-format
 msgid "{ert} File exists ({dst_fqn})"
 msgstr ""
 
-#: lib/QDepo/Model.pm:536
+#: lib/QDepo/Model.pm:376
 #, perl-brace-format
 msgid "{ert} Create new report from template ..."
 msgstr ""
 
-#: lib/QDepo/Model.pm:540
+#: lib/QDepo/Model.pm:380
 #, perl-brace-format
 msgid "{ert} Created \"{new_qdf_file}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:548
+#: lib/QDepo/Model.pm:388
 #, perl-brace-format
 msgid "{ert} Failed: {error}"
 msgstr ""
 
-#: lib/QDepo/Model.pm:624
+#: lib/QDepo/Model.pm:449
 #, perl-brace-format
 msgid "{ert} \"file\" not found!"
 msgstr ""
 
-#: lib/QDepo/Model.pm:631
+#: lib/QDepo/Model.pm:456
 #, perl-brace-format
 msgid "{ert} Removed \"{file}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:636
+#: lib/QDepo/Model.pm:461
 #, perl-brace-format
 msgid "{ert} Remove \"{file}\" failed"
 msgstr ""
 
-#: lib/QDepo/Model.pm:652
+#: lib/QDepo/Model.pm:471
 #, perl-brace-format
 msgid "{ert} Output format set to \"{choice}\""
 msgstr ""
 
-#: lib/QDepo/Model.pm:701
+#: lib/QDepo/Model.pm:498
 #, perl-brace-format
 msgid "{ert} Parameter mismatch, to few parameters in SQL"
 msgstr ""
 
-#: lib/QDepo/Model.pm:711
+#: lib/QDepo/Model.pm:508
 #, perl-brace-format
 msgid "{ert} Parameter mismatch, to many parameters in SQL"
 msgstr ""
 
-#: lib/QDepo/Model.pm:791
+#: lib/QDepo/Model.pm:569
 msgid "Query name"
 msgstr ""
 
-#: lib/QDepo/Model.pm:806
+#: lib/QDepo/Model.pm:586
 msgid "Name"
 msgstr ""
 
-#: lib/QDepo/Model.pm:811
+#: lib/QDepo/Model.pm:592
 msgid "Type"
 msgstr ""
 
-#: lib/QDepo/Model.pm:826
+#: lib/QDepo/Model.pm:609
 msgid "Mnemonic"
 msgstr ""
 
-#: lib/QDepo/Model.pm:831 lib/QDepo/Wx/View.pm:607
+#: lib/QDepo/Model.pm:615
 msgid "Default"
 msgstr ""
 
-#: lib/QDepo/Model.pm:836 lib/QDepo/Wx/View.pm:472 lib/QDepo/Wx/View.pm:673
+#: lib/QDepo/Model.pm:621
+msgid "Current"
+msgstr ""
+
+#: lib/QDepo/Model.pm:627 lib/QDepo/Wx/View.pm:382 lib/QDepo/Wx/View.pm:574
 msgid "Description"
 msgstr ""
 
-#: lib/QDepo/Model.pm:908
+#: lib/QDepo/Model.pm:683
+#, perl-brace-format
+msgid "The {table} table does not exists"
+msgstr ""
+
+#: lib/QDepo/Model.pm:691
+msgid "Can not get the name of the table"
+msgstr ""
+
+#: lib/QDepo/Model.pm:703
 #, perl-brace-format
 msgid "{ert} Not implemented: \"table_info_short\""
 msgstr ""
 
-#: lib/QDepo/Controller.pm:69
+#: lib/QDepo/ListDataTable.pm:34
+msgid "Yes"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:47
 #, perl-brace-format
 msgid "{ert} Starting QDepo {verbose}"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:120
-#, perl-brace-format
-msgid "Connect to {driver}: {dbname}"
+#: lib/QDepo/Controller.pm:213
+msgid "Export data"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:133
-#, perl-brace-format
-msgid "{ert} Login cancelled"
-msgstr ""
-
-#: lib/QDepo/Controller.pm:148 lib/QDepo/Controller.pm:717
+#: lib/QDepo/Controller.pm:218 lib/QDepo/Controller.pm:298
+#: lib/QDepo/Controller.pm:643 lib/QDepo/Controller.pm:688
 #, perl-brace-format
 msgid "{ert} {logmsg}"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:158
-msgid "User and password is required"
+#: lib/QDepo/Controller.pm:365
+msgid "&Save"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:312
-msgid "Export data"
+#: lib/QDepo/Controller.pm:366
+msgid "&Cancel"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:498
+#: lib/QDepo/Controller.pm:369 lib/QDepo/Wx/View.pm:517
+msgid "&Edit"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:370 lib/QDepo/Wx/View.pm:526
+msgid "&Add"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:444
 msgid "Delete marked reports and quit?"
 msgstr ""
 
-#: lib/QDepo/Controller.pm:614 lib/QDepo/Controller.pm:624
-#: lib/QDepo/Output.pm:476 lib/QDepo/Output.pm:487 lib/QDepo/Output.pm:498
+#: lib/QDepo/Controller.pm:493
 #, perl-brace-format
-msgid "{ert} {message}: {details}"
+msgid "{ert} Loading mnemonic \"{mnemonic}\""
 msgstr ""
 
-#: lib/QDepo/Controller.pm:626
-msgid "Unknown exception"
-msgstr ""
-
-#: lib/QDepo/Controller.pm:659 lib/QDepo/Controller.pm:771
-msgid "Yes"
-msgstr ""
-
-#: lib/QDepo/Controller.pm:715
-msgid "Not connected."
-msgstr ""
-
-#: lib/QDepo/Controller.pm:722
-msgid "No DB!"
-msgstr ""
-
-#: lib/QDepo/Controller.pm:744
+#: lib/QDepo/Controller.pm:521
 #, perl-brace-format
-msgid "{ert} {message}: \"{pathname}\""
+msgid "{ert} Loading selected mnemonic \"{mnemonic}\""
 msgstr ""
 
-#: lib/QDepo/Controller.pm:760
+#: lib/QDepo/Controller.pm:648
+msgid "Not connected"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:660
+#, perl-brace-format
+msgid "Connect to {driver}: {dbname}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:673
+#, perl-brace-format
+msgid "{ert} Login cancelled"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:683
+msgid "Wrong user and/or password"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:701
+msgid "User and password is required"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:729
 #, perl-brace-format
 msgid "{ert} New connection: {newconn}"
 msgstr ""
 
-#: lib/QDepo/Output.pm:75 lib/QDepo/Output.pm:86
+#: lib/QDepo/Controller.pm:754
+#, perl-brace-format
+msgid "{ert} Saved: \"{filename}\""
+msgstr ""
+
+#: lib/QDepo/Controller.pm:770
+#, perl-brace-format
+msgid "{ert} Saved {filename}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:791 lib/QDepo/Controller.pm:817
+#, perl-brace-format
+msgid "{ert} {usermsg}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:799 lib/QDepo/Controller.pm:826
+#: lib/QDepo/Controller.pm:843 lib/QDepo/Output.pm:384 lib/QDepo/Output.pm:395
+#: lib/QDepo/Output.pm:406
+#, perl-brace-format
+msgid "{ert} {message}: {details}"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:801 lib/QDepo/Controller.pm:845
+msgid "Unknown error"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:859
+#, perl-brace-format
+msgid "{ert} Save failed: {message} ({filename})"
+msgstr ""
+
+#: lib/QDepo/Controller.pm:869
+#, perl-brace-format
+msgid "{ert} {message}: \"{pathname}\""
+msgstr ""
+
+#: lib/QDepo/Controller.pm:878
+#, perl-brace-format
+msgid "{ert} {message} {error}"
+msgstr ""
+
+#: lib/QDepo/Output.pm:71 lib/QDepo/Output.pm:82
 #, perl-brace-format
 msgid "{ert} {module} is not available"
 msgstr ""
 
-#: lib/QDepo/Output.pm:119
+#: lib/QDepo/Output.pm:115
 msgid "No output file parameter"
 msgstr ""
 
-#: lib/QDepo/Output.pm:125
+#: lib/QDepo/Output.pm:121
 msgid "No SQL parameter!"
-msgstr ""
-
-#: lib/QDepo/Output.pm:134
-msgid "Columns record"
 msgstr ""
 
 #: lib/QDepo/Output.pm:146
 #, perl-brace-format
+msgid "{ert} Generating output file \"{outfile}\""
+msgstr ""
+
+#: lib/QDepo/Output.pm:160
+#, perl-brace-format
 msgid "{ert} {option} is not implemented"
 msgstr ""
 
-#: lib/QDepo/Output.pm:161
+#: lib/QDepo/Output.pm:175
 #, perl-brace-format
 msgid "{ert} Count: {rows_cnt} total rows"
 msgstr ""
 
-#: lib/QDepo/Output.pm:169
+#: lib/QDepo/Output.pm:183
 #, perl-brace-format
-msgid "{ert} No output rows!"
+msgid "{ert} Could not count rows!"
 msgstr ""
 
-#: lib/QDepo/Output.pm:183 lib/QDepo/Output.pm:232 lib/QDepo/Output.pm:274
-#: lib/QDepo/Output.pm:328
+#: lib/QDepo/Output.pm:217 lib/QDepo/Output.pm:241
 #, perl-brace-format
-msgid "{ert} Generating output file \"{outfile}\""
+msgid "{ert} Can not count the output rows or rows_no <= 0"
 msgstr ""
 
-#: lib/QDepo/Output.pm:311 lib/QDepo/Output.pm:363
+#: lib/QDepo/Output.pm:228 lib/QDepo/Output.pm:252
 #, perl-brace-format
 msgid "one row"
 msgid_plural "{num} rows"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/QDepo/Output.pm:387
+#: lib/QDepo/Output.pm:272
 #, perl-brace-format
 msgid "{ert} Failed to extract FROM clause"
 msgstr ""
 
-#: lib/QDepo/Output.pm:400
+#: lib/QDepo/Output.pm:284
 #, perl-brace-format
 msgid "{ert} SQL: {cnt_sql}"
 msgstr ""
 
-#: lib/QDepo/Output.pm:448
+#: lib/QDepo/Output.pm:333
 #, perl-brace-format
 msgid "{ert} Stopped at user request"
 msgstr ""
 
-#: lib/QDepo/Output.pm:508
-#, perl-brace-format
-msgid "{ert} {message}"
+#: lib/QDepo/Output.pm:355
+msgid "Columns record"
 msgstr ""
 
-#: lib/QDepo/FileIO.pm:49
-msgid "No .qdf file to process"
-msgstr ""
-
-#: lib/QDepo/FileIO.pm:59
+#: lib/QDepo/FileIO.pm:39
 #, perl-brace-format
 msgid "{qdf_file} is not a valid XML file"
 msgstr ""
 
-#: lib/QDepo/FileIO.pm:69
+#: lib/QDepo/FileIO.pm:49
 #, perl-brace-format
 msgid "{qdf_file} is not a valid qdf file"
 msgstr ""
 
-#: lib/QDepo/FileIO.pm:85
+#: lib/QDepo/FileIO.pm:59
 msgid "Reading qdf files..."
 msgstr ""
 
-#: lib/QDepo/FileIO.pm:94
-msgid "No qdf files to process"
+#: lib/QDepo/FileIO.pm:68
+msgid "No .qdf files to process"
 msgstr ""
 
-#: lib/QDepo/FileIO.pm:99
+#: lib/QDepo/FileIO.pm:73
 #, perl-brace-format
 msgid "one qdf file"
 msgid_plural "{count} qdf files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/QDepo/Wx/View.pm:422
+#: lib/QDepo/Wx/View.pm:318
 msgid "Log"
 msgstr ""
 
-#: lib/QDepo/Wx/View.pm:463
+#: lib/QDepo/Wx/View.pm:373
 msgid "Query list"
 msgstr ""
 
-#: lib/QDepo/Wx/View.pm:507
-msgid "Refresh"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:522
-msgid "Fields"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:551 lib/QDepo/Wx/Notebook.pm:50
-msgid "SQL"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:598
-msgid "Load"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:616
-msgid "Edit"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:625
-msgid "Add"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:638
-msgid "Connection"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:671
-msgid "Label"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:675
-msgid "Value"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:711
-msgid "Parameters"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:751
-msgid "Title"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:755
-msgid "Query file"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:759
-msgid "Output file"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:763
-msgid "Template"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:774
-msgid "Header"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:801
-msgid "Driver"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:805
-msgid "Host"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:809
-msgid "Database"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:813
-msgid "Port"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:821
-msgid "Connection details"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:853
-msgid "Error"
-msgstr ""
-
-#: lib/QDepo/Wx/View.pm:870
-msgid "Confirm"
-msgstr ""
-
-#: lib/QDepo/Wx/Notebook.pm:48
-msgid "Queries"
-msgstr ""
-
-#: lib/QDepo/Wx/Notebook.pm:49
+#: lib/QDepo/Wx/View.pm:422 lib/QDepo/Wx/Notebook.pm:37
 msgid "Info"
 msgstr ""
 
-#: lib/QDepo/Wx/Notebook.pm:51
+#: lib/QDepo/Wx/View.pm:433
+msgid "Table name"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:442
+msgid "Fields"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:465 lib/QDepo/Wx/Notebook.pm:38
+msgid "SQL"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:499
+msgid "&Load"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:508
+msgid "&Default"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:539
+msgid "Connection"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:572
+msgid "Label"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:576
+msgid "Value"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:600
+msgid "Parameters"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:632
+msgid "Title"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:636
+msgid "Query file"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:640
+msgid "Output file"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:644
+msgid "Template"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:655
+msgid "Header"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:682
+msgid "Driver"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:694
+msgid "Host"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:698
+msgid "Database"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:702
+msgid "Port"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:710
+msgid "Connection details"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:737
+msgid "Error"
+msgstr ""
+
+#: lib/QDepo/Wx/View.pm:748
+msgid "Confirm"
+msgstr ""
+
+#: lib/QDepo/Wx/Notebook.pm:36
+msgid "Queries"
+msgstr ""
+
+#: lib/QDepo/Wx/Notebook.pm:39
 msgid "Admin"
 msgstr ""
 
-#: lib/QDepo/Wx/Controller.pm:105
+#: lib/QDepo/Wx/Controller.pm:64
 msgid "Enter configuration name"
 msgstr ""
 
-#: lib/QDepo/Wx/Controller.pm:106
+#: lib/QDepo/Wx/Controller.pm:65
 msgid "Entry dialog"
 msgstr ""
 
-#: lib/QDepo/Wx/Controller.pm:111
-msgid "User cancelled the dialog"
+#: lib/QDepo/Wx/Controller.pm:71
+#, perl-brace-format
+msgid "{ert} User cancelled the action"
+msgstr ""
+
+#: lib/QDepo/Db/Connection.pm:71
+#, perl-brace-format
+msgid "{ert} {driver} engine is not implemented"
 msgstr ""
 
 #: lib/QDepo/Config/Menu.pm:27
 msgid "App"
 msgstr ""
 
-#: lib/QDepo/Config/Menu.pm:32 lib/QDepo/Config/Toolbar.pm:63
+#: lib/QDepo/Config/Menu.pm:32 lib/QDepo/Config/Toolbar.pm:66
 msgid "Quit"
 msgstr ""
 
@@ -441,34 +538,34 @@ msgstr ""
 msgid "Execute query"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:40
+#: lib/QDepo/Config/Toolbar.pm:41
 msgid "Add query"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:43
+#: lib/QDepo/Config/Toolbar.pm:44
 msgid "Create new qdf file"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:66
+#: lib/QDepo/Config/Toolbar.pm:69
 msgid "Quit the application"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:76
+#: lib/QDepo/Config/Toolbar.pm:80
 msgid "Remove query"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:79
+#: lib/QDepo/Config/Toolbar.pm:83
 msgid "Remove the qdf file"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:89 lib/QDepo/Config/Toolbar.pm:92
+#: lib/QDepo/Config/Toolbar.pm:94 lib/QDepo/Config/Toolbar.pm:97
 msgid "Save metadata"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:102
+#: lib/QDepo/Config/Toolbar.pm:108
 msgid "Edit metadata"
 msgstr ""
 
-#: lib/QDepo/Config/Toolbar.pm:105
+#: lib/QDepo/Config/Toolbar.pm:111
 msgid "Toggle edit mode"
 msgstr ""
