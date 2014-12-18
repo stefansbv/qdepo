@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use File::HomeDir;
-use File::ShareDir qw(dist_dir);
+use File::ShareDir qw(dist_file);
 use File::UserConfig;
 use File::Spec::Functions qw(catdir catfile canonpath);
 use File::Slurp;
@@ -299,6 +299,11 @@ sub get_resource_file {
     return catfile( $self->cfpath, $dir, $file_name );
 }
 
+sub get_dist_file {
+    my ($self, @path) = @_;
+    return dist_file( 'QDepo', catfile(@path) );
+}
+
 sub get_default_mnemonic {
     my $self = shift;
     my $default_yml_file = $self->default_yml;
@@ -403,6 +408,11 @@ configuration file from template.
 =head2 get_resource_file
 
 Return resource file path.
+
+=head2 get_dist_file
+
+Find and return a specific file in our dist shared dir.  For example
+L<help/qdepo-manual.htb>.
 
 =head2 get_default_mnemonic
 

@@ -16,11 +16,6 @@ inc/
 *.csv
 *.al
 .tmp.*
-htmlhelp.h??
-htmlhelp.chm
-*.html
-*.chm
-toc.hhc
 *.old
 .build/
 .last_cover_stats
