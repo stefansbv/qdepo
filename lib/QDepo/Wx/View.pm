@@ -279,6 +279,8 @@ sub _build_splitter {
     my $min_pane_size = 50;
     my $sash_pos      = 450;
 
+    $self->{_gap} = Wx::wxVERSION >= 3 ? 8 : 2; # add more space for Wx >= 3
+
     my $spw = Wx::SplitterWindow->new(
         $self,
         -1,
@@ -316,7 +318,7 @@ sub _build_splitter {
 
     my $log_sbs = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxVERTICAL );
-    $log_sbs->Add(-1, 10);
+    $log_sbs->Add( -1, $self->{_gap} );
     $log_sbs->Add( $self->{log}, 1, wxEXPAND, 0 );
     $sizer_bot->Add( $log_sbs, 1, wxALL | wxEXPAND, 5 );
 
@@ -373,7 +375,7 @@ sub _build_page_querylist {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Query list', ),
         wxVERTICAL, );
-    $qlist_top_sz->Add(-1, 10);
+    $qlist_top_sz->Add( -1, $self->{_gap} );
 
     $qlist_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
 
@@ -383,7 +385,7 @@ sub _build_page_querylist {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Description', ),
         wxVERTICAL, );
-    $qlist_bot_sz->Add(-1, 10);
+    $qlist_bot_sz->Add( -1, $self->{_gap} );
 
     $qlist_bot_sz->Add( $self->{description}, 0, wxEXPAND );
 
@@ -434,7 +436,7 @@ sub _build_page_info {
 
     my $info_top_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Table name' ), wxVERTICAL );
-    $info_top_sz->Add(-1, 10);
+    $info_top_sz->Add( -1, $self->{_gap} );
     $info_top_sz->Add( $self->{table_name}, 0, wxTOP | wxEXPAND, 0);
 
     my $info_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
@@ -443,7 +445,7 @@ sub _build_page_info {
 
     my $info_bot_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Fields' ), wxVERTICAL );
-    $info_bot_sz->Add(-1, 10);
+    $info_bot_sz->Add( -1, $self->{_gap} );
     $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
     $info_main_sz->Add( $info_top_sz, 1, wxALL | wxEXPAND, 5 );
@@ -475,7 +477,7 @@ sub _build_page_sql {
 
     my $sql_main_sz = Wx::BoxSizer->new(wxVERTICAL);
     my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxVERTICAL, );
-    $sql_sbs->Add(-1, 10);
+    $sql_sbs->Add( -1, $self->{_gap} );
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
     $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
     $sql_main_sz->Add( $para_sizer, 0, wxALL | wxEXPAND, 5 );
@@ -541,7 +543,7 @@ sub _build_page_admin {
       Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Connection', ),
         wxVERTICAL, );
-    $conf_top_sz->Add(-1, 10);
+    $conf_top_sz->Add( -1, $self->{_gap} );
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
 
@@ -657,7 +659,7 @@ sub _build_ctrls_querylist {
 
     my $sizer = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Header' ), wxVERTICAL );
-    $sizer->Add(-1, 10);
+    $sizer->Add( -1, $self->{_gap} );
 
     my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $fg_sizer->AddGrowableCol( 1, 1 );
@@ -714,7 +716,8 @@ sub _build_ctrls_conn {
         = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Connection details', ),
         wxVERTICAL );
-    $sizer->Add(-1, 10);
+    $sizer->Add( -1, $self->{_gap} );
+    $sizer->Add( -1, 3 );
 
     my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $conn_mid_fgs->AddGrowableCol( 1, 1 );
