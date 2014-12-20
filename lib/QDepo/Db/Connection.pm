@@ -97,7 +97,7 @@ Using separate modules for each RDBMS, because ...
 
 =head3 C<load>
 
-This method and it's documenattion is copied/inspired from the Sqitch
+This method and it's documentation is copied/inspired from the Sqitch
 project.  Thanks!
 
   my $cmd = QDepo::Db::Connection->load(%params);
