@@ -52,6 +52,7 @@ sub handle_error {
     if ( defined $self->{_dbh} and $self->{_dbh}->isa('DBI::db') ) {
         my $errorstr = $self->{_dbh}->errstr;
         my ($message, $type) = $self->parse_error($errorstr);
+        $errorstr = q{} unless $type eq 'unknown';
         Exception::Db::SQL->throw(
             logmsg  => $errorstr,
             usermsg => $message,
@@ -84,22 +85,25 @@ sub parse_error {
         = $err eq q{} ? "nomessage"
         : $err =~ m/operation for file ($RE{quoted})/smi ? "dbnotfound:$1"
         : $err =~ m/\-Table unknown\s*\-(.*)\-/smi       ? "relnotfound:$1"
+        : $err =~ m/\-Token unknown -\s*(.*)/smi         ? "badtoken:$1"
         : $err =~ m/Your user name and password/smi      ? "userpass"
         : $err =~ m/no route to host/smi                 ? "network"
         : $err =~ m/network request to host ($RE{quoted})/smi ? "nethost:$1"
         : $err =~ m/install_driver($RE{balanced}{-parens=>'()'})/smi ? "driver:$1"
         : $err =~ m/not connected/smi                    ? "notconn"
-        :                                                 "unknown";
+        :                                                  "unknown";
 
     # Analize and translate
 
     my ( $type, $name ) = split /:/, $message_type, 2;
     $name = $name ? $name : '';
+    $name =~ s{\n\-}{ }gsm;                  # cleanup
 
     my $translations = {
         driver      => "Database driver $name not found",
         dbnotfound  => "Database $name not found",
         relnotfound => "Relation $name not found",
+        badtoken    => "Token unknown: $name",
         userpass    => "Authentication failed",
         nethost     => "Network problem: host $name",
         network     => "Network problem",
