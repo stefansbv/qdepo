@@ -9,5 +9,5 @@
 connection:
   driver: sqlite
   host: localhost
-  dbname: qdepo-test.db
+  dbname: classicmodels.db
   port: ~

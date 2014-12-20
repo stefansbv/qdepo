@@ -4,4 +4,4 @@
 resource:
   icons: etc/interfaces/icons
 output:
-  path: /tmp
+  path:
