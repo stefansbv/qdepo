@@ -54,11 +54,12 @@ sub init_configurations {
 
     # Fallback to the default mnemonic from default.yml if exists
     # unless list or init argument provied on the CLI
-    $args->{mnemonic} = $self->get_default_mnemonic()
+    my $mnemonic = $self->get_default_mnemonic()
         unless ( $args->{mnemonic}
             or defined( $args->{list} )
             or defined( $args->{init} )
             or $args->{default} );
+    $self->mnemonic($mnemonic);
 
     return;
 }
@@ -86,26 +87,40 @@ sub load_main_config {
     # Main config file name, load
     my $main_fqn = catfile( $self->cfpath, 'etc', 'main.yml' );
     my $maincfg  = $self->config_data_from($main_fqn);
-
+    my $output
+        = $maincfg->{output}{path}
+        ? canonpath( $maincfg->{output}{path} )
+        : File::HomeDir->my_home;
     my $main_hr = {
         icons    => catdir( $self->cfpath, $maincfg->{resource}{icons} ),
-        output   => canonpath( $maincfg->{output}{path} ),
+        output   => $output,
         qdf_tmpl => catfile( $self->cfpath, 'template', 'template.qdf' ),
     };
 
     # Setup when GUI runtime
-    $main_hr->{mnemonic} = $args->{mnemonic} if $args->{mnemonic};
-
+    # $main_hr->{mnemonic} = $args->{mnemonic} if $args->{mnemonic};
     $self->make_accessors($main_hr);
 
     return;
 }
 
+sub mnemonic {
+    my $self = shift;
+    $self->{mnemonic} = $_[0] if @_;
+    return $self->{mnemonic};
+}
+
 sub connection {
     my $self = shift;
 
+    die "No mnemonic!" unless $self->mnemonic; # TODO: fix tests
     my $connection_yml
         = catfile( $self->dbpath, $self->mnemonic, 'etc', 'connection.yml' );
+    Exception::IO::FileNotFound->throw(
+        pathname => $connection_yml,
+        message  => 'No such file',
+    ) unless -f $connection_yml;
+
     my $connection_data;
     if (-f $connection_yml) {
         $connection_data = $self->config_data_from($connection_yml);
@@ -123,7 +138,12 @@ sub connection {
 
 sub qdfpath {
     my $self = shift;
-    return catdir( $self->dbpath, $self->mnemonic, 'qdf' );
+    my $dir  = catdir( $self->dbpath, $self->mnemonic, 'qdf' );
+    Exception::IO::PathNotFound->throw(
+        pathname => $dir,
+        message  => 'No such path',
+    ) unless -d $dir;
+    return $dir;
 }
 
 sub list_mnemonics {
@@ -140,39 +160,29 @@ sub list_mnemonics {
 
 sub list_mnemonics_all {
     my $self = shift;
-
-    my @mnemonics = map { $_->{mnemonic} } @{ $self->get_mnemonics };
-
-    my $cc_no = scalar @mnemonics;
+    my $cc_no = scalar @{ $self->get_mnemonics } ;
     if ( $cc_no == 0 ) {
         print "Configurations (mnemonics): none\n";
         print ' in ', $self->dbpath, "\n";
         return;
     }
-
-    my $default = $self->get_default_mnemonic();
-
     print "Configurations (mnemonics):\n";
-    foreach my $name ( @mnemonics ) {
-        my $d = $default eq $name ? '*' : ' ';
-        print " ${d}> $name\n";
+    foreach my $rec ( @{ $self->get_mnemonics } ) {
+        my $d = $rec->{default} ? '*' : ' ';
+        my $n = $rec->{mnemonic};
+        print " ${d}> $n\n";
     }
-
     print ' in ', $self->dbpath, "\n";
-
     return;
 }
 
 sub list_mnemonic_details_for {
     my ($self, $mnemonic) = @_;
-
     my $conn_ref = $self->get_details_for($mnemonic);
-
     unless (scalar %{$conn_ref} ) {
         print "Configuration mnemonic '$mnemonic' not found!\n";
         return;
     }
-
     print "Configuration:\n";
     print "  > mnemonic: $mnemonic\n";
     while ( my ( $key, $value ) = each( %{ $conn_ref->{connection} } ) ) {
@@ -181,7 +191,6 @@ sub list_mnemonic_details_for {
         print "\n";
     }
     print ' in ', $self->dbpath, "\n";
-
     return;
 }
 
@@ -246,10 +255,8 @@ sub get_mnemonics {
 
     my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
 
-    my $default_name = $self->get_default_mnemonic;
-    my $current_name = $self->can('mnemonic')
-        ? $self->mnemonic
-        : $default_name;
+    my $default_name = $self->get_default_mnemonic || q{};
+    my $current_name = $self->mnemonic ? $self->mnemonic : $default_name;
 
     my @mnx;
     my $idx = 0;
@@ -312,8 +319,24 @@ sub get_default_mnemonic {
         return $cfg_hr->{mnemonic};
     }
     else {
-        warn "No valid default mnemonic found, fall-back to 'test'\n";
-        return 'test';
+        return $self->choose_a_default_mnemonic;
+    }
+}
+
+sub choose_a_default_mnemonic {
+    my $self = shift;
+    my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
+    my $cnt  = scalar @{$list};
+    if ($cnt == 0) {
+        return q{};
+    }
+    elsif ($cnt == 1) {
+        return $list->[0];
+    }
+    else {
+        # Any, but not 'test'
+        my @other = grep { $_ ne 'test' } @{$list};
+        return $other[0];
     }
 }
 
