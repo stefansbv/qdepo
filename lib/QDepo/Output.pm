@@ -122,22 +122,25 @@ sub db_generate_output {
         return;
     }
 
-    # Rows count for user messages and to initialize spreadsheet dimensions
+    # Rows count for user messages and spreadsheet dimensions initialization
     my $rows_cnt = $self->check_rows($sql, $bind);
 
     # Execute Select
     my $sth;
-    try {
+    my $success = try {
         $sth = $self->dbh->prepare($sql);
         foreach my $params ( @{$bind} ) {
             my ($p_num, $data) = @{$params};
             $sth->bind_param($p_num, $data);
         }
         $sth->execute();
+        1;
     }
     catch {
         $self->catch_db_exceptions($_, 'Execute select');
+        return undef;           # required!
     };
+    return unless $success;
 
     # Set header and columns matadata
     $self->make_columns_record($sth);
@@ -148,6 +151,8 @@ sub db_generate_output {
             outfile => $outfile,
         )
     );
+
+    return unless $sth;
 
     # Create output document
     my $sub_name = 'generate_output_' . lc($option);
@@ -180,10 +185,7 @@ sub check_rows {
     }
     else {
         $self->model->message_log(
-            __x('{ert} Could not count rows!',
-                ert      => 'II',
-            )
-        );
+            __x('{ert} Could not count rows!', ert => 'WW') );
     }
     return $rows_cnt;
 }
@@ -402,9 +404,11 @@ sub catch_db_exceptions {
         elsif ( $e->isa('Exception::Db::SQL') ) {
             $message = $e->usermsg;
             $details = $e->logmsg;
+            my $sep  = $details ? ':' : '';
             $self->model->message_log(
-                __x('{ert} {message}: {details}',
+                __x('{ert} {message}{sep} {details}',
                     ert     => 'EE',
+                    sep     => $sep,
                     message => $message,
                     details => $details,
                 )
