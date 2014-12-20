@@ -54,12 +54,12 @@ sub init_configurations {
 
     # Fallback to the default mnemonic from default.yml if exists
     # unless list or init argument provied on the CLI
-    my $mnemonic = $self->get_default_mnemonic()
+    $args->{mnemonic} = $self->get_default_mnemonic()
         unless ( $args->{mnemonic}
             or defined( $args->{list} )
             or defined( $args->{init} )
-            or $args->{default} );
-    $self->mnemonic($mnemonic);
+                 or $args->{default} );
+    $self->mnemonic( $args->{mnemonic} );
 
     return;
 }
