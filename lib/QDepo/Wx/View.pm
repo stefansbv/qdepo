@@ -258,9 +258,9 @@ sub enable_tool {
 
 sub _build_statusbar {
     my $self = shift;
-    my $sb = $self->CreateStatusBar( 3 );
+    my $sb   = $self->CreateStatusBar( 4 );
     $self->{_sb} = $sb;
-    $self->SetStatusWidths( 260, -1, -2 );
+    $self->SetStatusWidths( 180, 35, -1, -1 );
 }
 
 sub get_statusbar {
@@ -902,32 +902,19 @@ sub log_msg {
 
 sub set_status {
     my ( $self, $text, $sb_id, $color ) = @_;
-
     my $sb = $self->get_statusbar();
-
     if ( $sb_id eq q{db} ) {
-
-        # Database name
-        $sb->PushStatusText( $text, 2 ) if defined $text;
+        $sb->PushStatusText( $text, 2 ) if defined $text; # database name
+    }
+    elsif ( $sb_id eq q{mn} ) {
+        $sb->PushStatusText( $text, 3 ) if defined $text; # mnemonic
     }
     elsif ( $sb_id eq q{ms} ) {
-
-        # Messages
-        $sb->PushStatusText( $text, 0 ) if defined $text;
+        $sb->PushStatusText( $text, 0 ) if defined $text; # messages
     }
     else {
-
-        # App status
-        # my $cw = $self->GetCharWidth();
-        # my $ln = length $text;
-        # my $cn = () = $text =~ m{i|l}g;
-        # my $pl = int( ( 46 - $cw * $ln ) / 2 );
-        # $pl = ceil $pl / $cw;
-        # print "cw=$cw : ln=$ln : cn=$cn : pl=$pl: $text\n";
-        # $text = sprintf( "%*s", $pl, $text );
-        $sb->PushStatusText( $text, 1 ) if defined $text;
+        $sb->PushStatusText( $text, 1 ) if defined $text;# app status
     }
-
     return;
 }
 
@@ -1160,11 +1147,10 @@ sub focus_list {
 sub select_list_item {
     my ($self, $lname, $what) = @_;
 
-    return unless $what;                     # required if invalid mnemonic
+    return unless defined $what;        # required if invalid mnemonic
     die "List name is required for 'refresh_list'" unless $lname;
 
     my $items_no = $self->{$lname}->GetItemCount;
-
     return unless $items_no > 0;             # nothing to select
 
     my $item;

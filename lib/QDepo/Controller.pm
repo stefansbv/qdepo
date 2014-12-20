@@ -488,6 +488,11 @@ sub set_default_mnemonic {
 
 sub load_mnemonic {
     my $self = shift;
+    unless ( $self->cfg->mnemonic ) {
+        $self->model->message_log(
+            __x('{ert} No configuration mnemonic loaded', ert => 'WW') );
+        return;
+    }
     my $mnemonic = $self->cfg->mnemonic;
     $self->model->message_log(
         __x(qq({ert} Loading mnemonic "{mnemonic}"),
@@ -524,11 +529,12 @@ sub load_selected_mnemonic {
             )
         );
         $dt->set_item_current($item_sele);
+        $self->view->set_status($mnemonic, 'mn', 'green' );
         $self->cfg->mnemonic($mnemonic);
         $self->toggle_admin_buttons;
         $self->view->refresh_list('dlist');
         $self->populate_querylist;
-        $self->model->on_item_selected_load; # should be not necessary !?
+        $self->model->on_item_selected_load; # force load
     }
     return;
 }
@@ -614,10 +620,12 @@ sub list_add_item {
     }
     $data_table->set_item_default($row)
         if exists $rec->{default} and $rec->{default} == 1;
-    $data_table->set_item_current($row)
-        if exists $rec->{current} and $rec->{current} == 1;
+    if (exists $rec->{current} and $rec->{current} == 1) {
+        $data_table->set_item_current($row);
+        $self->view->set_status( $rec->{mnemonic}, 'mn', 'green' );
+    }
     $self->view->refresh_list($list);
-    return;
+    return $row;
 }
 
 sub is_connected {
@@ -735,7 +743,8 @@ sub add_new_menmonic {
             default  => 0,
             mnemonic => $name,
         };                      # add to list
-        $self->list_add_item('dlist', $rec);
+        my $item = $self->list_add_item('dlist', $rec);
+        $self->view->select_list_item('dlist', $item);
     }
 
     return;
@@ -747,15 +756,14 @@ sub edit_connections {
     if ( $self->model->is_appmode('admin') ) {
         my $dt = $self->model->get_data_table_for('dlist');
         my $mnemonic = $self->get_selected_mnemonic;
+        unless ($mnemonic) {
+            $self->model->message_log(
+                __x('{ert} No selected mnemonic', ert => 'WW') );
+            return;
+        }
 
         # Save connection data
         my $yaml_file = $self->cfg->config_file_name($mnemonic);
-        $self->model->message_log(
-            __x('{ert} Saved: "{filename}"',
-                ert      => 'II',
-                filename => $yaml_file,
-            ) );
-
         my $conn_aref = $self->view->controls_read_frompage('admin');
         my $conn_data = QDepo::Utils->transform_data($conn_aref);
 
@@ -767,11 +775,10 @@ sub edit_connections {
             $self->io_exception( $_, "edit connections" );
         };
         $self->model->message_log(
-            __x('{ert} Saved {filename}',
-                ert      => 'EE',
+            __x('{ert} Saved: "{filename}"',
+                ert      => 'II',
                 filename => $yaml_file,
-            )
-        );
+            ) );
         $self->set_app_mode('sele');
     }
     else {
