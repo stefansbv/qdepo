@@ -260,7 +260,7 @@ sub _build_statusbar {
     my $self = shift;
     my $sb   = $self->CreateStatusBar( 4 );
     $self->{_sb} = $sb;
-    $self->SetStatusWidths( 180, 35, -1, -1 );
+    $self->SetStatusWidths( 180, 35, -3, -2 );
 }
 
 sub get_statusbar {
