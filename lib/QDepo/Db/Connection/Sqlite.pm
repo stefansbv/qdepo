@@ -8,6 +8,7 @@ use warnings;
 use DBI;
 use Try::Tiny;
 use Regexp::Common;
+use File::Spec::Functions;
 
 use QDepo::Exceptions;
 
@@ -24,12 +25,14 @@ sub new {
 sub db_connect {
     my ( $self, $args ) = @_;
 
-    my $dbpath = $args->dbname;
+    my $dbname = $args->dbname;
 
+    # Fixed path for SQLite databases
+    # TODO: use other paths
+    my $dbpath = get_testdb_filename($dbname);
     unless (-f $dbpath) {
-        print "DB: $dbpath not found\n";
         Exception::Db::Connect->throw(
-            logmsg  => "The $dbpath database does not exists!",
+            logmsg  => "Database not found: $dbpath",
             usermsg => 'Not connected',
         );
     }
@@ -189,10 +192,19 @@ sub table_info_short {
     return $flds_ref;
 }
 
+sub get_testdb_filename {
+    my $dbname = shift;
+    return catfile(File::HomeDir->my_data, $dbname);
+}
+
 1;
 
 =head2 parse_error
 
 Parse a database error message, and translate it for the user.
+
+=head2 get_testdb_filename
+
+Return the database absolute path constructed using the user's data dir.
 
 =cut
