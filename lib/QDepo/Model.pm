@@ -188,6 +188,7 @@ sub on_item_selected_load {
     my $self = shift;
     my $dt   = $self->get_data_table_for('qlist');
     my $item = $dt->get_item_selected;
+    return unless defined $item;
     my $data = $self->get_qdf_data($item);
     $self->set_query_file( $data->{file} );
     my $itemdata = $self->read_qdf_data_file;
@@ -246,11 +247,20 @@ sub run_export {
         $self->message_status( 'Parameter error!', 0 );
         return;
     }
+    if ( $sqltext =~ m{!edit!} ) {
+        $self->message_log(
+            __x( '{ert} Please, edit the SQL statement', ert => 'WW' ) );
+        return;
+    }
 
     my $outfile = $self->itemdata->output;
+    if ( $outfile =~ m{!edit!} ) {
+        $self->message_log(
+            __x( '{ert} Please, edit the output file name', ert => 'WW' ) );
+        return;
+    }
 
     $self->message_log( __x('{ert} Running data export...', ert => 'II') );
-
     my $outpath = $self->cfg->output();
     if ( !-d $outpath ) {
         $self->message_status(__ 'Wrong output path', 0);
@@ -624,7 +634,7 @@ sub get_conn_list_meta {
             type  => 'bool',
         },
         {   field => 'description',
-            label => __ 'Description',
+            label => __ 'Database',
             align => 'left',
             width => 125,
             type  => 'str',
@@ -650,6 +660,11 @@ sub get_data_table_for {
 
 sub get_sql_stmt {
     my $self = shift;
+    my $data = $self->itemdata;
+    unless (defined $data) {
+        $self->message_log(__x(qq({ert} Item data missing!), ert => 'WW'));
+        return;
+    }
     my ($bind, $sql) = $self->string_replace_for_run(
         $self->itemdata->sql,
         $self->itemdata->params,
@@ -663,9 +678,14 @@ sub parse_sql_text {
 
     my $parser
         = SQL::Parser->new( 'AnyData', { RaiseError => 1, PrintError => 0 } );
-    my ($bind, $sql_text) = $self->get_sql_stmt;
+    my ($bind, $sqltext) = $self->get_sql_stmt;
+    if ( $sqltext =~ m{!edit!} ) {
+        $self->message_log(
+            __x( '{ert} Please, edit the SQL statement', ert => 'WW' ) );
+        return;
+    }
     try {
-        $parser->parse($sql_text);
+        $parser->parse($sqltext);
     }
     catch {
         Exception::Db::SQL::Parser->throw(
