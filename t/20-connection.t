@@ -5,9 +5,10 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 26;
 
 use lib qw( lib ../lib );
+use t::lib::TestDB qw/make_database/;
 
 use QDepo::Config;
 use QDepo::Model;
@@ -20,6 +21,15 @@ my $args = {
 
 my $cfg = QDepo::Config->instance( $args );
 ok( $cfg->isa('QDepo::Config'), 'created QDepo::Config instance' );
+
+# Make a test database for SQLite
+if ( $cfg->connection->driver =~ m{sqlite}xi ) {
+    my $rv = make_database();
+    if ($rv != -1) {
+        # -1 means return value (number of rows) is not applicable
+        BAIL_OUT("Dubious return value from 'make_database': $rv");
+    }
+}
 
 ok my $model = QDepo::Model->new, 'new Model instance';
 is $model->is_connected, undef, 'is not connected';

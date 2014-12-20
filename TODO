@@ -23,3 +23,5 @@ CUBRID:
 4. Disable the "not available" output options.
 
 5. DONE: Fix errors on nonexistent mnemonic.
+
+6. BUG: Non ASCII mnemonic names not supported!
