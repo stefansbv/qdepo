@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Carp;
 
-use Text::CSV_XS;
+use Text::CSV;
 use QDepo::Utils;
 
 sub new {
@@ -26,7 +26,7 @@ sub _create_doc {
     my ($self) = @_;
 
     # Options from config?
-    my $csv_o = Text::CSV_XS->new(
+    my $csv_o = Text::CSV->new(
         {
             'sep_char'     => ';',
             'always_quote' => 0,
