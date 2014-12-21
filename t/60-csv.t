@@ -4,6 +4,7 @@
 
 use strict;
 use warnings;
+use utf8;
 
 use Test::More;
 
@@ -26,12 +27,12 @@ my $test_data_row = [
         recno    => 1,
         type     => "integer"
     },
-    {   contents => "Joe",
+    {   contents => "Ștefan",
         field    => "firstname",
         recno    => 1,
         type     => "varchar"
     },
-    {   contents => "Doe",
+    {   contents => "Țarălungă",
         field    => "lastname",
         recno    => 1,
         type     => "varchar"
