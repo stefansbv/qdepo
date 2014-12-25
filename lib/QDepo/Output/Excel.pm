@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Carp;
 
+use Try::Tiny;
 use Spreadsheet::WriteExcel;
 use QDepo::Utils;
 
@@ -18,8 +19,8 @@ sub new {
     $self->{xls_fh}   = undef;
     $self->{workbook} = undef;
     $self->{sheet}    = undef;
-    $self->{lenghts}  = [];     # Array to hold max lenghts for each col
-    $self->{max_len}  = 30;     # Max column width
+    $self->{lenghts}  = [];      # Array to hold max lenghts for each col
+    $self->{max_len}  = 30;      # Max column width
 
     $self->_create_doc();
 
@@ -30,12 +31,15 @@ sub _create_doc {
     my ( $self, $sheet_name ) = @_;
 
     # Create a new Excel workbook
-    eval { $self->{workbook}
-               = Spreadsheet::WriteExcel->new( $self->{xls_file} ) };
-    if ($@) {
-        print "Spreadsheet::WriteExcel not installed?";
-        return;
+    my $success = try {
+        $self->{workbook} = Spreadsheet::WriteExcel->new( $self->{xls_file} );
+        1;
     }
+    catch {
+        carp "Spreadsheet::WriteExcel not installed?!";
+        return;    # required!
+    };
+    return unless $success;
 
     # Get a new sheet
     $self->{sheet} = $self->{workbook}->addworksheet($sheet_name);
@@ -62,12 +66,13 @@ sub _create_doc {
 
     # String wrap format
     $fmt{varchar_fmt} = $self->{workbook}->addformat(
-        size      => 8,
-        color     => 'black',
-        align     => 'left',
-        border    => 1,
+        size   => 8,
+        color  => 'black',
+        align  => 'left',
+        border => 1,
+
         #text_wrap => 1,
-        border    => 1,
+        border => 1,
     );
 
     # Numeric format
@@ -136,13 +141,13 @@ sub create_row {
         my $type = $rec->{type};
         my $cfmt = defined $type ? "${type}_fmt" : 'varchar_fmt';
         if ( $type and $type =~ /date/ ) {
+
             # Date/Time must be in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
-            $self->{sheet}->write_date_time( $row, $col, $data,
-                                             $self->{fmt}{$cfmt} );
+            $self->{sheet}
+                ->write_date_time( $row, $col, $data, $self->{fmt}{$cfmt} );
         }
         else {
-            $self->{sheet}
-                ->write( $row, $col, $data, $self->{fmt}{$cfmt} );
+            $self->{sheet}->write( $row, $col, $data, $self->{fmt}{$cfmt} );
         }
         $self->store_max_len( $col, length $data ) if $data;
         $col++;
@@ -151,27 +156,27 @@ sub create_row {
 }
 
 sub finish {
-    my ($self, $count_rows, $percent) = @_;
+    my ( $self, $count_rows, $percent ) = @_;
 
     # Set columns width
     $self->set_cols_width();
     $self->{workbook}->close
-        or die "Can not close WorkBook: $!\n";
+        or croak "Can not close WorkBook: $!\n";
     my $output;
     if ( -f $self->{xls_file} ) {
         $output = $self->{xls_file};
     }
-    return ($output, $count_rows, $percent);
+    return ( $output, $count_rows, $percent );
 }
 
 sub init_column_widths {
     my ( $self, $fields ) = @_;
     @{ $self->{lenghts} } = map { defined $_ ? length($_) : 0 } @{$fields};
-    return scalar @{$self->{lenghts}};       # for test
+    return scalar @{ $self->{lenghts} };    # for test
 }
 
 sub store_max_len {
-    my ($self, $col, $len) = @_;
+    my ( $self, $col, $len ) = @_;
 
     # Impose a maximum width
     $len = $self->{max_len} if $len > $self->{max_len};
@@ -185,7 +190,7 @@ sub store_max_len {
 sub set_cols_width {
     my ($self) = @_;
     my $cols = scalar @{ $self->{lenghts} };
-    for ( my $col = 0 ; $col < $cols; $col++ ) {
+    for ( my $col = 0; $col < $cols; $col++ ) {
         $self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
     }
     return;
@@ -203,8 +208,8 @@ Constructor method.
 
 Create the create the Excel spreadsheet document.
 
-TODO: Formats better defined outside the module, maybe in a YAML
-configuration file?
+TODO: Formats better defined outside the module, maybe in a YAML configuration
+file?
 
 =head2 create_row
 

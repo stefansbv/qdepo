@@ -4,6 +4,7 @@ package QDepo::Db::Connection::Firebird;
 
 use strict;
 use warnings;
+use Carp;
 
 use DBI;
 use Try::Tiny;
@@ -14,7 +15,7 @@ use QDepo::Exceptions;
 sub new {
     my ($class, $p) = @_;
     my $model = delete $p->{model}
-        or die 'Missing "model" parameter to new()';
+        or croak 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -95,9 +96,9 @@ sub parse_error {
 
     # Analize and translate
 
-    my ( $type, $name ) = split /:/, $message_type, 2;
+    my ( $type, $name ) = split /:/x, $message_type, 2;
     $name = $name ? $name : '';
-    $name =~ s{\n\-}{ }gsm;                  # cleanup
+    $name =~ s{\n\-}{\ }xgsm;                  # cleanup
 
     my $translations = {
         driver      => "Database driver $name not found",
@@ -126,7 +127,7 @@ sub parse_error {
 sub table_exists {
     my ( $self, $table ) = @_;
 
-    die "'table_exists' requires a 'table' parameter!" unless $table;
+    croak "'table_exists' requires a 'table' parameter!" unless $table;
 
     $table = uc $table;
 
@@ -154,7 +155,7 @@ sub table_exists {
 sub table_info_short {
     my ( $self, $table ) = @_;
 
-    die "'table_info_short' requires a 'table' parameter!" unless $table;
+    croak "'table_info_short' requires a 'table' parameter!" unless $table;
 
     $table = uc $table;
 

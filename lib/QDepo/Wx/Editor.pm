@@ -26,20 +26,23 @@ sub new {
     $self->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
     $self->SetMarginWidth( 1, 10 );
     $self->StyleSetFont( wxSTC_STYLE_DEFAULT,
-        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
+        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' )
+    );
+
     # $self->SetLexer( wxSTC_LEX_SQL );
-    $self->SetLexer( wxSTC_LEX_MSSQL );
+    $self->SetLexer(wxSTC_LEX_MSSQL);
+
     # List0
-    $self->SetKeyWords(0,
-    q{all and any ascending between by cast collate containing day
-descending distinct escape exists from full group having in
-index inner into is join left like merge month natural not
-null on order outer plan right select singular some sort starting
-transaction union upper user where with year} );
+    $self->SetKeyWords( 0,
+        q{all and any ascending between by cast collate containing day descending distinct escape exists from full group having in index inner into is join left like merge month natural not null on order outer plan right select singular some sort starting transaction union upper user where with year}
+    );
+
     # List1
-    $self->SetKeyWords(1, q{blob char decimal integer number varchar} );
+    $self->SetKeyWords( 1, q{blob char decimal integer number varchar} );
+
     # List2 Only for MSSQL?
-    $self->SetKeyWords(2, q{avg count gen_id max min sum value1 value2 value3 value4 value5} );
+    $self->SetKeyWords( 2,
+        q{avg count gen_id max min sum value1 value2 value3 value4 value5} );
     $self->SetTabWidth(4);
     $self->SetIndent(4);
     $self->SetHighlightGuide(4);
@@ -48,9 +51,9 @@ transaction union upper user where with year} );
 
     # Global default styles for all languages
     $self->StyleSetSpec( wxSTC_STYLE_BRACELIGHT,
-                                "fore:#FFFFFF,back:#0000FF,bold" );
+        "fore:#FFFFFF,back:#0000FF,bold" );
     $self->StyleSetSpec( wxSTC_STYLE_BRACEBAD,
-                                "fore:#000000,back:#FF0000,bold" );
+        "fore:#000000,back:#FF0000,bold" );
 
     # MSSQL - works with wxSTC_LEX_MSSQL
     $self->StyleSetSpec( 0,  "fore:#000000" );           #*Default

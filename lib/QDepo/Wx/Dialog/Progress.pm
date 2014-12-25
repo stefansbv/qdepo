@@ -14,10 +14,7 @@ use Wx qw(
 );
 
 sub new {
-    my $class = shift;
-
-    my ( $main, $title, $max ) = @_;
-
+    my ( $class, $main, $title, $max ) = @_;
     my $self = {
         main    => $main,
         title   => $title,
@@ -25,9 +22,7 @@ sub new {
         start   => time,
         message => 'Copied 0% ...',
     };
-
     bless $self, $class;
-
     return $self;
 }
 
@@ -36,28 +31,20 @@ sub _create_progress {
 
     # Default flags
 
-    my $flags = Wx::wxPD_ELAPSED_TIME
-              | Wx::wxPD_ESTIMATED_TIME
-              | Wx::wxPD_REMAINING_TIME
-              | Wx::wxPD_AUTO_HIDE
-              | Wx::wxPD_CAN_ABORT
-              ;
+    my $flags = Wx::wxPD_ELAPSED_TIME | Wx::wxPD_ESTIMATED_TIME
+        | Wx::wxPD_REMAINING_TIME | Wx::wxPD_AUTO_HIDE | Wx::wxPD_CAN_ABORT;
 
     # Create the progress bar dialog
 
-    $self->{dialog} = Wx::ProgressDialog->new(
-        $self->{title},
-        $self->{message},
-        $self->{max},
-        $self->{main},
-        $flags,
-    );
+    $self->{dialog}
+        = Wx::ProgressDialog->new( $self->{title}, $self->{message},
+        $self->{max}, $self->{main}, $flags, );
 
     return;
 }
 
 sub update {
-    my ($self, $value) = @_;
+    my ( $self, $value ) = @_;
 
     return unless defined $value;
 
@@ -75,23 +62,32 @@ sub update {
     return $self->{dialog}->Update( $value, $text );
 }
 
-sub Destroy { shift->DESTROY; }
+sub Destroy {
+    my $self = shift;
+    $self->DESTROY;
+    return;
+}
 
 sub DESTROY {
     my $self = shift;
     $self->{dialog}->Destroy if defined( $self->{dialog} );
     $self->{dialog} = undef;
+    return;
 }
 
 1;
 
 =head1 SYNOPSIS
 
+Show a progress dialog to the user.
+
     use QDepo::Wx::Dialog::Progress;
 
     my $dlg = QDepo::Wx::Dialog::Progress->new();
 
     $dlg->update();
+
+=head1 METHODS
 
 =head2 new
 

@@ -4,6 +4,7 @@ package QDepo::Db::Connection::Cubrid;
 
 use strict;
 use warnings;
+use Carp;
 
 use DBI;
 use Try::Tiny;
@@ -12,9 +13,9 @@ use Regexp::Common;
 # use QDepo::Exceptions; not yet...
 
 sub new {
-    my ($class, $p) = @_;
+    my ( $class, $p ) = @_;
     my $model = delete $p->{model}
-        or die 'Missing "model" parameter to new()';
+        or croak 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;

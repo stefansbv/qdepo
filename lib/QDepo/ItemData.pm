@@ -8,7 +8,7 @@ use warnings;
 use QDepo::Config;
 
 sub new {
-    my ($class, $data) = @_;
+    my ( $class, $data ) = @_;
 
     my $self = {};
     $self->{data} = $data;

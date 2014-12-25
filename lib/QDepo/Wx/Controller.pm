@@ -15,7 +15,7 @@ use base qw{QDepo::Controller};
 
 sub new {
     my $class = shift;
-    my $self = $class->SUPER::new();
+    my $self  = $class->SUPER::new();
     $self->_init;
     $self->set_event_handlers();
     $self->set_event_handlers_keys();
@@ -26,18 +26,19 @@ sub close_app {
     my $self = shift;
     my $event = Wx::CommandEvent->new( 9999, -1 );
     $self->view->GetEventHandler()->AddPendingEvent($event);
+    return;
 }
 
 sub _init {
     my $self = shift;
-    my $app = QDepo::Wx::App->create($self->model);
+    my $app  = QDepo::Wx::App->create( $self->model );
     $self->{_app}  = $app;
     $self->{_view} = $app->{_view};
     return;
 }
 
 sub dialog_login {
-    my ($self, $error) = @_;
+    my ( $self, $error ) = @_;
 
     require QDepo::Wx::Dialog::Login;
     my $pd = QDepo::Wx::Dialog::Login->new();
@@ -68,8 +69,7 @@ sub get_text_dialog {
     my $name;
     if ( $dialog->ShowModal == wxID_CANCEL ) {
         $self->model->message_log(
-            __x( '{ert} User cancelled the action', ert => 'II' )
-        );
+            __x( '{ert} User cancelled the action', ert => 'II' ) );
     }
     else {
         $name = $dialog->GetValue;
@@ -92,22 +92,25 @@ sub set_event_handlers {
 
     #-- Add new report
     $self->view->event_handler_for_tb_button(
-        'tb_ad', sub {
+        'tb_ad',
+        sub {
             $self->add_new_report;
         }
     );
 
     #-- Remove report
     $self->view->event_handler_for_tb_button(
-        'tb_rm', sub {
+        'tb_rm',
+        sub {
             $self->toggle_mark_item();
         }
     );
 
     #- Choice
     $self->view->event_handler_for_tb_choice(
-        'tb_ls', sub {
-            $self->model->set_choice($_[1]->GetString);
+        'tb_ls',
+        sub {
+            $self->model->set_choice( $_[1]->GetString );
         }
     );
 
@@ -126,14 +129,14 @@ sub _set_event_handler_nb {
             my $page = $self->view->get_nb_current_page;
             $self->view->set_nb_current($page);
 
-          SWITCH: {
+        SWITCH: {
                 $page eq 'p1'
                     && do { $self->on_page_p1_activate; last SWITCH; };
                 $page eq 'p2'
                     && do { $self->on_page_p2_activate; last SWITCH; };
-                $page eq  'p3'
+                $page eq 'p3'
                     && do { $self->on_page_p3_activate; last SWITCH; };
-                $page eq  'p4'
+                $page eq 'p4'
                     && do { $self->on_page_p4_activate; last SWITCH; };
                 print "EE: \$page is not in (p1 p2 p3 p4)\n";
             }
@@ -180,14 +183,14 @@ sub add_new_report {
     my $item     = $self->add_qlist_item($rec);
     $dt->set_item_selected($item);
     $self->model->on_item_selected_load;
-    $self->view->select_list_item('qlist', 'last');
+    $self->view->select_list_item( 'qlist', 'last' );
     $self->set_app_mode('edit');
 
     return;
 }
 
 sub add_qlist_item {
-    my ($self, $rec) = @_;
+    my ( $self, $rec ) = @_;
 
     my $dt = $self->model->get_data_table_for('qlist');
 
@@ -200,7 +203,7 @@ sub add_qlist_item {
 
     $self->view->refresh_list('qlist');
 
-    return $items[0];                      # it's only 1
+    return $items[0];    # it's only 1
 }
 
 sub about {
@@ -211,30 +214,25 @@ sub about {
     # Framework version
     my $PROGRAM_NAME = ' QDepo ';
     my $wx_version   = wxVERSION_STRING;
-    my $PROGRAM_DESC = qq{
-Query Deposit
-
-wxPerl $Wx::VERSION, $wx_version
-
-};
-
-    my $PROGRAM_VER  = $QDepo::VERSION;
-    my $LICENSE = QDepo::Config::Utils->get_license();
-    my $about = Wx::AboutDialogInfo->new;
+    my $PROGRAM_DESC
+        = qq{\nQuery Deposit\n} . qq{\nwxPerl $Wx::VERSION, $wx_version\n};
+    my $PROGRAM_VER = $QDepo::VERSION;
+    my $LICENSE     = QDepo::Config::Utils->get_license();
+    my $about       = Wx::AboutDialogInfo->new;
     $about->SetName($PROGRAM_NAME);
     $about->SetVersion($PROGRAM_VER);
     $about->SetDescription($PROGRAM_DESC);
     $about->SetCopyright('(c) 2010-2014 Ștefan Suciu <stefan@s2i2.ro>');
     $about->SetLicense($LICENSE);
-    $about->SetWebSite( 'http://qdepo.s2i2.ro/', 'The QDepo web site');
-    $about->AddDeveloper( 'Ștefan Suciu <stefan@s2i2.ro>' );
-    Wx::AboutBox( $about );
+    $about->SetWebSite( 'http://qdepo.s2i2.ro/', 'The QDepo web site' );
+    $about->AddDeveloper('Ștefan Suciu <stefan@s2i2.ro>');
+    Wx::AboutBox($about);
     return;
 }
 
 sub guide {
     my $self = shift;
-    my $gui = $self->view;
+    my $gui  = $self->view;
     require QDepo::Wx::Dialog::Help;
     my $gd = QDepo::Wx::Dialog::Help->new;
     $gd->show_html_help();
@@ -256,7 +254,7 @@ sub save_qdf_data {
 
     # Update title in list
     my $dt = $self->model->get_data_table_for('qlist');
-    $dt->set_value( $item, 1, $title);
+    $dt->set_value( $item, 1, $title );
 
     return;
 }

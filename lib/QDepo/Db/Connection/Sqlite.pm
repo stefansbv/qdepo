@@ -4,6 +4,7 @@ package QDepo::Db::Connection::Sqlite;
 
 use strict;
 use warnings;
+use Carp;
 
 use DBI;
 use Try::Tiny;
@@ -15,7 +16,7 @@ use QDepo::Exceptions;
 sub new {
     my ($class, $p) = @_;
     my $model = delete $p->{model}
-        or die 'Missing "model" parameter to new()';
+        or croak 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -30,13 +31,6 @@ sub db_connect {
     # Fixed path for SQLite databases
     # TODO: use other paths
     my $dbpath = get_testdb_filename($dbname);
-    unless (-f $dbpath) {
-        Exception::Db::Connect->throw(
-            logmsg  => "Database not found: $dbpath",
-            usermsg => 'Not connected',
-        );
-    }
-
     my $dsn = qq{dbi:SQLite:dbname=$dbpath};
 
     $self->{_dbh} = DBI->connect(
@@ -117,7 +111,7 @@ sub parse_error {
 sub table_exists {
     my ( $self, $table ) = @_;
 
-    die "'table_exists' requires a 'table' parameter!" unless $table;
+    croak "'table_exists' requires a 'table' parameter!" unless $table;
 
     my $sql = qq( SELECT COUNT(name)
                 FROM sqlite_master
@@ -142,7 +136,7 @@ sub table_exists {
 sub table_info_short {
     my ( $self, $table ) = @_;
 
-    die "'table_info_short' requires a 'table' parameter!" unless $table;
+    croak "'table_info_short' requires a 'table' parameter!" unless $table;
 
     my $h_ref;
     try {

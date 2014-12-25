@@ -10,9 +10,8 @@ has 'toolnames' => (
     is      => 'ro',
     isa     => 'ArrayRef',
     default => sub {
-        [ 'tb_ed', 'tb_sv', 'tb_ad', 'tb_rm', 'tb_ls', 'tb_go',
-          'tb_qt' ],
-        },
+        return [ 'tb_ed', 'tb_sv', 'tb_ad', 'tb_rm', 'tb_ls', 'tb_go', 'tb_qt' ],
+    },
     handles => {
         all_buttons => 'elements',
     },
@@ -23,7 +22,7 @@ has 'tool' => (
     is      => 'rw',
     isa     => 'HashRef',
     default => sub {
-        {   'tb_go' => {
+        return {   'tb_go' => {
                 'tooltip' => __ 'Run',
                 'icon'    => 'navforward16',
                 'sep'     => 'after',

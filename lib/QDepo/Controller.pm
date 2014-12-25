@@ -17,7 +17,7 @@ use QDepo::Config::Utils;
 
 sub new {
     my $class = shift;
-    my $self = {
+    my $self  = {
         _model => QDepo::Model->new(),
         _cfg   => QDepo::Config->instance(),
     };
@@ -50,7 +50,7 @@ sub start {
         )
     );
 
-    $self->model->get_connection_observable->set(0); # init
+    $self->model->get_connection_observable->set(0);    # init
 
     my $default_output = $self->view->get_choice_default();
     $self->model->set_choice($default_output);
@@ -66,16 +66,16 @@ sub start {
 }
 
 sub populate_connlist {
-    my $self = shift;
+    my $self          = shift;
     my $mnemonics_ref = $self->cfg->get_mnemonics;
     return unless @{$mnemonics_ref};
 
     my $current_idx;
     foreach my $rec ( @{$mnemonics_ref} ) {
         $current_idx = $rec->{recno} - 1 if $rec->{current} == 1;
-        $self->list_add_item('dlist', $rec);
+        $self->list_add_item( 'dlist', $rec );
     }
-    $self->view->select_list_item('dlist', $current_idx);
+    $self->view->select_list_item( 'dlist', $current_idx );
     return;
 }
 
@@ -85,14 +85,14 @@ sub populate_querylist {
     my $items = $self->model->get_qdf_data;
     return unless scalar keys %{$items};
 
-    my @indices = sort { $a <=> $b } keys %{$items}; # populate in order
-    foreach my $idx ( @indices ) {
-        $self->list_add_item('qlist', $items->{$idx} );
+    my @indices = sort { $a <=> $b } keys %{$items};    # populate in order
+    foreach my $idx (@indices) {
+        $self->list_add_item( 'qlist', $items->{$idx} );
     }
     my $dt = $self->model->get_data_table_for('qlist');
-    if ( $dt->get_item_count >= 0) {
+    if ( $dt->get_item_count >= 0 ) {
         $self->set_app_mode('sele');
-        $self->view->select_list_item('qlist', 'first');
+        $self->view->select_list_item( 'qlist', 'first' );
     }
     return;
 }
@@ -209,8 +209,8 @@ sub set_event_handlers {
     $self->view->event_handler_for_tb_button(
         'tb_go',
         sub {
-            if ($self->is_connected ) {
-                $self->view->dialog_progress(__ 'Export data');
+            if ( $self->is_connected ) {
+                $self->view->dialog_progress( __ 'Export data' );
                 $self->model->run_export;
             }
             else {
@@ -226,14 +226,16 @@ sub set_event_handlers {
 
     #-- Quit
     $self->view->event_handler_for_tb_button(
-        'tb_qt', sub {
+        'tb_qt',
+        sub {
             $self->on_quit;
         }
     );
 
     #-- Query List
     $self->view->event_handler_for_list(
-        'qlist', sub {
+        'qlist',
+        sub {
             my ( $view, $event ) = @_;
             my $item = $event->GetIndex;
             my $dt   = $self->model->get_data_table_for('qlist');
@@ -244,7 +246,8 @@ sub set_event_handlers {
 
     #-- DB Configs List
     $self->view->event_handler_for_list(
-        'dlist', sub {
+        'dlist',
+        sub {
             my ( $view, $event ) = @_;
             my $item = $event->GetIndex;
             my $dt   = $self->model->get_data_table_for('dlist');
@@ -258,14 +261,16 @@ sub set_event_handlers {
 
     #-- Load button
     $self->view->event_handler_for_button(
-        'btn_load', sub {
+        'btn_load',
+        sub {
             $self->load_selected_mnemonic;
         }
     );
 
     #-- Default button
     $self->view->event_handler_for_button(
-        'btn_defa', sub {
+        'btn_defa',
+        sub {
             $self->set_default_mnemonic;
             $self->set_default_item;
         }
@@ -273,7 +278,8 @@ sub set_event_handlers {
 
     #-- Add button
     $self->view->event_handler_for_button(
-        'btn_add', sub {
+        'btn_add',
+        sub {
             $self->model->is_appmode('admin')
                 ? $self->set_app_mode('sele')
                 : $self->add_new_menmonic;
@@ -282,15 +288,17 @@ sub set_event_handlers {
 
     #-- Edit button
     $self->view->event_handler_for_button(
-        'btn_edit', sub {
+        'btn_edit',
+        sub {
             $self->edit_connections;
         }
     );
 
     #-- Refresh button
     $self->view->event_handler_for_button(
-        'btn_refr', sub {
-            if ($self->is_connected ) {
+        'btn_refr',
+        sub {
+            if ( $self->is_connected ) {
                 $self->populate_info;
             }
             else {
@@ -320,16 +328,16 @@ sub toggle_interface_controls {
 
     my $is_edit  = $self->model->is_appmode('edit')  ? 1 : 0;
     my $is_admin = $self->model->is_appmode('admin') ? 1 : 0;
-    my $edit     = ($is_edit or $is_admin);
+    my $edit = ( $is_edit or $is_admin );
 
     # Toggle List control states
-    $self->view->toggle_list_enable('qlist', !$edit );
-    $self->view->toggle_list_enable('dlist', !$edit );
-    $self->view->toggle_list_enable('tlist', !$edit );
+    $self->view->toggle_list_enable( 'qlist', !$edit );
+    $self->view->toggle_list_enable( 'dlist', !$edit );
+    $self->view->toggle_list_enable( 'tlist', !$edit );
 
     # Toggle refresh button on info page
-    $self->view->get_control('btn_refr')->Enable(!$edit);
-    $self->view->get_control('btn_refr')->Enable($mode ne 'idle');
+    $self->view->get_control('btn_refr')->Enable( !$edit );
+    $self->view->get_control('btn_refr')->Enable( $mode ne 'idle' );
 
     $self->toggle_interface_controls_edit($is_edit);
     $self->toggle_interface_controls_admin($is_admin);
@@ -338,12 +346,12 @@ sub toggle_interface_controls {
 }
 
 sub toggle_interface_controls_edit {
-    my ($self, $is_edit) = @_;
+    my ( $self, $is_edit ) = @_;
 
-    $self->view->get_control('btn_load')->Enable(!$is_edit);
-    $self->view->get_control('btn_defa')->Enable(!$is_edit);
-    $self->view->get_control('btn_edit')->Enable(!$is_edit);
-    $self->view->get_control('btn_add' )->Enable(!$is_edit);
+    $self->view->get_control('btn_load')->Enable( !$is_edit );
+    $self->view->get_control('btn_defa')->Enable( !$is_edit );
+    $self->view->get_control('btn_edit')->Enable( !$is_edit );
+    $self->view->get_control('btn_add')->Enable( !$is_edit );
 
     # Controls by page Enabled in edit mode
     foreach my $page (qw(list para sql)) {
@@ -354,13 +362,13 @@ sub toggle_interface_controls_edit {
 }
 
 sub toggle_interface_controls_admin {
-    my ($self, $is_admin) = @_;
+    my ( $self, $is_admin ) = @_;
 
     $self->view->toggle_list_enable( 'dlist', !$is_admin );
     $self->toggle_controls_page( 'admin', $is_admin );
 
-    $self->view->get_control('btn_load')->Enable(!$is_admin);
-    $self->view->get_control('btn_defa')->Enable(!$is_admin);
+    $self->view->get_control('btn_load')->Enable( !$is_admin );
+    $self->view->get_control('btn_defa')->Enable( !$is_admin );
     if ($is_admin) {
         $self->view->get_control('btn_edit')->SetLabel( __ '&Save' );
         $self->view->get_control('btn_add')->SetLabel( __ '&Cancel' );
@@ -374,22 +382,22 @@ sub toggle_interface_controls_admin {
 }
 
 sub toggle_controls_page {
-    my ($self, $page, $is_edit) = @_;
+    my ( $self, $page, $is_edit ) = @_;
 
-    my $get = 'get_controls_'.$page;
+    my $get      = 'get_controls_' . $page;
     my $controls = $self->view->$get();
 
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-            my ($state, $color);
+            my ( $state, $color );
             if ($is_edit) {
-                $state = $control->{$name}[1];  # normal | disabled
-                $color = $control->{$name}[2];  # name
+                $state = $control->{$name}[1];    # normal | disabled
+                $color = $control->{$name}[2];    # name
             }
             else {
                 $state = 'disabled';
             }
-            $self->view->set_editable($control, $name, $state, $color);
+            $self->view->set_editable( $control, $name, $state, $color );
         }
     }
 
@@ -435,23 +443,21 @@ sub save_qdf_data {
 }
 
 sub on_quit {
-    my $self = shift;
-
+    my ( $self, @args ) = @_;
     print "Shuting down...\n";
-
     my $dt = $self->model->get_data_table_for('qlist');
     if ( $dt->has_items_marked ) {
-        my $msg = __ 'Delete marked reports and quit?';
+        my $msg    = __ 'Delete marked reports and quit?';
         my $answer = $self->view->action_confirmed($msg);
-        if ($answer eq 'yes') {
+        if ( $answer eq 'yes' ) {
             $self->list_remove_marked;
         }
-        elsif ($answer eq 'cancel') {
+        elsif ( $answer eq 'cancel' ) {
             return;
         }
     }
-
-    $self->view->on_close_window(@_);
+    $self->view->on_close_window(@args);
+    return;
 }
 
 sub list_remove_marked {
@@ -476,7 +482,7 @@ sub get_selected_mnemonic {
 }
 
 sub set_default_mnemonic {
-    my $self = shift;
+    my $self     = shift;
     my $mnemonic = $self->get_selected_mnemonic;
     if ($mnemonic) {
         $self->cfg->save_default_mnemonic($mnemonic);
@@ -490,7 +496,7 @@ sub load_mnemonic {
     my $self = shift;
     unless ( $self->cfg->mnemonic ) {
         $self->model->message_log(
-            __x('{ert} No configuration mnemonic loaded', ert => 'WW') );
+            __x( '{ert} No configuration mnemonic loaded', ert => 'WW' ) );
         return;
     }
     my $mnemonic = $self->cfg->mnemonic;
@@ -518,7 +524,7 @@ sub load_selected_mnemonic {
     $self->view->refresh_list('tlist');
     $self->view->querylist_form_clear;
 
-    my $dt = $self->model->get_data_table_for('dlist');
+    my $dt        = $self->model->get_data_table_for('dlist');
     my $item_sele = $dt->get_item_selected;
     if ( defined $item_sele ) {
         my $mnemonic = $dt->get_value( $item_sele, 1 );
@@ -529,12 +535,12 @@ sub load_selected_mnemonic {
             )
         );
         $dt->set_item_current($item_sele);
-        $self->view->set_status($mnemonic, 'mn', 'green' );
+        $self->view->set_status( $mnemonic, 'mn', 'green' );
         $self->cfg->mnemonic($mnemonic);
         $self->toggle_admin_buttons;
         $self->view->refresh_list('dlist');
         $self->populate_querylist;
-        $self->model->on_item_selected_load; # force load
+        $self->model->on_item_selected_load;    # force load
     }
     return;
 }
@@ -560,10 +566,10 @@ sub toggle_admin_buttons {
 }
 
 sub load_conn_details {
-    my $self = shift;
+    my $self  = shift;
     my $dt    = $self->model->get_data_table_for('dlist');
     my $item  = $dt->get_item_selected;
-    my $mnemo = $dt->get_value($item, 1);
+    my $mnemo = $dt->get_value( $item, 1 );
     my $rec   = $self->cfg->get_details_for($mnemo);
     $self->view->controls_write_onpage( 'admin', $rec->{connection} );
     return;
@@ -584,7 +590,7 @@ sub populate_info {
     }
     catch {
         $self->db_exception( $_, "populate info" );
-        return undef;           # required!
+        return;    # required!
     }
     finally {
         my $table_names;
@@ -597,30 +603,30 @@ sub populate_info {
 
     # Populate fields list
     foreach my $rec ( @{$columns} ) {
-        $self->list_add_item('tlist', $rec);
+        $self->list_add_item( 'tlist', $rec );
     }
 
     return;
 }
 
 sub list_add_item {
-    my ($self, $list, $rec) = @_;
+    my ( $self, $list, $rec ) = @_;
     my $data_table = $self->model->get_data_table_for($list);
     my $cols_meta  = $self->model->list_meta_data($list);
-    my $row = $data_table->get_item_count;
-    my $col = 0;
+    my $row        = $data_table->get_item_count;
+    my $col        = 0;
     foreach my $meta ( @{$cols_meta} ) {
         my $field = $meta->{field};
         my $value
-            = $field eq q{}       ? q{}
-            : $field eq 'recno'   ? ( $row + 1 )
-            :                       ( $rec->{$field} // q{} );
+            = $field eq q{}     ? q{}
+            : $field eq 'recno' ? ( $row + 1 )
+            :                     ( $rec->{$field} // q{} );
         $data_table->set_value( $row, $col, $value );
         $col++;
     }
     $data_table->set_item_default($row)
         if exists $rec->{default} and $rec->{default} == 1;
-    if (exists $rec->{current} and $rec->{current} == 1) {
+    if ( exists $rec->{current} and $rec->{current} == 1 ) {
         $data_table->set_item_current($row);
         $self->view->set_status( $rec->{mnemonic}, 'mn', 'green' );
     }
@@ -663,7 +669,7 @@ sub connect_dialog_loop {
     my $self = shift;
     my $error;
     my $conn = $self->cfg->connection;
-    if (blessed $conn) {
+    if ( blessed $conn) {
         $error = __x(
             'Connect to {driver}: {dbname}',
             driver => $conn->driver,
@@ -671,19 +677,19 @@ sub connect_dialog_loop {
         );
     }
 
-  TRY:
+TRY:
     while ( not $self->model->is_connected ) {
 
         # Show login dialog if still not connected
         my $return_string = $self->dialog_login($error);
-        if ($return_string eq 'cancel') {
+        if ( $return_string eq 'cancel' ) {
             $self->model->message_log(
                 __x( '{ert} Login cancelled', ert => 'WW' ) );
             last TRY;
         }
 
         # Try to connect only if user and pass are provided
-        if ($self->cfg->user and $self->cfg->pass ) {
+        if ( $self->cfg->user and $self->cfg->pass ) {
             my $success = try { $self->model->db_connect; 1; }
             catch {
                 if ( my $e = Exception::Base->catch($_) ) {
@@ -701,7 +707,7 @@ sub connect_dialog_loop {
                         last TRY;
                     }
                 }
-                return undef;           # required!
+                return;    # required!
             };
             last TRY if $success;
         }
@@ -729,7 +735,7 @@ sub add_new_menmonic {
         }
         catch {
             $self->io_exception( $_, "add new menmonic" );
-            return undef;           # required!
+            return;    # required!
         };
         return unless $success;
 
@@ -742,9 +748,9 @@ sub add_new_menmonic {
         my $rec = {
             default  => 0,
             mnemonic => $name,
-        };                      # add to list
-        my $item = $self->list_add_item('dlist', $rec);
-        $self->view->select_list_item('dlist', $item);
+        };    # add to list
+        my $item = $self->list_add_item( 'dlist', $rec );
+        $self->view->select_list_item( 'dlist', $item );
     }
 
     return;
@@ -754,11 +760,11 @@ sub edit_connections {
     my $self = shift;
 
     if ( $self->model->is_appmode('admin') ) {
-        my $dt = $self->model->get_data_table_for('dlist');
+        my $dt       = $self->model->get_data_table_for('dlist');
         my $mnemonic = $self->get_selected_mnemonic;
         unless ($mnemonic) {
             $self->model->message_log(
-                __x('{ert} No selected mnemonic', ert => 'WW') );
+                __x( '{ert} No selected mnemonic', ert => 'WW' ) );
             return;
         }
 
@@ -778,7 +784,8 @@ sub edit_connections {
             __x('{ert} Saved: "{filename}"',
                 ert      => 'II',
                 filename => $yaml_file,
-            ) );
+            )
+        );
         $self->set_app_mode('sele');
     }
     else {
@@ -828,7 +835,7 @@ sub db_exception {
             );
         }
         elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
-            ( my $logmsg = $e->logmsg ) =~ s{\n}{ }m;
+            ( my $logmsg = $e->logmsg ) =~ s{\n}{\ }xm;
             $self->model->message_log(
                 __x('{ert} {message}: {details}',
                     ert     => 'WW',
@@ -904,9 +911,9 @@ sub io_exception {
 
 =head1 DESCRIPTION
 
-This module provides the implementation for the L<controller> aka L<C>
-from the MVC pattern.  There is also a derived class with an
-implementation specific for the Wx interface.
+This module provides the implementation for the L<controller> aka L<C> from the
+MVC pattern.  There is also a derived class with an implementation specific for
+the Wx interface.
 
 =head2 Methods
 
@@ -914,8 +921,8 @@ implementation specific for the Wx interface.
 
 Constructor method.
 
-Builds and returns a new Controller object.  Holds the following
-instance variables:
+Builds and returns a new Controller object.  Holds the following instance
+variables:
 
 =over
 
@@ -933,8 +940,8 @@ Return the Model module instance variable.
 
 =head3 cfg
 
-Return the Config module instance variable.  The Config module is
-created using the singleton pattern.
+Return the Config module instance variable.  The Config module is created using
+the singleton pattern.
 
 =head3 view
 
@@ -942,9 +949,8 @@ Return the View module instance variable.
 
 =head3 start
 
-Connect if user and pass or if driver is SQLite. Retry and show login
-dialog, until connected or fatal error message received from the
-RDBMS.
+Connect if user and pass or if driver is SQLite. Retry and show login dialog,
+until connected or fatal error message received from the RDBMS.
 
 =head3 populate_connlist
 
@@ -986,8 +992,8 @@ Setup event handlers for the interface.
 
 =head3 toggle_interface_controls
 
-Toggle controls (tool bar buttons) appropriate for different states of
-the application.
+Toggle controls (tool bar buttons) appropriate for different states of the
+application.
 
 =head3 toggle_interface_controls_edit
 

@@ -19,3 +19,4 @@ inc/
 *.old
 .build/
 .last_cover_stats
+.tidyall.d/

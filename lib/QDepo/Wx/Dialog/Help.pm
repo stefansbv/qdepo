@@ -13,7 +13,7 @@ use Wx qw(wxHF_FLATTOOLBAR wxHF_DEFAULTSTYLE);
 use Wx::Event qw(EVT_BUTTON);
 
 # very important for HTB to work
-Wx::FileSystem::AddHandler( new Wx::ZipFSHandler );
+Wx::FileSystem::AddHandler( Wx::ZipFSHandler->new );
 
 sub new {
     my $class = shift;
@@ -23,12 +23,12 @@ sub new {
 sub show_html_help {
     my ($self) = @_;
 
-    $self->{help} = Wx::HtmlHelpController->new(
-        wxHF_FLATTOOLBAR | wxHF_DEFAULTSTYLE );
+    $self->{help}
+        = Wx::HtmlHelpController->new( wxHF_FLATTOOLBAR | wxHF_DEFAULTSTYLE );
 
     my $cfg = QDepo::Config->instance();
 
-    my $htb_file = $cfg->get_dist_file('help', 'qdepo-manual.htb');
+    my $htb_file = $cfg->get_dist_file( 'help', 'qdepo-manual.htb' );
 
     $self->{help}->AddBook( $htb_file, 1 );
     $self->{help}->DisplayContents;

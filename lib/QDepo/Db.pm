@@ -10,7 +10,7 @@ use Scalar::Util qw(blessed);
 use QDepo::Db::Connection;
 
 sub new {
-    my ($class, $model) = @_;
+    my ( $class, $model ) = @_;
     my $conn = QDepo::Db::Connection->new($model);
     my $self = {
         conn  => $conn,
@@ -38,7 +38,7 @@ sub disconnect {
     my $self = shift;
     if ( blessed $self->{conn}{dbh} and $self->{conn}{dbh}->isa('DBI::db') ) {
         $self->{conn}{dbh}->disconnect;
-        $self->model->get_connection_observable->set(0); # disconected
+        $self->model->get_connection_observable->set(0);    # disconected
     }
     return;
 }
@@ -46,6 +46,7 @@ sub disconnect {
 sub DESTROY {
     my $self = shift;
     $self->disconnect;
+    return;
 }
 
 1;

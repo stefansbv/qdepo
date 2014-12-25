@@ -4,6 +4,7 @@ package QDepo::Model;
 
 use strict;
 use warnings;
+use Carp;
 
 use File::Copy;
 use File::Basename;
@@ -25,7 +26,7 @@ use QDepo::ListDataTable;
 
 sub new {
     my $class = shift;
-    my $self = {
+    my $self  = {
         _connected   => QDepo::Observable->new(),
         _stdout      => QDepo::Observable->new(),
         _message     => QDepo::Observable->new(),
@@ -36,7 +37,7 @@ sub new {
         _continue    => QDepo::Observable->new(),
         _cfg         => QDepo::Config->instance(),
         _conn        => undef,
-        _lds         => {},                 # list data structure
+        _lds         => {},                          # list data structure
         _file        => undef,
         _itemdata    => undef,
         _dt          => {},
@@ -56,10 +57,11 @@ sub db_connect {
         $self->message_status( 'Connecting...', 0 );
         $self->{_conn} = QDepo::Db->new($self);
         if ( $self->is_connected ) {
-            $self->message_log(__x(qq({ert} Connected), ert => 'II'));
+            $self->message_log( __x( qq({ert} Connected), ert => 'II' ) );
         }
         else {
-            $self->message_log( __x(qq({ert} Failed to connect), ert => 'WW'));
+            $self->message_log(
+                __x( qq({ert} Failed to connect), ert => 'WW' ) );
         }
         $self->message_status( '', 0 );
     }
@@ -70,10 +72,10 @@ sub disconnect {
     my $self = shift;
     if ( $self->is_connected ) {
         $self->conn->disconnect;
-        $self->message_log(__x(qq({ert} Disconnected), ert => 'II'));
+        $self->message_log( __x( qq({ert} Disconnected), ert => 'II' ) );
     }
-    $self->{_conn} = undef;     # destroy
-    # Reset user and pass
+    $self->{_conn} = undef;    # destroy
+                               # Reset user and pass
     $self->cfg->user(undef);
     $self->cfg->pass(undef);
     return 1;
@@ -113,7 +115,7 @@ sub get_query_file {
 }
 
 sub set_query_file {
-    my ($self, $file) = @_;
+    my ( $self, $file ) = @_;
     $self->{_file} = $file;
     return;
 }
@@ -172,11 +174,13 @@ sub get_message_observable {
 sub message_log {
     my ( $self, $message ) = @_;
     $self->get_message_observable->set($message);
+    return;
 }
 
 sub progress_update {
     my ( $self, $count ) = @_;
     $self->get_progress_observable->set($count);
+    return;
 }
 
 sub get_progress_observable {
@@ -187,6 +191,7 @@ sub get_progress_observable {
 sub on_item_selected_load {
     my $self = shift;
     my $dt   = $self->get_data_table_for('qlist');
+    return if $dt->get_item_count <= 0;
     my $item = $dt->get_item_selected;
     return unless defined $item;
     my $data = $self->get_qdf_data($item);
@@ -196,8 +201,8 @@ sub on_item_selected_load {
     $self->get_itemchanged_observable->set($item);
     $self->message_log(
         __x('{ert} Loading item #{item}',
-            ert     => 'II',
-            item    => $item + 1,
+            ert  => 'II',
+            item => $item + 1,
         )
     );
     return;
@@ -206,6 +211,7 @@ sub on_item_selected_load {
 sub get_query_item {
     my $self = shift;
     $self->get_itemchanged_observable->get;
+    return;
 }
 
 sub load_qdf_data_init {
@@ -226,10 +232,10 @@ sub load_qdf_data_init {
 }
 
 sub append_list_record {
-    my ($self, $rec, $idx) = @_;
+    my ( $self, $rec, $idx ) = @_;
     $rec->{nrcrt} = $idx + 1;
     $self->{_lds}{$idx} = $rec;
-    return {$idx => $rec};
+    return { $idx => $rec };
 }
 
 sub get_qdf_data {
@@ -242,28 +248,28 @@ sub get_qdf_data {
 sub run_export {
     my $self = shift;
 
-    my ($bind, $sqltext) = $self->get_sql_stmt;
+    my ( $bind, $sqltext ) = $self->get_sql_stmt;
     unless ( $bind and $sqltext ) {
         $self->message_status( 'Parameter error!', 0 );
         return;
     }
-    if ( $sqltext =~ m{!edit!} ) {
+    if ( $sqltext =~ m{!edit!}x ) {
         $self->message_log(
             __x( '{ert} Please, edit the SQL statement', ert => 'WW' ) );
         return;
     }
 
     my $outfile = $self->itemdata->output;
-    if ( $outfile =~ m{!edit!} ) {
+    if ( $outfile =~ m{!edit!}x ) {
         $self->message_log(
             __x( '{ert} Please, edit the output file name', ert => 'WW' ) );
         return;
     }
 
-    $self->message_log( __x('{ert} Running data export...', ert => 'II') );
+    $self->message_log( __x( '{ert} Running data export...', ert => 'II' ) );
     my $outpath = $self->cfg->output();
     if ( !-d $outpath ) {
-        $self->message_status(__ 'Wrong output path', 0);
+        $self->message_status( __ 'Wrong output path', 0 );
         $self->message_log(
             __x('{ert} Wrong output path: {outpath}',
                 outpath => $outpath,
@@ -274,22 +280,18 @@ sub run_export {
     }
 
     my $option  = $self->get_choice();
-    my $out_fqn = catfile($outpath, $outfile);
+    my $out_fqn = catfile( $outpath, $outfile );
     my $output  = QDepo::Output->new($self);
 
     # trim SQL text;
     $sqltext = QDepo::Utils->trim($sqltext);
 
-    my $out = $output->db_generate_output(
-        $option,
-        $sqltext,
-        $bind,
-        $out_fqn,
-    );
+    my $out
+        = $output->db_generate_output( $option, $sqltext, $bind, $out_fqn, );
 
     return unless ref $out;
 
-    my ($file, $rows, $percent) = @{$out};
+    my ( $file, $rows, $percent ) = @{$out};
     $rows    = defined $rows    ? $rows    : '?';
     $percent = defined $percent ? $percent : '?';
     if ($file) {
@@ -313,7 +315,7 @@ sub run_export {
             __x( '{ert} No output file generated', ert => 'EE' ) );
     }
 
-    $self->progress_update(0); # reset
+    $self->progress_update(0);    # reset
 
     return;
 }
@@ -322,7 +324,7 @@ sub read_qdf_data_file {
     my $self = shift;
 
     my $file = $self->get_query_file;
-    my $fio = QDepo::FileIO->new($self);
+    my $fio  = QDepo::FileIO->new($self);
 
     return $fio->get_details($file);
 }
@@ -333,7 +335,7 @@ sub get_itemchanged_observable {
 }
 
 sub write_qdf_data_file {
-    my ($self, $file, $head, $para, $body) = @_;
+    my ( $self, $file, $head, $para, $body ) = @_;
 
     # Transform records to match data in xml format
     $head = QDepo::Utils->transform_data($head);
@@ -341,16 +343,16 @@ sub write_qdf_data_file {
     $body = QDepo::Utils->transform_data($body);
 
     # Asemble data
-    my $record = {
+    my $record_href = {
         header     => $head,
         parameters => $para,
         body       => $body,
     };
 
     my $fio = QDepo::FileIO->new($self);
-    $fio->xml_update($file, $record);
+    $fio->xml_update( $file, $record_href );
 
-    my ($name, $path, $ext) = fileparse( $file, qr/\.[^\.]*/ );
+    my ( $name, $path, $ext ) = fileparse( $file, qr/\.[^\.]*/x );
     $self->message_log(
         __x('{ert} Saved "{name}{ext}"',
             ert  => 'II',
@@ -362,15 +364,15 @@ sub write_qdf_data_file {
 }
 
 sub report_add {
-    my ($self, $item_new) = @_;
+    my ( $self, $item_new ) = @_;
 
-    die "The new item parameter is required for 'report_add'\n"
+    croak "The new item parameter is required for 'report_add'\n"
         unless defined $item_new;
 
     my $new_qdf_file = $self->report_name();
 
     my $src_fqn = $self->cfg->qdf_tmpl;
-    my $dst_fqn = catfile($self->cfg->qdfpath, $new_qdf_file);
+    my $dst_fqn = catfile( $self->cfg->qdfpath, $new_qdf_file );
 
     if ( -f $dst_fqn ) {
         $self->message_log(
@@ -395,7 +397,10 @@ sub report_add {
     }
     else {
         $self->message_log(
-            __x('{ert} Failed: {error}'), ert => 'EE', error => $! );
+            __x('{ert} Failed: {error}'),
+            ert   => 'EE',
+            error => $!
+        );
         return;
     }
 
@@ -403,7 +408,7 @@ sub report_add {
     my $fio      = QDepo::FileIO->new($self);
     my $data_ref = $fio->get_title($dst_fqn);
 
-    return $self->append_list_record($data_ref, $item_new);
+    return $self->append_list_record( $data_ref, $item_new );
 }
 
 sub report_name {
@@ -419,7 +424,7 @@ sub report_name {
     my ( %numbers, $num );
     foreach my $item ( @{$reports_ref} ) {
         my $filename = basename($item);
-        if ( $filename =~ m/report\-(\d{5})\.qdf/ ) {
+        if ( $filename =~ m/report\-(\d{5})\.qdf/x ) {
             $num = sprintf( "%d", $1 );
             $numbers{$num} = 1;
         }
@@ -453,15 +458,15 @@ sub report_name {
 }
 
 sub report_remove {
-    my ($self, $file) = @_;                  # $item
+    my ( $self, $file ) = @_;    # $item
 
-    unless (-f $file) {
-        $self->message_log( __x('{ert} "file" not found!', ert => 'EE') );
+    unless ( -f $file ) {
+        $self->message_log( __x( '{ert} "file" not found!', ert => 'EE' ) );
         return;
     }
 
     my $file_bak = "$file.bak";
-    if ( move($file, $file_bak) ) {
+    if ( move( $file, $file_bak ) ) {
         $self->message_log(
             __x( '{ert} Removed "{file}"', ert => 'II', file => $file ) );
         return 1;
@@ -471,12 +476,11 @@ sub report_remove {
             __x( '{ert} Remove "{file}" failed', ert => 'EE', file => $file )
         );
     }
-
     return;
 }
 
 sub set_choice {
-    my ($self, $choice) = @_;
+    my ( $self, $choice ) = @_;
     $self->message_log(
         __x('{ert} Output format set to "{choice}"',
             ert    => 'II',
@@ -484,6 +488,7 @@ sub set_choice {
         )
     );
     $self->get_choice_observable->set($choice);
+    return;
 }
 
 sub get_choice {
@@ -504,8 +509,10 @@ sub string_replace_for_run {
         my $value = $rec->{value};
         my $p_num = $rec->{id};         # Parameter number for bind_param
         my $var   = 'value' . $p_num;
-        unless ( $sqltext =~ s/($var)/\?/pm ) {
-            my $error_msg = __x('{ert} Parameter mismatch, to few parameters in SQL', ert => 'EE');
+        unless ( $sqltext =~ s/($var)/\?/pmx ) {
+            my $error_msg
+                = __x( '{ert} Parameter mismatch, to few parameters in SQL',
+                ert => 'EE' );
             $self->message_log($error_msg);
             return;
         }
@@ -514,8 +521,10 @@ sub string_replace_for_run {
     }
 
     # Check for remaining not substituted 'value[0-9]' in SQL
-    if ( $sqltext =~ m{(value[0-9])}pm ) {
-        my $error_msg = __x('{ert} Parameter mismatch, to many parameters in SQL', ert => 'EE');
+    if ( $sqltext =~ m{(value[0-9])}pmx ) {
+        my $error_msg
+            = __x( '{ert} Parameter mismatch, to many parameters in SQL',
+            ert => 'EE' );
         $self->message_log($error_msg);
         return;
     }
@@ -524,23 +533,23 @@ sub string_replace_for_run {
 }
 
 sub string_replace_pos {
-    my ($self, $text, $params) = @_;
+    my ( $self, $text, $params ) = @_;
 
     my @strpos;
 
-    while (my ($key, $value) = each ( %{$params} ) ) {
-        next unless $key =~ m{value[0-9]}; # Skip 'descr'
+    while ( my ( $key, $value ) = each( %{$params} ) ) {
+        next unless $key =~ m{value[0-9]}x;    # Skip 'descr'
 
         # Replace  text and return the strpos
-        $text =~ s/($key)/$value/pm;
+        $text =~ s/($key)/$value/pmx;
         my $pos = $-[0];
-        push(@strpos, [ $pos, $key, $value ]);
+        push( @strpos, [ $pos, $key, $value ] );
     }
 
     # Sorted by $pos
     my @sortedpos = sort { $a->[0] <=> $b->[0] } @strpos;
 
-    return ($text, \@sortedpos);
+    return ( $text, \@sortedpos );
 }
 
 sub get_continue_observable {
@@ -557,14 +566,13 @@ sub set_continue {
 ### Virtual lists meta data
 
 sub list_meta_data {
-    my ($self, $list) = @_;
+    my ( $self, $list ) = @_;
     return
           $list eq q{}     ? undef
         : $list eq 'qlist' ? $self->get_query_list_meta
         : $list eq 'dlist' ? $self->get_conn_list_meta
         : $list eq 'tlist' ? $self->get_field_list_meta
-        :                    undef
-        ;
+        :                    undef;
 }
 
 sub get_query_list_meta {
@@ -645,32 +653,33 @@ sub get_conn_list_meta {
 ###
 
 sub init_data_table {
-    my ($self, $list) = @_;
-    die "List name is required for 'init_data_table'" unless $list;
+    my ( $self, $list ) = @_;
+    croak "List name is required for 'init_data_table'" unless $list;
     my $meta = $self->list_meta_data($list);
     $self->{_dt}{$list} = QDepo::ListDataTable->new($meta);
     return;
 }
 
 sub get_data_table_for {
-    my ($self, $list) = @_;
-    die "List name is required for 'init_data_table'" unless $list;
+    my ( $self, $list ) = @_;
+    croak "List name is required for 'init_data_table'" unless $list;
     return $self->{_dt}{$list};
 }
 
 sub get_sql_stmt {
     my $self = shift;
     my $data = $self->itemdata;
-    unless (defined $data) {
-        $self->message_log(__x(qq({ert} Item data missing!), ert => 'WW'));
+    unless ( defined $data ) {
+        $self->message_log(
+            __x( qq({ert} Item data missing!), ert => 'WW' ) );
         return;
     }
-    my ($bind, $sql) = $self->string_replace_for_run(
-        $self->itemdata->sql,
+    my ( $bind, $sql )
+        = $self->string_replace_for_run( $self->itemdata->sql,
         $self->itemdata->params,
-    );
-    $sql =~ s{;$}{}m;                    # remove final ';' if exists
-    return ($bind, $sql);
+        );
+    $sql =~ s{;$}{}mx;    # remove final ';' if exists
+    return ( $bind, $sql );
 }
 
 sub parse_sql_text {
@@ -678,8 +687,8 @@ sub parse_sql_text {
 
     my $parser
         = SQL::Parser->new( 'AnyData', { RaiseError => 1, PrintError => 0 } );
-    my ($bind, $sqltext) = $self->get_sql_stmt;
-    if ( $sqltext =~ m{!edit!} ) {
+    my ( $bind, $sqltext ) = $self->get_sql_stmt;
+    if ( $sqltext =~ m{!edit!}x ) {
         $self->message_log(
             __x( '{ert} Please, edit the SQL statement', ert => 'WW' ) );
         return;
@@ -701,9 +710,7 @@ sub parse_sql_text {
         unless ( $self->dbc->table_exists($table) ) {
             my $msg
                 = __x( 'The {table} table does not exists', table => $table );
-            Exception::Db::SQL::NoObject->throw(
-                usermsg => qq{"$msg"},
-            );
+            Exception::Db::SQL::NoObject->throw( usermsg => qq{"$msg"}, );
         }
     }
     else {
@@ -726,8 +733,8 @@ sub parse_sql_text {
     my $header_aref = $parser->structure->{org_col_names};
 
     # When using: SELECT * FROM...
-    unless (ref $header_aref) {
-        $header_aref = QDepo::Utils->sort_hash_by('pos', $all_cols_href);
+    unless ( ref $header_aref ) {
+        $header_aref = QDepo::Utils->sort_hash_by( 'pos', $all_cols_href );
     }
 
     my $cols_aref;
@@ -735,10 +742,10 @@ sub parse_sql_text {
     foreach my $field ( @{$header_aref} ) {
         my $type = $all_cols_href->{$field}{type};
         push @{$cols_aref}, { field => $field, type => $type, recno => $row };
-        $row++
+        $row++;
     }
 
-    return ($cols_aref, $header_aref, $tables_aref);
+    return ( $cols_aref, $header_aref, $tables_aref );
 }
 
 1;
@@ -809,8 +816,7 @@ Get progres observable status.
 
 =head2 on_item_selected_load
 
-On list item selection make the event observable and store the item
-index.
+On list item selection make the event observable and store the item index.
 
 =head2 get_query_item
 
@@ -818,8 +824,8 @@ Get the item index.
 
 =head2 load_qdf_data_init
 
-Read the titles and file names from all the QDF files and store in a
-new data structure.
+Read the titles and file names from all the QDF files and store in a new data
+structure.
 
 =head2 append_list_record
 
@@ -847,8 +853,7 @@ Save current query definition data from controls into a qdf file.
 
 =head2 report_add
 
-Create new QDF file from template.  The L<$item_new> parameter is
-mandatory.
+Create new QDF file from template.  The L<$item_new> parameter is mandatory.
 
 =head2 report_name
 
@@ -857,9 +862,9 @@ raport-nnnnn.xml Try to fill the gaps between numbers in file names
 
 =head2 report_remove
 
-Remove B<.qdf> file from list and from disk.  Have to confirm the
-action first, to get here.  For safety, the file is renamed with a
-B<.bak> extension, so it can be I<manualy> recovered.
+Remove B<.qdf> file from list and from disk.  Have to confirm the action first,
+to get here.  For safety, the file is renamed with a B<.bak> extension, so it
+can be I<manualy> recovered.
 
 =head2 set_choice
 
@@ -875,11 +880,11 @@ Return choice observable status.
 
 =head2 string_replace_for_run
 
-Prepare SQL text string for execution.  Replace the 'valueN' string
-with '?'.  Create an array of parameter values, used for binding.
+Prepare SQL text string for execution.  Replace the 'valueN' string with '?'. 
+Create an array of parameter values, used for binding.
 
-Need to check if number of parameters match number of 'valueN' strings
-in SQL statement text and print an error if not.
+Need to check if number of parameters match number of 'valueN' strings in SQL
+statement text and print an error if not.
 
 =head2 string_replace_pos
 
@@ -887,21 +892,20 @@ Replace string pos.
 
 =head2 get_continue_observable
 
-Get continue operation observable status.  Flag used by the progress
-indicator to stop the output file generation process.
+Get continue operation observable status.  Flag used by the progress indicator
+to stop the output file generation process.
 
 =head2 set_continue
 
-Set continue to false if Cancel button on the progress dialog is
-activated (Wx only).
+Set continue to false if Cancel button on the progress dialog is activated (Wx
+only).
 
 =head2 parse_sql_text
 
 The list of the columns.
 
-First parse the SQL query and get the column list from it.  If it has
-a column list return it, if not (for ex. when using: SELECT * FROM...)
-than use the table info to get the column list and return that
-instead.
+First parse the SQL query and get the column list from it.  If it has a column
+list return it, if not (for ex. when using: SELECT * FROM...) than use the
+table info to get the column list and return that instead.
 
 =cut

@@ -4,6 +4,7 @@ package QDepo::Db::Connection;
 
 use strict;
 use warnings;
+use Carp;
 
 use Scalar::Util qw(blessed);
 use DBI;
@@ -60,12 +61,12 @@ sub _connect {
 sub load {
     my ( $self, $p ) = @_;
     my $driver = delete $p->{driver}
-        or die 'Missing "driver" parameter to load()';
+        or croak 'Missing "driver" parameter to load()';
     $driver = ucfirst $driver;
 
     # Load the driver class.
     my $pkg = __PACKAGE__ . "::$driver";
-    try { eval "require $pkg" or die "Unable to load $pkg"; }
+    try { eval "require $pkg" or croak "Unable to load $pkg"; }
     catch {
         $self->model->message_log(
             __x('{ert} {driver} engine is not implemented',

@@ -4,18 +4,19 @@ package QDepo::Wx::View;
 
 use strict;
 use warnings;
+use Carp;
 
 use Locale::TextDomain 1.20 qw(QDepo);
 use File::Spec::Functions qw(abs2rel);
 use Scalar::Util qw(looks_like_number);
 use Wx qw(wxID_ABOUT wxID_HELP wxID_EXIT wxTE_MULTILINE wxEXPAND
-          wxHORIZONTAL wxVERTICAL wxTOP wxLEFT wxRIGHT wxALL wxGROW
-          wxALIGN_CENTRE wxICON_ERROR wxSTC_MARGIN_SYMBOL
-          wxSTC_STYLE_DEFAULT wxDEFAULT wxNORMAL wxSTC_LEX_MSSQL
-          wxSTC_STYLE_BRACELIGHT wxSTC_STYLE_BRACEBAD
-          wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL
-          wxFULL_REPAINT_ON_RESIZE wxNO_FULL_REPAINT_ON_RESIZE
-          wxCLIP_CHILDREN wxCB_SORT wxCB_READONLY);
+    wxHORIZONTAL wxVERTICAL wxTOP wxLEFT wxRIGHT wxALL wxGROW
+    wxALIGN_CENTRE wxICON_ERROR wxSTC_MARGIN_SYMBOL
+    wxSTC_STYLE_DEFAULT wxDEFAULT wxNORMAL wxSTC_LEX_MSSQL
+    wxSTC_STYLE_BRACELIGHT wxSTC_STYLE_BRACEBAD
+    wxSTC_WRAP_NONE wxOK wxYES wxNO wxYES_NO wxCANCEL
+    wxFULL_REPAINT_ON_RESIZE wxNO_FULL_REPAINT_ON_RESIZE
+    wxCLIP_CHILDREN wxCB_SORT wxCB_READONLY);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_CHOICE EVT_MENU EVT_TOOL EVT_TIMER
     EVT_TEXT_ENTER EVT_AUINOTEBOOK_PAGE_CHANGED EVT_BUTTON
     EVT_LIST_ITEM_SELECTED);
@@ -38,7 +39,7 @@ sub new {
 
     #- The Frame
 
-    my $self = __PACKAGE__->SUPER::new( @_ );
+    my $self = __PACKAGE__->SUPER::new(@_);
 
     Wx::InitAllImageHandlers();
 
@@ -84,7 +85,7 @@ sub new {
 
 sub model {
     my $self = shift;
-    $self->{_model};
+    return $self->{_model};
 }
 
 sub cfg {
@@ -115,10 +116,10 @@ sub _set_model_callbacks {
     $so->add_callback( sub { $self->set_status( $_[0], 'ms' ) } );
 
     my $xo = $self->model->get_message_observable;
-    $xo->add_callback( sub{ $self->log_msg( @_ ) } );
+    $xo->add_callback( sub { $self->log_msg(@_) } );
 
     my $pr = $self->model->get_progress_observable;
-    $pr->add_callback( sub{ $self->progress_update( @_ ) } );
+    $pr->add_callback( sub { $self->progress_update(@_) } );
 
     return;
 }
@@ -165,8 +166,7 @@ sub make_menus {
             $pos,
             $self->{$menu_name},
             QDepo::Utils->ins_underline_mark(
-                $menu_href->{label},
-                $menu_href->{underline},
+                $menu_href->{label}, $menu_href->{underline},
             ),
         );
         $pos++;
@@ -179,7 +179,7 @@ sub get_app_menus_list {
     my $self = shift;
 
     my $attribs = $self->cfg->appmenubar;
-    my $menus   = QDepo::Utils->sort_hash_by('id', $attribs);
+    my $menus = QDepo::Utils->sort_hash_by( 'id', $attribs );
 
     my @menulist;
     foreach my $menu_name ( @{$menus} ) {
@@ -229,7 +229,7 @@ sub get_menubar {
 sub _build_toolbar {
     my $self = shift;
 
-    my $tb = QDepo::Wx::ToolBar->new($self); # wxADJUST_MINSIZE#
+    my $tb = QDepo::Wx::ToolBar->new($self);    # wxADJUST_MINSIZE#
 
     my $conf     = QDepo::Config::Toolbar->new;
     my @toolbars = $conf->all_buttons;
@@ -240,7 +240,7 @@ sub _build_toolbar {
         $tb->make_toolbar_button( $name, $attribs, $ico_path );
     }
 
-    $tb->set_initial_mode(\@toolbars);
+    $tb->set_initial_mode( \@toolbars );
 
     $self->SetToolBar($tb);
 
@@ -258,9 +258,10 @@ sub enable_tool {
 
 sub _build_statusbar {
     my $self = shift;
-    my $sb   = $self->CreateStatusBar( 4 );
+    my $sb   = $self->CreateStatusBar(4);
     $self->{_sb} = $sb;
     $self->SetStatusWidths( 180, 35, -3, -2 );
+    return;
 }
 
 sub get_statusbar {
@@ -274,16 +275,15 @@ sub get_notebook {
 }
 
 sub _build_splitter {
-    my ($self, $main_bsz) = @_;
+    my ( $self, $main_bsz ) = @_;
 
     my $min_pane_size = 50;
     my $sash_pos      = 450;
 
-    $self->{_gap} = Wx::wxVERSION >= 3 ? 8 : 2; # add more space for Wx >= 3
+    $self->{_gap} = Wx::wxVERSION >= 3 ? 8 : 2;   # add more space for Wx >= 3
 
     my $spw = Wx::SplitterWindow->new(
-        $self,
-        -1,
+        $self, -1,
         [ -1, -1 ],
         [ -1, -1 ],
         wxNO_FULL_REPAINT_ON_RESIZE | wxCLIP_CHILDREN,
@@ -291,30 +291,26 @@ sub _build_splitter {
     $main_bsz->Add( $spw, 1, wxEXPAND | wxALL, 0 );
 
     my $panel_top = Wx::Panel->new(
-        $spw,
-        -1,
+        $spw, -1,
         [ -1, -1 ],
         [ -1, -1 ],
-        wxFULL_REPAINT_ON_RESIZE,
-        'topPanel',
+        wxFULL_REPAINT_ON_RESIZE, 'topPanel',
     );
     my $panel_bot = Wx::Panel->new(
-        $spw,
-        -1,
+        $spw, -1,
         [ -1, -1 ],
         [ -1, -1 ],
-        wxFULL_REPAINT_ON_RESIZE,
-        'botPanel',
+        wxFULL_REPAINT_ON_RESIZE, 'botPanel',
     );
 
     my $sizer_top = Wx::BoxSizer->new(wxVERTICAL);
-    $panel_top->SetSizer( $sizer_top );
+    $panel_top->SetSizer($sizer_top);
 
     my $sizer_bot = Wx::BoxSizer->new(wxVERTICAL);
-    $panel_bot->SetSizer( $sizer_bot );
+    $panel_bot->SetSizer($sizer_bot);
 
     $self->{log} = QDepo::Wx::LogView->new($panel_bot);
-    $self->{log}->SetReadOnly(1);            # log is readonly
+    $self->{log}->SetReadOnly(1);    # log is readonly
 
     my $log_sbs = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $panel_bot, -1, __ 'Log' ), wxVERTICAL );
@@ -325,7 +321,7 @@ sub _build_splitter {
     $spw->SplitHorizontally( $panel_top, $panel_bot, $sash_pos );
     $spw->SetMinimumPaneSize($min_pane_size);
 
-    $self->{_nb} = QDepo::Wx::Notebook->new( $panel_top );
+    $self->{_nb} = QDepo::Wx::Notebook->new($panel_top);
     $sizer_top->Add( $self->{_nb}, 1, wxEXPAND | wxALL, 0 );
 
     $self->_build_page_querylist;
@@ -337,7 +333,7 @@ sub _build_splitter {
 }
 
 sub on_notebook_page_changed {
-    my ($self, $callback) = @_;
+    my ( $self, $callback ) = @_;
     my $nb = $self->get_notebook;
     EVT_AUINOTEBOOK_PAGE_CHANGED $self, $nb->GetId, $callback;
     return;
@@ -371,26 +367,22 @@ sub _build_page_querylist {
 
     my $qlist_main_sz = Wx::FlexGridSizer->new( 3, 1, 0, 5 );
 
-    my $qlist_top_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ 'Query list', ),
-        wxVERTICAL, );
+    my $qlist_top_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ 'Query list', ), wxVERTICAL, );
     $qlist_top_sz->Add( -1, $self->{_gap} );
 
     $qlist_top_sz->Add( $self->{qlist}, 1, wxEXPAND, 3 );
 
     my $qlist_sizer = $self->_build_ctrls_querylist($page);
 
-    my $qlist_bot_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ 'Description', ),
-        wxVERTICAL, );
+    my $qlist_bot_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ 'Description', ), wxVERTICAL, );
     $qlist_bot_sz->Add( -1, $self->{_gap} );
 
     $qlist_bot_sz->Add( $self->{description}, 0, wxEXPAND );
 
     $qlist_main_sz->Add( $qlist_top_sz, 0, wxALL | wxGROW, 5 );
-    $qlist_main_sz->Add( $qlist_sizer, 0, wxALL | wxGROW, 5 );
+    $qlist_main_sz->Add( $qlist_sizer,  0, wxALL | wxGROW, 5 );
     $qlist_main_sz->Add( $qlist_bot_sz, 0, wxALL | wxGROW, 5 );
 
     $qlist_main_sz->AddGrowableRow(0);
@@ -407,10 +399,12 @@ sub _build_page_info {
 
     #--  Controls
 
-    $self->{table_name} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
-    $self->{table_name}->SetBackgroundColour( Wx::Colour->new(220,220,220) );
-    $self->{table_name}->SetForegroundColour( Wx::Colour->new(100,100,250) );
+    $self->{table_name}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{table_name}
+        ->SetBackgroundColour( Wx::Colour->new( 220, 220, 220 ) );
+    $self->{table_name}
+        ->SetForegroundColour( Wx::Colour->new( 100, 100, 250 ) );
     $self->{table_name}->SetEditable(0);
 
     # Fields table
@@ -421,13 +415,8 @@ sub _build_page_info {
     $self->{tlist}->add_columns($header);
 
     # Info button
-    $self->{btn_refr} = Wx::Button->new(
-        $page,
-        -1,
-        __ 'Info',
-        [ -1, -1 ],
-        [ -1, 23 ],
-    );
+    $self->{btn_refr}
+        = Wx::Button->new( $page, -1, __ 'Info', [ -1, -1 ], [ -1, 23 ], );
     $self->{btn_refr}->Enable(1);
 
     #-- Layout
@@ -437,11 +426,11 @@ sub _build_page_info {
     my $info_top_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Table name' ), wxVERTICAL );
     $info_top_sz->Add( -1, $self->{_gap} );
-    $info_top_sz->Add( $self->{table_name}, 0, wxTOP | wxEXPAND, 0);
+    $info_top_sz->Add( $self->{table_name}, 0, wxTOP | wxEXPAND, 0 );
 
     my $info_mid_sz = Wx::BoxSizer->new(wxVERTICAL);
-    $info_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5);
-    $info_mid_sz->Add(-1, 5);
+    $info_mid_sz->Add( $self->{btn_refr}, 0, wxTOP | wxEXPAND, 5 );
+    $info_mid_sz->Add( -1, 5 );
 
     my $info_bot_sz = Wx::StaticBoxSizer->new(
         Wx::StaticBox->new( $page, -1, __ 'Fields' ), wxVERTICAL );
@@ -449,7 +438,7 @@ sub _build_page_info {
     $info_bot_sz->Add( $self->{tlist}, 1, wxEXPAND );
 
     $info_main_sz->Add( $info_top_sz, 1, wxALL | wxEXPAND, 5 );
-    $info_main_sz->Add( $info_bot_sz, 1, wxALL | wxGROW, 5 );
+    $info_main_sz->Add( $info_bot_sz, 1, wxALL | wxGROW,   5 );
     $info_main_sz->Add( $info_mid_sz, 1, wxALIGN_CENTRE );
 
     $info_main_sz->AddGrowableRow(1);
@@ -479,10 +468,12 @@ sub _build_page_sql {
     my $sql_sbs = Wx::StaticBoxSizer->new( $sql_sb, wxVERTICAL, );
     $sql_sbs->Add( -1, $self->{_gap} );
     $sql_sbs->Add( $self->{sql}, 1, wxEXPAND, 0 );
-    $sql_main_sz->Add( $sql_sbs, 1, wxALL | wxEXPAND, 5 );
+    $sql_main_sz->Add( $sql_sbs,    1, wxALL | wxEXPAND, 5 );
     $sql_main_sz->Add( $para_sizer, 0, wxALL | wxEXPAND, 5 );
 
-    $page->SetSizer( $sql_main_sz );
+    $page->SetSizer($sql_main_sz);
+
+    return;
 }
 
 sub _build_page_admin {
@@ -498,40 +489,20 @@ sub _build_page_admin {
 
     #-- Button
 
-    $self->{btn_load} = Wx::Button->new(
-        $page,
-        -1,
-        __ '&Load',
-        [ -1, -1 ],
-        [ -1, 22 ],
-    );
+    $self->{btn_load}
+        = Wx::Button->new( $page, -1, __ '&Load', [ -1, -1 ], [ -1, 22 ], );
     $self->{btn_load}->Enable(0);
 
-    $self->{btn_defa} = Wx::Button->new(
-        $page,
-        -1,
-        __ '&Default',
-        [ -1, -1 ],
-        [ -1, 22 ],
-    );
+    $self->{btn_defa} = Wx::Button->new( $page, -1, __ '&Default', [ -1, -1 ],
+        [ -1, 22 ], );
     $self->{btn_defa}->Enable(0);
 
-    $self->{btn_edit} = Wx::Button->new(
-        $page,
-        -1,
-        __ '&Edit',
-        [ -1, -1 ],
-        [ -1, 22 ],
-    );
+    $self->{btn_edit}
+        = Wx::Button->new( $page, -1, __ '&Edit', [ -1, -1 ], [ -1, 22 ], );
     $self->{btn_edit}->Enable(0);
 
-    $self->{btn_add} = Wx::Button->new(
-        $page,
-        -1,
-        __ '&Add',
-        [ -1, -1 ],
-        [ -1, 22 ],
-    );
+    $self->{btn_add}
+        = Wx::Button->new( $page, -1, __ '&Add', [ -1, -1 ], [ -1, 22 ], );
 
     #--- Layout
 
@@ -539,10 +510,8 @@ sub _build_page_admin {
 
     #-- Top
 
-    my $conf_top_sz =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ 'Connection', ),
-        wxVERTICAL, );
+    my $conf_top_sz = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ 'Connection', ), wxVERTICAL, );
     $conf_top_sz->Add( -1, $self->{_gap} );
 
     $conf_top_sz->Add( $self->{dlist}, 1, wxEXPAND, 3 );
@@ -559,52 +528,49 @@ sub _build_page_admin {
 
     my $conn_mid_sz = $self->_build_ctrls_conn($page);
 
-    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW, 5 );
-    $conf_main_sz->Add( $button_sz, 0, wxALIGN_CENTRE | wxALL, 5 );
-    $conf_main_sz->Add( $conn_mid_sz, 0, wxALL | wxGROW, 5 );
+    $conf_main_sz->Add( $conf_top_sz, 0, wxALL | wxGROW,         5 );
+    $conf_main_sz->Add( $button_sz,   0, wxALIGN_CENTRE | wxALL, 5 );
+    $conf_main_sz->Add( $conn_mid_sz, 0, wxALL | wxGROW,         5 );
 
     $conf_main_sz->AddGrowableRow(0);
     $conf_main_sz->AddGrowableCol(0);
 
     $page->SetSizer($conf_main_sz);
+
+    return;
 }
 
 sub _build_ctrls_parameter {
-    my ($self, $page) = @_;
+    my ( $self, $page ) = @_;
 
     #-- Controls
 
-    my $para_tit_lbl1 =
-      Wx::StaticText->new( $page, -1, __ 'Label', );
-    my $para_tit_lbl2 =
-      Wx::StaticText->new( $page, -1, __ 'Description', );
-    my $para_tit_lbl3 =
-      Wx::StaticText->new( $page, -1, __ 'Value', );
+    my $para_tit_lbl1 = Wx::StaticText->new( $page, -1, __ 'Label', );
+    my $para_tit_lbl2 = Wx::StaticText->new( $page, -1, __ 'Description', );
+    my $para_tit_lbl3 = Wx::StaticText->new( $page, -1, __ 'Value', );
 
     my $para_lbl1 = Wx::StaticText->new( $page, -1, 'value1', );
-    $self->{descr1} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value1} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{descr1}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value1}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl2 = Wx::StaticText->new( $page, -1, 'value2', );
-    $self->{descr2} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value2} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{descr2}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value2}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl3 = Wx::StaticText->new( $page, -1, 'value3', );
-    $self->{descr3} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
-    $self->{value3} =
-      Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{descr3}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+    $self->{value3}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     #-- Layout
 
-    my $sizer =
-      Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ 'Parameters', ),
-        wxHORIZONTAL, );
+    my $sizer = Wx::StaticBoxSizer->new(
+        Wx::StaticBox->new( $page, -1, __ 'Parameters', ), wxHORIZONTAL, );
 
     my $para_fgs = Wx::FlexGridSizer->new( 4, 3, 5, 10 );
 
@@ -615,45 +581,48 @@ sub _build_ctrls_parameter {
     $para_fgs->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
     $para_fgs->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
 
-    $para_fgs->Add( $para_lbl1, 0, wxTOP | wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr1},   0, wxEXPAND | wxTOP, 5 );
-    $para_fgs->Add( $self->{value1},   1, wxEXPAND | wxTOP, 5 );
+    $para_fgs->Add( $para_lbl1,      0, wxTOP | wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr1}, 0, wxEXPAND | wxTOP, 5 );
+    $para_fgs->Add( $self->{value1}, 1, wxEXPAND | wxTOP, 5 );
 
-    $para_fgs->Add( $para_lbl2, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr2},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value2},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $para_lbl2,      0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr2}, 1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value2}, 1, wxEXPAND, 0 );
 
-    $para_fgs->Add( $para_lbl3, 0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr3},   1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value3},   1, wxEXPAND, 0 );
+    $para_fgs->Add( $para_lbl3,      0, wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr3}, 1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value3}, 1, wxEXPAND, 0 );
 
     return $sizer;
 }
 
 sub _build_ctrls_querylist {
-    my ($self, $page) = @_;
+    my ( $self, $page ) = @_;
 
     #-- Controls
 
     my $qlist_lbl1 = Wx::StaticText->new( $page, -1, __ 'Title', );
-    $self->{title} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{title}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $qlist_lbl2 = Wx::StaticText->new( $page, -1, __ 'Query file', );
-    $self->{filename} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{filename}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $qlist_lbl3 = Wx::StaticText->new( $page, -1, __ 'Output file', );
-    $self->{output} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{output}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $qlist_lbl4 = Wx::StaticText->new( $page, -1, __ 'Template', );
-    $self->{template} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{template}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
-    $self->{description} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, 40 ],
-                           wxTE_MULTILINE, );
+    $self->{description} = Wx::TextCtrl->new(
+        $page, -1, q{},
+        [ -1, -1 ],
+        [ -1, 40 ],
+        wxTE_MULTILINE,
+    );
 
     #-- Layout
 
@@ -664,17 +633,17 @@ sub _build_ctrls_querylist {
     my $fg_sizer = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $fg_sizer->AddGrowableCol( 1, 1 );
 
-    $fg_sizer->Add( $qlist_lbl1, 0, wxTOP | wxLEFT,  5 );
-    $fg_sizer->Add( $self->{title},    0, wxEXPAND | wxTOP, 5 );
+    $fg_sizer->Add( $qlist_lbl1,    0, wxTOP | wxLEFT,   5 );
+    $fg_sizer->Add( $self->{title}, 0, wxEXPAND | wxTOP, 5 );
 
-    $fg_sizer->Add( $qlist_lbl2, 0, wxLEFT,   5 );
+    $fg_sizer->Add( $qlist_lbl2,       0, wxLEFT,   5 );
     $fg_sizer->Add( $self->{filename}, 0, wxEXPAND, 0 );
 
-    $fg_sizer->Add( $qlist_lbl3, 0, wxLEFT,   5 );
-    $fg_sizer->Add( $self->{output},   0, wxEXPAND, 0 );
+    $fg_sizer->Add( $qlist_lbl3,     0, wxLEFT,   5 );
+    $fg_sizer->Add( $self->{output}, 0, wxEXPAND, 0 );
 
-    $fg_sizer->Add( $qlist_lbl4, 0, wxLEFT,   5 );
-    $fg_sizer->Add( $self->{template},    0, wxEXPAND, 0 );
+    $fg_sizer->Add( $qlist_lbl4,       0, wxLEFT,   5 );
+    $fg_sizer->Add( $self->{template}, 0, wxEXPAND, 0 );
 
     $sizer->Add( $fg_sizer, 0, wxALL | wxGROW, 0 );
 
@@ -682,33 +651,30 @@ sub _build_ctrls_querylist {
 }
 
 sub _build_ctrls_conn {
-    my ($self, $page) = @_;
+    my ( $self, $page ) = @_;
 
     #-- Controls
 
     my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
     my @drivers = (qw{firebird sqlite cubrid postgresql mysql});
     $self->{driver} = Wx::ComboBox->new(
-        $page,
-        -1,
-        q{},
+        $page, -1, q{},
         [ -1,  -1 ],
         [ 170, -1 ],
-        \@drivers,
-        wxCB_SORT | wxCB_READONLY,
+        \@drivers, wxCB_SORT | wxCB_READONLY,
     );
 
     my $conn_lbl2 = Wx::StaticText->new( $page, -1, __ 'Host', );
-    $self->{host} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{host}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $conn_lbl3 = Wx::StaticText->new( $page, -1, __ 'Database', );
-    $self->{dbname} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{dbname}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $conn_lbl4 = Wx::StaticText->new( $page, -1, __ 'Port', );
-    $self->{port} =
-        Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
+    $self->{port}
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     #-- Layout
 
@@ -722,17 +688,17 @@ sub _build_ctrls_conn {
     my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $conn_mid_fgs->AddGrowableCol( 1, 1 );
 
-    $conn_mid_fgs->Add( $conn_lbl1, 0, wxTOP | wxLEFT,  5 );
-    $conn_mid_fgs->Add( $self->{driver}, 1, wxLEFT, 0 );
+    $conn_mid_fgs->Add( $conn_lbl1,      0, wxTOP | wxLEFT, 5 );
+    $conn_mid_fgs->Add( $self->{driver}, 1, wxLEFT,         0 );
 
-    $conn_mid_fgs->Add( $conn_lbl2, 0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $conn_lbl2,    0, wxLEFT,   5 );
     $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
 
-    $conn_mid_fgs->Add( $conn_lbl3, 0, wxLEFT,   5 );
-    $conn_mid_fgs->Add( $self->{dbname},   0, wxEXPAND, 0 );
+    $conn_mid_fgs->Add( $conn_lbl3,      0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{dbname}, 0, wxEXPAND, 0 );
 
-    $conn_mid_fgs->Add( $conn_lbl4, 0, wxLEFT,   5 );
-    $conn_mid_fgs->Add( $self->{port},    0, wxEXPAND, 0 );
+    $conn_mid_fgs->Add( $conn_lbl4,    0, wxLEFT,   5 );
+    $conn_mid_fgs->Add( $self->{port}, 0, wxEXPAND, 0 );
 
     $sizer->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 0 );
 
@@ -751,18 +717,14 @@ sub dialog_error {
 sub action_confirmed {
     my ( $self, $msg ) = @_;
 
-    my ($answer) = Wx::MessageBox(
-        $msg,
-        __ 'Confirm',
-        wxYES_NO | wxCANCEL,
-        undef,
-    );
+    my ($answer)
+        = Wx::MessageBox( $msg, __ 'Confirm', wxYES_NO | wxCANCEL, undef, );
 
-    my $return_answer = ($answer == wxYES)     ? 'yes'
-                      : ($answer == wxNO)      ? 'no'
-                      : ($answer == wxCANCEL)  ? 'cancel'
-                      :                          'unknown'
-                      ;
+    my $return_answer
+        = ( $answer == wxYES ) ? 'yes'
+        : ( $answer == wxNO )     ? 'no'
+        : ( $answer == wxCANCEL ) ? 'cancel'
+        :                           'unknown';
 
     return $return_answer;
 }
@@ -778,7 +740,7 @@ sub get_choice_default {
 }
 
 sub get_control {
-    my ($self, $name) = @_;
+    my ( $self, $name ) = @_;
     return $self->{$name};
 }
 
@@ -814,9 +776,7 @@ sub get_controls_para {
 
 sub get_controls_sql {
     my $self = shift;
-    return [
-        { sql => [ $self->{sql}, 'normal', 'white', 's' ] },
-    ];
+    return [ { sql => [ $self->{sql}, 'normal', 'white', 's' ] }, ];
 }
 
 sub get_controls_admin {
@@ -830,7 +790,7 @@ sub get_controls_admin {
 }
 
 sub get_list_max_index {
-    my ($self, $lname) = @_;
+    my ( $self, $lname ) = @_;
     return ( $self->get_control($lname)->GetItemCount() - 1 );
 }
 
@@ -840,6 +800,7 @@ sub log_config_options {
     while ( my ( $key, $value ) = each( %{$path} ) ) {
         $self->log_msg("II Config: '$key' set to '$value'");
     }
+    return;
 }
 
 sub querylist_form_clear {
@@ -873,13 +834,13 @@ sub querylist_form_populate {
 }
 
 sub toggle_sql_replace {
-    my ($self, $mode) = @_;
+    my ( $self, $mode ) = @_;
     $mode ||= $self->model->get_appmode;
     my $data = $self->model->read_qdf_data_file;
-    if ($mode eq 'edit') {
+    if ( $mode eq 'edit' ) {
         $self->control_set_value( 'sql', $data->{body}{sql} );
     }
-    elsif ($mode eq 'sele') {
+    elsif ( $mode eq 'sele' ) {
         my $para = QDepo::Utils->params_to_hash( $data->{parameters} );
         $self->control_replace_sql_text( $data->{body}{sql}, $para );
     }
@@ -890,6 +851,7 @@ sub control_replace_sql_text {
     my ( $self, $sqltext, $params ) = @_;
     my ($newtext) = $self->model->string_replace_pos( $sqltext, $params );
     $self->control_set_value( 'sql', $newtext );
+    return;
 }
 
 sub log_msg {
@@ -904,16 +866,16 @@ sub set_status {
     my ( $self, $text, $sb_id, $color ) = @_;
     my $sb = $self->get_statusbar();
     if ( $sb_id eq q{db} ) {
-        $sb->PushStatusText( $text, 2 ) if defined $text; # database name
+        $sb->PushStatusText( $text, 2 ) if defined $text;    # database name
     }
     elsif ( $sb_id eq q{mn} ) {
-        $sb->PushStatusText( $text, 3 ) if defined $text; # mnemonic
+        $sb->PushStatusText( $text, 3 ) if defined $text;    # mnemonic
     }
     elsif ( $sb_id eq q{ms} ) {
-        $sb->PushStatusText( $text, 0 ) if defined $text; # messages
+        $sb->PushStatusText( $text, 0 ) if defined $text;    # messages
     }
     else {
-        $sb->PushStatusText( $text, 1 ) if defined $text;# app status
+        $sb->PushStatusText( $text, 1 ) if defined $text;    # app status
     }
     return;
 }
@@ -922,9 +884,12 @@ sub toggle_status_cn {
     my ( $self, $status ) = @_;
     if ($status) {
         my $user = $self->cfg->connection->user || q{};
-        my $db   = $self->cfg->connection->dbname;
+        my $db = $self->cfg->connection->dbname;
         return unless $db;
-        $db =~ s{^.*(\\|/)}{};
+        $db =~ s{\A                          # from the start of the string
+                    .*                       # replace anything
+                    (\\|/)                   # folowed by a \ or a /
+                }{}x;
         $self->set_status( "${user}\@${db}", 'db', 'darkgreen' );
     }
     else {
@@ -934,10 +899,11 @@ sub toggle_status_cn {
 }
 
 sub dialog_progress {
-    my ($self, $title, $max) = @_;
-    $max = (defined $max and $max > 0) ? $max : 100; # default 100
+    my ( $self, $title, $max ) = @_;
+    $max = ( defined $max and $max > 0 ) ? $max : 100;    # default 100
     require QDepo::Wx::Dialog::Progress;
-    $self->{progress} = QDepo::Wx::Dialog::Progress->new($self, $title, $max);
+    $self->{progress}
+        = QDepo::Wx::Dialog::Progress->new( $self, $title, $max );
     $self->{progress}->Destroy;
     return;
 }
@@ -955,25 +921,25 @@ sub progress_update {
 }
 
 sub control_set_value {
-    my ($self, $name, $value) = @_;
-    $value ||= q{};                 # empty
+    my ( $self, $name, $value ) = @_;
+    $value ||= q{};    # empty
     my $control = $self->get_control($name);
-    $self->control_write_s($control, $value);
+    $self->control_write_s( $control, $value );
     return;
 }
 
 sub controls_write_onpage {
-    my ($self, $page, $data) = @_;
-    my $get = "get_controls_$page";
+    my ( $self, $page, $data ) = @_;
+    my $get      = "get_controls_$page";
     my $controls = $self->$get();
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
             my $value = $data->{$name};
             if ( defined $value ) {
-                $value =~ s/\n$//mg;    # remove trailing newline
+                $value =~ s/\n$//xmg;    # remove trailing newline
             }
             else {
-                $value = q{};           # make empty string
+                $value = q{};            # make empty string
             }
             $self->control_write( $control, $name, $value );
         }
@@ -982,11 +948,11 @@ sub controls_write_onpage {
 }
 
 sub control_write {
-    my ($self, $control, $name, $value, $state) = @_;
+    my ( $self, $control, $name, $value, $state ) = @_;
     my $ctrltype = $control->{$name}[3];
     my $sub_name = qq{control_write_$ctrltype};
     if ( $self->can($sub_name) ) {
-        $self->$sub_name($control->{$name}[0], $value, $state);
+        $self->$sub_name( $control->{$name}[0], $value, $state );
     }
     else {
         warn "WW: No '$ctrltype' ctrl type for writing '$name'!\n";
@@ -1003,7 +969,7 @@ sub control_write_e {
 
 sub control_write_s {
     my ( $self, $control, $value, $is_append ) = @_;
-    $value //= q{};                 # empty not undef
+    $value //= q{};    # empty not undef
     my $readonly = $control->GetReadOnly;
     $control->SetReadOnly(0);
     $control->ClearAll unless $is_append;
@@ -1029,19 +995,19 @@ sub controls_read_frompage {
     my @records;
     foreach my $control ( @{$controls} ) {
         foreach my $name ( keys %{$control} ) {
-            my $value = $self->control_read( $control, $name);
-            push(@records, { $name => $value } ) if ($name and $value);
+            my $value = $self->control_read( $control, $name );
+            push( @records, { $name => $value } ) if ( $name and $value );
         }
     }
     return \@records;
 }
 
 sub control_read {
-    my ($self, $control, $name) = @_;
+    my ( $self, $control, $name ) = @_;
     my $ctrltype = $control->{$name}[3];
     my $sub_name = qq{control_read_$ctrltype};
     return $self->$sub_name( $control->{$name}[0] ) if $self->can($sub_name);
-    die "WW: No '$ctrltype' ctrl type for reading '$name'!\n";
+    croak "WW: No '$ctrltype' ctrl type for reading '$name'!\n";
 }
 
 sub control_read_e {
@@ -1060,7 +1026,7 @@ sub control_read_c {
 }
 
 sub toggle_list_enable {
-    my ($self, $lname, $state) = @_;
+    my ( $self, $lname, $state ) = @_;
     $self->get_control($lname)->Enable($state);
     return;
 }
@@ -1072,7 +1038,7 @@ sub set_editable {
     # Here we need to transform them to 0|1
     my $editable = $state eq 'normal' ? 1 : 0;
     my $readonly = $state eq 'normal' ? 0 : 1;
-    $color = 'lightgrey' unless $editable; # default color for disabled
+    $color = 'lightgrey' unless $editable;    # default color for disabled
 
     my $control  = $control_ref->{$name}[0];
     my $ctrltype = $control_ref->{$name}[3];
@@ -1081,87 +1047,83 @@ sub set_editable {
     $control->SetEditable($editable) if $ctrltype eq 'e';
     $control->SetReadOnly($readonly) if $ctrltype eq 's';
 
-    $control->SetBackgroundColour( Wx::Colour->new($color)) if $color;
+    $control->SetBackgroundColour( Wx::Colour->new($color) ) if $color;
 
-    return ;
+    return;
 }
 
-######################################################################
-
-#-- Event handlers
-
 sub event_handler_for_menu {
-    my ($self, $name, $calllback) = @_;
+    my ( $self, $name, $calllback ) = @_;
     my $menu_id = $self->get_menu_popup_item($name)->GetId;
     EVT_MENU $self, $menu_id, $calllback;
     return;
 }
 
 sub event_handler_for_tb_button {
-    my ($self, $name, $calllback) = @_;
+    my ( $self, $name, $calllback ) = @_;
     my $tb_id = $self->get_toolbar_btn($name)->GetId;
     EVT_TOOL $self, $tb_id, $calllback;
     return;
 }
 
 sub event_handler_for_tb_choice {
-    my ($self, $name, $calllback) = @_;
+    my ( $self, $name, $calllback ) = @_;
     my $tb_id = $self->get_toolbar_btn($name)->GetId;
     EVT_CHOICE $self, $tb_id, $calllback;
     return;
 }
 
 sub event_handler_for_list {
-    my ($self, $name, $calllback) = @_;
+    my ( $self, $name, $calllback ) = @_;
     EVT_LIST_ITEM_SELECTED $self, $self->get_control($name), $calllback;
     return;
 }
 
 sub event_handler_for_button {
-    my ($self, $name, $calllback) = @_;
+    my ( $self, $name, $calllback ) = @_;
     EVT_BUTTON( $self, $self->{$name}, $calllback );
     return;
 }
 
 sub on_close_window {
-    my ($self, ) = @_;
+    my ( $self, ) = @_;
     $self->Destroy;
+    return;
 }
 
-#--  List functions
-
 sub refresh_list {
-    my ($self, $name) = @_;
-    die "List name is required for 'refresh_list'" unless $name;
+    my ( $self, $name ) = @_;
+    croak "List name is required for 'refresh_list'" unless $name;
     $self->{$name}->RefreshList;
     return;
 }
 
 sub focus_list {
-    my ($self, $name) = @_;
-    die "List name is required for 'focus_list'" unless $name;
+    my ( $self, $name ) = @_;
+    croak "List name is required for 'focus_list'" unless $name;
     $self->{$name}->SetFocus;
     return;
 }
 
 sub select_list_item {
-    my ($self, $lname, $what) = @_;
+    my ( $self, $lname, $what ) = @_;
 
-    return unless defined $what;        # required if invalid mnemonic
-    die "List name is required for 'refresh_list'" unless $lname;
+    return unless defined $what;    # required if invalid mnemonic
+    croak "List name is required for 'refresh_list'" unless $lname;
 
     my $items_no = $self->{$lname}->GetItemCount;
-    return unless $items_no > 0;             # nothing to select
+    return if $items_no == 0;       # nothing to select
 
     my $item;
     if ( looks_like_number($what) ) {
         $item = $what;
     }
     else {
-        $item = $what eq 'first'   ?  0
-              : $what eq 'last'    ? ($items_no - 1)
-              :                       $what # default
-              ;
+        $item
+            = $what eq 'first' ? 0
+            : $what eq 'last'  ? ( $items_no - 1 )
+            : $what                 # default
+            ;
     }
     $self->{$lname}->Select( $item, 1 );    # 1|0 = select|deselect
     $self->{$lname}->EnsureVisible($item);
@@ -1188,14 +1150,12 @@ Define the model callbacks
 
 =head2 update_gui_components
 
-When the application status (mode) changes, update gui components.
-Screen controls (widgets) are not handled here, but in the controller
-module.
+When the application status (mode) changes, update gui components. Screen
+controls (widgets) are not handled here, but in the controller module.
 
 =head2 _build_menu
 
-Create the menubar and the menus. Menus are defined in configuration
-files.
+Create the menubar and the menus. Menus are defined in configuration files.
 
 =head2 make_menus
 
@@ -1203,9 +1163,9 @@ Make menus.
 
 =head2 get_app_menus_list
 
-Get application menus list, needed for binding the command to load the
-screen.  We only need the name of the popup which is also the name of
-the screen (and also the name of the module).
+Get application menus list, needed for binding the command to load the screen. 
+We only need the name of the popup which is also the name of the screen (and
+also the name of the module).
 
 =head2 make_popup_item
 
@@ -1253,11 +1213,10 @@ Create the SQL page (tab) on the notebook
 
 Create the administration page (tab) on the notebook.
 
-Using the MySQL lexer for very basic syntax highlighting. This was
-chosen because permits the definition of 3 custom lists. For this
-purpose three key word lists are defined with a keyword in each. B<EE>
-is for error, B<II> for information and B<WW> for warning. Words in
-the lists must be lower case.
+Using the MySQL lexer for very basic syntax highlighting. This was chosen
+because permits the definition of 3 custom lists. For this purpose three key
+word lists are defined with a keyword in each. B<EE> is for error, B<II> for
+information and B<WW> for warning. Words in the lists must be lower case.
 
 =head2 dialog_error
 
@@ -1335,9 +1294,8 @@ Create a progress dialog.
 
 =head2 progress_update
 
-Update progress.  If I<Cancel> is pressed, stop (set continue to
-false) from the return value of the Update method of
-L<Wx::ProgressDialog>.
+Update progress.  If I<Cancel> is pressed, stop (set continue to false) from
+the return value of the Update method of L<Wx::ProgressDialog>.
 
 =head2 control_set_value
 

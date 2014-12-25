@@ -2,7 +2,7 @@ package QDepo::Output::ODF;
 
 # ABSTRACT: Export data in ODF format
 
-use 5.010001;                   # minimum version nedeed by ODF::lpOD
+use 5.010001;    # minimum version nedeed by ODF::lpOD
 use strict;
 use warnings;
 use Carp;
@@ -18,9 +18,9 @@ sub new {
     $self->{doc_file} = shift;
     $self->{doc_rows} = shift;
     $self->{doc_cols} = shift;
-    $self->{doc} = undef;
-    $self->{lenghts}  = [];     # Array to hold max lenghts for each col
-    $self->{max_len}  = 30;     # Max column width
+    $self->{doc}      = undef;
+    $self->{lenghts}  = [];      # Array to hold max lenghts for each col
+    $self->{max_len}  = 30;      # Max column width
 
     $self->_create_doc('Sheet');
 
@@ -68,6 +68,7 @@ sub create_row {
         my $data = $rec->{contents};
         my $type = $rec->{type};
         if ( $type and $type =~ /date/ ) {
+
             # Date/Time is in ISO8601 format: yyyy-mm-ddThh:mm:ss.sss
             # TODO: format date/time
         }
@@ -79,26 +80,26 @@ sub create_row {
 }
 
 sub finish {
-    my ($self, $count_rows, $percent) = @_;
+    my ( $self, $count_rows, $percent ) = @_;
 
     # Set column widths
     $self->set_cols_width();
-    $self->{doc}->save(target => $self->{doc_file});
+    $self->{doc}->save( target => $self->{doc_file} );
     my $output;
     if ( -f $self->{doc_file} ) {
         $output = $self->{doc_file};
     }
-    return ($output, $count_rows, $percent);
+    return ( $output, $count_rows, $percent );
 }
 
 sub init_column_widths {
-    my ($self, $fields) = @_;
-    @{$self->{lenghts}} = map { defined $_ ? length($_) : 0 } @{$fields};
-    return scalar @{$self->{lenghts}};       # for test
+    my ( $self, $fields ) = @_;
+    @{ $self->{lenghts} } = map { defined $_ ? length($_) : 0 } @{$fields};
+    return scalar @{ $self->{lenghts} };    # for test
 }
 
 sub store_max_len {
-    my ($self, $col, $len) = @_;
+    my ( $self, $col, $len ) = @_;
 
     # Impose a maximum width
     $len = $self->{max_len} if $len > $self->{max_len};
@@ -112,9 +113,10 @@ sub store_max_len {
 sub set_cols_width {
     my ($self) = @_;
     my $cols = scalar @{ $self->{lenghts} };
-    for ( my $col = 0 ; $col < $cols; $col++ ) {
+    for ( my $col = 0; $col < $cols; $col++ ) {
+
         #$self->{sheet}->set_column( $col, $col, ${ $self->{lenghts} }[$col] );
-        $self->set_col_style($col, ${ $self->{lenghts} }[$col]);
+        $self->set_col_style( $col, ${ $self->{lenghts} }[$col] );
     }
     return;
 }

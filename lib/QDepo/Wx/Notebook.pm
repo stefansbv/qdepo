@@ -17,10 +17,9 @@ sub new {
     #- The Notebook
 
     my $self = $class->SUPER::new(
-        $parent,
-        -1,
-        [-1, -1],
-        [-1, -1],
+        $parent, -1,
+        [ -1, -1 ],
+        [ -1, -1 ],
         wxAUI_NB_TAB_FIXED_WIDTH,
     );
 
@@ -53,7 +52,7 @@ sub new {
 
 sub get_current {
     my $self = shift;
-    my $idx = $self->GetSelection();
+    my $idx  = $self->GetSelection();
     return $self->{pages}{$idx};
 }
 

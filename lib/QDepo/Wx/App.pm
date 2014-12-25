@@ -26,7 +26,7 @@ sub create {
     return $self;
 }
 
-sub OnInit { 1 }
+sub OnInit { return 1 }
 
 1;
 

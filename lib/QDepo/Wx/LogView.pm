@@ -26,18 +26,21 @@ sub new {
 
     $self->SetMarginType( 1, wxSTC_MARGIN_SYMBOL );
     $self->SetMarginWidth( 1, 0 );
-    $self->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
+    $self->SetWrapMode(wxSTC_WRAP_NONE);    # wxSTC_WRAP_WORD
     $self->StyleSetFont( wxSTC_STYLE_DEFAULT,
-        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' ) );
-    $self->SetLexer( wxSTC_LEX_MSSQL );
-    $self->SetWrapMode(wxSTC_WRAP_NONE); # wxSTC_WRAP_WORD
+        Wx::Font->new( 10, wxDEFAULT, wxNORMAL, wxNORMAL, 0, 'Courier New' )
+    );
+    $self->SetLexer(wxSTC_LEX_MSSQL);
+    $self->SetWrapMode(wxSTC_WRAP_NONE);    # wxSTC_WRAP_WORD
 
     # List0
-    $self->SetKeyWords(0, q{ii} );
+    $self->SetKeyWords( 0, q{ii} );
+
     # List1
-    $self->SetKeyWords(1, q{ee} );
+    $self->SetKeyWords( 1, q{ee} );
+
     # List2
-    $self->SetKeyWords(2, q{ww} );
+    $self->SetKeyWords( 2, q{ww} );
 
     $self->SetTabWidth(4);
     $self->SetIndent(4);

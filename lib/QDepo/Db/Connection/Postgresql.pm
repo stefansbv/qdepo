@@ -4,6 +4,7 @@ package QDepo::Db::Connection::Postgresql;
 
 use strict;
 use warnings;
+use Carp;
 
 use DBI;
 use Try::Tiny;
@@ -14,7 +15,7 @@ use QDepo::Exceptions;
 sub new {
     my ($class, $p) = @_;
     my $model = delete $p->{model}
-        or die 'Missing "model" parameter to new()';
+        or croak 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -137,7 +138,7 @@ sub parse_error {
 sub table_exists {
     my ( $self, $table ) = @_;
 
-    die "'table_exists' requires a 'table' parameter!" unless $table;
+    croak "'table_exists' requires a 'table' parameter!" unless $table;
 
     my $table_name = (split /\./, $table)[-1]; # remove schema name
 
@@ -166,7 +167,7 @@ sub table_exists {
 sub table_info_short {
     my ( $self, $table ) = @_;
 
-    die "'table_info_short' requires a 'table' parameter!" unless $table;
+    croak "'table_info_short' requires a 'table' parameter!" unless $table;
 
     my $table_name = (split /\./, $table)[-1]; # remove schema name
 

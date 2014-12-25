@@ -37,8 +37,6 @@ is( $c1, $c2, 'both instances are the same object' );
 
 # resource::icons
 ok( -d $c1->icons, '"icons" path exists' )
-    or diag( '"icons" path defined as "'
-        . $c1->icons
-        . '" not exists' );
+    or diag( '"icons" path defined as "' . $c1->icons . '" not exists' );
 
 # end tests

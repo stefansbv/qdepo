@@ -4,6 +4,7 @@ package QDepo::Output;
 
 use strict;
 use warnings;
+use Carp;
 
 use Try::Tiny;
 use POSIX qw (floor);
@@ -56,7 +57,7 @@ sub module_name_parameter {
         return $names->{$option}{$param};
     }
     else {
-        die "Unknown module for $option";
+        croak "Unknown module for $option";
     }
 }
 
@@ -65,7 +66,7 @@ sub load_module {
 
     # Check dependency
     my $depend = $self->module_name_parameter($option, 'depend');
-    try { eval "require $depend" or die $@; }
+    try { eval "require $depend" or croak $@; }
     catch {
         $self->model->message_log(
             __x('{ert} {module} is not available',
@@ -76,7 +77,7 @@ sub load_module {
     };
 
     my $module = $self->module_name_parameter($option, 'module');
-    try { eval "require $module" or die $@; }
+    try { eval "require $module" or croak $@; }
     catch {
         $self->model->message_log(
             __x('{ert} {module} is not available',
@@ -85,6 +86,7 @@ sub load_module {
             )
         );
     };
+    return;
 }
 
 sub cfg {
@@ -109,7 +111,7 @@ sub db_generate_output {
 
     my $ext = $self->module_name_parameter($option, 'ext');
     if ( defined $outfile ) {
-        $outfile .= ".$ext" unless $outfile =~ m{\.${ext}$}i;
+        $outfile .= ".$ext" unless $outfile =~ m{\.${ext}$}xi;
     }
     else {
         $self->model->message_status(__ 'No output file parameter');
@@ -138,7 +140,7 @@ sub db_generate_output {
     }
     catch {
         $self->catch_db_exceptions($_, 'Execute select');
-        return undef;           # required!
+        return;                              # required!
     };
     return unless $success;
 
@@ -266,9 +268,9 @@ sub count_rows {
 
     # !!! This does not work for complex SQL statements !!!
 
-    return -1 if $sql =~ m/\bUNION\s+SELECT/ims;
+    return -1 if $sql =~ m/\bUNION\s+SELECT/imsx;
 
-    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/ims; # incomplete
+    my ($from) = $sql =~ m/\bFROM\b(.*?)\Z/imsx; # incomplete
     unless ($from) {
         $self->model->message_log(
             __x('{ert} Failed to extract FROM clause',
@@ -355,7 +357,7 @@ sub make_columns_record {
     }
     catch {
         $self->catch_db_exceptions($_, __ 'Columns record');
-        return undef;           # required!
+        return;                              # required!
     };
     if ($success) {
         ( $self->{columns}, $self->{header} ) = ( $columns, $header );

@@ -4,12 +4,13 @@ package QDepo::ListDataTable;
 
 use strict;
 use warnings;
+use Carp;
 
 use List::MoreUtils qw/firstidx/;
 use Locale::TextDomain 1.20 qw(QDepo);
 
 sub new {
-    my ($class, $meta) = @_;
+    my ( $class, $meta ) = @_;
     my $self = {};
     $self->{meta}     = $meta;
     $self->{data}     = [];
@@ -22,13 +23,13 @@ sub new {
 }
 
 sub set_value {
-    my ($self, $row, $col, $value) = @_;
+    my ( $self, $row, $col, $value ) = @_;
     $self->{data}[$row][$col] = $value;
     return $value;
 }
 
 sub get_value {
-    my ($self, $row, $col) = @_;
+    my ( $self, $row, $col ) = @_;
     my $value = $self->{data}[$row][$col];
     my $type  = $self->{meta}[$col]{type};
     return ( $value ? __('Yes') : q() ) if $type eq 'bool';
@@ -51,18 +52,18 @@ sub get_item_default {
 }
 
 sub set_item_default {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
     $self->{default} = $item;
     $self->set_default($item);
     return;
 }
 
 sub set_default {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
     my $max_idx = $self->get_item_count - 1;
-    foreach my $idx ( 0..$max_idx ) {
+    foreach my $idx ( 0 .. $max_idx ) {
         my $value = $idx == $item ? 1 : 0;
-        $self->set_value($idx, 2, $value);
+        $self->set_value( $idx, 2, $value );
     }
     return;
 }
@@ -73,18 +74,18 @@ sub get_item_current {
 }
 
 sub set_item_current {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
     $self->{current} = $item;
     $self->set_current($item);
     return;
 }
 
 sub set_current {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
     my $max_idx = $self->get_item_count - 1;
-    foreach my $idx ( 0..$max_idx ) {
+    foreach my $idx ( 0 .. $max_idx ) {
         my $value = $idx == $item ? 1 : 0;
-        $self->set_value($idx, 3, $value);
+        $self->set_value( $idx, 3, $value );
     }
     return;
 }
@@ -95,15 +96,15 @@ sub get_item_selected {
 }
 
 sub set_item_selected {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
     $self->{selected} = $item;
     return;
 }
 
 sub toggle_item_marked {
-    my ($self, $item) = @_;
+    my ( $self, $item ) = @_;
 
-    die "Undefined item parameter for 'toggle_item_marked'"
+    croak "Undefined item parameter for 'toggle_item_marked'"
         unless defined $item;
 
     my $mark = 0;

@@ -10,7 +10,7 @@ has 'menu_names' => (
     is      => 'ro',
     isa     => 'ArrayRef',
     default => sub {
-        [ 'menu_app', 'menu_help', ],
+        return [ 'menu_app', 'menu_help', ],
     },
     handles => {
         all_menus => 'elements',
@@ -22,7 +22,7 @@ has 'menu' => (
     is      => 'rw',
     isa     => 'HashRef',
     default => sub {
-        {   'menu_app' => {
+        return {   'menu_app' => {
                 'id'        => '5001',
                 'label'     => __ 'App',
                 'underline' => 0,

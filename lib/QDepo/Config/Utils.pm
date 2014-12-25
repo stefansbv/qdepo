@@ -4,6 +4,7 @@ package QDepo::Config::Utils;
 
 use warnings;
 use strict;
+use Carp;
 
 use File::Basename;
 use File::Copy;
@@ -17,25 +18,12 @@ use YAML::Tiny;
 
 use QDepo::Exceptions;
 
-=head1 SYNOPSIS
-
-    use QDepo::Config::Utils;
-
-    my $cu = QDepo::Config::Utils->new();
-
-=head2 load_yaml
-
-Use YAML::Tiny to load a YAML file and return as a Perl hash data
-structure.
-
-=cut
-
 sub read_yaml {
     my ( $self, $yaml_file ) = @_;
     return YAML::Tiny::LoadFile($yaml_file)
         or Exception::IO::ReadError->throw(
-            filename => $yaml_file,
-            message  => YAML::Tiny->errstr,
+        filename => $yaml_file,
+        message  => YAML::Tiny->errstr,
         );
 }
 
@@ -51,63 +39,39 @@ sub write_yaml {
 
     $yaml->write($yaml_file)
         or Exception::IO::WriteError->throw(
-            filename => $yaml_file,
-            message  => YAML::Tiny->errstr,
+        filename => $yaml_file,
+        message  => YAML::Tiny->errstr,
         );
 
     return;
 }
 
-=head2 create_path
-
-Create a new path
-
-=cut
-
 sub create_path {
-    my ($self, $new_path) = @_;
-
-    make_path(
-        $new_path,
-        { error => \my $err }
-    );
+    my ( $self, $new_path ) = @_;
+    make_path( $new_path, { error => \my $err } );
     if (@$err) {
         for my $diag (@$err) {
-            my ($file, $message) = %$diag;
-            if ($file eq '') {
-                die "Error: $message\n";
+            my ( $file, $message ) = %$diag;
+            if ( $file eq '' ) {
+                croak "Error: $message\n";
             }
         }
     }
-
     return;
 }
 
-=head2 create_conn_cfg_tree
-
-Create connection configuration tree and copy connection configuration
-template to newly created path.
-
-=cut
-
 sub create_conn_cfg_tree {
-    my ($self, $conn_tmpl, $conn_path, $conn_qdfp, $conn_file) = @_;
+    my ( $self, $conn_tmpl, $conn_path, $conn_qdfp, $conn_file ) = @_;
 
     # Create tree
     $self->create_path($conn_path);
     $self->create_path($conn_qdfp);
-    $self->copy_files($conn_tmpl, $conn_path);
+    $self->copy_files( $conn_tmpl, $conn_path );
+    return;
 }
 
-=head2 copy_files
-
-Copy files
-
-=cut
-
 sub copy_files {
-    my ($self, $src_fqn, $dst_p) = @_;
-
+    my ( $self, $src_fqn, $dst_p ) = @_;
     if ( !-f $src_fqn ) {
         print "Source not found:\n $src_fqn\n";
         print "Use script/setup-cfg.pl to initialize the config path!\n";
@@ -117,33 +81,21 @@ sub copy_files {
         print "Destination path not found:\n $dst_p\n";
         return;
     }
-
-    copy( $src_fqn, $dst_p ) or die $!;
+    copy( $src_fqn, $dst_p ) or croak $!;
+    return;
 }
 
-=head2 find_subdirs
-
-Find subdirectories of a directory, not recursively
-
-=cut
-
 sub find_subdirs {
-    my ($self, $dir) = @_;
+    my ( $self, $dir ) = @_;
 
     # Find all the sub directories of a given directory
-    my $rule = File::Find::Rule->new
-        ->mindepth(1)
-        ->maxdepth(1);
-    # Ignore git
-    $rule->or(
-        $rule->new
-            ->directory
-            ->name('.git')
-            ->prune
-            ->discard,
-        $rule->new);
+    my $rule = File::Find::Rule->new->mindepth(1)->maxdepth(1);
 
-    my @subdirs = $rule->directory->in( $dir );
+    # Ignore git
+    $rule->or( $rule->new->directory->name('.git')->prune->discard,
+        $rule->new );
+
+    my @subdirs = $rule->directory->in($dir);
 
     my @dbs = map { basename($_); } @subdirs;
 
@@ -162,19 +114,12 @@ sub save_default_yaml {
 
     $yaml->write($yaml_file)
         or Exception::IO::WriteError->throw(
-            filename => $yaml_file,
-            message  => YAML::Tiny->errstr,
+        filename => $yaml_file,
+        message  => YAML::Tiny->errstr,
         );
 
     return;
 }
-
-=head2 get_licence
-
-Slurp licence file and return the text string.  Return only the title
-if the license file is not found, just to be on the save side.
-
-=cut
 
 sub get_license {
     my $self = shift;
@@ -191,19 +136,13 @@ END_LICENSE
 
     my $license = catfile( dist_dir('QDepo'), 'license', 'gpl.txt' );
 
-    if (-f $license) {
+    if ( -f $license ) {
         return read_file($license);
     }
     else {
         return $message;
     }
 }
-
-=head2 get_help_text
-
-Return help file path.
-
-=cut
 
 sub get_help_text {
     my $self = shift;
@@ -214,9 +153,9 @@ sub get_help_text {
 
 END_HELP
 
-    my $help_file = catfile( dist_dir('QDepo'), 'help', $self->helpfile);
-    if (-f $help_file) {
-        return  read_file( $help_file, binmode => ':utf8' );
+    my $help_file = catfile( dist_dir('QDepo'), 'help', $self->helpfile );
+    if ( -f $help_file ) {
+        return read_file( $help_file, binmode => ':utf8' );
     }
     else {
         return $message;
@@ -224,3 +163,45 @@ END_HELP
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 SYNOPSIS
+
+    use QDepo::Config::Utils;
+
+    my $cu = QDepo::Config::Utils->new();
+
+=head2 load_yaml
+
+Use YAML::Tiny to load a YAML file and return as a Perl hash data structure.
+
+=head2 create_path
+
+Create a new path
+
+=head2 create_conn_cfg_tree
+
+Create connection configuration tree and copy connection configuration template
+to newly created path.
+
+=head2 copy_files
+
+Copy files
+
+=head2 find_subdirs
+
+Find subdirectories of a directory, not recursively
+
+=head2 get_licence
+
+Slurp licence file and return the text string.  Return only the title if the
+license file is not found, just to be on the save side.
+
+=head2 get_help_text
+
+Return help file path.
+
+=cut

@@ -20,7 +20,7 @@ BEGIN {
 }
 
 my $test_data_header = [qw(id firstname lastname)];
-my $test_data_row = [
+my $test_data_row    = [
     {   contents => 1,
         field    => "id",
         recno    => 1,
@@ -45,13 +45,11 @@ SKIP: {
     ok my $doc = QDepo::Output::ODF->new( 'test.ods', 2, 3 ), 'new';
 
     ok $doc->init_column_widths( [qw{id firstname lastname}] ),
-            'init lengths';
+        'init lengths';
 
     # Fill
-    is $doc->create_header_row( 0, $test_data_header ), undef,
-        "header row";
-    is $doc->create_row( 1, $test_data_row ), undef,
-        'Create 1 row of data';
+    is $doc->create_header_row( 0, $test_data_header ), undef, "header row";
+    is $doc->create_row( 1, $test_data_row ), undef, 'Create 1 row of data';
 
     # Close
     ok( my ($out) = $doc->finish, 'done' );

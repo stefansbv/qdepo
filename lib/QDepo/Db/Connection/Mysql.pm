@@ -4,6 +4,7 @@ package QDepo::Db::Connection::Mysql;
 
 use strict;
 use warnings;
+use Carp;
 
 use DBI;
 use Try::Tiny;
@@ -14,7 +15,7 @@ use QDepo::Exceptions;
 sub new {
     my ($class, $p) = @_;
     my $model = delete $p->{model}
-        or die 'Missing "model" parameter to new()';
+        or croak 'Missing "model" parameter to new()';
     my $self = {};
     $self->{model} = $model;
     bless $self, $class;
@@ -29,12 +30,12 @@ sub db_connect {
 
     $self->{_dbh} = DBI->connect(
         $dsn, $args->user, $args->pass,
-            FetchHashKeyName   => 'NAME_lc',
-            LongReadLen        => 524288,
-            AutoCommit         => 1,
-            RaiseError         => 0,
-            PrintError         => 0,
-            HandleError        => sub { $self->handle_error(); },
+        {   FetchHashKeyName => 'NAME_lc',
+            LongReadLen      => 524288,
+            AutoCommit       => 1,
+            RaiseError       => 0,
+            PrintError       => 0,
+            HandleError      => sub { $self->handle_error(); },
         }
     );
 

@@ -4,6 +4,7 @@ package QDepo::Config;
 
 use strict;
 use warnings;
+use Carp;
 
 use File::HomeDir;
 use File::ShareDir qw(dist_file);
@@ -18,8 +19,8 @@ use QDepo::Exceptions;
 
 use base qw(Class::Singleton Class::Accessor);
 
-sub _new_instance {
-    my ($class, $args) = @_;
+sub _new_instance {    ## no critic (ProhibitUnusedPrivateSubroutines)
+    my ( $class, $args ) = @_;
 
     my $self = bless {}, $class;
 
@@ -56,9 +57,9 @@ sub init_configurations {
     # unless list or init argument provied on the CLI
     $args->{mnemonic} = $self->get_default_mnemonic()
         unless ( $args->{mnemonic}
-            or defined( $args->{list} )
-            or defined( $args->{init} )
-                 or $args->{default} );
+        or defined( $args->{list} )
+        or defined( $args->{init} )
+        or $args->{default} );
     $self->mnemonic( $args->{mnemonic} );
 
     return;
@@ -66,13 +67,13 @@ sub init_configurations {
 
 sub make_accessors {
     my ( $self, $cfg_hr ) = @_;
-
     __PACKAGE__->mk_accessors( keys %{$cfg_hr} );
 
     # Add data to object
     foreach ( keys %{$cfg_hr} ) {
         $self->$_( $cfg_hr->{$_} );
     }
+    return;
 }
 
 sub configdir {
@@ -82,18 +83,18 @@ sub configdir {
 }
 
 sub load_main_config {
-    my ($self, $args) = @_;
+    my ( $self, $args ) = @_;
 
     # Main config file name, load
     my $main_fqn = catfile( $self->cfpath, 'etc', 'main.yml' );
-    my $maincfg  = $self->config_data_from($main_fqn);
+    my $maincfg = $self->config_data_from($main_fqn);
     my $output
         = $maincfg->{output}{path}
         ? canonpath( $maincfg->{output}{path} )
         : File::HomeDir->my_home;
     my $main_hr = {
-        icons    => catdir( $self->cfpath, $maincfg->{resource}{icons} ),
-        output   => $output,
+        icons  => catdir( $self->cfpath, $maincfg->{resource}{icons} ),
+        output => $output,
         qdf_tmpl => catfile( $self->cfpath, 'template', 'template.qdf' ),
     };
 
@@ -104,7 +105,7 @@ sub load_main_config {
     return;
 }
 
-sub mnemonic {
+sub mnemonic {    ## no critic (RequireArgUnpacking)
     my $self = shift;
     $self->{mnemonic} = $_[0] if @_;
     return $self->{mnemonic};
@@ -113,7 +114,7 @@ sub mnemonic {
 sub connection {
     my $self = shift;
 
-    die "No mnemonic!" unless $self->mnemonic; # TODO: fix tests
+    croak "No mnemonic!" unless $self->mnemonic;    # TODO: fix tests
     my $connection_yml
         = catfile( $self->dbpath, $self->mnemonic, 'etc', 'connection.yml' );
     Exception::IO::FileNotFound->throw(
@@ -122,14 +123,15 @@ sub connection {
     ) unless -f $connection_yml;
 
     my $connection_data;
-    if (-f $connection_yml) {
+    if ( -f $connection_yml ) {
         $connection_data = $self->config_data_from($connection_yml);
     }
     else {
         print "Connection config not found: $connection_yml\n";
     }
 
-    my $conn = QDepo::Config::Connection->new( $connection_data->{connection} );
+    my $conn
+        = QDepo::Config::Connection->new( $connection_data->{connection} );
     $conn->user( $self->user );
     $conn->pass( $self->pass );
 
@@ -138,7 +140,7 @@ sub connection {
 
 sub qdfpath {
     my $self = shift;
-    my $dir  = catdir( $self->dbpath, $self->mnemonic, 'qdf' );
+    my $dir = catdir( $self->dbpath, $self->mnemonic, 'qdf' );
     Exception::IO::PathNotFound->throw(
         pathname => $dir,
         message  => 'No such path',
@@ -159,8 +161,8 @@ sub list_mnemonics {
 }
 
 sub list_mnemonics_all {
-    my $self = shift;
-    my $cc_no = scalar @{ $self->get_mnemonics } ;
+    my $self  = shift;
+    my $cc_no = scalar @{ $self->get_mnemonics };
     if ( $cc_no == 0 ) {
         print "Configurations (mnemonics): none\n";
         print ' in ', $self->dbpath, "\n";
@@ -177,9 +179,9 @@ sub list_mnemonics_all {
 }
 
 sub list_mnemonic_details_for {
-    my ($self, $mnemonic) = @_;
+    my ( $self, $mnemonic ) = @_;
     my $conn_ref = $self->get_details_for($mnemonic);
-    unless (scalar %{$conn_ref} ) {
+    unless ( scalar %{$conn_ref} ) {
         print "Configuration mnemonic '$mnemonic' not found!\n";
         return;
     }
@@ -195,9 +197,9 @@ sub list_mnemonic_details_for {
 }
 
 sub get_details_for {
-    my ($self, $mnemonic) = @_;
+    my ( $self, $mnemonic ) = @_;
 
-    die "The 'get_details_for' method reqires the 'mnemonic' parameter"
+    croak "The 'get_details_for' method reqires the 'mnemonic' parameter"
         unless $mnemonic;
 
     my $conn_file = $self->config_file_name($mnemonic);
@@ -215,7 +217,7 @@ sub get_details_for {
 sub config_data_from {
     my ( $self, $conf_file, $not_fatal ) = @_;
 
-    return if $not_fatal and ( ! -f $conf_file );
+    return if $not_fatal and ( !-f $conf_file );
 
     my $conf;
     try {
@@ -229,14 +231,16 @@ sub config_data_from {
                         ert      => 'EE',
                         message  => $e->message,
                         filename => $e->filename,
-                    ) );
+                    )
+                );
             }
             else {
                 $self->model->message_log(
                     __x('{ert} {message}',
                         ert     => 'EE',
                         message => __ 'Unknown exception',
-                    ) );
+                    )
+                );
             }
         }
     };
@@ -246,8 +250,8 @@ sub config_data_from {
 
 sub config_file_name {
     my ( $self, $mnemonic, $cfg_file ) = @_;
-    $cfg_file ||= catfile('etc', 'connection.yml');
-    return catfile( $self->configdir($mnemonic), $cfg_file);
+    $cfg_file ||= catfile( 'etc', 'connection.yml' );
+    return catfile( $self->configdir($mnemonic), $cfg_file );
 }
 
 sub get_mnemonics {
@@ -263,7 +267,7 @@ sub get_mnemonics {
     foreach my $name ( @{$list} ) {
         my $default = $default_name eq $name ? 1 : 0;
         my $current = $current_name eq $name ? 1 : 0;
-        my $ccfn = $self->config_file_name($name);
+        my $ccfn    = $self->config_file_name($name);
         if ( -f $ccfn ) {
             push @mnx,
                 {
@@ -302,19 +306,19 @@ sub new_config_tree {
 }
 
 sub get_resource_file {
-    my ($self, $dir, $file_name) = @_;
+    my ( $self, $dir, $file_name ) = @_;
     return catfile( $self->cfpath, $dir, $file_name );
 }
 
 sub get_dist_file {
-    my ($self, @path) = @_;
+    my ( $self, @path ) = @_;
     return dist_file( 'QDepo', catfile(@path) );
 }
 
 sub get_default_mnemonic {
-    my $self = shift;
+    my $self             = shift;
     my $default_yml_file = $self->default_yml;
-    if (-f $default_yml_file) {
+    if ( -f $default_yml_file ) {
         my $cfg_hr = $self->config_data_from($default_yml_file);
         return $cfg_hr->{mnemonic};
     }
@@ -327,10 +331,10 @@ sub choose_a_default_mnemonic {
     my $self = shift;
     my $list = QDepo::Config::Utils->find_subdirs( $self->dbpath );
     my $cnt  = scalar @{$list};
-    if ($cnt == 0) {
+    if ( $cnt == 0 ) {
         return q{};
     }
-    elsif ($cnt == 1) {
+    elsif ( $cnt == 1 ) {
         return $list->[0];
     }
     else {
@@ -341,9 +345,9 @@ sub choose_a_default_mnemonic {
 }
 
 sub save_default_mnemonic {
-    my ($self, $arg) = @_;
-    QDepo::Config::Utils->save_default_yaml(
-        $self->default_yml, 'mnemonic', $arg );
+    my ( $self, $arg ) = @_;
+    QDepo::Config::Utils->save_default_yaml( $self->default_yml, 'mnemonic',
+        $arg );
     return;
 }
 
@@ -351,9 +355,8 @@ sub save_default_mnemonic {
 
 =head1 SYNOPSIS
 
-Reads configuration files in I<YAML::Tiny> format and create a HoH.
-Then using I<Class::Accessor>, automatically create methods from the
-keys of the hash.
+Reads configuration files in I<YAML::Tiny> format and create a HoH. Then using
+I<Class::Accessor>, automatically create methods from the keys of the hash.
 
     use QDepo::Config;
 
@@ -365,14 +368,14 @@ keys of the hash.
 
 =head2 _new_instance
 
-Constructor method, the first and only time a new instance is created.
-All parameters passed to the instance() method are forwarded to this
-method. (From I<Class::Singleton> docs).
+Constructor method, the first and only time a new instance is created. All
+parameters passed to the instance() method are forwarded to this method. (From
+I<Class::Singleton> docs).
 
 =head2 init_configurations
 
-Initialize basic configuration options.  Initialize the user
-configuration tree if not exists, with the I<File::UserConfig> module.
+Initialize basic configuration options.  Initialize the user configuration tree
+if not exists, with the I<File::UserConfig> module.
 
 =head2 make_accessors
 
@@ -380,13 +383,13 @@ Automatically make accessors for the hash keys.
 
 =head2 configdir
 
-Return application configuration directory.  The mnemonic is an
-optional parameter with default as the current mnemonic.
+Return application configuration directory.  The mnemonic is an optional
+parameter with default as the current mnemonic.
 
 =head2 load_main_config
 
-Initialize configuration variables from arguments.  Load the main
-configuration file and return a HoH data structure.
+Initialize configuration variables from arguments.  Load the main configuration
+file and return a HoH data structure.
 
 Make accessors.
 
@@ -404,14 +407,14 @@ List details about the configuration name (mnemonic) if exists.
 
 =head2 get_details_for
 
-Return the connection configuration details.  Check the name and
-return the reference only if the name matches.
+Return the connection configuration details.  Check the name and return the
+reference only if the name matches.
 
 =head2 config_data_from
 
-Load a config file and return the Perl data structure.  It loads a
-file in Config::General format or in YAML::Tiny format, depending on
-the extension of the file.
+Load a config file and return the Perl data structure.  It loads a file in
+Config::General format or in YAML::Tiny format, depending on the extension of
+the file.
 
 =head2 config_file_name
 
@@ -420,13 +423,13 @@ configuration file.
 
 =head2 get_mnemonics
 
-Get the connections configs list.  If connection file exist than add
-to connections list and return it.
+Get the connections configs list.  If connection file exist than add to
+connections list and return it.
 
 =head2 config_new
 
-Create new connection configuration directory and install new
-configuration file from template.
+Create new connection configuration directory and install new configuration
+file from template.
 
 =head2 get_resource_file
 
@@ -439,8 +442,8 @@ L<help/qdepo-manual.htb>.
 
 =head2 get_default_mnemonic
 
-Set mnemonic to the value read from the optional L<default.yml>
-configuration file.
+Set mnemonic to the value read from the optional L<default.yml> configuration
+file.
 
 =head2 save_default_mnemonic
 

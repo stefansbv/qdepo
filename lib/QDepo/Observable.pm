@@ -35,13 +35,14 @@ sub _docallbacks {
     return;
 }
 
-sub set {
+sub set {    ## no critic (ProhibitAmbiguousNames)
     my ( $self, $data ) = @_;
     $self->{_data} = $data;
     $self->_docallbacks();
+    return;
 }
 
-sub get {
+sub get {    ## no critic (ProhibitAmbiguousNames)
     my $self = shift;
     return $self->{_data};
 }
@@ -84,13 +85,10 @@ Set data to undef.
 
 =head1 ACKNOWLEDGEMENTS
 
-From: Cipres::Registry::Observable
-Author: Rutger Vos, 17/Aug/2006 13:57
-        http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen \
-             /cipres/framework/perl/cipres/lib/Cipres/
-Thank You!
+From: Cipres::Registry::Observable Author: Rutger Vos, 17/Aug/2006 13:57       
+ http://svn.sdsc.edu/repo/CIPRES/cipresdev/branches/guigen \             
+/cipres/framework/perl/cipres/lib/Cipres/ Thank You!
 
-Copyright:
-  Rutger Vos   2006
+Copyright:   Rutger Vos   2006
 
 =cut

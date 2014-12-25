@@ -21,7 +21,7 @@ BEGIN {
 }
 
 my $test_data_header = [qw(id firstname lastname)];
-my $test_data_row = [
+my $test_data_row    = [
     {   contents => 1,
         field    => "id",
         recno    => 1,
@@ -40,7 +40,7 @@ my $test_data_row = [
 ];
 
 my @test_data;
-foreach my $key ( qw(field contents) ) {
+foreach my $key (qw(field contents)) {
     push @test_data, map { $_->{$key} } @{$test_data_row};
 }
 
@@ -48,7 +48,7 @@ foreach my $key ( qw(field contents) ) {
 ok my $doc = QDepo::Output::Csv->new( 'test.csv', 1, 3 ), 'new';
 
 # Fill
-is $doc->create_header_row( 0, $test_data_header), undef, "header row";
+is $doc->create_header_row( 0, $test_data_header ), undef, "header row";
 is $doc->create_row( 1, $test_data_row ), undef, 'Create 1 row of data';
 
 # Close
@@ -58,7 +58,7 @@ ok my ($test_csv) = $doc->finish, 'done';
 my $csv = Text::CSV->new( { binary => 1, sep_char => ';' } );
 open my $fh, "<", $test_csv or die "$test_csv: $!";
 my @test_res;
-while ( my $row = $csv->getline ($fh) ) {
+while ( my $row = $csv->getline($fh) ) {
     push @test_res, @{$row};
 }
 $csv->eof or $csv->error_diag;

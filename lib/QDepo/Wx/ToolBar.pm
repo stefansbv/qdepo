@@ -9,7 +9,6 @@ use Locale::TextDomain 1.20 qw(QDepo);
 use Wx qw(:everything);
 use base qw{Wx::ToolBar};
 
-
 sub new {
     my ( $self, $gui ) = @_;
 
@@ -30,7 +29,6 @@ sub new {
     return $self;
 }
 
-
 sub make_toolbar_button {
     my ( $self, $name, $attribs, $ico_path ) = @_;
     my $type = $attribs->{type};
@@ -38,9 +36,8 @@ sub make_toolbar_button {
     return;
 }
 
-
 sub set_initial_mode {
-    my ($self, $names) = @_;
+    my ( $self, $names ) = @_;
     foreach my $name ( @{$names} ) {
 
         # Initial state disabled, except quit button
@@ -50,11 +47,10 @@ sub set_initial_mode {
     return;
 }
 
-
-sub _item_normal {
+sub _item_normal {    ## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $self, $name, $attribs, $ico_path ) = @_;
 
-    $self->AddSeparator if $attribs->{sep} =~ m{before};
+    $self->AddSeparator if $attribs->{sep} =~ m{before}x;
 
     # Add the button
     $self->{$name} = $self->AddTool(
@@ -64,16 +60,15 @@ sub _item_normal {
         $attribs->{help},
     );
 
-    $self->AddSeparator if $attribs->{sep} =~ m{after};
+    $self->AddSeparator if $attribs->{sep} =~ m{after}x;
 
     return;
 }
 
-
-sub _item_check {
+sub _item_check {    ## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $self, $name, $attribs, $ico_path ) = @_;
 
-    $self->AddSeparator if $attribs->{sep} =~ m{before};
+    $self->AddSeparator if $attribs->{sep} =~ m{before}x;
 
     # Add the button
     $self->{$name} = $self->AddTool(
@@ -83,17 +78,16 @@ sub _item_check {
         $attribs->{help},
     );
 
-    $self->AddSeparator if $attribs->{sep} =~ m{after};
+    $self->AddSeparator if $attribs->{sep} =~ m{after}x;
 
     return;
 }
 
-
-sub _item_list {
+sub _item_list {    ## no critic (ProhibitUnusedPrivateSubroutines)
     my ( $self, $name, $attribs ) = @_;
 
     # 'sep' must be at least empty string in config;
-    $self->AddSeparator if $attribs->{sep} =~ m{before};
+    $self->AddSeparator if $attribs->{sep} =~ m{before}x;
 
     $self->{$name} = Wx::Choice->new(
         $self,
@@ -101,22 +95,21 @@ sub _item_list {
         [ -1,  -1 ],
         [ 100, -1 ],
         $self->{options},
+
         # wxCB_SORT,
     );
 
-    $self->{$name}->SetStringSelection( $self->{options}[0] ); # default
+    $self->{$name}->SetStringSelection( $self->{options}[0] );    # default
     $self->AddControl( $self->{$name} );
-    $self->AddSeparator if $attribs->{sep} =~ m{after};
+    $self->AddSeparator if $attribs->{sep} =~ m{after}x;
 
     return;
 }
-
 
 sub get_toolbar_btn {
     my ( $self, $name ) = @_;
     return $self->{$name};
 }
-
 
 sub get_choice_options {
     my ( $self, $index ) = @_;
@@ -128,37 +121,24 @@ sub get_choice_options {
     }
 }
 
-
 sub enable_tool {
     my ( $self, $btn_name, $state ) = @_;
-
     my $tb_btn_id = $self->get_toolbar_btn($btn_name)->GetId;
-
     my $new_state;
     if ( defined $state ) {
-
-    SWITCH: for ($state) {
-            /^$/        && do { $new_state = 0; last SWITCH; };
-            /normal/i   && do { $new_state = 1; last SWITCH; };
-            /disabled/i && do { $new_state = 0; last SWITCH; };
-
-            # If other value like 1 | 0
-            $new_state = $state ? 1 : 0;
-        }
+        $new_state
+            = $state eq q{}          ? 0
+            : $state =~ m/normal/x   ? 1
+            : $state =~ m/disabled/x ? 0
+            : $state                 ? 1
+            :                          0;    # last for: 1|0
     }
     else {
-
-        # Undef state: toggle
-        # print " toggle ";
-        $new_state = !$self->GetToolState($tb_btn_id);
+        $new_state = !$self->GetToolState($tb_btn_id);   # undef state: toggle
     }
-
-    # print "set to $new_state\n";
     $self->EnableTool( $tb_btn_id, $new_state );
-
     return;
 }
-
 
 sub toggle_tool_check {
     my ( $self, $btn_name, $state ) = @_;
@@ -166,7 +146,6 @@ sub toggle_tool_check {
     $self->ToggleTool( $tb_btn_id, $state );
     return;
 }
-
 
 sub make_bitmap {
     my ( $self, $ico_path, $icon ) = @_;
@@ -217,11 +196,10 @@ Return all options or the name of the option with index
 
 =head2 enable_tool
 
-Toggle tool bar button.  If state is defined then set to state, do not
-toggle.
+Toggle tool bar button.  If state is defined then set to state, do not toggle.
 
-State can come as 0 | 1 and normal | disabled.  Because toolbar.yml is
-used for both Tk and Wx, this sub is more complex that is should be.
+State can come as 0 | 1 and normal | disabled.  Because toolbar.yml is used for
+both Tk and Wx, this sub is more complex that is should be.
 
 =head2 toggle_tool_check
 

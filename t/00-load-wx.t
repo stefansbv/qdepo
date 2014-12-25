@@ -21,7 +21,7 @@ BEGIN {
 }
 
 use_ok('Wx');
-diag( "using Wx: $Wx::VERSION" );
+diag("using Wx: $Wx::VERSION");
 use_ok('QDepo::Wx::Notebook');
 use_ok('QDepo::Wx::Dialog::Progress');
 use_ok('QDepo::Wx::Dialog::Help');
