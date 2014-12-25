@@ -461,7 +461,12 @@ sub report_remove {
     my ( $self, $file ) = @_;    # $item
 
     unless ( -f $file ) {
-        $self->message_log( __x( '{ert} "file" not found!', ert => 'EE' ) );
+        $self->message_log(
+            __x('{ert} Report "{file}" not found!',
+                ert  => 'EE',
+                file => $file,
+            )
+        );
         return;
     }
 
