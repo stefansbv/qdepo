@@ -210,8 +210,7 @@ sub on_item_selected_load {
 
 sub get_query_item {
     my $self = shift;
-    $self->get_itemchanged_observable->get;
-    return;
+    return $self->get_itemchanged_observable->get;
 }
 
 sub load_qdf_data_init {
@@ -369,8 +368,6 @@ sub report_add {
     croak "The new item parameter is required for 'report_add'\n"
         unless defined $item_new;
 
-    $self->get_itemchanged_observable->set($item_new); # XXX ???
- 
     my $new_qdf_file = $self->report_name();
 
     my $src_fqn = $self->cfg->qdf_tmpl;
@@ -887,7 +884,7 @@ Return choice observable status.
 
 =head2 string_replace_for_run
 
-Prepare SQL text string for execution.  Replace the 'valueN' string with '?'. 
+Prepare SQL text string for execution.  Replace the 'valueN' string with '?'.
 Create an array of parameter values, used for binding.
 
 Need to check if number of parameters match number of 'valueN' strings in SQL
