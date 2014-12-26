@@ -182,7 +182,6 @@ sub add_new_report {
     my $rec      = $self->model->report_add($item_new);
     my $item     = $self->add_qlist_item($rec);
     $dt->set_item_selected($item);
-    $self->model->on_item_selected_load;
     $self->view->select_list_item( 'qlist', 'last' );
     $self->set_app_mode('edit');
 
