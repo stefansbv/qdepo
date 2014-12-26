@@ -24,12 +24,16 @@ sub new {
 
 sub set_value {
     my ( $self, $row, $col, $value ) = @_;
+    croak "'set_value' requires a row and a column parameter!"
+        unless defined $row and defined $col;
     $self->{data}[$row][$col] = $value;
     return $value;
 }
 
 sub get_value {
     my ( $self, $row, $col ) = @_;
+    croak "'get_value' requires a row and a column parameter!"
+        unless defined $row and defined $col;
     my $value = $self->{data}[$row][$col];
     my $type  = $self->{meta}[$col]{type};
     return ( $value ? __('Yes') : q() ) if $type eq 'bool';
@@ -53,6 +57,8 @@ sub get_item_default {
 
 sub set_item_default {
     my ( $self, $item ) = @_;
+    croak "'set_item_default' requires an item parameter!"
+        unless defined $item;
     $self->{default} = $item;
     $self->set_default($item);
     return;
@@ -60,6 +66,8 @@ sub set_item_default {
 
 sub set_default {
     my ( $self, $item ) = @_;
+    croak "'set_default' requires an item parameter!"
+        unless defined $item;
     my $max_idx = $self->get_item_count - 1;
     foreach my $idx ( 0 .. $max_idx ) {
         my $value = $idx == $item ? 1 : 0;
@@ -75,6 +83,8 @@ sub get_item_current {
 
 sub set_item_current {
     my ( $self, $item ) = @_;
+    croak "'set_item_current' requires an item parameter!"
+        unless defined $item;
     $self->{current} = $item;
     $self->set_current($item);
     return;
@@ -82,6 +92,8 @@ sub set_item_current {
 
 sub set_current {
     my ( $self, $item ) = @_;
+    croak "'set_current' requires an item parameter!"
+        unless defined $item;
     my $max_idx = $self->get_item_count - 1;
     foreach my $idx ( 0 .. $max_idx ) {
         my $value = $idx == $item ? 1 : 0;
@@ -97,6 +109,8 @@ sub get_item_selected {
 
 sub set_item_selected {
     my ( $self, $item ) = @_;
+    croak "'set_item_selected' requires an item parameter!"
+        unless defined $item;
     $self->{selected} = $item;
     return;
 }

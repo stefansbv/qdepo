@@ -369,6 +369,8 @@ sub report_add {
     croak "The new item parameter is required for 'report_add'\n"
         unless defined $item_new;
 
+    $self->get_itemchanged_observable->set($item_new); # XXX ???
+ 
     my $new_qdf_file = $self->report_name();
 
     my $src_fqn = $self->cfg->qdf_tmpl;
