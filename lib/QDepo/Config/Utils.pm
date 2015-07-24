@@ -21,7 +21,7 @@ use QDepo::Exceptions;
 sub read_yaml {
     my ( $self, $yaml_file ) = @_;
     return YAML::Tiny::LoadFile($yaml_file)
-        or Exception::IO::ReadError->throw(
+        || Exception::IO::ReadError->throw(
         filename => $yaml_file,
         message  => YAML::Tiny->errstr,
         );
