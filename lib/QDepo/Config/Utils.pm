@@ -48,6 +48,7 @@ sub write_yaml {
 
 sub create_path {
     my ( $self, $new_path ) = @_;
+    croak "Wrong parameter for create_path()" unless $new_path;
     make_path( $new_path, { error => \my $err } );
     if (@$err) {
         for my $diag (@$err) {
