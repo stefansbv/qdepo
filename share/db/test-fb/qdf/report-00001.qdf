@@ -1,0 +1,20 @@
+<report>
+  <header>
+    <filename>db/testulet/qdf/report-00001.qdf</filename>
+    <sheet>Not used</sheet>
+    <title>Customers list - filtered</title>
+    <description>Customers with customer number between [value1] and [value2] inclusive.</description>
+    <output>customers-list</output>
+  </header>
+  <parameters>
+    <parameter descr="Customer no min" id="1" value="100"/>
+    <parameter descr="Customer no max" id="2" value="200"/>
+  </parameters>
+  <body>
+    <sql><![CDATA[SELECT *
+FROM customers
+WHERE customernumber >= value1
+  AND customernumber <= value2
+]]></sql>
+  </body>
+</report>

@@ -1,0 +1,13 @@
+# QDepo
+# Database connection configuration
+# Valid options for driver are:
+#  cubrid | firebird | postgresql | mysql | sqlite
+# Output path points to the directory where output files are created
+#
+# ~ means undefined
+---
+connection:
+  driver: firebird
+  host: localhost
+  dbname: classicmodels
+  port: 3050

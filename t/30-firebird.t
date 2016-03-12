@@ -45,7 +45,7 @@ my $args = {
     pass     => $pass,
 };
 
-my $dbname = 'test-qdepo.fdb';
+my $dbname = 'classicmodels.fdb'; # XXX Fullpath is required in connections.yml
 my $dbpath = catfile( $tmpdir, $dbname );
 
 my $cfg = QDepo::Config->instance($args);
@@ -54,10 +54,10 @@ ok( $cfg->isa('QDepo::Config'), 'created QDepo::Config instance' );
 # Make a test database for Firebird
 if ( $cfg->connection->driver =~ m{firebird}xi ) {
     my $rv = make_fb_database();
-    create_classicmodels_schema();
     if ( $rv != 1 ) {
         BAIL_OUT("Dubious return value from 'make_fb_database': $rv");
     }
+    create_classicmodels_schema();
 }
 else {
     die "Expecting to test the Firebird engine, not ",
@@ -90,7 +90,7 @@ done_testing;
 # end test
 
 sub make_fb_database {
-    my $err = try {
+    try {
         require DBD::Firebird;
         DBD::Firebird->create_database(
             {   db_path       => $dbpath,
@@ -105,7 +105,6 @@ sub make_fb_database {
     catch {
         die "Error creating database: $_";
     };
-
     return 1;
 }
 
