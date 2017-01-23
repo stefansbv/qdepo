@@ -1,6 +1,6 @@
 package QDepo::Observable;
 
-# ABSTRACT: Obrserver patern implementation
+# ABSTRACT: Observer patern implementation
 
 use strict;
 use warnings;
