@@ -544,6 +544,7 @@ sub _build_ctrls_parameter {
     my ( $self, $page ) = @_;
 
     #-- Controls
+    my $width = 190;
 
     my $para_tit_lbl1 = Wx::StaticText->new( $page, -1, __ 'Label', );
     my $para_tit_lbl2 = Wx::StaticText->new( $page, -1, __ 'Description', );
@@ -551,47 +552,47 @@ sub _build_ctrls_parameter {
 
     my $para_lbl1 = Wx::StaticText->new( $page, -1, 'value1', );
     $self->{descr1}
-        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ $width, -1 ], );
     $self->{value1}
         = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl2 = Wx::StaticText->new( $page, -1, 'value2', );
     $self->{descr2}
-        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ $width, -1 ], );
     $self->{value2}
         = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     my $para_lbl3 = Wx::StaticText->new( $page, -1, 'value3', );
     $self->{descr3}
-        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ 170, -1 ], );
+        = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ $width, -1 ], );
     $self->{value3}
         = Wx::TextCtrl->new( $page, -1, q{}, [ -1, -1 ], [ -1, -1 ], );
 
     #-- Layout
 
     my $sizer = Wx::StaticBoxSizer->new(
-        Wx::StaticBox->new( $page, -1, __ 'Parameters', ), wxHORIZONTAL, );
+        Wx::StaticBox->new( $page, -1, __ 'Parameters', ), wxVERTICAL, );
 
     my $para_fgs = Wx::FlexGridSizer->new( 4, 3, 5, 10 );
-
-    $sizer->Add( $para_fgs, 1, wxEXPAND, 3 );
     $para_fgs->AddGrowableCol(2);
 
     $para_fgs->Add( $para_tit_lbl1, 0, wxTOP | wxLEFT, 10 );
     $para_fgs->Add( $para_tit_lbl2, 0, wxTOP | wxLEFT, 10 );
     $para_fgs->Add( $para_tit_lbl3, 0, wxTOP | wxLEFT, 10 );
 
-    $para_fgs->Add( $para_lbl1,      0, wxTOP | wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr1}, 0, wxEXPAND | wxTOP, 5 );
-    $para_fgs->Add( $self->{value1}, 1, wxEXPAND | wxTOP, 5 );
+    $para_fgs->Add( $para_lbl1,      0,  wxLEFT,   5 );
+    $para_fgs->Add( $self->{descr1}, 0, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value1}, 0, wxEXPAND, 5 );
 
     $para_fgs->Add( $para_lbl2,      0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr2}, 1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value2}, 1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{descr2}, 0, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value2}, 0, wxEXPAND, 5 );
 
     $para_fgs->Add( $para_lbl3,      0, wxLEFT,   5 );
-    $para_fgs->Add( $self->{descr3}, 1, wxEXPAND, 0 );
-    $para_fgs->Add( $self->{value3}, 1, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{descr3}, 0, wxEXPAND, 0 );
+    $para_fgs->Add( $self->{value3}, 0, wxEXPAND, 5 );
+
+    $sizer->Add( $para_fgs, 0, wxALL | wxGROW, 5 );
 
     return $sizer;
 }
@@ -645,7 +646,7 @@ sub _build_ctrls_querylist {
     $fg_sizer->Add( $qlist_lbl4,       0, wxLEFT,   5 );
     $fg_sizer->Add( $self->{template}, 0, wxEXPAND, 0 );
 
-    $sizer->Add( $fg_sizer, 0, wxALL | wxGROW, 0 );
+    $sizer->Add( $fg_sizer, 0, wxALL | wxGROW, 5 );
 
     return $sizer;
 }
@@ -700,7 +701,7 @@ sub _build_ctrls_conn {
     $conn_mid_fgs->Add( $conn_lbl4,    0, wxLEFT,   5 );
     $conn_mid_fgs->Add( $self->{port}, 0, wxEXPAND, 0 );
 
-    $sizer->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 0 );
+    $sizer->Add( $conn_mid_fgs, 0, wxALL | wxGROW, 5 );
 
     return $sizer;
 }
@@ -1163,7 +1164,7 @@ Make menus.
 
 =head2 get_app_menus_list
 
-Get application menus list, needed for binding the command to load the screen. 
+Get application menus list, needed for binding the command to load the screen.
 We only need the name of the popup which is also the name of the screen (and
 also the name of the module).
 
