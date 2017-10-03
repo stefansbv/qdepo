@@ -140,36 +140,47 @@ sub table_exists {
 
     croak "'table_exists' requires a 'table' parameter!" unless $table;
 
-    my $table_name = (split /\./, $table)[-1]; # remove schema name
-
+    my ($schema_name, $table_name);
+    if ( $table =~ m{\.} ) {
+        ($schema_name, $table_name) = split /[.]/, $table;
+    }
+    else {
+        $table_name = $table;
+    }
     my $sql = qq( SELECT COUNT(table_name)
                 FROM information_schema.tables
                 WHERE table_type = 'BASE TABLE'
+                     OR table_type = 'VIEW'
                     AND table_schema NOT IN
-                    ('pg_catalog', 'information_schema')
-                    AND table_name = '$table_name';
+                      ('pg_catalog', 'information_schema')
+                    AND table_name = '$table'
     );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
 
     my $val_ret;
     try {
         ($val_ret) = $self->{_dbh}->selectrow_array($sql);
     }
     catch {
-        Exception::Db::Connect->throw(
-            logmsg  => "Transaction aborted because $_",
-            usermsg => 'Database error',
-        );
+        die "Transaction aborted because: $_";
     };
 
     return $val_ret;
 }
 
 sub table_info_short {
-    my ( $self, $table ) = @_;
+    my ($self, $table, $key_field) = @_;
 
     croak "'table_info_short' requires a 'table' parameter!" unless $table;
 
-    my $table_name = (split /\./, $table)[-1]; # remove schema name
+    my ($schema_name, $table_name);
+    if ( $table =~ m{\.} ) {
+        ($schema_name, $table_name) = split /[.]/, $table;
+    }
+    else {
+        $table_name = $table;
+    }
+    $key_field //= 'name';
 
     my $sql = qq( SELECT ordinal_position  AS pos
                     , column_name       AS name
@@ -181,8 +192,9 @@ sub table_info_short {
                     , numeric_scale     AS scale
                FROM information_schema.columns
                WHERE table_name = '$table_name'
-               ORDER BY ordinal_position;
     );
+    $sql .= qq{AND table_schema = '$schema_name'} if $schema_name;
+    $sql .=  q{ORDER BY ordinal_position};
 
     $self->{_dbh}{ChopBlanks} = 1;    # trim CHAR fields
 
@@ -190,7 +202,7 @@ sub table_info_short {
     try {
         my $sth = $self->{_dbh}->prepare($sql);
         $sth->execute;
-        $flds_ref = $sth->fetchall_hashref('name');
+        $flds_ref = $sth->fetchall_hashref($key_field);
     }
     catch {
         Exception::Db::Connect->throw(
@@ -198,7 +210,6 @@ sub table_info_short {
             usermsg => 'Database error',
         );
     };
-
     return $flds_ref;
 }
 
