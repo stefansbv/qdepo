@@ -125,7 +125,8 @@ sub db_generate_output {
     }
 
     # Rows count for user messages and spreadsheet dimensions initialization
-    my $rows_cnt = $self->check_rows($sql, $bind);
+    # XXX Does not work properly, disable for all except ods
+    my $rows_cnt = $option ne 'Calc' ? 0 : $self->count_records($sql, $bind);
 
     # Execute Select
     my $sth;
@@ -174,7 +175,7 @@ sub db_generate_output {
     return $out;
 }
 
-sub check_rows {
+sub count_records {
     my ($self, $sql, $bind) = @_;
     my $rows_cnt = $self->count_rows($sql, $bind);
     if (defined $rows_cnt and $rows_cnt >= 0 ) {
@@ -314,7 +315,7 @@ sub count_rows {
 
 sub create_contents {
     my ( $self, $doc, $sth, $rows_cnt ) = @_;
-
+    $rows_cnt //= 0;
     my ($row_num, $pv) = (1, 0);
     while ( my $row_data = $sth->fetchrow_hashref ) {
         my $col_data = [];
@@ -327,7 +328,7 @@ sub create_contents {
 
         #-- Progress bar
 
-        next if $rows_cnt < 0;  # no progress bar
+        next if $rows_cnt <= 0;  # no progress bar
 
         my $p = floor( $row_num * 100 / $rows_cnt );
         next if $pv == $p;
