@@ -7,7 +7,7 @@
 # ~ means undefined
 ---
 connection:
-  driver: firebird
+  driver: postgresql
   host: localhost
   dbname: classicmodels
-  port: 3050
+  port: 5432
