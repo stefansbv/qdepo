@@ -2,6 +2,7 @@ package QDepo::Controller;
 
 # ABSTRACT: The Controller.
 
+use 5.010001;
 use strict;
 use warnings;
 
@@ -636,8 +637,10 @@ sub list_add_item {
 
 sub is_connected {
     my $self = shift;
+    say "is_connected?: call model is connected";
     unless ( $self->model->is_connected ) {
-        try { $self->model->db_connect; 1; }
+        say "not connected, try:";
+        try { $self->model->db_connect }
         catch {
             $self->db_connect_auth_exception( $_, "is connected" );
         };
@@ -813,7 +816,7 @@ sub db_connect_exception {
                 __x('{ert} {message}: {details}',
                     ert     => 'EE',
                     message => __ 'Unknown error',
-                    details => $_,
+                    details => $exc,
                 )
             );
         }
@@ -835,7 +838,7 @@ sub db_exception {
             );
         }
         elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
-            ( my $logmsg = $e->logmsg ) =~ s{\n}{\ }xm;
+            ( my $logmsg = $e->logmsg ) =~ s{\n}{ }xm;
             $self->model->message_log(
                 __x('{ert} {message}: {details}',
                     ert     => 'WW',
@@ -857,7 +860,7 @@ sub db_exception {
                 __x('{ert} {message}: {details}',
                     ert     => 'EE',
                     message => __ 'Unknown error',
-                    details => $_,
+                    details => $exc,
                 )
             );
         }
