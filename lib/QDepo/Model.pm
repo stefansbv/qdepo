@@ -2,106 +2,218 @@ package QDepo::Model;
 
 # ABSTRACT: The Model
 
-use strict;
-use warnings;
+use feature 'say';
+use Mouse;
 use Carp;
-
 use File::Copy;
 use File::Basename;
 use File::Spec::Functions;
 use SQL::Statement;
+use Log::Log4perl qw(get_logger :levels);
 use Locale::TextDomain 1.20 qw(QDepo);
 use Scalar::Util qw(blessed);
 use Try::Tiny;
+use QDepo::X qw(hurl);
 
-use QDepo::Exceptions;
+# use QDepo::Exceptions;
 use QDepo::ItemData;
 use QDepo::Config;
+use QDepo::Config::Connection;
 use QDepo::FileIO;
 use QDepo::Observable;
 use QDepo::Db;
 use QDepo::Output;
 use QDepo::Utils;
+use QDepo::Target;
+use QDepo::Engine;
 use QDepo::ListDataTable;
 
-sub new {
-    my $class = shift;
-    my $self  = {
-        _connected   => QDepo::Observable->new(),
-        _stdout      => QDepo::Observable->new(),
-        _message     => QDepo::Observable->new(),
-        _itemchanged => QDepo::Observable->new(),
-        _appmode     => QDepo::Observable->new(),
-        _choice      => QDepo::Observable->new(),
-        _progress    => QDepo::Observable->new(),
-        _continue    => QDepo::Observable->new(),
-        _cfg         => QDepo::Config->instance(),
-        _conn        => undef,
-        _lds         => {},                          # list data structure
-        _file        => undef,
-        _itemdata    => undef,
-        _dt          => {},
-    };
-    bless $self, $class;
-    return $self;
-}
+has 'info_db' => (
+    is      => 'ro',
+    isa     => 'QDepo::Config::Connection',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return QDepo::Config::Connection->new;
+    },
+);
 
-sub cfg {
-    my $self = shift;
-    return $self->{_cfg};
-}
+has 'target' => (
+    is      => 'ro',
+    isa     => 'QDepo::Target',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        $self->info_db->dbname;       # need to call this before 'uri'
+        return QDepo::Target->new(
+            uri => $self->info_db->uri,
+        );
+    },
+);
+
+my $observables = [
+    qw{
+        _connected
+        _stdout
+        _appmode
+        _message
+        _itemchanged
+        _choice
+        _progress
+        _continue
+      }
+];
+
+has $observables => (
+    is      => 'ro',
+    isa     => 'QDepo::Observable',
+    default => sub {
+        return QDepo::Observable->new;
+    },
+);
+
+has 'cfg' => (
+    is      => 'ro',
+    isa     => 'QDepo::Config',
+    default => sub {
+        return QDepo::Config->instance;
+    },
+);
+
+
+has '_msg_dict' => (
+    is      => 'ro',
+    isa     => 'Maybe[HashRef]',
+    default => sub {
+        return {},
+    },
+);
+
+has 'logger' => (
+    is      => 'ro',
+    isa     => 'Log::Log4perl::Logger',
+    default => sub {
+        return get_logger(),
+    },
+);
 
 sub db_connect {
     my $self = shift;
-    unless ( $self->is_connected ) {
-        $self->message_status( 'Connecting...', 0 );
-        $self->{_conn} = QDepo::Db->new($self);
-        if ( $self->is_connected ) {
-            $self->message_log( __x( qq({ert} Connected), ert => 'II' ) );
-        }
-        else {
-            $self->message_log(
-                __x( qq({ert} Failed to connect), ert => 'WW' ) );
-        }
-        $self->message_status( '', 0 );
+    try {
+        my $engine = $self->target->engine;
+        $engine->reset_conn;
+        $self->{_dbh} = $engine->dbh;
     }
-    return 1;
+    catch {
+        # $self->db_exception($_, 'Connection failed');
+        # die "$_, 'Connection failed'";
+		my $message = 'Connection failed';
+		hurl connect => __x( $message, name => $_ );
+    };
+    $self->get_connection_observable->set(1);
+    $self->_print('info#Connected');
+    return;
 }
 
 sub disconnect {
     my $self = shift;
-    if ( $self->is_connected ) {
-        $self->conn->disconnect;
-        $self->message_log( __x( qq({ert} Disconnected), ert => 'II' ) );
+    try {
+        my $engine = $self->target->engine;
+        $engine->reset_conn;
+        $self->{_dbh} = undef;
     }
-    $self->{_conn} = undef;    # destroy
-                               # Reset user and pass
-    $self->cfg->user(undef);
-    $self->cfg->pass(undef);
-    return 1;
-}
-
-sub conn {
-    my $self = shift;
-    unless ( blessed $self->{_conn} ) {
-        try { $self->db_connect; }
-        catch {
-            if ( my $e = Exception::Base->catch($_) ) {
-                $e->throw;
-            }
-        };
-    }
-    return $self->{_conn};
+    catch {
+        $self->db_exception($_, 'Connection failed');
+    };
+    $self->get_connection_observable->set(0);
+    $self->_print('info#Disconnected');
 }
 
 sub dbh {
     my $self = shift;
-    return $self->conn->dbh;
+    return $self->{_dbh} if $self->{_dbh}->isa('DBI::db');
 }
 
 sub dbc {
     my $self = shift;
-    return $self->conn->dbc;
+    return $self->target->engine;
+}
+
+sub conn {
+    my $self = shift;
+    return $self->target->engine->conn;
+}
+
+sub is_connected {
+    my $self = shift;
+    return $self->get_connection_observable->get;
+}
+
+sub get_connection_observable {
+    my $self = shift;
+    return $self->{_connected};
+}
+
+sub get_stdout_observable {
+    my $self = shift;
+    return $self->{_stdout};
+}
+
+sub _print {
+    my ( $self, $data ) = @_;
+    $self->get_stdout_observable->set($data);
+    return;
+}
+
+sub set_mode {
+    my ( $self, $mode ) = @_;
+    $self->get_appmode_observable->set($mode);
+    return;
+}
+
+sub is_mode {
+    my ( $self, $ck_mode ) = @_;
+    my $mode = $self->get_appmode_observable->get;
+    return unless $mode;
+    return 1 if $mode eq $ck_mode;
+    return;
+}
+
+sub get_appmode_observable {
+    my $self = shift;
+    return $self->{_appmode};
+}
+
+sub get_appmode {
+    my $self = shift;
+    return $self->get_appmode_observable->get;
+}
+
+sub set_scrdata_rec {
+    my ( $self, $state ) = @_;
+    $self->get_scrdata_rec_observable->set($state);
+    return;
+}
+
+sub unset_scrdata_rec {
+    my $self = shift;
+    $self->get_scrdata_rec_observable->unset();
+    return;
+}
+
+sub get_scrdata_rec_observable {
+    my $self = shift;
+    return $self->{_scrdata_rec};
+}
+
+sub is_modified {
+    my $self = shift;
+    return $self->get_scrdata_rec_observable->get;
+}
+
+sub is_loaded {
+    my $self = shift;
+    return defined $self->get_scrdata_rec_observable->get;
 }
 
 sub itemdata {
@@ -120,43 +232,12 @@ sub set_query_file {
     return;
 }
 
-sub is_connected {
-    my $self = shift;
-    return $self->get_connection_observable->get;
-}
-
-sub get_connection_observable {
-    my $self = shift;
-    return $self->{_connected};
-}
-
-sub get_stdout_observable {
-    my $self = shift;
-    return $self->{_stdout};
-}
-
-sub set_mode {
-    my ( $self, $mode ) = @_;
-    $self->get_appmode_observable->set($mode);
-    return;
-}
-
 sub is_appmode {
     my ( $self, $ck_mode ) = @_;
     my $mode = $self->get_appmode_observable->get;
     return unless $mode;
     return 1 if $mode eq $ck_mode;
     return;
-}
-
-sub get_appmode_observable {
-    my $self = shift;
-    return $self->{_appmode};
-}
-
-sub get_appmode {
-    my $self = shift;
-    return $self->get_appmode_observable->get;
 }
 
 sub message_status {
@@ -751,6 +832,46 @@ sub parse_sql_text {
 
     return ( $cols_aref, $header_aref, $tables_aref );
 }
+
+# sub db_exception {
+#     my ( $self, $exc, $context ) = @_;
+
+#     $self->logger->debug("# Exception: '$exc'");
+#     $self->logger->debug("# Context: '$context'");
+
+#     if ( my $e = Exception::Base->catch($exc) ) {
+#         if ( $e->isa('Exception::Db::Connect') ) {
+#             my $logmsg  = $e->logmsg;
+#             my $usermsg = $e->usermsg;
+#             Exception::Db::Connect::Auth->throw(
+#                 logmsg  => $e->logmsg,
+#                 usermsg => $e->usermsg,
+#             );    # throw another exception
+#         }
+#         elsif ( $e->isa('Exception::Db::SQL') ) {
+#             my $logmsg  = $e->logmsg;
+#             my $usermsg = $e->usermsg;
+#             $e->throw;    # rethrow the exception
+#         }
+#         else {
+
+#             # Throw other exception
+#             my $message = $self->user_message($exc);
+#             Exception::Db::SQL->throw(
+#                 logmsg  => $message,
+#                 usermsg => $context,
+#             );
+#         }
+#     }
+#     else {
+#         Exception::Db->throw(
+#             logmsg  => $exc,
+#             usermsg => $context,
+#         );
+#     }
+
+#     return;
+# }
 
 1;
 

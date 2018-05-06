@@ -2,16 +2,17 @@ package QDepo::Controller;
 
 # ABSTRACT: The Controller.
 
+use 5.010;
 use strict;
 use warnings;
 
 use Scalar::Util qw(blessed);
 use Locale::TextDomain 1.20 qw(QDepo);
+use Log::Log4perl qw(get_logger :levels);
 use Try::Tiny;
 use QDepo::Config;
 use QDepo::Config::Toolbar;
 use QDepo::Model;
-use QDepo::Exceptions;
 use QDepo::Utils;
 use QDepo::Config::Utils;
 
@@ -38,6 +39,11 @@ sub cfg {
 sub view {
     my $self = shift;
     return $self->{_view};
+}
+
+sub logger {
+    my $self = shift;
+    return get_logger();
 }
 
 sub start {
@@ -348,7 +354,7 @@ sub toggle_interface_controls {
 sub toggle_interface_controls_edit {
     my ( $self, $is_edit ) = @_;
 
-    $self->view->get_control('btn_load')->Enable( !$is_edit );
+    $self->view->get_control('btn_load')->Enable( 0 ); # !$is_edit # TODO: Fix loading!
     $self->view->get_control('btn_defa')->Enable( !$is_edit );
     $self->view->get_control('btn_edit')->Enable( !$is_edit );
     $self->view->get_control('btn_add')->Enable( !$is_edit );
@@ -367,7 +373,7 @@ sub toggle_interface_controls_admin {
     $self->view->toggle_list_enable( 'dlist', !$is_admin );
     $self->toggle_controls_page( 'admin', $is_admin );
 
-    $self->view->get_control('btn_load')->Enable( !$is_admin );
+    $self->view->get_control('btn_load')->Enable( 0 ); # !$is_admin # TODO: Fix loading!
     $self->view->get_control('btn_defa')->Enable( !$is_admin );
     if ($is_admin) {
         $self->view->get_control('btn_edit')->SetLabel( __ '&Save' );
@@ -559,7 +565,7 @@ sub toggle_admin_buttons {
 
     my $enable_defa = $item_sele == $item_defa ? 0 : 1;
     my $enable_load = $item_sele == $item_load ? 0 : 1;
-    $self->view->get_control('btn_load')->Enable($enable_load);
+    $self->view->get_control('btn_load')->Enable( 0 ); # $enable_load # TODO: Fix loading!
     $self->view->get_control('btn_defa')->Enable($enable_defa);
     $self->view->get_control('btn_edit')->Enable;
     return;
@@ -589,7 +595,7 @@ sub populate_info {
         1;
     }
     catch {
-        $self->db_exception( $_, "populate info" );
+        $self->model->db_exception( $_, "populate info" );
         return;    # required!
     }
     finally {
@@ -635,38 +641,67 @@ sub list_add_item {
 }
 
 sub is_connected {
+    say "is_connected";
     my $self = shift;
     unless ( $self->model->is_connected ) {
         try { $self->model->db_connect; 1; }
-        catch {
-            $self->db_connect_auth_exception( $_, "is connected" );
+			catch {
+				die $_ unless eval { $_->isa('QDepo::X') };
+				say "EE:: ", $_->message;
+				say $_->ident;
+				$self->db_exception_connect( $_, "is connected" );
         };
     }
     return $self->model->is_connected;
 }
 
-sub db_connect_auth_exception {
-    my ( $self, $exc, $context ) = @_;
-    if ( my $e = Exception::Base->catch($exc) ) {
-        if ( $e->isa('Exception::Db::Connect::Auth') ) {
-            $self->connect_dialog_loop;
-        }
-        elsif ( $e->isa('Exception::Db::Connect') ) {
-            my $logmsg = $e->usermsg;
-            $self->model->message_log(
-                __x('{ert} {logmsg}',
-                    ert    => 'EE',
-                    logmsg => $logmsg
-                )
-            );
-            $self->view->set_status( __ 'Not connected', 'db', 'red' );
-        }
-    }
+sub db_exception_connect {
+    say "db_exception_connect";
+    my ( $self, $exc ) = @_;
+	if ($_->ident eq 'connect') {
+		say "# Exception::Db::Connect::Auth";
+		$self->connect_dialog_loop;
+	}
+	# elsif ( $e->isa('Exception::Db::Connect') ) {
+	# 	say "# Exception::Db::Connect";
+	# 	my $logmsg = $e->usermsg;
+	# 	$self->model->message_log(
+	# 		__x('{ert} {logmsg}',
+	# 			ert    => 'EE',
+	# 			logmsg => $logmsg
+	# 		)
+	# 	);
+	# 	$self->view->set_status( __ 'Not connected', 'db', 'red' );
+	# }
     return;
 }
 
+# sub db_exception_connect {
+#     say "db_exception_connect";
+#     my ( $self, $exc, $context ) = @_;
+#     if ( my $e = Exception::Base->catch($exc) ) {
+#         if ( $e->isa('Exception::Db::Connect::Auth') ) {
+#             say "# Exception::Db::Connect::Auth";
+#             $self->connect_dialog_loop;
+#         }
+#         elsif ( $e->isa('Exception::Db::Connect') ) {
+#             say "# Exception::Db::Connect";
+#             my $logmsg = $e->usermsg;
+#             $self->model->message_log(
+#                 __x('{ert} {logmsg}',
+#                     ert    => 'EE',
+#                     logmsg => $logmsg
+#                 )
+#             );
+#             $self->view->set_status( __ 'Not connected', 'db', 'red' );
+#         }
+#     }
+#     return;
+# }
+
 sub connect_dialog_loop {
     my $self = shift;
+    say "enter connect_dialog_loop";
     my $error;
     my $conn = $self->cfg->connection;
     if ( blessed $conn) {
@@ -677,7 +712,7 @@ sub connect_dialog_loop {
         );
     }
 
-TRY:
+  TRY:
     while ( not $self->model->is_connected ) {
 
         # Show login dialog if still not connected
@@ -690,29 +725,60 @@ TRY:
 
         # Try to connect only if user and pass are provided
         if ( $self->cfg->user and $self->cfg->pass ) {
-            my $success = try { $self->model->db_connect; 1; }
-            catch {
-                if ( my $e = Exception::Base->catch($_) ) {
-                    if ( $e->isa('Exception::Db::Connect::Auth') ) {
-                        $error = __ 'Wrong user and/or password';
-                    }
-                    elsif ( $e->isa('Exception::Db::Connect') ) {
-                        my $logmsg = $e->usermsg;
-                        $self->model->message_log(
-                            __x('{ert} {logmsg}',
-                                ert    => 'EE',
-                                logmsg => $logmsg
-                            )
-                        );
-                        last TRY;
-                    }
-                }
-                return;    # required!
+            $self->model->target->uri->user($self->cfg->user);
+            $self->model->target->uri->password($self->cfg->pass);
+            my $success = try {
+                $self->model->db_connect;
+                1;
+            }
+				catch {
+					say "EEE: $_";
+                # if ( my $e = Exception::Base->catch($_) ) {
+                #     say "catched! ", $e->usermsg;
+                #     if ( $e->isa('Exception::Db::Connect::Auth') ) {
+                #         say "*** Exception::Db::Connect::Auth";
+                #         $error = __ 'Wrong user and/or password';
+                #     }
+                #     elsif ( $e->isa('Exception::Db::Connect::Sys') ) {
+                #         my $logmsg = $e->usermsg;
+                #         $self->model->message_log(
+                #             __x('{ert} {logmsg}',
+                #                 ert    => 'EE',
+                #                 logmsg => $logmsg
+                #             )
+                #         );
+                #         last TRY;
+                #     }
+                #     elsif ( $e->isa('Exception::Db::Connect') ) {
+                #         my $logmsg = $e->usermsg;
+                #         $self->model->message_log(
+                #             __x('{ert} {logmsg}',
+                #                 ert    => 'EE',
+                #                 logmsg => $logmsg
+                #             )
+                #         );
+                #         last TRY;
+                #     }
+                #     elsif ( $e->isa('Exception::Db') ) {
+                #         my $logmsg = $e->usermsg;
+                #         $self->model->message_log(
+                #             __x('{ert} {logmsg}',
+                #                 ert    => 'EE',
+                #                 logmsg => $logmsg
+                #             )
+                #         );
+                #         last TRY;
+                #     }
+                #     else {
+                #         say "isa Exception...";
+                #     }
+                # }
+                # return;    # required!
             };
             last TRY if $success;
         }
         else {
-            $error = __ 'User and password is required';
+            $error = __ 'User and password are required';
         }
     }
     return;
@@ -795,99 +861,99 @@ sub edit_connections {
     return;
 }
 
-sub db_connect_exception {
-    my ( $self, $exc, $context ) = @_;
-    if ( my $e = Exception::Base->catch($exc) ) {
-        if ( $e->isa('Exception::Db::Connect') ) {
-            my $logmsg  = $e->logmsg;
-            my $usermsg = $e->usermsg;
-            $self->model->message_log(
-                __x('{ert} {usermsg}',
-                    ert     => 'WW',
-                    usermsg => $usermsg,
-                )
-            );
-        }
-        else {
-            $self->model->message_log(
-                __x('{ert} {message}: {details}',
-                    ert     => 'EE',
-                    message => __ 'Unknown error',
-                    details => $_,
-                )
-            );
-        }
-    }
-    return;
-}
+# sub db_connect_exception {
+#     my ( $self, $exc, $context ) = @_;
+#     if ( my $e = Exception::Base->catch($exc) ) {
+#         if ( $e->isa('Exception::Db::Connect') ) {
+#             my $logmsg  = $e->logmsg;
+#             my $usermsg = $e->usermsg;
+#             $self->model->message_log(
+#                 __x('{ert} {usermsg}',
+#                     ert     => 'WW',
+#                     usermsg => $usermsg,
+#                 )
+#             );
+#         }
+#         else {
+#             $self->model->message_log(
+#                 __x('{ert} {message}: {details}',
+#                     ert     => 'EE',
+#                     message => __ 'Unknown error',
+#                     details => $_,
+#                 )
+#             );
+#         }
+#     }
+#     return;
+# }
 
-sub db_exception {
-    my ( $self, $exc, $context ) = @_;
-    if ( my $e = Exception::Base->catch($exc) ) {
-        if ( $e->isa('Exception::Db::Connect') ) {
-            my $logmsg  = $e->logmsg;
-            my $usermsg = $e->usermsg;
-            $self->model->message_log(
-                __x('{ert} {usermsg}',
-                    ert     => 'WW',
-                    usermsg => $usermsg,
-                )
-            );
-        }
-        elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
-            ( my $logmsg = $e->logmsg ) =~ s{\n}{\ }xm;
-            $self->model->message_log(
-                __x('{ert} {message}: {details}',
-                    ert     => 'WW',
-                    message => $e->usermsg,
-                    details => $logmsg,
-                )
-            );
-        }
-        elsif ( $e->isa('Exception::Db::SQL::NoObject') ) {
-            $self->model->message_log(
-                __x('{ert} {message}',
-                    ert     => 'EE',
-                    message => $e->usermsg,
-                )
-            );
-        }
-        else {
-            $self->model->message_log(
-                __x('{ert} {message}: {details}',
-                    ert     => 'EE',
-                    message => __ 'Unknown error',
-                    details => $_,
-                )
-            );
-        }
-    }
-    return;
-}
+# sub db_exception {
+#     my ( $self, $exc, $context ) = @_;
+#     if ( my $e = Exception::Base->catch($exc) ) {
+#         if ( $e->isa('Exception::Db::Connect') ) {
+#             my $logmsg  = $e->logmsg;
+#             my $usermsg = $e->usermsg;
+#             $self->model->message_log(
+#                 __x('{ert} {usermsg}',
+#                     ert     => 'WW',
+#                     usermsg => $usermsg,
+#                 )
+#             );
+#         }
+#         elsif ( $e->isa('Exception::Db::SQL::Parser') ) {
+#             ( my $logmsg = $e->logmsg ) =~ s{\n}{\ }xm;
+#             $self->model->message_log(
+#                 __x('{ert} {message}: {details}',
+#                     ert     => 'WW',
+#                     message => $e->usermsg,
+#                     details => $logmsg,
+#                 )
+#             );
+#         }
+#         elsif ( $e->isa('Exception::Db::SQL::NoObject') ) {
+#             $self->model->message_log(
+#                 __x('{ert} {message}',
+#                     ert     => 'EE',
+#                     message => $e->usermsg,
+#                 )
+#             );
+#         }
+#         else {
+#             $self->model->message_log(
+#                 __x('{ert} {message}: {details}',
+#                     ert     => 'EE',
+#                     message => __ 'Unknown error',
+#                     details => $_,
+#                 )
+#             );
+#         }
+#     }
+#     return;
+# }
 
 sub io_exception {
     my ( $self, $exc, $context ) = @_;
-    if ( my $e = Exception::Base->catch($_) ) {
-        if ( $e->isa('Exception::IO::WriteError') ) {
-            $self->model->message_log(
-                __x('{ert} Save failed: {message} ({filename})',
-                    ert      => 'EE',
-                    message  => $e->message,
-                    filename => $e->filename,
-                )
-            );
-        }
-    }
-    elsif ( $e->isa('Exception::IO::PathExists') ) {
-        $self->model->message_log(
-            __x('{ert} {message}: "{pathname}"',
-                ert      => 'EE',
-                message  => $e->message,
-                pathname => $e->pathname,
-            )
-        );
-    }
-    else {
+    # if ( my $e = Exception::Base->catch($_) ) {
+    #     if ( $e->isa('Exception::IO::WriteError') ) {
+    #         $self->model->message_log(
+    #             __x('{ert} Save failed: {message} ({filename})',
+    #                 ert      => 'EE',
+    #                 message  => $e->message,
+    #                 filename => $e->filename,
+    #             )
+    #         );
+    #     }
+    # }
+    # elsif ( $e->isa('Exception::IO::PathExists') ) {
+    #     $self->model->message_log(
+    #         __x('{ert} {message}: "{pathname}"',
+    #             ert      => 'EE',
+    #             message  => $e->message,
+    #             pathname => $e->pathname,
+    #         )
+    #     );
+    # }
+    # else {
         $self->model->message_log(
             __x('{ert} {message} {error}',
                 ert     => 'EE',
@@ -895,7 +961,7 @@ sub io_exception {
                 error   => $_,
             )
         );
-    }
+    # }
     return;
 }
 

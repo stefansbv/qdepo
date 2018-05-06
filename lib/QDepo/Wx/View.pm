@@ -657,7 +657,7 @@ sub _build_ctrls_conn {
     #-- Controls
 
     my $conn_lbl1 = Wx::StaticText->new( $page, -1, __ 'Driver', );
-    my @drivers = (qw{firebird sqlite cubrid postgresql mysql});
+    my @drivers = (qw{firebird sqlite postgresql mysql});
     $self->{driver} = Wx::ComboBox->new(
         $page, -1, q{},
         [ -1,  -1 ],
@@ -689,8 +689,8 @@ sub _build_ctrls_conn {
     my $conn_mid_fgs = Wx::FlexGridSizer->new( 4, 2, 5, 10 );
     $conn_mid_fgs->AddGrowableCol( 1, 1 );
 
-    $conn_mid_fgs->Add( $conn_lbl1,      0, wxTOP | wxLEFT, 5 );
-    $conn_mid_fgs->Add( $self->{driver}, 1, wxLEFT,         0 );
+    $conn_mid_fgs->Add( $conn_lbl1,      0, wxLEFT, 5 );
+    $conn_mid_fgs->Add( $self->{driver}, 0, wxLEFT,         0 );
 
     $conn_mid_fgs->Add( $conn_lbl2,    0, wxLEFT,   5 );
     $conn_mid_fgs->Add( $self->{host}, 0, wxEXPAND, 0 );
@@ -884,8 +884,8 @@ sub set_status {
 sub toggle_status_cn {
     my ( $self, $status ) = @_;
     if ($status) {
-        my $user = $self->cfg->connection->user || q{};
-        my $db = $self->cfg->connection->dbname;
+        my $user = $self->cfg->user || q{};
+        my $db   = $self->cfg->connection->{dbname};
         return unless $db;
         $db =~ s{\A                          # from the start of the string
                     .*                       # replace anything
