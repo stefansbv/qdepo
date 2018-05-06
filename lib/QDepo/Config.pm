@@ -2,6 +2,7 @@ package QDepo::Config;
 
 # ABSTRACT: The QDepo configuration module
 
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -13,7 +14,7 @@ use File::Spec::Functions qw(catdir catfile canonpath);
 use File::Slurp;
 use Try::Tiny;
 use Locale::TextDomain 1.20 qw(QDepo);
-use QDepo::Config::Connection;
+use Log::Log4perl qw(get_logger :levels);
 use QDepo::Config::Utils;
 use QDepo::Exceptions;
 
@@ -32,6 +33,11 @@ sub _new_instance {    ## no critic (ProhibitUnusedPrivateSubroutines)
     $self->load_main_config($args);
 
     return $self;
+}
+
+sub logger {
+    my $self = shift;
+    return get_logger();
 }
 
 sub init_configurations {
@@ -61,6 +67,11 @@ sub init_configurations {
         or defined( $args->{init} )
         or $args->{default} );
     $self->mnemonic( $args->{mnemonic} );
+
+    # Log init, can't do before we know the application config path
+    my $log_fqn = catfile( $configpath, 'etc', 'log.conf' );
+    Log::Log4perl->init($log_fqn) if -f $log_fqn;
+    $self->logger->debug("# Log config file: '$log_fqn'");
 
     return;
 }
@@ -122,20 +133,15 @@ sub connection {
         message  => 'No such file',
     ) unless -f $connection_yml;
 
-    my $connection_data;
+    my $conn;
     if ( -f $connection_yml ) {
-        $connection_data = $self->config_data_from($connection_yml);
+        $conn = $self->config_data_from($connection_yml);
     }
     else {
         print "Connection config not found: $connection_yml\n";
     }
 
-    my $conn
-        = QDepo::Config::Connection->new( $connection_data->{connection} );
-    $conn->user( $self->user );
-    $conn->pass( $self->pass );
-
-    return $conn;
+    return $conn->{connection};
 }
 
 sub qdfpath {

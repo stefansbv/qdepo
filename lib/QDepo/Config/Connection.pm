@@ -1,58 +1,158 @@
 package QDepo::Config::Connection;
 
-# ABSTRACT: Database connection data
+# ABSTRACT: Make URI from connection file
 
+use 5.010001;
 use Mouse;
-use Locale::TextDomain 1.20 qw(QDepo);
+use Try::Tiny;
+use URI::db;
 
-has 'dbname' => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
+use QDepo::Config;
+
+has 'config' => (
+    is      => 'ro',
+    isa     => 'QDepo::Config',
+    lazy    => 1,
+    default => sub {
+        return QDepo::Config->instance;
+    },
+);
+
+has 'connection' => (
+    is      => 'ro',
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        my $conn = $self->config->connection;
+        $conn->{user} = $self->config->user; # add the user and pass to
+        $conn->{pass} = $self->config->pass; #  the connection options
+        return $conn;
+    },
+);
+
+has 'uri' => (
+    is  => 'rw',
+    isa => 'Str',
 );
 
 has 'driver' => (
-    is       => 'ro',
-    isa      => 'Str',
-    required => 1,
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->uri_db->engine;
+    },
 );
 
 has 'host' => (
-    is       => 'ro',
-    isa      => 'Str',
-    default  => sub { 'localhost' },
+    is      => 'ro',
+    isa     => 'Maybe[Str]',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->uri_db->host;
+    },
+);
+
+has 'dbname' => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->uri_db->dbname;
+    },
 );
 
 has 'port' => (
-    is       => 'ro',
-    isa      => 'Maybe[Str]',
-    required => 0,
-    lazy     => 1,
+    is      => 'ro',
+    isa     => 'Maybe[Str]',
+    lazy    => 1,
     default => sub {
-        my $self       = shift;
-        my $driver = $self->driver;
-        my $port
-            = $driver eq q{firebird}   ? 3050
-            : $driver eq q{postgresql} ? 5432
-            : $driver eq q{mysql}      ? 3306
-            : $driver eq q{cubrid}     ? 30000
-            : $driver eq q{sqlite}     ? undef
-            :                            undef;
-            return  $port;
-        },
+        my $self = shift;
+        return $self->uri_db->port;
+    },
 );
 
 has 'user' => (
+    is      => 'ro',
+    isa     => 'Maybe[Str]',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return $self->uri_db->user;
+    },
+);
+
+has 'role' => (
     is  => 'rw',
     isa => 'Maybe[Str]',
 );
 
-has 'pass' => (
-    is  => 'rw',
-    isa => 'Maybe[Str]',
+has 'uri_db' => (
+    is      => 'ro',
+    isa     => 'URI::db',
+    lazy    => 1,
+    builder => '_build_uri',
 );
+
+sub _build_uri {
+    my $self = shift;
+    my $conn = $self->connection;
+    my $uri  = URI::db->new;
+    $uri->engine( $conn->{driver} );
+    $uri->dbname( $conn->{dbname} );
+    $uri->host( $conn->{host} )     if $conn->{host};
+    $uri->port( $conn->{port} )     if $conn->{port};
+    $uri->user( $conn->{user} )     if $conn->{user};
+    $uri->password( $conn->{pass} ) if $conn->{pass};
+
+    # Workaround to add a role param
+    if ( my $role = $conn->{role} ) {
+        my $str = $uri->as_string;
+        $uri = URI::db->new("$str?ib_role=$role");
+        $self->role($role);
+    }
+    $self->uri( $uri->as_string );
+    return $uri;
+}
 
 __PACKAGE__->meta->make_immutable;
-no Mouse;
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 Synopsis
+
+
+=head1 Description
+
+
+=head1 Interface
+
+=head2 Attributes
+
+=item3 config
+
+=item3 connection
+
+=item3 uri
+
+=item3 host
+
+=item3 dbname
+
+=item3 port
+
+=item3 user
+
+=item3 role
+
+=head2 Instance Methods
+
+=cut
